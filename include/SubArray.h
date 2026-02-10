@@ -1,0 +1,101 @@
+#ifndef SUBARRAY_H_
+#define SUBARRAY_H_
+
+#include "FunctionUnit.h"
+#include "RowDecoder.h"
+#include "Precharger.h"
+#include "SenseAmp.h"
+#include "Mux.h"
+#include "Wire.h"
+#include "typedef.h"
+
+class SubArray: public FunctionUnit {
+public:
+	SubArray() {
+                initialized = false;
+                invalid = false;
+        }
+	SubArray(const SubArray&) {}
+	virtual ~SubArray() {}
+
+	/* Functions */
+	void PrintProperty();
+	void Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,
+			int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2,
+			BufferDesignTarget _areaOptimizationLevel, std::shared_ptr<InputParameter> InputParameter,
+                        std::shared_ptr<Wire> _localWire);
+	void CalculateArea();
+	//void CalculateRC();
+	void CalculateLatency(double _rampInput);
+	void CalculatePower();
+	SubArray & operator=(const SubArray &);
+        std::unique_ptr<FunctionUnit> clone() const override {
+                return std::make_unique<SubArray>(*this);
+        }
+
+	/* Properties */
+	bool initialized;	/* Initialization flag */
+	bool invalid;		/* Indicate that the current configuration is not valid, pass down to all the sub-components */
+	bool internalSenseAmp; /* Indicate whether sense amp is within subarray */
+	long long numRow;			/* Number of rows */
+	long long numColumn;		/* Number of columns */
+	bool multipleRowPerSet;		/* For cache design, whether a set is partitioned into multiple wordlines */
+	bool split;			/* Whether the row decoder is at the middle of subarrays */
+	int muxSenseAmp;	/* How many bitlines connect to one sense amplifier */
+	int muxOutputLev1;	/* How many sense amplifiers connect to one output bit, level-1 */
+	int muxOutputLev2;	/* How many sense amplifiers connect to one output bit, level-2 */
+	BufferDesignTarget areaOptimizationLevel;
+
+	bool voltageSense;	/* Whether the sense amplifier is voltage-sensing */
+	double senseVoltage;/* Minimum sensible voltage */
+	double voltagePrecharge;
+	long long numSenseAmp;	/* Number of sense amplifiers */
+	double lenWordline;	/* Length of wordlines, Unit: m */
+	double lenBitline;	/* Length of bitlines, Unit: m */
+	double capWordline;	/* Wordline capacitance, Unit: F */
+	double capBitline;	/* Bitline capacitance, Unit: F */
+	double resWordline;	/* Wordline resistance, Unit: ohm */
+	double resBitline;	/* Bitline resistance, Unit: ohm */
+	double resCellAccess; /* Resistance of access device, Unit: ohm */
+	double capCellAccess; /* Capacitance of access device, Unit: ohm */
+	double resMemCellOff;  /* HRS resistance, Unit: ohm */
+	double resMemCellOn;   /* LRS resistance, Unit: ohm */
+	double voltageMemCellOff; /* Voltage drop on HRS during read operation, Unit: V */
+	double voltageMemCellOn;   /* Voltage drop on LRS druing read operation, Unit: V */
+	double resInSerialForSenseAmp; /* Serial resistance of voltage-in voltage sensing as a voltage divider, Unit: ohm */
+	double resEquivalentOn;          /* resInSerialForSenseAmp in parallel with resMemCellOn, Unit: ohm */
+	double resEquivalentOff;          /* resInSerialForSenseAmp in parallel with resMemCellOn, Unit: ohm */
+	double bitlineDelay;	/* Bitline delay, Unit: s */
+	double chargeLatency;	/* The bitline charge delay during write operations, Unit: s */
+	double columnDecoderLatency;	/* The worst-case mux latency, Unit: s */
+	double bitlineDelayOn;  /* Bitline delay of LRS, Unit: s */
+	double bitlineDelayOff; /* Bitline delay of HRS, Unit: s */
+
+
+
+	//Array size vs. Accuracy tradeoff
+	double SenseTime;
+	double Basetau;
+	double ArrayWidth;
+	double MLWindow;
+	double resTotalCell;
+	double BaseResTotalCell;
+	double BaseSenseTime;
+	double tau;
+	double MatchlineSenseMargin;
+
+	
+	std::shared_ptr<RowDecoder>	rowDecoder;
+	std::shared_ptr<RowDecoder>	bitlineMuxDecoder;
+	std::shared_ptr<Mux>		bitlineMux;
+	std::shared_ptr<RowDecoder>	senseAmpMuxLev1Decoder;
+	std::shared_ptr<Mux>		senseAmpMuxLev1;
+	std::shared_ptr<RowDecoder>	senseAmpMuxLev2Decoder;
+	std::shared_ptr<Mux>		senseAmpMuxLev2;
+	std::shared_ptr<Precharger>	precharger;
+	std::shared_ptr<SenseAmp>	senseAmp;
+
+        std::shared_ptr<Wire> localWire;
+};
+
+#endif /* SUBARRAY_H_ */

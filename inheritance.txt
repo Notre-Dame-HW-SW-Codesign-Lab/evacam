@@ -1,0 +1,36 @@
+FunctionUnit 
+    Bank 
+        BankWithHtree 
+        BankWithoutHtr ee
+    RowDecoder 
+        CAM_RowNand 
+    Precharger 
+        CAM_Precharger 
+    CAM_LevelShifter 
+    CAM_InputEncoder 
+    SubArray 
+    CAM_SubArray 
+    SenseAmp 
+    CAM_SenseAmp 
+    Mux 
+    Mat 
+    Comparator 
+    OutputDriver 
+    CAM_DataBuffer 
+    CAM_Controller 
+    CAM_OutputAccumulator 
+    CAM_MMR 
+    CAM_BasicMMR 
+    PredecodeBlock 
+    CAM_PriorityEncoder 
+    CAM_BasicEncoder 
+    CAM_Encoder 
+    BasicDecoder 
+Result 
+    CAM_Result
+InputParameter 
+Technology 
+Wire 
+CAM_Line 
+MemCell 
+    CAM_MemCell 
