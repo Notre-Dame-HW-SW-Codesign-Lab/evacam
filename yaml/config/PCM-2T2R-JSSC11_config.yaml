@@ -1,16 +1,16 @@
-# 2FeFET-TCAM System Configuration
+# PCM-2T2R-JSSC11 System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
-  search_function: BE
-  process_node: 45nm
+  search_function: EX
+  process_node: 90nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./yaml/cell/2FeFET_TCAM_cell.yaml
-  capacity: 512B
+  cell_file: ./yaml/cell/PCM-2T2R-JSSC11_cell.yaml
+  capacity: 128KB
   word_width: 64bits
 
 routing:
@@ -18,14 +18,14 @@ routing:
 
 peripherals:
   input:
-    buffer: false
+    buffer: true
     encoder: false
     custom_encoder: false
   output:
     buffer: false
     priority_encoder: false
     accumulator: false
-  write_driver: true
+  write_driver: false
 
 sensing:
   internal: true
@@ -33,15 +33,15 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: LeakagePower  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: ReadLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
 
 wires:
   local:
-    type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
-                              #          SemiConservative, GlobalAggressive, GlobalConservative
+    type: LocalAggressive   # options: LocalAggressive, LocalConservative, SemiAggressive,
+                          #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
   global:
@@ -51,15 +51,15 @@ wires:
 
 array:
   banks:
-    total: [1, 1]    # AxB
-    active: [1, 1]   # CxD
+    total: [4, 2]    # AxB
+    active: [4, 2]   # CxD
   mats:
-    total: [1, 1]
-    active: [1, 1]
+    total: [2, 2]
+    active: [2, 2]
   mux:
     sense_amp: 1
-    output_level1: 1  # for write only
+    output_level1: 8  # for write only
     output_level2: 1  # for write only
 
-matchline:
-  additional_cap: 6fF
+extra:
+  "InputEncType": encoding_two_bit

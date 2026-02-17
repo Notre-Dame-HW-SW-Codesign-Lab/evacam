@@ -168,10 +168,10 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 
 
 	/* Caculate the CAM cell resistance and capaciatence on the matchline. */
-	indexMatchline = 10;
+	indexMatchline = -1;
 	for(int i=0;i<inputParameter->cell->camNumCol;i++){
-		indexMatchline = i;
 		if (Col[i]->CellPort.Type == Matchline || Col[i]->CellPort.Type == Matchline_Bitline) {
+			indexMatchline = i;
 			if(Col[i]->CellPort.ConnectedRegion == gate){
 				invalid = true;
 				std::cout << "[Warning]: Impractical matchline connection (gate)." << std::endl;
@@ -208,8 +208,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 					}
 				}
 			}else if(Col[i]->CellPort.ConnectedRegion == diode){
-				indexMatchline = i; 
-				if(Col[i]->CellPort.isNMOS){
+			if(Col[i]->CellPort.isNMOS){
 					if(inputParameter->cell->isNVMdischarge){
 						resMemCellOff = (inputParameter->tech->vdd / inputParameter->tech->currentOffNmos[inputParameter->temperature - 300]/ inputParameter->tech->featureSize / Col[i]->CellPort.widthCmos*Col[i]->CellPort.numCmos/2
 		                			     + inputParameter->cell->resistanceOff)/2;
@@ -274,7 +273,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 	// 	return;
 	// }
 
-	if(indexMatchline == 10) {
+	if(indexMatchline < 0) {
 		invalid = true;
 		std::cout <<"[CAM_SubArray] Error: no matchline found." <<std::endl;
 		return;

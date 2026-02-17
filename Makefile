@@ -12,6 +12,7 @@ CONFIG_DIR=$(ROOT_DIR)/config
 CONFIG_SELECT_FILE=$(ROOT_DIR)/config.txt
 
 BIN=EvaCAM
+TEST_YAML_BIN=YamlHelpersTest
 
 # Automatically find all CPP files in the source directory
 SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
@@ -34,9 +35,14 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CPP_FLAGS) -c $< -o $@
 
+.PHONY: test-yaml
+test-yaml:
+	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/YamlHelpers.cpp src/MemCell.cpp $(LD_LIBS)
+	./$(TEST_YAML_BIN)
+
 .PHONY: clean
 clean:
-	@rm -r $(OBJ_DIR) $(RES_DIR) $(BIN)
+	@rm -r $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN)
 
 run: $(BIN)
 	@mkdir -p $(RES_DIR)
@@ -50,27 +56,25 @@ run: $(BIN)
 
 test: $(BIN)
 	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_TCAM_config.yaml
-	#valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM.cfg
-	#valgrind $(VALGRIND_FLAGS) ./EvaCAM config/8T-BCAM/8T-BCAM_65nm.cfg
 
 test-all-valgrind: $(BIN)
 # pass valgrind
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/10T-BCAM/10T-BCAM_28nm.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/16T-TCAM/SRAM_16T_28nm.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/16T-TCAM/SRAM-16T-ESSCIRC15.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/8T-BCAM/8T-BCAM_65nm.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-4T2R/MRAM-4T2R-VLSIC12.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/PCM-2T2R/PCM-2T2R-JSSC11.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2.5T1R/ReRAM-2.5T1R-ISSCC16.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R/ReRAM-2T2R.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-3T1R/ReRAM-3T1R-ISSCC15.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/FeFET-2Fe1T/FeFET-2Fe1T-DATE-2021.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-4T2R/ReRAM-4T2R-VLSIC14.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM_2T2R/MRAM-2T2R-ASPDAC12.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-6T2R/MRAM-6T2R-VLSIC11.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R/ReRAM-2T2R-VLSI21.cfg > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_MCAM/2FeFET_MCAM.cfg > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_TCAM_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/10T-BCAM_28nm_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/SRAM_16T_28nm_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/SRAM-16T-ESSCIRC15_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/8T-BCAM_65nm_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/MRAM-4T2R-VLSIC12_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/PCM-2T2R-JSSC11_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-2.5T1R-ISSCC16_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-2T2R_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-3T1R-ISSCC15_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/FeFET-2Fe1T-DATE-2021_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-4T2R-VLSIC14_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/MRAM-2T2R-ASPDAC12_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/MRAM-6T2R-VLSIC11_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-2T2R-VLSI21_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_MCAM_config.yaml > /dev/null
 
 # the following takes 15 mins to pass valgrind, runs much faster without valgrind turned on
-#valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE.cfg > /dev/null
+#valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_TCAM_DSE_config.yaml > /dev/null

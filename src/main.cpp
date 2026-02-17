@@ -27,6 +27,7 @@
 #include "../include/macros.h"
 #include "../include/CAM_Result.h"
 #include "../include/global.h"
+#include "../include/ResultsYaml.h"
 
 // Define the verbose boolean
 bool verbose = false;
@@ -41,6 +42,7 @@ int main(int argc, char *argv[]) {
 
         std::string_view arg;
         std::string inputFileName;
+        std::string outputYamlFileName;
         int threads = omp_get_num_procs();
         bool deepExploration = false;
         
@@ -72,6 +74,13 @@ int main(int argc, char *argv[]) {
                 } else if (arg == "-d" || arg == "--deep-exploration") {
                         deepExploration = true;
 
+                } else if (arg == "-o" || arg == "--output") {
+                        if (i + 1 >= argc) {
+                                std::cerr << "Missing output file after " << arg << std::endl;
+                                usage(1);
+                        }
+                        outputYamlFileName = std::string(argv[++i]);
+
                 } else if (i == argc - 1) {
                         inputFileName = std::string(argv[argc - 1]);
 
@@ -86,6 +95,20 @@ int main(int argc, char *argv[]) {
                 std::cout << "Config file: " << inputFileName << " does not exist." << std::endl;
                 usage(1);
         }
+        if (outputYamlFileName.empty()) {
+                std::filesystem::path inputPath(inputFileName);
+                std::string base = inputPath.stem().string();
+                const std::string suffix1 = "_config";
+                const std::string suffix2 = "-config";
+                if (base.size() > suffix1.size() &&
+                    base.compare(base.size() - suffix1.size(), suffix1.size(), suffix1) == 0) {
+                        base.resize(base.size() - suffix1.size());
+                } else if (base.size() > suffix2.size() &&
+                           base.compare(base.size() - suffix2.size(), suffix2.size(), suffix2) == 0) {
+                        base.resize(base.size() - suffix2.size());
+                }
+                outputYamlFileName = (std::filesystem::path("results") / (base + "_results.yaml")).string();
+        }
 
         omp_set_num_threads(threads);
 
@@ -93,6 +116,7 @@ int main(int argc, char *argv[]) {
 
         // Wrapped entire main function in a try catch statement to allow easy use of exceptions
         // TODO: Should be reworked to not have literally everything aside from cli args in the same try block
+    int exitCode = 0;
     try {
         /* Read input files */
 	auto inputParameter = std::make_shared<InputParameter>();
@@ -188,9 +212,13 @@ int main(int argc, char *argv[]) {
 		else                                temp << "_CUR";
 
 		temp << ".csv";
-		outputFileName = temp.str();
-		outputFile.open(outputFileName.c_str(), std::ofstream::app);
-	}
+			outputFileName = temp.str();
+                        std::filesystem::path csvPath(outputFileName);
+                        if (!csvPath.parent_path().empty()) {
+                                std::filesystem::create_directories(csvPath.parent_path());
+                        }
+			outputFile.open(outputFileName.c_str(), std::ofstream::app);
+		}
 
 	applyConstraint(inputParameter);
 	//int numRowMat, numColumnMat, numActiveMatPerRow, numActiveMatPerColumn;
@@ -962,6 +990,28 @@ int main(int argc, char *argv[]) {
 
 	if (outputFile.is_open())
 		outputFile.close();
+
+        {
+                std::filesystem::path outPath(outputYamlFileName);
+                if (!outPath.parent_path().empty()) {
+                        std::filesystem::create_directories(outPath.parent_path());
+                }
+                std::ofstream yamlOut(outputYamlFileName);
+                if (!yamlOut) {
+                        throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
+                }
+                if (numSolution <= 0) {
+                        WriteResultsYamlNoSolutions(yamlOut);
+                } else if (inputParameter->optimizationTarget == full_exploration) {
+                        std::vector<std::shared_ptr<Result>> results;
+                        results.reserve((int)full_exploration);
+                        for (int i = 0; i < (int)full_exploration; i++)
+                                results.push_back(bestDataResults[i]);
+                        WriteResultsYamlMulti(yamlOut, results);
+                } else {
+                        WriteResultsYaml(yamlOut, *bestDataResults[inputParameter->optimizationTarget]);
+                }
+        }
     
     } catch (const YAML::Exception& e) {
 
@@ -976,12 +1026,14 @@ int main(int argc, char *argv[]) {
         } else {
             std::cerr << "YAML error: " << e.what() << "\n";
         }
+        exitCode = 1;
 
     } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
+            exitCode = 1;
     }
 
-        return 0;
+        return exitCode;
 }
 
 void usage(int exit_code) {
@@ -991,6 +1043,7 @@ void usage(int exit_code) {
         std::cout << "  -t, --threads N           Number of parallel threads (default: all cores)"  << std::endl;
         std::cout << "  -v, --verbose             Enable verbose output"                            << std::endl;
         std::cout << "  -d, --deep-exploration    Test more options when performing optimization"   << std::endl;
+        std::cout << "  -o, --output FILE         YAML output file (default: results/<cfg>_results.yaml)" << std::endl;
         std::cout << "  -h, --help                Show this help and exit"                          << std::endl;
 
         std::exit(exit_code);

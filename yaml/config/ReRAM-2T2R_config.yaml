@@ -1,30 +1,30 @@
-# 2FeFET-TCAM System Configuration
+# ReRAM-2T2R System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
-  search_function: BE
-  process_node: 45nm
+  search_function: EX
+  process_node: 40nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./yaml/cell/2FeFET_TCAM_cell.yaml
-  capacity: 512B
-  word_width: 64bits
+  cell_file: ./yaml/cell/ReRAM-2T2R_cell.yaml
+  capacity: 1KB
+  word_width: 32bits
 
 routing:
   type: H-tree
 
 peripherals:
   input:
-    buffer: false
-    encoder: false
+    buffer: true
+    encoder: true
     custom_encoder: false
   output:
-    buffer: false
+    buffer: true
     priority_encoder: false
-    accumulator: false
+    accumulator: true
   write_driver: true
 
 sensing:
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: LeakagePower  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: WriteDynamicEnergy  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
@@ -41,7 +41,7 @@ optimization:
 wires:
   local:
     type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
-                              #          SemiConservative, GlobalAggressive, GlobalConservative
+                          #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
   global:
@@ -57,9 +57,6 @@ array:
     total: [1, 1]
     active: [1, 1]
   mux:
-    sense_amp: 1
+    sense_amp: 8
     output_level1: 1  # for write only
     output_level2: 1  # for write only
-
-matchline:
-  additional_cap: 6fF

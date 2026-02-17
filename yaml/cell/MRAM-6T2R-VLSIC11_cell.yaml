@@ -1,0 +1,156 @@
+# MRAM-6T2R-VLSIC11 Cell Configuration
+# Memory cell definition
+
+cell:
+  name: MRAM-6T2R-VLSIC11
+  type: MRAM
+  process_node: 90nm
+  area: 1277.7F^2
+  aspect_ratio: 1.09
+access_device:
+  type: diode
+  cmos_width: 7.5F
+  voltage_drop: 0.15V
+resistance:
+  'on': 1100ohm
+  'off': 3000ohm
+read:
+  mode: voltage
+  voltage: 1.2V
+  power: 16.5uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ
+multilevel:
+  enabled: false
+match:
+  cmos_width: 10F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 15F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 1.2V
+        search1: 0V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 15F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 1.2V
+    2:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 25F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 1.2V
+        search0: 0V
+        search1: 0V
+    3:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 25F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 1.2V
+        search0: 0V
+        search1: 0V
+  column:
+    0:
+      type: matchline
+      cmos_region: diode
+      num_cmos: 1
+      cmos_width: 2F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    1:
+      type: bitline
+      cmos_region: drain
+      num_cmos: 2
+      cmos_width: 25F
+      is_nmos: true
+      wire_width: 6F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    2:
+      type: bitline
+      cmos_region: none
+      num_cmos: 0
+      cmos_width: 0F
+      is_nmos: true
+      wire_width: 6F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 1.2V
+        search0: 0V
+        search1: 0V
+    3:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 2
+      cmos_width: 2F
+      is_nmos: false
+      wire_width: 1F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 1.2V
+        search0: 0V
+        search1: 0V
+    4:
+      type: bitline
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 0F
+      is_nmos: false
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 1.2V
+        search1: 1.2V

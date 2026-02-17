@@ -1,0 +1,104 @@
+# WARNING: REFERENCE INPUT ONLY.
+# This file intentionally contains nonsense/example values that do NOT map to a real device.
+# DO NOT run EvaCAM with this file for any legitimate analysis or published results.
+# This file exists only to show supported/expected input fields in one place.
+
+design: # map
+  target: CAM # enum: CAM
+  search_function: EX # enum: EX | BE | TH
+  process_node: 40nm # units: m | cm | mm | um | nm
+  device_roadmap: HP # enum: HP | LSTP | LOP | FEFET | LP
+  temperature: 350K # units: K
+
+memory: # map
+  cell_file: ./yaml/cell/example_full_cell.yaml # string path
+  capacity: 8KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb)
+  word_width: 256bits # units: bit | bits
+
+routing: # map
+  type: H-tree # enum: H-tree | non_h_tree
+
+peripherals: # map
+  input: # map
+    buffer: true # bool
+    encoder: false # bool
+    custom_encoder: false # bool
+  output: # map
+    buffer: true # bool
+    priority_encoder: true # bool
+    accumulator: false # bool
+  write_driver: true # bool
+
+sensing: # map
+  internal: true # bool
+  amplifier_type: nvsim_vol # enum: nvsim_vol | nvsim_cur | self_clock | dual_the | discharge
+  custom_sense_amp: false # bool
+
+optimization: # map
+  target: ReadLatency # enum: ReadLatency | WriteLatency | ReadDynamicEnergy | WriteDynamicEnergy | ReadEDP | WriteEDP | LeakagePower | Area | SearchLatency | SearchEnergy | SearchEDP | Exploration
+  buffer_design: latency # enum: latency | area | balance
+  row_driver: latency # enum: latency | area | balance
+  priority_encoder: latency # enum: latency | area | balance
+
+wires: # map
+  local: # map
+    type: LocalAggressive # enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
+    repeater: RepeatedNone # enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
+    low_swing: false # bool
+  global: # map
+    type: GlobalAggressive # enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
+    repeater: RepeatedNone # enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
+    low_swing: false # bool
+
+array: # map
+  banks: # map
+    total: [1, 1] # [int, int]
+    active: [1, 1] # [int, int]
+  mats: # map
+    total: [1, 8] # [int, int]
+    active: [1, 8] # [int, int]
+  mux: # map
+    sense_amp: 1 # int
+    output_level1: 8 # int
+    output_level2: 1 # int
+
+matchline: # optional map
+  additional_cap: 0fF # units: F | mF | uF | nF | pF | fF
+
+# Optional reference-only fields for extended/legacy compatibility discussions.
+constraints: # optional map (proposed)
+  enabled: false # bool
+  read_latency: 1e41s # units: s | ms | us | ns | ps | fs
+  write_latency: 1e41s # units: s | ms | us | ns | ps | fs
+  read_dynamic_energy: 1e41J # units: J | mJ | uJ | nJ | pJ | fJ
+  write_dynamic_energy: 1e41J # units: J | mJ | uJ | nJ | pJ | fJ
+  leakage: 1e41W # units: W | mW | uW | nW | pW
+  area: 1e41m^2 # units: m^2 (proposed)
+  read_edp: 1e41 # scalar (proposed)
+  write_edp: 1e41 # scalar (proposed)
+
+advanced: # optional map (proposed)
+  max_nmos_size: 10F # units: F (feature-size multiple)
+  use_cacti_assumption: false # bool
+  enable_pruning: false # bool
+  bit_serial_width: 256bits # units: bit | bits
+  custom_sa_input_file: ./models/custom_sa.yaml # string path
+  use_updated_lib: false # bool
+  exclude_precharge_latency: false # bool
+  include_leakage: false # bool
+  scaled_voltage: 1.0 # scalar
+
+cache: # optional map (proposed)
+  associativity: 1 # int
+  access_mode: normal # enum: normal | fast | sequential
+  write_scheme: normal_write # enum: normal_write | set_before_reset | reset_before_set | erase_before_set | erase_before_reset | write_and_verify
+
+flash: # optional map (proposed)
+  page_size: 4KB # units: B | Byte | KB | MB | GB
+  block_size: 256KB # units: B | Byte | KB | MB | GB
+
+extra: # optional map
+  real_capacity: 9KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb)
+  output_file_prefix: output # string
+  worst_case_sense_margin: 30mV # units: V | mV
+  max_driver_current: 0uA # units: A | mA | uA | nA | pA

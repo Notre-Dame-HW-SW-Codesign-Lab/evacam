@@ -1,0 +1,270 @@
+#include "../include/YamlHelpers.h"
+#include "../include/MemCell.h"
+
+#include <cassert>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+
+using namespace YamlHelpers;
+
+enum class MyEnum { Foo, Bar };
+
+static void test_basic_read() {
+    const YAML::Node n = YAML::Load("root:\n  value: 42\n  text: hello\n  flag: true\n");
+    auto root = YamlHelpers::child_required(n, "root");
+    int value = YamlHelpers::read_required<int>(root, "value");
+    std::string text = YamlHelpers::read_required<std::string>(root, "text");
+    bool flag = YamlHelpers::read_required<bool>(root, "flag");
+
+    assert(value == 42);
+    assert(text == "hello");
+    assert(flag == true);
+}
+
+static void test_enum_read() {
+    const YAML::Node n = YAML::Load(
+        "root:\n"
+        "  mode: Bar\n"
+        "  mem: SRAM\n"
+        "  access: CMOS\n"
+        "  target: CAM\n"
+        "  road: HP\n"
+        "  wire: LocalAggressive\n"
+        "  repeater: RepeatedOpt\n"
+        "  buffer: latency\n"
+        "  memtype: mem_data\n"
+        "  cam: TCAM\n"
+        "  search: EX\n"
+        "  route: H-tree\n"
+        "  write: Normal\n"
+        "  opt: ReadLatency\n"
+        "  cache: normal\n"
+        "  encoder: encoding_two_bit\n"
+        "  sense: nvsim_vol\n"
+        "  port: Matchline\n"
+        "  region: drain\n");
+    auto root = YamlHelpers::child_required(n, "root");
+    auto v = YamlHelpers::read_enum_required<MyEnum>(
+        root,
+        "mode",
+        {{"Foo", MyEnum::Foo}, {"Bar", MyEnum::Bar}},
+        true);
+    assert(v == MyEnum::Bar);
+
+    auto mem = YamlHelpers::read_enum_required<MemCellType>(root, "mem");
+    auto access = YamlHelpers::read_enum_required<CellAccessType>(root, "access");
+    auto target = YamlHelpers::read_enum_required<DesignTarget>(root, "target");
+    auto road = YamlHelpers::read_enum_required<DeviceRoadmap>(root, "road");
+    auto wire = YamlHelpers::read_enum_required<WireType>(root, "wire");
+    auto repeater = YamlHelpers::read_enum_required<WireRepeaterType>(root, "repeater");
+    auto buffer = YamlHelpers::read_enum_required<BufferDesignTarget>(root, "buffer");
+    auto memtype = YamlHelpers::read_enum_required<MemoryType>(root, "memtype");
+    auto cam = YamlHelpers::read_enum_required<CAMType>(root, "cam");
+    auto search = YamlHelpers::read_enum_required<SearchFunction>(root, "search");
+    auto route = YamlHelpers::read_enum_required<RoutingMode>(root, "route");
+    auto write = YamlHelpers::read_enum_required<WriteScheme>(root, "write");
+    auto opt = YamlHelpers::read_enum_required<OptimizationTarget>(root, "opt");
+    auto cache = YamlHelpers::read_enum_required<CacheAccessMode>(root, "cache");
+    auto encoder = YamlHelpers::read_enum_required<TypeOfInputEncoder>(root, "encoder");
+    auto sense = YamlHelpers::read_enum_required<TypeOfSenseAmp>(root, "sense");
+    auto port = YamlHelpers::read_enum_required<CAM_PortType>(root, "port");
+    auto region = YamlHelpers::read_enum_required<CAM_CmosRegion>(root, "region");
+
+    assert(mem == SRAM);
+    assert(access == CMOS_access);
+    assert(target == CAM_chip);
+    assert(road == HP);
+    assert(wire == local_aggressive);
+    assert(repeater == repeated_opt);
+    assert(buffer == latency_first);
+    assert(memtype == mem_data);
+    assert(cam == TCAM);
+    assert(search == EX);
+    assert(route == h_tree);
+    assert(write == normal_write);
+    assert(opt == read_latency_optimized);
+    assert(cache == normal_access_mode);
+    assert(encoder == encoding_two_bit);
+    assert(sense == nvsim_voltage_sense);
+    assert(port == Matchline);
+    assert(region == drain);
+}
+
+static void test_units() {
+    const YAML::Node n = YAML::Load(
+        "root:\n"
+        "  voltage: 4V\n"
+        "  current: 500uA\n"
+        "  delay: 10ns\n"
+        "  energy: 2pJ\n"
+        "  cap: 5fF\n"
+        "  temp: 350K\n"
+        "  cap_bytes: 2KB\n"
+        "  width_bits: 128bit\n");
+
+    auto root = YamlHelpers::child_required(n, "root");
+
+    double v = YamlHelpers::read_quantity_required(root, "voltage", VoltageUnits(), 1.0, "voltage");
+    double i = YamlHelpers::read_quantity_required(root, "current", CurrentUnits(), 1.0, "current");
+    double t = YamlHelpers::read_quantity_required(root, "delay", TimeUnits(), 1.0, "delay");
+    double e = YamlHelpers::read_quantity_required(root, "energy", EnergyUnits(), 1.0, "energy");
+    double c = YamlHelpers::read_quantity_required(root, "cap", CapacitanceUnits(), 1.0, "capacitance");
+    double temp = YamlHelpers::read_quantity_required(root, "temp", TemperatureUnits(), 1.0, "temperature");
+    double cap = YamlHelpers::read_quantity_required(root, "cap_bytes", DataSizeUnits(), 1.0, "capacity");
+    double bits = YamlHelpers::read_quantity_required(root, "width_bits", BitUnits(), 1.0, "word_width");
+
+    auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
+    assert(near(v, 4.0));
+    assert(near(i, 500e-6));
+    assert(near(t, 10e-9));
+    assert(near(e, 2e-12));
+    assert(near(c, 5e-15));
+    assert(near(temp, 350.0));
+    assert(near(cap, 2048.0));
+    assert(near(bits, 128.0));
+}
+
+static void test_invalid_inputs() {
+    // Invalid unit should throw
+    const YAML::Node bad_unit = YAML::Load("root:\n  voltage: 1XB\n");
+    auto root1 = YamlHelpers::child_required(bad_unit, "root");
+    try {
+        (void)YamlHelpers::read_quantity_required(root1, "voltage", VoltageUnits(), 1.0, "voltage");
+        assert(false && "Expected invalid unit to throw");
+    } catch (const std::runtime_error&) {
+        // expected
+    }
+
+    // Invalid enum should throw
+    const YAML::Node bad_enum = YAML::Load("root:\n  target: NOT_A_TARGET\n");
+    auto root2 = YamlHelpers::child_required(bad_enum, "root");
+    try {
+        (void)YamlHelpers::read_enum_required<DesignTarget>(root2, "target");
+        assert(false && "Expected invalid enum to throw");
+    } catch (const std::runtime_error&) {
+        // expected
+    }
+}
+
+static void test_memcell_yaml() {
+    const char* path = "tests/tmp_cell.yaml";
+    {
+        std::ofstream out(path);
+        out <<
+            "cell:\n"
+            "  name: TestCell\n"
+            "  type: SRAM\n"
+            "  process_node: 45nm\n"
+            "  area: 300F^2\n"
+            "  aspect_ratio: 2.0\n"
+            "access_device:\n"
+            "  type: CMOS\n"
+            "  cmos_width: 2F\n"
+            "  voltage_drop: 150mV\n"
+            "resistance:\n"
+            "  'on': 1kohm\n"
+            "  'off': 1Mohm\n"
+            "read:\n"
+            "  mode: voltage\n"
+            "  voltage: 1V\n"
+            "  current: 5uA\n"
+            "  power: 2uW\n"
+            "  energy: 10fJ\n"
+            "  min_sense_voltage: 70mV\n"
+            "write:\n"
+            "  set:\n"
+            "    mode: voltage\n"
+            "    voltage: 4V\n"
+            "    current: 1uA\n"
+            "    pulse: 10ns\n"
+            "    energy: 2pJ\n"
+            "  reset:\n"
+            "    mode: current\n"
+            "    voltage: 3V\n"
+            "    current: 2uA\n"
+            "    pulse: 20ns\n"
+            "    energy: 3pJ\n"
+            "match:\n"
+            "  cmos_width: 3F\n"
+            "ports:\n"
+            "  row:\n"
+            "    0:\n"
+            "      type: searchline\n"
+            "      cmos_region: gate\n"
+            "      num_cmos: 1\n"
+            "      cmos_width: 1F\n"
+            "      is_nmos: true\n"
+            "      wire_width: 1F\n"
+            "      voltages:\n"
+            "        set_lrs: 4V\n"
+            "        set_mrs: 4V\n"
+            "        reset: 4V\n"
+            "        search0: 1V\n"
+            "        search1: 1V\n"
+            "  column:\n"
+            "    0:\n"
+            "      type: matchline\n"
+            "      cmos_region: drain\n"
+            "      num_cmos: 1\n"
+            "      cmos_width: 1F\n"
+            "      is_nmos: true\n"
+            "      wire_width: 1F\n"
+            "      voltages:\n"
+            "        set_lrs: 1V\n"
+            "        set_mrs: 1V\n"
+            "        reset: 1V\n"
+            "        search0: 0V\n"
+            "        search1: 1V\n";
+    }
+
+    MemCell cell;
+    cell.ReadCellFromFile(path, CAM_chip, 1.0);
+
+    auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
+
+    assert(cell.memCellType == SRAM);
+    assert(cell.processNode == 45);
+    assert(near(cell.area, 300.0));
+    assert(near(cell.aspectRatio, 2.0));
+    assert(near(cell.widthAccessCMOS, 2.0));
+    assert(near(cell.voltageDropAccessDevice, 0.15));
+
+    assert(near(cell.resistanceOn, 1e3));
+    assert(near(cell.resistanceOff, 1e6));
+
+    assert(cell.readMode == true);
+    assert(near(cell.readVoltage, 1.0));
+    assert(near(cell.readCurrent, 5e-6));
+    assert(near(cell.readPower, 2e-6));
+    assert(near(cell.readEnergy, 10e-15));
+    assert(near(cell.minSenseVoltage, 0.07));
+
+    assert(cell.setMode == true);
+    assert(near(cell.setVoltage, 4.0));
+    assert(near(cell.setCurrent, 1e-6));
+    assert(near(cell.setPulse, 10e-9));
+    assert(near(cell.setEnergy, 2e-12));
+
+    assert(cell.resetMode == false);
+    assert(near(cell.resetVoltage, 3.0));
+    assert(near(cell.resetCurrent, 2e-6));
+    assert(near(cell.resetPulse, 20e-9));
+    assert(near(cell.resetEnergy, 3e-12));
+
+    assert(near(cell.camWidthMatchTran, 3.0));
+    assert(cell.camNumRow == 1);
+    assert(cell.camNumCol == 1);
+    assert(near(cell.camPort[0][0].volSetLRS, 4.0));
+    assert(near(cell.camPort[1][0].volSearch1, 1.0));
+}
+
+int main() {
+    test_basic_read();
+    test_enum_read();
+    test_units();
+    test_invalid_inputs();
+    test_memcell_yaml();
+    std::cout << "YamlHelpers tests passed" << std::endl;
+    return 0;
+}

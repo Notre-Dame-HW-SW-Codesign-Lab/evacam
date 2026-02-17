@@ -1,0 +1,161 @@
+# WARNING: REFERENCE INPUT ONLY.
+# This file intentionally contains nonsense/example values that do NOT map to a real device.
+# DO NOT run EvaCAM with this file for any legitimate analysis or published results.
+# This file exists only to show supported/expected cell input fields in one place.
+
+cell: # map
+  name: Example-Full # string
+  type: memristor # enum: SRAM | DRAM | eDRAM | MRAM | PCRAM | ReRAM/memristor | FBRAM | SLCNAND | MLCNAND | FEFETRAM
+  cam_type: TCAM # enum: TCAM | MCAM | ACAM
+  process_node: 40nm # units: m | cm | mm | um | nm
+  area: 157F^2 # units: F^2
+  aspect_ratio: 2.0 # scalar
+
+access_device: # map
+  type: cmos # enum: cmos | bjt | diode | none
+  cmos_width: 10F # units: F (feature-size multiple)
+  voltage_drop: 0.15V # units: V | mV
+  leakage_current: 0uA # units: A | mA | uA | nA | pA (proposed extension)
+
+resistance: # map
+  on: 400ohm # units: ohm | kohm | Mohm | Gohm
+  off: 300kohm # units: ohm | kohm | Mohm | Gohm
+  at_set: # optional proposed map
+    on: 400ohm # units: ohm | kohm | Mohm | Gohm
+    off: 300kohm # units: ohm | kohm | Mohm | Gohm
+  at_reset: # optional proposed map
+    on: 450ohm # units: ohm | kohm | Mohm | Gohm
+    off: 320kohm # units: ohm | kohm | Mohm | Gohm
+  at_read: # optional proposed map
+    on: 400ohm # units: ohm | kohm | Mohm | Gohm
+    off: 300kohm # units: ohm | kohm | Mohm | Gohm
+  at_half_read: # optional proposed map
+    on: 500ohm # units: ohm | kohm | Mohm | Gohm
+    off: 500kohm # units: ohm | kohm | Mohm | Gohm
+  at_half_reset: # optional proposed map
+    on: 480ohm # units: ohm | kohm | Mohm | Gohm
+
+capacitance: # optional proposed map
+  on: 0fF # units: F | mF | uF | nF | pF | fF
+  off: 0fF # units: F | mF | uF | nF | pF | fF
+
+device: # optional proposed map
+  gate_ox_thickness_factor: 1.0 # scalar
+  soi_width: 0F # units: F (feature-size multiple)
+
+read: # map
+  mode: current # enum: voltage | current
+  voltage: 0V # units: V | mV
+  current: 50uA # units: A | mA | uA | nA | pA
+  power: 30uW # units: W | mW | uW | nW | pW
+  energy: 0fJ # units: J | mJ | uJ | nJ | pJ | fJ
+  min_sense_voltage: 25mV # units: V | mV
+  wordline_boost_ratio: 1.0 # scalar (proposed extension)
+  read_floating: false # bool (proposed extension)
+
+write: # map
+  set: # map
+    mode: current # enum: voltage | current
+    voltage: 0V # units: V | mV
+    current: 150uA # units: A | mA | uA | nA | pA
+    pulse: 10ns # units: s | ms | us | ns | ps | fs
+    energy: 1pJ # units: J | mJ | uJ | nJ | pJ | fJ
+  reset: # map
+    mode: current # enum: voltage | current
+    voltage: 0V # units: V | mV
+    current: 150uA # units: A | mA | uA | nA | pA
+    pulse: 10ns # units: s | ms | us | ns | ps | fs
+    energy: 1pJ # units: J | mJ | uJ | nJ | pJ | fJ
+
+dram: # optional proposed map
+  cell_capacitance: 0fF # units: F | mF | uF | nF | pF | fF
+
+sram: # optional proposed map
+  nmos_width: 0F # units: F (feature-size multiple)
+  pmos_width: 0F # units: F (feature-size multiple)
+
+flash: # optional proposed map
+  erase_voltage: 0V # units: V | mV
+  program_voltage: 0V # units: V | mV
+  pass_voltage: 0V # units: V | mV
+  erase_time: 0ms # units: s | ms | us | ns | ps | fs
+  program_time: 0us # units: s | ms | us | ns | ps | fs
+  gate_coupling_ratio: 0.0 # scalar
+  mlc: false # bool
+
+multilevel: # map
+  enabled: false # bool
+
+variation: # optional proposed map
+  with_variation: false # bool
+  resistance_on_variation: 0% # units: percent (proposed extension)
+  resistance_off_variation: 0% # units: percent (proposed extension)
+
+mcam: # optional proposed map
+  num_resistance_state: 0 # int
+  resistance_state: [] # sequence<float> (ohm-equivalent)
+  state_variation: [] # sequence<float> (fraction or percent by convention)
+
+match: # map
+  cmos_width: 4F # units: F (feature-size multiple)
+  is_nvm_discharge: false # bool (proposed extension)
+
+ports: # map
+  row: # map by integer key
+    0:
+      type: wordline # enum: wordline | sourceline | searchline | bitline | dataline | matchline | matchline_bitline | searchline_bitline
+      cmos_region: gate # enum: gate | source | drain | diode | none
+      num_cmos: 1 # int
+      cmos_width: 12F # units: F (feature-size multiple)
+      is_nmos: true # bool
+      leak: false # bool (proposed extension)
+      wire_width: 1F # units: F (feature-size multiple)
+      voltages:
+        set_lrs: 3.5V # units: V | mV
+        set_mrs: 3.5V # units: V | mV
+        reset: 3.5V # units: V | mV
+        search0: 2.5V # units: V | mV
+        search1: 0V # units: V | mV
+    1:
+      type: wordline # enum: wordline | sourceline | searchline | bitline | dataline | matchline | matchline_bitline | searchline_bitline
+      cmos_region: gate # enum: gate | source | drain | diode | none
+      num_cmos: 1 # int
+      cmos_width: 12F # units: F (feature-size multiple)
+      is_nmos: true # bool
+      leak: false # bool (proposed extension)
+      wire_width: 1F # units: F (feature-size multiple)
+      voltages:
+        set_lrs: 3.5V # units: V | mV
+        set_mrs: 3.5V # units: V | mV
+        reset: 3.5V # units: V | mV
+        search0: 2.5V # units: V | mV
+        search1: 0V # units: V | mV
+  column: # map by integer key
+    0:
+      type: matchline # enum: wordline | sourceline | searchline | bitline | dataline | matchline | matchline_bitline | searchline_bitline
+      cmos_region: drain # enum: gate | source | drain | diode | none
+      num_cmos: 1 # int
+      cmos_width: 12F # units: F (feature-size multiple)
+      is_nmos: true # bool
+      leak: false # bool (proposed extension)
+      wire_width: 2F # units: F (feature-size multiple)
+      voltages:
+        set_lrs: 3.5V # units: V | mV
+        set_mrs: 3.5V # units: V | mV
+        reset: 3.5V # units: V | mV
+        search0: 1.1V # units: V | mV
+        search1: 0V # units: V | mV
+    1:
+      type: bitline # enum: wordline | sourceline | searchline | bitline | dataline | matchline | matchline_bitline | searchline_bitline
+      cmos_region: drain # enum: gate | source | drain | diode | none
+      num_cmos: 1 # int
+      cmos_width: 12F # units: F (feature-size multiple)
+      is_nmos: true # bool
+      leak: false # bool (proposed extension)
+      wire_width: 1F # units: F (feature-size multiple)
+      voltages:
+        set_lrs: 3.5V # units: V | mV
+        set_mrs: 3.5V # units: V | mV
+        reset: 3.5V # units: V | mV
+        search0: 0V # units: V | mV
+        search1: 1.1V # units: V | mV

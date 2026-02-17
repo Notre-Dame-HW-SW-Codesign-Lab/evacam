@@ -1,0 +1,77 @@
+# PCM-2T2R-JSSC11 Cell Configuration
+# Memory cell definition
+
+cell:
+  name: PCM-2T2R-JSSC11
+  type: PCRAM
+  process_node: 45nm
+  area: 50F^2
+  aspect_ratio: 2.66
+access_device:
+  type: none
+  cmos_width: 8F
+  voltage_drop: 0.15V
+resistance:
+  'on': 10000ohm
+  'off': 1000000ohm
+read:
+  mode: voltage
+  voltage: 1.2V
+  current: 100uA
+  power: 30uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 150uA
+    pulse: 150ns
+  reset:
+    mode: current
+    current: 300uA
+    pulse: 40ns
+multilevel:
+  enabled: false
+match:
+  cmos_width: 8F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 7F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 2.5V
+        set_mrs: 2.5V
+        reset: 2.5V
+        search0: 1.2V
+        search1: 0V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 7F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 2.5V
+        set_mrs: 2.5V
+        reset: 2.5V
+        search0: 0V
+        search1: 1.2V
+  column:
+    0:
+      type: matchline
+      cmos_region: drain
+      num_cmos: 2
+      cmos_width: 7F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V

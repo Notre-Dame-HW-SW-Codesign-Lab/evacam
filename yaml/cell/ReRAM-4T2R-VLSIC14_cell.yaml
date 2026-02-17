@@ -1,0 +1,91 @@
+# ReRAM-4T2R-VLSIC14 Cell Configuration
+# Memory cell definition
+
+cell:
+  name: ReRAM-4T2R-VLSIC14
+  type: memristor
+  process_node: 40nm
+  area: 299F^2
+  aspect_ratio: 1.6
+access_device:
+  type: cmos
+  cmos_width: 3F
+  voltage_drop: 0.15V
+resistance:
+  'on': 400ohm
+  'off': 300000ohm
+read:
+  mode: current
+  current: 50uA
+  power: 30uW
+  min_sense_voltage: 25mV
+write:
+  set:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+multilevel:
+  enabled: false
+match:
+  cmos_width: 3F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 3F
+      is_nmos: true
+      wire_width: 2F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 0V
+        search0: 1.8V
+        search1: 0V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 3F
+      is_nmos: true
+      wire_width: 2F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 1.8V
+        search0: 0V
+        search1: 1.8V
+  column:
+    0:
+      type: matchline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 5F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    1:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 6F
+      is_nmos: false
+      wire_width: 1F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 1.8V
+        search0: 1.8V
+        search1: 1.8V

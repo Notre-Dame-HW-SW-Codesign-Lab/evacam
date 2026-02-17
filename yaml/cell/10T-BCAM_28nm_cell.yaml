@@ -1,0 +1,103 @@
+# 10T-BCAM-28nm Cell Configuration
+# Memory cell definition
+
+cell:
+  name: 10T-BCAM-28nm
+  type: SRAM
+  process_node: 28nm
+  area: 950F^2
+  aspect_ratio: 4.897
+access_device:
+  type: cmos
+  cmos_width: 1F
+  voltage_drop: 0.15V
+read:
+  mode: voltage
+  voltage: 0.9V
+  energy: 0.25fJ
+  min_sense_voltage: 50mV
+multilevel:
+  enabled: false
+match:
+  cmos_width: 1F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0.9V
+        search1: 0V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0.9V
+    2:
+      type: bitline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0.9V
+        set_mrs: 0.9V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    3:
+      type: bitline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0.9V
+        set_mrs: 0.9V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+  column:
+    0:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 4
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0.9V
+        set_mrs: 0.9V
+        reset: 0.9V
+        search0: 0V
+        search1: 0V
+    1:
+      type: matchline
+      cmos_region: drain
+      num_cmos: 2
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V

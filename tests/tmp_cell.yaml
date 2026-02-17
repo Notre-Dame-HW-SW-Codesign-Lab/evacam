@@ -1,58 +1,41 @@
-# 2FeFET-TCAM Cell Configuration
-# Memory cell definition
-
 cell:
-  name: 2FeFET-TCAM
-  type: FEFETRAM
+  name: TestCell
+  type: SRAM
   process_node: 45nm
   area: 300F^2
-  aspect_ratio: 1.76
+  aspect_ratio: 2.0
 access_device:
-  type: none
-  cmos_width: 1F
-  voltage_drop: 0.15V
+  type: CMOS
+  cmos_width: 2F
+  voltage_drop: 150mV
 resistance:
-  'on': 10000ohm
-  'off': 1600000000ohm
+  'on': 1kohm
+  'off': 1Mohm
 read:
   mode: voltage
   voltage: 1V
-  current: 5.62uA
-  power: 5.62uW
+  current: 5uA
+  power: 2uW
+  energy: 10fJ
   min_sense_voltage: 70mV
 write:
   set:
     mode: voltage
     voltage: 4V
-    current: 5e-06uA
+    current: 1uA
     pulse: 10ns
-    energy: 2e-05pJ
+    energy: 2pJ
   reset:
-    mode: voltage
-    voltage: 4V
-    current: 5e-07uA
-    pulse: 10ns
-    energy: 2e-05pJ
-multilevel:
-  enabled: false
+    mode: current
+    voltage: 3V
+    current: 2uA
+    pulse: 20ns
+    energy: 3pJ
 match:
   cmos_width: 3F
 ports:
   row:
     0:
-      type: searchline
-      cmos_region: gate
-      num_cmos: 1
-      cmos_width: 1F
-      is_nmos: true
-      wire_width: 1F
-      voltages:
-        set_lrs: 4V
-        set_mrs: 4V
-        reset: 4V
-        search0: 1V
-        search1: 1V
-    1:
       type: searchline
       cmos_region: gate
       num_cmos: 1

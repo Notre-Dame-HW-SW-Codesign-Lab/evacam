@@ -1,0 +1,91 @@
+# ReRAM-2T2R-VLSI21 Cell Configuration
+# Memory cell definition
+
+cell:
+  name: ReRAM-2T2R-VLSI21
+  type: memristor
+  process_node: 40nm
+  area: 157F^2
+  aspect_ratio: 2
+access_device:
+  type: cmos
+  cmos_width: 10F
+  voltage_drop: 0.15V
+resistance:
+  'on': 400ohm
+  'off': 300000ohm
+read:
+  mode: current
+  current: 50uA
+  power: 30uW
+  min_sense_voltage: 25mV
+write:
+  set:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+multilevel:
+  enabled: false
+match:
+  cmos_width: 4F
+ports:
+  row:
+    0:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 12F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 2.5V
+        search1: 0V
+    1:
+      type: wordline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 12F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 2.5V
+        search1: 0V
+  column:
+    0:
+      type: sourceline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 12F
+      is_nmos: true
+      wire_width: 2F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 1.1V
+        search1: 0V
+    1:
+      type: bitline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 12F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 0V
+        search1: 1.1V

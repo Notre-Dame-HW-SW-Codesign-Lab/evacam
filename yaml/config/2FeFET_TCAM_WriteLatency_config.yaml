@@ -1,17 +1,17 @@
-# 2FeFET-TCAM System Configuration
+# 2FeFET-TCAM-WriteLatency System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
-  search_function: BE
+  search_function: EX
   process_node: 45nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./yaml/cell/2FeFET_TCAM_cell.yaml
-  capacity: 512B
-  word_width: 64bits
+  cell_file: ./yaml/cell/2FeFET_TCAM_DSE_cell.yaml
+  capacity: 2MB
+  word_width: 128bits
 
 routing:
   type: H-tree
@@ -22,7 +22,7 @@ peripherals:
     encoder: false
     custom_encoder: false
   output:
-    buffer: false
+    buffer: true
     priority_encoder: false
     accumulator: false
   write_driver: true
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: LeakagePower  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: WriteLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
@@ -41,7 +41,7 @@ optimization:
 wires:
   local:
     type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
-                              #          SemiConservative, GlobalAggressive, GlobalConservative
+                          #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
   global:
@@ -50,16 +50,8 @@ wires:
     low_swing: false
 
 array:
-  banks:
-    total: [1, 1]    # AxB
-    active: [1, 1]   # CxD
-  mats:
-    total: [1, 1]
-    active: [1, 1]
   mux:
     sense_amp: 1
-    output_level1: 1  # for write only
-    output_level2: 1  # for write only
 
 matchline:
-  additional_cap: 6fF
+  additional_cap: 0fF

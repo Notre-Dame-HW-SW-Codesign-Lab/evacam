@@ -1,0 +1,161 @@
+Notes
+  FunctionUnit contains InputParameter (shared_ptr)
+  Bank contains Mat (shared_ptr), Wire localWire (shared_ptr), Wire globalWire (shared_ptr), CAM_Opt (shared_ptr)
+  Result contains InputParameter (shared_ptr), Bank (shared_ptr), Wire localWire (shared_ptr), Wire globalWire (shared_ptr)
+
+InputParameter
+  Technology (shared_ptr)
+  MemCell (shared_ptr)
+
+CAM_Line
+  InputParameter (shared_ptr)
+  Wire (shared_ptr)
+
+MemCell
+
+CAM_MemCell
+
+FunctionUnit
+  InputParameter (shared_ptr)
+
+OutputDriver
+
+Mux
+
+SenseAmp
+
+CAM_Controller
+
+Comparator
+
+CAM_LevelShifter
+
+Wire
+  SenseAmp (unique_ptr)
+  InputParameter (shared_ptr)
+
+CAM_SenseAmp
+  SenseAmp normalSenseAmp (shared_ptr)
+  SenseAmp customSA (shared_ptr)
+
+BasicDecoder
+  OutputDriver (unique_ptr)
+
+CAM_InputEncoder
+  OutputDriver (shared_ptr)
+
+CAM_BasicEncoder
+  OutputDriver (by value)
+
+CAM_Encoder
+  CAM_BasicEncoder (by value)
+  OutputDriver (by value)
+
+CAM_BasicMMR
+  OutputDriver LookAheadDriver (by value)
+
+CAM_MMR
+  OutputDriver (by value)
+  CAM_BasicMMR (by value)
+
+RowDecoder
+  OutputDriver (shared_ptr)
+
+Precharger
+  OutputDriver (shared_ptr)
+  Wire localWire (shared_ptr)
+
+CAM_Precharger
+
+CAM_RowNand
+
+PredecodeBlock
+  RowDecoder rowDecoderStage1A (shared_ptr)
+  RowDecoder rowDecoderStage1B (shared_ptr)
+  RowDecoder rowDecoderStage1C (shared_ptr)
+  RowDecoder rowDecoderStage2 (shared_ptr)
+  BasicDecoder basicDecoderA1 (shared_ptr)
+  BasicDecoder basicDecoderA2 (shared_ptr)
+  BasicDecoder basicDecoderB (shared_ptr)
+  BasicDecoder basicDecoderC (shared_ptr)
+
+CAM_OutputAccumulator
+  OutputDriver (by value)
+
+CAM_PriorityEncoder
+  CAM_MMR (by value)
+  CAM_Encoder (by value)
+
+SubArray
+  RowDecoder rowDecoder (shared_ptr)
+  RowDecoder bitlineMuxDecoder (shared_ptr)
+  RowDecoder senseAmpMuxLev1Decoder (shared_ptr)
+  RowDecoder senseAmpMuxLev2Decoder (shared_ptr)
+  Mux bitlineMux (shared_ptr)
+  Mux senseAmpMuxLev1 (shared_ptr)
+  Mux senseAmpMuxLev2 (shared_ptr)
+  Precharger (shared_ptr)
+  SenseAmp (shared_ptr)
+  Wire localWire (shared_ptr)
+
+CAM_DataBuffer
+  OutputDriver (shared_ptr)
+
+CAM_SubArray
+  CAM_DataBuffer inputBuf (shared_ptr)
+  CAM_DataBuffer outputBuf (shared_ptr)
+  CAM_LevelShifter inputLS (shared_ptr)
+  CAM_LevelShifter outputLS (shared_ptr)
+  CAM_InputEncoder inputEnc (shared_ptr)
+  CAM_RowNand RowDecMergeNand (shared_ptr)
+  CAM_RowNand RowDriver (shared_ptr, vector)
+  CAM_Precharger precharger (shared_ptr)
+  RowDecoder ColDecMergeNand (shared_ptr)
+  RowDecoder WriteDriver (shared_ptr, vector)
+  Mux ColMux (shared_ptr, vector)
+  CAM_SenseAmp senseAmp (shared_ptr)
+  RowDecoder senseAmpMuxLev1Nand (shared_ptr)
+  Mux senseAmpMuxLev1 (shared_ptr)
+  RowDecoder senseAmpMuxLev2Nand (shared_ptr)
+  Mux senseAmpMuxLev2 (shared_ptr)
+  CAM_OutputAccumulator outputAcc (shared_ptr)
+  CAM_PriorityEncoder priorityEnc (shared_ptr)
+  CAM_Line Row (shared_ptr, vector)
+  CAM_Line Col (shared_ptr, vector)
+  Wire localWire (shared_ptr)
+  CAM_Opt (shared_ptr)
+
+Mat
+  CAM_SubArray subarray (shared_ptr)
+  PredecodeBlock rowPredecoderBlock1 (shared_ptr)
+  PredecodeBlock rowPredecoderBlock2 (shared_ptr)
+  PredecodeBlock bitlineMuxPredecoderBlock1 (shared_ptr)
+  PredecodeBlock bitlineMuxPredecoderBlock2 (shared_ptr)
+  PredecodeBlock senseAmpMuxLev1PredecoderBlock1 (shared_ptr)
+  PredecodeBlock senseAmpMuxLev1PredecoderBlock2 (shared_ptr)
+  PredecodeBlock senseAmpMuxLev2PredecoderBlock1 (shared_ptr)
+  PredecodeBlock senseAmpMuxLev2PredecoderBlock2 (shared_ptr)
+  Wire localWire (shared_ptr)
+  CAM_Opt (shared_ptr)
+  Comparator (by value)
+
+Bank
+  Mat (shared_ptr)
+  Wire localWire (shared_ptr)
+  Wire globalWire (shared_ptr)
+  CAM_Opt (shared_ptr)
+
+BankWithHtree
+
+BankWithoutHtree
+  Mux globalBitlineMux (shared_ptr)
+  SenseAmp globalSenseAmp (shared_ptr)
+  Comparator globalComparator (shared_ptr)
+
+Result
+  InputParameter (shared_ptr)
+  Bank (shared_ptr)
+  Wire localWire (shared_ptr)
+  Wire globalWire (shared_ptr)
+
+CAM_Result

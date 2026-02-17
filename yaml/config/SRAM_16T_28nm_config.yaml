@@ -1,31 +1,31 @@
-# 2FeFET-TCAM System Configuration
+# SRAM-16T-28nm System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
-  search_function: BE
-  process_node: 45nm
+  search_function: EX
+  process_node: 28nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./yaml/cell/2FeFET_TCAM_cell.yaml
-  capacity: 512B
-  word_width: 64bits
+  cell_file: ./yaml/cell/SRAM_16T_28nm_cell.yaml
+  capacity: 1KB
+  word_width: 128bits
 
 routing:
   type: H-tree
 
 peripherals:
   input:
-    buffer: false
+    buffer: true
     encoder: false
     custom_encoder: false
   output:
     buffer: false
     priority_encoder: false
     accumulator: false
-  write_driver: true
+  write_driver: false
 
 sensing:
   internal: true
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: LeakagePower  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: Area  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
@@ -41,7 +41,7 @@ optimization:
 wires:
   local:
     type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
-                              #          SemiConservative, GlobalAggressive, GlobalConservative
+                          #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
   global:
@@ -60,6 +60,3 @@ array:
     sense_amp: 1
     output_level1: 1  # for write only
     output_level2: 1  # for write only
-
-matchline:
-  additional_cap: 6fF

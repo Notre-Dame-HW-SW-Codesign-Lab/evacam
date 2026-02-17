@@ -1,8 +1,8 @@
-# 2FeFET-TCAM Cell Configuration
+# 2FeFET-TCAM-DSE Cell Configuration
 # Memory cell definition
 
 cell:
-  name: 2FeFET-TCAM
+  name: 2FeFET-TCAM-DSE
   type: FEFETRAM
   process_node: 45nm
   area: 300F^2
@@ -19,6 +19,7 @@ read:
   voltage: 1V
   current: 5.62uA
   power: 5.62uW
+  energy: 24fJ
   min_sense_voltage: 70mV
 write:
   set:
@@ -26,17 +27,18 @@ write:
     voltage: 4V
     current: 5e-06uA
     pulse: 10ns
-    energy: 2e-05pJ
+    energy: 0.0002pJ
   reset:
     mode: voltage
     voltage: 4V
     current: 5e-07uA
     pulse: 10ns
-    energy: 2e-05pJ
+    energy: 0.0002pJ
 multilevel:
   enabled: false
 match:
   cmos_width: 3F
+  additional_cap_on_ml: 33fF
 ports:
   row:
     0:

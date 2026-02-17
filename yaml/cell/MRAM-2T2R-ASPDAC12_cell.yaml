@@ -1,0 +1,91 @@
+# MRAM-2T2R-ASPDAC12 Cell Configuration
+# Memory cell definition
+
+cell:
+  name: MRAM-2T2R-ASPDAC12
+  type: MRAM
+  process_node: 140nm
+  area: 127.55F^2
+  aspect_ratio: 1.6
+access_device:
+  type: none
+  cmos_width: 8F
+  voltage_drop: 0.15V
+resistance:
+  'on': 2700ohm
+  'off': 5100ohm
+read:
+  mode: voltage
+  current: 100uA
+  power: 16.5uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 50uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+multilevel:
+  enabled: false
+match:
+  cmos_width: 8F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 8F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.5V
+        set_mrs: 1.5V
+        reset: 1.5V
+        search0: 1.5V
+        search1: 0V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 8F
+      is_nmos: true
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.5V
+        set_mrs: 1.5V
+        reset: 1.5V
+        search0: 0V
+        search1: 1.5V
+  column:
+    0:
+      type: matchline_bitline
+      cmos_region: drain
+      num_cmos: 2
+      cmos_width: 8F
+      is_nmos: true
+      wire_width: 6F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 1.5V
+        search0: 0V
+        search1: 0V
+    1:
+      type: bitline
+      cmos_region: none
+      num_cmos: 0
+      cmos_width: 8F
+      is_nmos: true
+      wire_width: 6F
+      voltages:
+        set_lrs: 1.5V
+        set_mrs: 1.5V
+        reset: 0V
+        search0: 0V
+        search1: 0V
