@@ -50,7 +50,9 @@ wires: # map
     repeater: RepeatedNone # enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
     low_swing: false # bool
 
-array: # map
+array: # optional map
+  # If omitted, EvaCAM uses exploration ranges from RestoreSearchSize()/ReduceSearchSize()
+  # instead of fixed bank/mat/mux values.
   banks: # map
     total: [1, 1] # [int, int]
     active: [1, 1] # [int, int]

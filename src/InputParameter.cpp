@@ -323,30 +323,32 @@ void InputParameter::ReadInputParameterFromFile(const std::string &inputFile) {
     minIsGlobalWireLowSwing = maxIsGlobalWireLowSwing = YamlHelpers::read_required<bool>(wiresGlobal, "low_swing");
 
     // Array
+    // If array is omitted, keep exploration ranges from RestoreSearchSize()/ReduceSearchSize().
+    auto array = YamlHelpers::child_optional(config, "array");
+    if (array) {
+        auto banks = YamlHelpers::child_required(array, "banks");
+        auto banks_total = YamlHelpers::child_required(banks, "total");
+        auto banks_active = YamlHelpers::child_required(banks, "active");
 
-    auto array = YamlHelpers::child_required(config, "array");
-    auto banks = YamlHelpers::child_required(array, "banks");
-    auto banks_total = YamlHelpers::child_required(banks, "total");
-    auto banks_active = YamlHelpers::child_required(banks, "active");
+        minNumRowMat             = maxNumRowMat             = YamlHelpers::read_required_index<int>(banks_total, 0, "array.banks.total[0]");
+        minNumColumnMat          = maxNumColumnMat          = YamlHelpers::read_required_index<int>(banks_total, 1, "array.banks.total[1]");
+        minNumActiveMatPerColumn = maxNumActiveMatPerColumn = YamlHelpers::read_required_index<int>(banks_active, 0, "array.banks.active[0]");
+        minNumActiveMatPerRow    = maxNumActiveMatPerRow    = YamlHelpers::read_required_index<int>(banks_active, 1, "array.banks.active[1]");
 
-    minNumRowMat             = maxNumRowMat             = YamlHelpers::read_required_index<int>(banks_total, 0, "array.banks.total[0]");
-    minNumColumnMat          = maxNumColumnMat          = YamlHelpers::read_required_index<int>(banks_total, 1, "array.banks.total[1]");
-    minNumActiveMatPerColumn = maxNumActiveMatPerColumn = YamlHelpers::read_required_index<int>(banks_active, 0, "array.banks.active[0]");
-    minNumActiveMatPerRow    = maxNumActiveMatPerRow    = YamlHelpers::read_required_index<int>(banks_active, 1, "array.banks.active[1]");
+        auto mats = YamlHelpers::child_required(array, "mats");
+        auto mats_total = YamlHelpers::child_required(mats, "total");
+        auto mats_active = YamlHelpers::child_required(mats, "active");
 
-    auto mats = YamlHelpers::child_required(array, "mats");
-    auto mats_total = YamlHelpers::child_required(mats, "total");
-    auto mats_active = YamlHelpers::child_required(mats, "active");
+        minNumRowSubarray = maxNumRowSubarray = YamlHelpers::read_required_index<int>(mats_total, 0, "array.mats.total[0]");
+        minNumColumnSubarray = maxNumColumnSubarray = YamlHelpers::read_required_index<int>(mats_total, 1, "array.mats.total[1]");
+        minNumActiveSubarrayPerColumn = maxNumActiveSubarrayPerColumn = YamlHelpers::read_required_index<int>(mats_active, 0, "array.mats.active[0]");
+        minNumActiveSubarrayPerRow = maxNumActiveSubarrayPerRow = YamlHelpers::read_required_index<int>(mats_active, 1, "array.mats.active[1]");
 
-    minNumRowSubarray = maxNumRowSubarray = YamlHelpers::read_required_index<int>(mats_total, 0, "array.mats.total[0]");
-    minNumColumnSubarray = maxNumColumnSubarray = YamlHelpers::read_required_index<int>(mats_total, 1, "array.mats.total[1]");
-    minNumActiveSubarrayPerColumn = maxNumActiveSubarrayPerColumn = YamlHelpers::read_required_index<int>(mats_active, 0, "array.mats.active[0]");
-    minNumActiveSubarrayPerRow = maxNumActiveSubarrayPerRow = YamlHelpers::read_required_index<int>(mats_active, 1, "array.mats.active[1]");
-
-    auto mux = YamlHelpers::child_required(array, "mux");
-    maxMuxSenseAmp = minMuxSenseAmp = YamlHelpers::read_required<int>(mux, "sense_amp");
-    maxMuxOutputLev1 = minMuxOutputLev1 = YamlHelpers::read_required<int>(mux, "output_level1");
-    maxMuxOutputLev2 = minMuxOutputLev2 = YamlHelpers::read_required<int>(mux, "output_level2");
+        auto mux = YamlHelpers::child_required(array, "mux");
+        maxMuxSenseAmp = minMuxSenseAmp = YamlHelpers::read_required<int>(mux, "sense_amp");
+        maxMuxOutputLev1 = minMuxOutputLev1 = YamlHelpers::read_required<int>(mux, "output_level1");
+        maxMuxOutputLev2 = minMuxOutputLev2 = YamlHelpers::read_required<int>(mux, "output_level2");
+    }
 
     // Matchline
     

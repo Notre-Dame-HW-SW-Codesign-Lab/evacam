@@ -304,125 +304,106 @@ int main(int argc, char *argv[]) {
 
         auto CAM_opt = std::make_shared<CAM_Opt>();
 
-	//CAM_BIGFOR
-        // Delcare new loop variables to enable collapsing the loop
-        int maxNumRowMat_par = intLog2(inputParameter->maxNumRowMat);
-        int maxNumColumnMat_par = intLog2(inputParameter->maxNumColumnMat);
-        int maxNumRowSubarray_par = intLog2(inputParameter->maxNumRowSubarray);
+        auto buildPow2Values = [](int minValue, int maxValue) -> std::vector<int> {
+                std::vector<int> values;
+                for (int v = minValue; v <= maxValue; v *= 2) {
+                        values.push_back(v);
+                        if (v == 0) break;
+                }
+                return values;
+        };
 
-        if (maxNumRowMat_par == 0) maxNumRowMat_par = 1;
-        if (maxNumColumnMat_par == 0) maxNumColumnMat_par = 1;
-        if (maxNumRowSubarray_par == 0) maxNumRowSubarray_par = 1;
+        const bool fixedBankMatSubarray =
+                (inputParameter->minNumRowMat == inputParameter->maxNumRowMat) &&
+                (inputParameter->minNumColumnMat == inputParameter->maxNumColumnMat) &&
+                (inputParameter->minNumRowSubarray == inputParameter->maxNumRowSubarray) &&
+                (inputParameter->minNumColumnSubarray == inputParameter->maxNumColumnSubarray);
 
+        const auto numRowMatValues = buildPow2Values(inputParameter->minNumRowMat, inputParameter->maxNumRowMat);
+        const auto numColumnMatValues = buildPow2Values(inputParameter->minNumColumnMat, inputParameter->maxNumColumnMat);
+        const auto numRowSubarrayValues = buildPow2Values(inputParameter->minNumRowSubarray, inputParameter->maxNumRowSubarray);
 
-        long long total = maxNumRowMat_par * maxNumColumnMat_par * maxNumRowSubarray_par;
+        long long total = (long long)numRowMatValues.size()
+                * (long long)numColumnMatValues.size()
+                * (long long)numRowSubarrayValues.size();
         
         std::atomic<long long> loops_complete = 0;
 
-        #pragma omp parallel firstprivate(CAM_opt) 
-{
-        #pragma omp for collapse(3)
-        for (int bigLoopItr0 = inputParameter->minNumRowMat; 
-                bigLoopItr0 <= maxNumRowMat_par; 
-                bigLoopItr0++)
-	for (int bigLoopItr1 = inputParameter->minNumColumnMat; 
-                bigLoopItr1 <= maxNumColumnMat_par; 
-                bigLoopItr1++) 
-        for (int bigLoopItr2 = inputParameter->minNumRowSubarray; 
-                bigLoopItr2 <= maxNumRowSubarray_par; 
-                bigLoopItr2++) {
+        auto evaluateGeometry = [&](int numRowMat, int numColumnMat, int numRowSubarray) {
+                for (int numActiveMatPerRow = MIN(numColumnMat, inputParameter->minNumActiveMatPerRow); 
+                        numActiveMatPerRow <= MIN(numColumnMat, inputParameter->maxNumActiveMatPerRow); 
+                        numActiveMatPerRow *= 2) 
+                for (int numActiveMatPerColumn = MIN(numRowMat, inputParameter->minNumActiveMatPerColumn); 
+                        numActiveMatPerColumn <= MIN(numRowMat, inputParameter->maxNumActiveMatPerColumn); 
+                        numActiveMatPerColumn *= 2) 
+                for (int numColumnSubarray = inputParameter->minNumColumnSubarray; 
+                        numColumnSubarray <= inputParameter->maxNumColumnSubarray; 
+                        numColumnSubarray *= 2) 
+                for (int numActiveSubarrayPerRow = MIN(numColumnSubarray, inputParameter->minNumActiveSubarrayPerRow); 
+                        numActiveSubarrayPerRow <= MIN(numColumnSubarray, inputParameter->maxNumActiveSubarrayPerRow); 
+                        numActiveSubarrayPerRow *=2) 
+                for (int numActiveSubarrayPerColumn = MIN(numRowSubarray, inputParameter->minNumActiveSubarrayPerColumn); 
+                        numActiveSubarrayPerColumn <= MIN(numRowSubarray, inputParameter->maxNumActiveSubarrayPerColumn); 
+                        numActiveSubarrayPerColumn *= 2) 
+                for (int muxSenseAmp = inputParameter->minMuxSenseAmp; 
+                        muxSenseAmp <= inputParameter->maxMuxSenseAmp; 
+                        muxSenseAmp *= 2) 
+                for (int muxOutputLev1 = inputParameter->minMuxOutputLev1; 
+                        muxOutputLev1 <= inputParameter->maxMuxOutputLev1; 
+                        muxOutputLev1 *= 2) 
+                for (int muxOutputLev2 = inputParameter->minMuxOutputLev2; 
+                        muxOutputLev2 <= inputParameter->maxMuxOutputLev2; 
+                        muxOutputLev2 *= 2) 
+                for (int numRowPerSet = inputParameter->minNumRowPerSet; 
+                        numRowPerSet <= MIN(inputParameter->maxNumRowPerSet, inputParameter->associativity); 
+                        numRowPerSet *= 2) 
+                for (int areaOptimizationLevel = inputParameter->minAreaOptimizationLevel; 
+                        areaOptimizationLevel <= inputParameter->maxAreaOptimizationLevel; 
+                        areaOptimizationLevel++) 
+                for (int rowDriverOptLevel = inputParameter->minRowDriverOptLevel; 
+                        rowDriverOptLevel <= inputParameter->maxRowDriverOptLevel; 
+                        rowDriverOptLevel++) 
+                for (int priorityOptLevel = inputParameter->minPriorityOptLevel; 
+                        priorityOptLevel <= inputParameter->maxPriorityOptLevel; 
+                        priorityOptLevel++) 
+                for (int bitSerialWidth = inputParameter->minBitSerialWidth; 
+                        bitSerialWidth <= inputParameter->maxBitSerialWidth; 
+                        bitSerialWidth *= 2) {
 
-                int numRowMat;
-                int numColumnMat;   
-                int numRowSubarray;
-
-                numRowMat      = inputParameter->minNumRowMat << bigLoopItr0;
-                numColumnMat   = inputParameter->minNumColumnMat << bigLoopItr1;
-                numRowSubarray = inputParameter->minNumRowSubarray << bigLoopItr2;
-
-                if (bigLoopItr0 == 1) numRowMat = 1;
-                if (bigLoopItr1 == 1) numColumnMat = 1;
-                if (bigLoopItr2 == 1) numRowSubarray = 1;
-
-                loops_complete += 1;
-
-                long long percentage = loops_complete*100/total;
+                        if (blockSize / (numActiveMatPerRow * numActiveMatPerColumn 
+                                    * numActiveSubarrayPerRow * numActiveSubarrayPerColumn) == 0) {
+                                /* To aggressive partitioning */
+                                continue;
+                        }
                 
-                if (total > 1) {
-                        #pragma omp critical
-                        std::cout << "\rProgress: " << percentage << "%" << std::flush;
-                }
+                        std::shared_ptr<Bank> dataBank;
+                        auto iterCamOpt = std::make_shared<CAM_Opt>();
+                        iterCamOpt->RowDriver = rowDriverOptLevel;
+                        iterCamOpt->Proirity = priorityOptLevel;
+                        iterCamOpt->BitSerialWidth = bitSerialWidth;
 
-	for (int numActiveMatPerRow = MIN(numColumnMat, inputParameter->minNumActiveMatPerRow); 
-                numActiveMatPerRow <= MIN(numColumnMat, inputParameter->maxNumActiveMatPerRow); 
-                numActiveMatPerRow *= 2) 
-	for (int numActiveMatPerColumn = MIN(numRowMat, inputParameter->minNumActiveMatPerColumn); 
-                numActiveMatPerColumn <= MIN(numRowMat, inputParameter->maxNumActiveMatPerColumn); 
-                numActiveMatPerColumn *= 2) 
-	for (int numColumnSubarray = inputParameter->minNumColumnSubarray; 
-                numColumnSubarray <= inputParameter->maxNumColumnSubarray; 
-                numColumnSubarray *= 2) 
-	for (int numActiveSubarrayPerRow = MIN(numColumnSubarray, inputParameter->minNumActiveSubarrayPerRow); 
-                numActiveSubarrayPerRow <= MIN(numColumnSubarray, inputParameter->maxNumActiveSubarrayPerRow); 
-                numActiveSubarrayPerRow *=2) 
-	for (int numActiveSubarrayPerColumn = MIN(numRowSubarray, inputParameter->minNumActiveSubarrayPerColumn); 
-                numActiveSubarrayPerColumn <= MIN(numRowSubarray, inputParameter->maxNumActiveSubarrayPerColumn); 
-                numActiveSubarrayPerColumn *= 2) 
-	for (int muxSenseAmp = inputParameter->minMuxSenseAmp; 
-                muxSenseAmp <= inputParameter->maxMuxSenseAmp; 
-                muxSenseAmp *= 2) 
-	for (int muxOutputLev1 = inputParameter->minMuxOutputLev1; 
-                muxOutputLev1 <= inputParameter->maxMuxOutputLev1; 
-                muxOutputLev1 *= 2) 
-	for (int muxOutputLev2 = inputParameter->minMuxOutputLev2; 
-                muxOutputLev2 <= inputParameter->maxMuxOutputLev2; 
-                muxOutputLev2 *= 2) 
-	for (int numRowPerSet = inputParameter->minNumRowPerSet; 
-                numRowPerSet <= MIN(inputParameter->maxNumRowPerSet, inputParameter->associativity); 
-                numRowPerSet *= 2) 
-	for (int areaOptimizationLevel = inputParameter->minAreaOptimizationLevel; 
-                areaOptimizationLevel <= inputParameter->maxAreaOptimizationLevel; 
-                areaOptimizationLevel++) 
-	for (CAM_opt->RowDriver = inputParameter->minRowDriverOptLevel; 
-                CAM_opt->RowDriver <= inputParameter->maxRowDriverOptLevel; 
-                CAM_opt->RowDriver++) 
-	for (CAM_opt->Proirity = inputParameter->minPriorityOptLevel; 
-                CAM_opt->Proirity <= inputParameter->maxPriorityOptLevel; 
-                CAM_opt->Proirity++) 
-	for (CAM_opt->BitSerialWidth = inputParameter->minBitSerialWidth; 
-                CAM_opt->BitSerialWidth <= inputParameter->maxBitSerialWidth; 
-                CAM_opt->BitSerialWidth *= 2) {
-
-		if (blockSize / (numActiveMatPerRow * numActiveMatPerColumn 
-                            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn) == 0) {
-			/* To aggressive partitioning */
-			continue;
-		}
-                
-                std::shared_ptr<Bank> dataBank;
-
-	        if (inputParameter->routingMode == h_tree) {
-		    dataBank = std::make_shared<BankWithHtree>(); 
-                } else { 
-		    dataBank = std::make_shared<BankWithoutHtree>();
-                }
-	        dataBank->Initialize(numRowMat, numColumnMat, capacity, blockSize, associativity,
-				numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
-				inputParameter->internalSensing, muxOutputLev1, muxOutputLev2, numRowSubarray, 
-                                numColumnSubarray, numActiveSubarrayPerRow, numActiveSubarrayPerColumn, 
-                                (BufferDesignTarget)areaOptimizationLevel, mem_data, inputParameter->cell->camType, 
-                                inputParameter->searchFunction, inputParameter, localWire, globalWire, CAM_opt); 
-	        //dataBank->CalculateArea(); 
-	        //dataBank->CalculateRC(); 
-	        //dataBank->CalculateLatencyAndPower();
-                //std::cout << dataBank->readDynamicEnergy << std::endl;
+                        if (inputParameter->routingMode == h_tree) {
+                            dataBank = std::make_shared<BankWithHtree>(); 
+                        } else { 
+                            dataBank = std::make_shared<BankWithoutHtree>();
+                        }
+                        dataBank->Initialize(numRowMat, numColumnMat, capacity, blockSize, associativity,
+                                        numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
+                                        inputParameter->internalSensing, muxOutputLev1, muxOutputLev2, numRowSubarray, 
+                                        numColumnSubarray, numActiveSubarrayPerRow, numActiveSubarrayPerColumn, 
+                                        (BufferDesignTarget)areaOptimizationLevel, mem_data, inputParameter->cell->camType, 
+                                        inputParameter->searchFunction, inputParameter, localWire, globalWire, iterCamOpt); 
+                        //dataBank->CalculateArea(); 
+                        //dataBank->CalculateRC(); 
+                        //dataBank->CalculateLatencyAndPower();
+                        //std::cout << dataBank->readDynamicEnergy << std::endl;
 
 	// for (int i = 0; i < (int)full_exploration; i++)
 	// std::cout << __FILE__ << ": " << __LINE__ << ": " << "capacity" << bestDataResults[i]->bank->capacity << std::endl;
     // std::cout << __FILE__ << ": " << __LINE__ << ": " << capacity << "::" << blockSize << "::" << associativity << std::endl;
 
-                if (!dataBank->invalid && !dataBank->mat->subarray->invalid) {
-			std::shared_ptr<Result> tempResult;
+                        if (!dataBank->invalid && !dataBank->mat->subarray->invalid) {
+                                std::shared_ptr<Result> tempResult;
                         tempResult = std::make_shared<Result>();
                         tempResult->Initialize(inputParameter);
 			//VERIFY_DATA_CAPACITY;
@@ -447,7 +428,7 @@ int main(int argc, char *argv[]) {
                                 throw std::runtime_error("ERROR: DATA capacity violation. Shouldn't happen"); 
                     }
 
-			numSolution++;
+                                numSolution++;
 			// for (int i = 0; i < (int)full_exploration; i++)
 				// std::cout << __FILE__ << ": " << __LINE__ << ": " << "capacity" << bestDataResults[i]->bank->capacity << std::endl;
 
@@ -461,19 +442,40 @@ int main(int argc, char *argv[]) {
 			// for (int i = 0; i < (int)full_exploration; i++)
 				// std::cout << __FILE__ << ": " << __LINE__ << ": " << "capacity" << bestDataResults[i]->bank->capacity << std::endl;
 
-			if (inputParameter->optimizationTarget == full_exploration && !inputParameter->isPruningEnabled) {
+                                if (inputParameter->optimizationTarget == full_exploration && !inputParameter->isPruningEnabled) {
 				//OUTPUT_TO_FILE;
 		                tempResult->printToCsvFile(outputFile); 
 		                outputFile << std::endl; 
 			// for (int i = 0; i < (int)full_exploration; i++)
 				// std::cout << __FILE__ << ": " << __LINE__ << ": " << "capacity" << bestDataResults[i]->bank->capacity << std::endl;
 
-			}
-		}
-	}
+                                }
+                        }
+                }
+        };
 
+        if (fixedBankMatSubarray) {
+                PRINT_VERBOSE("Fixed bank/mat/subarray sizes detected; bypassing outer geometry loops.");
+                evaluateGeometry(inputParameter->minNumRowMat,
+                                 inputParameter->minNumColumnMat,
+                                 inputParameter->minNumRowSubarray);
+        } else {
+                #pragma omp parallel
+                {
+                        #pragma omp for collapse(3)
+                        for (int i = 0; i < (int)numRowMatValues.size(); i++)
+                        for (int j = 0; j < (int)numColumnMatValues.size(); j++)
+                        for (int k = 0; k < (int)numRowSubarrayValues.size(); k++) {
+                                loops_complete += 1;
+                                long long percentage = loops_complete*100/total;
+                                if (total > 1) {
+                                        #pragma omp critical
+                                        std::cout << "\rProgress: " << percentage << "%" << std::flush;
+                                }
+                                evaluateGeometry(numRowMatValues[i], numColumnMatValues[j], numRowSubarrayValues[k]);
+                        }
+                }
         }
-}
 	// for (int i = 0; i < (int)full_exploration; i++)
 		// std::cout << __FILE__ << ": " << __LINE__ << ": " << "capacity: " << bestDataResults[i]->bank->capacity << std::endl;
 
@@ -802,22 +804,13 @@ int main(int argc, char *argv[]) {
                 globalWire->Initialize(inputParameter->processNode, basicWireType, basicWireRepeaterType, 
                         inputParameter->temperature, isBasicLowSwing, inputParameter);
 
-                // TODO: Make multithreaded 
-                for (int numRowMat = inputParameter->minNumRowMat; 
-                        numRowMat <= inputParameter->maxNumRowMat; 
-                        numRowMat *= 2)
-	        for (int numColumnMat = inputParameter->minNumColumnMat; 
-                        numColumnMat <= inputParameter->maxNumColumnMat; 
-                        numColumnMat *= 2) 
+                auto evaluateConstrainedGeometry = [&](int numRowMat, int numColumnMat, int numRowSubarray) {
                 for (int numActiveMatPerRow = MIN(numColumnMat, inputParameter->minNumActiveMatPerRow); 
                         numActiveMatPerRow <= MIN(numColumnMat, inputParameter->maxNumActiveMatPerRow); 
                         numActiveMatPerRow *= 2) 
                 for (int numActiveMatPerColumn = MIN(numRowMat, inputParameter->minNumActiveMatPerColumn); 
                         numActiveMatPerColumn <= MIN(numRowMat, inputParameter->maxNumActiveMatPerColumn); 
                         numActiveMatPerColumn *= 2) 
-                for (int numRowSubarray = inputParameter->minNumRowSubarray; 
-                        numRowSubarray <= inputParameter->maxNumRowSubarray; 
-                        numRowSubarray *= 2) 
                 for (int numColumnSubarray = inputParameter->minNumColumnSubarray; 
                         numColumnSubarray <= inputParameter->maxNumColumnSubarray; 
                         numColumnSubarray *= 2) 
@@ -902,13 +895,28 @@ int main(int argc, char *argv[]) {
 				//UPDATE_BEST_DATA;
                                 tempResult->bank = dataBank->clone_bank(); 
 	                        tempResult->localWire = localWire; 
-	                        tempResult->globalWire = globalWire; 
-	                        for (int i = 0; i < (int)full_exploration; i++){ 
-		                        bestDataResults[i]->compareAndUpdate(tempResult); 
-	                        } 
+	                                tempResult->globalWire = globalWire; 
+		                        for (int i = 0; i < (int)full_exploration; i++){ 
+			                        bestDataResults[i]->compareAndUpdate(tempResult); 
+		                        } 
 
-			}
-		}
+                        }
+                }
+                };
+
+                if (fixedBankMatSubarray) {
+                        PRINT_VERBOSE("Fixed bank/mat/subarray sizes detected; bypassing constrained outer geometry loops.");
+                        evaluateConstrainedGeometry(inputParameter->minNumRowMat,
+                                                    inputParameter->minNumColumnMat,
+                                                    inputParameter->minNumRowSubarray);
+                } else {
+                        // TODO: Make multithreaded
+                        for (int numRowMat : numRowMatValues)
+                        for (int numColumnMat : numColumnMatValues)
+                        for (int numRowSubarray : numRowSubarrayValues) {
+                                evaluateConstrainedGeometry(numRowMat, numColumnMat, numRowSubarray);
+                        }
+                }
 	}
 
 	if (inputParameter->optimizationTarget != full_exploration) {
