@@ -320,6 +320,8 @@ void Result::print() {
 			<< inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize * bank->capacity / bank->numRowMat
 			/ bank->numColumnMat / bank->numRowSubarray / bank->numColumnSubarray
 			/ bank->mat->subarray->area * 100 << "%)" <<std::endl;
+	std::cout << " |--- Subarray Dimensions = " << bank->mat->subarray->numRow
+			<< " Rows x " << bank->mat->subarray->numColumn << " Columns" << std::endl;
 	std::cout << " - Area Efficiency = " << inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize
 			* bank->capacity / bank->area * 100 << "%" << std::endl;
 

@@ -25,6 +25,8 @@
 #include "CAM_Line.h"
 #include "MemCell.h"
 #include "InputParameter.h"
+#include "EvaCAMMatchResult.h"
+#include <vector>
 
 class CAM_SubArray: public FunctionUnit {
 public:
@@ -56,6 +58,7 @@ public:
 	void CalculateArea();
 	void CalculateLatency(double _rampInput);
 	void CalculatePower();
+	EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
 	CAM_SubArray & operator=(const CAM_SubArray &);
         std::unique_ptr<FunctionUnit> clone() const override {
                 return std::make_unique<CAM_SubArray>(*this);

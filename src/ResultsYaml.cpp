@@ -256,13 +256,15 @@ void write_summary(YamlWriter& y, const Result& result) {
     y.line("width", fmt_meter(bank->mat->height));
     y.line("height", fmt_meter(bank->mat->width));
     y.line("area", fmt_sqm(bank->mat->area));
-    y.line("percent", fmt_percent(mat_area_pct));
+    y.line("cell_area_utilization", fmt_percent(mat_area_pct));
     y.end_map();
     y.begin_map("subarray");
+    y.line("dimensions", std::to_string(bank->mat->subarray->numRow) + "x" +
+                         std::to_string(bank->mat->subarray->numColumn));
     y.line("width", fmt_meter(bank->mat->subarray->height));
     y.line("height", fmt_meter(bank->mat->subarray->width));
     y.line("area", fmt_sqm(bank->mat->subarray->area));
-    y.line("percent", fmt_percent(subarray_area_pct));
+    y.line("cell_area_utilization", fmt_percent(subarray_area_pct));
     y.end_map();
     double area_efficiency = input->cell->area * input->tech->featureSize * input->tech->featureSize *
                              bank->capacity / bank->area * 100;

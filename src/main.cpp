@@ -341,7 +341,7 @@ int main(int argc, char *argv[]) {
                         numColumnSubarray *= 2) 
                 for (int numActiveSubarrayPerRow = MIN(numColumnSubarray, inputParameter->minNumActiveSubarrayPerRow); 
                         numActiveSubarrayPerRow <= MIN(numColumnSubarray, inputParameter->maxNumActiveSubarrayPerRow); 
-                        numActiveSubarrayPerRow *=2) 
+                        numActiveSubarrayPerRow *= 2) 
                 for (int numActiveSubarrayPerColumn = MIN(numRowSubarray, inputParameter->minNumActiveSubarrayPerColumn); 
                         numActiveSubarrayPerColumn <= MIN(numRowSubarray, inputParameter->maxNumActiveSubarrayPerColumn); 
                         numActiveSubarrayPerColumn *= 2) 

@@ -18,6 +18,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 
         localWire = _localWire;
         globalWire = _globalWire;
+        inputParameter = _inputParameter;
 
 	if (initialized) {
 		/* Reset the class for re-initialization */
@@ -136,6 +137,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 		numWay = 1;
 	}
 
+	mat = std::make_shared<Mat>();
 
 	mat->Initialize(numRowSubarray, numColumnSubarray, numAddressBitRouteToMat, numDataBitRouteToMat,
 			numWay, numRowPerSet, false, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
@@ -184,9 +186,6 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 	muxSenseAmp = _muxSenseAmp;
 	muxOutputLev1 = _muxOutputLev1;
 	muxOutputLev2 = _muxOutputLev2;
-
-        // Set inputParameter
-        inputParameter = _inputParameter;
 
 	initialized = true;
         CalculateArea();
@@ -404,4 +403,3 @@ BankWithoutHtree & BankWithoutHtree::operator=(const BankWithoutHtree &rhs) {
 	numDataBitRouteToMat = rhs.numDataBitRouteToMat;
 	return *this;
 }
-

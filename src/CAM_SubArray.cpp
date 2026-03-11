@@ -16,6 +16,7 @@
 #include <string>
 #include <map>
 #include <random>
+#include <stdexcept>
 
 /*
 CAM_SubArray::CAM_SubArray() {
@@ -510,7 +511,7 @@ void CAM_SubArray::CalculateArea() {
 		addWidthArea += (outputLS->area * numColumn * 2);
 
 		if (withInputEnc) {
-			//inputEnc->CalculateArea();
+			inputEnc->CalculateArea();
 			area += (inputEnc->area * numRow);
 			addWidthArea += (inputEnc->area * numRow);
 		}
@@ -977,7 +978,7 @@ void CAM_SubArray::CalculatePower() {
 			//inputLS->CalculatePower();
 			//outputLS->CalculatePower();
 		if(withInputEnc) {
-			//inputEnc->CalculatePower();
+			inputEnc->CalculatePower();
 		} else {
 			inputEnc->readDynamicEnergy = 0;
 			inputEnc->leakage = 0;
@@ -1521,4 +1522,70 @@ CAM_SubArray & CAM_SubArray::operator=(const CAM_SubArray &rhs) {
 	return *this;
 }
 
+EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const {
+	if (!initialized)
+		throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
+	if (invalid)
+		throw std::runtime_error("[CAM_SubArray] Error: subarray is invalid.");
+	if (inputParameter->searchFunction != EX)
+		throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports exact search only.");
+	if (inputParameter->cell->camType != TCAM)
+		throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports TCAM only.");
+	if (!CAM_opt)
+		throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
+	if (stored.size() != static_cast<size_t>(CAM_opt->BitSerialWidth)
+			|| query.size() != static_cast<size_t>(CAM_opt->BitSerialWidth)) {
+		throw std::invalid_argument("[CAM_SubArray] Error: binary match vectors must match BitSerialWidth.");
+	}
 
+	int mismatchCount = 0;
+	for (size_t i = 0; i < stored.size(); i++) {
+		if (stored[i] != query[i])
+			mismatchCount++;
+	}
+
+	double effectiveMatchlineDelay = referDelay;
+	double effectiveSearchLatency = searchLatency - matchlineDelay + referDelay;
+	double effectiveSenseMargin = senseMargin;
+	double effectiveSearchEnergy = searchDynamicEnergy;
+
+	if (mismatchCount > 0) {
+		double capTotalCellTemp = capCellAccess * CAM_opt->BitSerialWidth;
+		double resTemp = (resMemCellOn * resMemCellOff)
+				/ ((CAM_opt->BitSerialWidth - mismatchCount) * resMemCellOn + resMemCellOff * mismatchCount);
+		double tauTemp = resTemp * (capTotalCellTemp
+				+ ColMux[indexMatchline]->capForPreviousDelayCalculation
+				+ inputParameter->AddCapOnML
+				+ precharger->capOutputBitlinePrecharger
+				+ senseAmp->capLoad)
+				+ Col[indexMatchline]->res * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+				+ inputParameter->AddCapOnML
+				+ precharger->capOutputBitlinePrecharger
+				+ senseAmp->capLoad
+				+ Col[indexMatchline]->cap / 2);
+
+		double gm = CalculateTransconductance(
+				Col[indexMatchline]->CellPort.widthCmos * inputParameter->tech->featureSize,
+				NMOS, inputParameter->tech);
+		double beta = 1 / gm / resTemp;
+		double rampTemp = 0;
+		effectiveMatchlineDelay = horowitz(tauTemp, beta, RowDriver[0]->rampOutput, &rampTemp);
+		effectiveSearchLatency = searchLatency - matchlineDelay + effectiveMatchlineDelay;
+
+		// Evaluate the miss voltage at the all-match sensing instant to expose a per-query margin.
+		double actualMatchlineVoltage = voltagePrecharge * exp(-referDelay / tauTemp);
+		effectiveSenseMargin = voltagePrecharge / 2 - actualMatchlineVoltage;
+
+		// Approximate extra discharge energy from deeper ML discharge as mismatches increase.
+		double missRatio = static_cast<double>(mismatchCount) / static_cast<double>(CAM_opt->BitSerialWidth);
+		effectiveSearchEnergy = searchDynamicEnergy * (1.0 + missRatio);
+	}
+
+	EvaCAMMatchResult result{};
+	result.hit = (mismatchCount == 0) && (senseMargin >= senseVoltage);
+	result.searchLatency = effectiveSearchLatency;
+	result.searchDynamicEnergy = effectiveSearchEnergy;
+	result.matchlineDelay = effectiveMatchlineDelay;
+	result.senseMargin = effectiveSenseMargin;
+	return result;
+}

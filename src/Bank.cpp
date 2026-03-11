@@ -15,6 +15,17 @@ void Bank::debug() {
 	std::cout << & numActiveSubarrayPerRow << std::endl;
 }
 
+bool Bank::match(const std::vector<int> &stored, const std::vector<int> &query) const {
+	return evaluate(stored, query).hit;
+}
+
+EvaCAMMatchResult Bank::evaluate(const std::vector<int> &stored, const std::vector<int> &query) const {
+	if (!mat || !mat->subarray)
+		throw std::runtime_error("[Bank] Error: bank is not initialized for matching.");
+
+	return mat->subarray->EvaluateBinaryMatch(stored, query);
+}
+
  void Bank::printbreakdown() {
 	double latency = 0;
 	if (inputParameter->NoPrechargeInc) {

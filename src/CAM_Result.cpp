@@ -327,13 +327,15 @@ void CAM_Result::print() {
 	std::cout << " |--- Mat Area      = " << TO_METER(bank->mat->height) << " x " << TO_METER(bank->mat->width)
 			<< " = " << TO_SQM(bank->mat->area) << "   (" << inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize
 			* bank->capacity / bank->numRowMat / bank->numColumnMat / bank->mat->area * 100 << "%)" << std::endl;
-	std::cout << " |--- Subarray Area = " << TO_METER(bank->mat->subarray->height) << " x "
-			<< TO_METER(bank->mat->subarray->width) << " = " << TO_SQM(bank->mat->subarray->area) << "   ("
-			<< inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize * bank->capacity / bank->numRowMat
-			/ bank->numColumnMat / bank->numRowSubarray / bank->numColumnSubarray
-			/ bank->mat->subarray->area * 100 << "%)" <<std::endl;
-	std::cout << " - Area Efficiency = " << inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize
-			* bank->capacity / bank->area * 100 << "%" << std::endl;
+		std::cout << " |--- Subarray Area = " << TO_METER(bank->mat->subarray->height) << " x "
+				<< TO_METER(bank->mat->subarray->width) << " = " << TO_SQM(bank->mat->subarray->area) << "   ("
+				<< inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize * bank->capacity / bank->numRowMat
+				/ bank->numColumnMat / bank->numRowSubarray / bank->numColumnSubarray
+				/ bank->mat->subarray->area * 100 << "%)" <<std::endl;
+		std::cout << " |--- Subarray Dimensions = " << bank->mat->subarray->numRow
+				<< " Rows x " << bank->mat->subarray->numColumn << " Columns" << std::endl;
+		std::cout << " - Area Efficiency = " << inputParameter->cell->area * inputParameter->tech->featureSize * inputParameter->tech->featureSize
+				* bank->capacity / bank->area * 100 << "%" << std::endl;
 	std::cout << "Timing:" << std::endl;
 
 	std::cout << " -  Search Latency = " << TO_SECOND(bank->readLatency) << std::endl;

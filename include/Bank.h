@@ -2,7 +2,9 @@
 #define BANK_H_
 
 #include <memory>
+#include <vector>
 
+#include "EvaCAMMatchResult.h"
 #include "FunctionUnit.h"
 #include "Mat.h"
 #include "Wire.h"
@@ -25,6 +27,8 @@ public:
 	//NCsim-CAM
 	void debug();
 	//End NVsim-CAM
+	bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
+	EvaCAMMatchResult evaluate(const std::vector<int> &stored, const std::vector<int> &query) const;
 	virtual void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
 			long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
 			int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
