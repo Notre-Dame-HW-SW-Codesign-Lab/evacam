@@ -1,9 +1,5 @@
 #include "../include/CAM_Line.h"
-#include "../include/typedef.h"
-#include "../include/constant.h"
 #include "../include/formula.h"
-#include "../include/MemCell.h"
-#include "../include/macros.h"
 
 void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCell, 
         std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {

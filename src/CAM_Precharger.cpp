@@ -1,6 +1,5 @@
 #include "../include/CAM_Precharger.h"
 #include "../include/formula.h"
-#include "../include/constant.h"
 void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, 
         std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
     if (initialized)
@@ -96,4 +95,3 @@ CAM_Precharger & CAM_Precharger::operator=(const CAM_Precharger &rhs) {
 
     return *this;
 }
-

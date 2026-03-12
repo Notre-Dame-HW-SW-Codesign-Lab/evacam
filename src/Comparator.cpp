@@ -1,6 +1,5 @@
 #include "../include/Comparator.h"
 #include "../include/formula.h"
-#include <math.h>
 void Comparator::Initialize(int _numTagBits, double _capLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
         std::cout << "[Comparator] Warning: Already initialized!" << std::endl;

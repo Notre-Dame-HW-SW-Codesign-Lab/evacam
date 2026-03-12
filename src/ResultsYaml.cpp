@@ -1,8 +1,6 @@
 #include "../include/ResultsYaml.h"
 
-#include <algorithm>
 #include <iomanip>
-#include <sstream>
 #include <string>
 
 #include "../include/macros.h"

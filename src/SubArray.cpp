@@ -1,7 +1,5 @@
 #include "../include/SubArray.h"
 #include "../include/formula.h"
-#include "../include/constant.h"
-#include <math.h>
 void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,
         int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2,
         BufferDesignTarget _areaOptimizationLevel, std::shared_ptr<EvaCamConfig> _config,

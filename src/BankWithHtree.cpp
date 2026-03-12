@@ -1,8 +1,5 @@
 #include "../include/BankWithHtree.h"
 
-#include <cmath>
-#include <stdexcept>
-
 
 BankWithHtree::BankWithHtree() {
     // TODO Auto-generated constructor stub

@@ -3,8 +3,6 @@
 #include "../include/BankWithHtree.h"
 #include "../include/BankWithoutHtree.h"
 
-#include <stdexcept>
-
 EvaCAM_Match::EvaCAM_Match(const std::string &configPath) {
     config = std::make_shared<EvaCamConfig>();
     config->SetDeepExploration(false);

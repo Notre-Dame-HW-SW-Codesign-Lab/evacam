@@ -1,20 +1,10 @@
 #include "../include/EvaCamConfig.h"
-#include "../include/constant.h"
 #include "../include/formula.h"
-#include "../include/macros.h"
 #include "../include/BankWithHtree.h"
 #include "../include/BankWithoutHtree.h"
 #include "../include/Result.h"
 #include "../include/YamlHelpers.h"
-#include "../include/Wire.h"
-#include <string>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
-#include <cmath>
 #include <filesystem>
-#include <yaml.h>
 //#include <magic_enum.hpp>
 
 namespace {

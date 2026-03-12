@@ -1,6 +1,4 @@
 #include "../include/formula.h"
-#include "../include/constant.h"
-#include <stdlib.h>
 #include <iomanip>
 
 bool isPow2(int n) {

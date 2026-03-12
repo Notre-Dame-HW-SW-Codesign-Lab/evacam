@@ -1,9 +1,5 @@
 #include "../include/CAM_Result.h"
-#include "../include/formula.h"
 #include "../include/macros.h"
-
-#include <iostream>
-#include <fstream>
 
 CAM_Result::CAM_Result() {
     // TODO Auto-generated constructor stub

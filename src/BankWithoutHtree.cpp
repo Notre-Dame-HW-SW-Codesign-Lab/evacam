@@ -1,6 +1,5 @@
 #include "../include/BankWithoutHtree.h"
 #include "../include/formula.h"
-#include <math.h>
 
 void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
         long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,

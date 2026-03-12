@@ -3,7 +3,6 @@
 #include <omp.h>
 
 #include <filesystem>
-#include <stdexcept>
 
 #include "../include/EvaCamConfig.h"
 

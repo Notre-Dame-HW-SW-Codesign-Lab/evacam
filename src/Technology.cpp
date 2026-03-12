@@ -1,5 +1,4 @@
 #include "../include/Technology.h"
-#include "../include/MemCell.h"
 
 #include <iostream>
 #include <math.h>

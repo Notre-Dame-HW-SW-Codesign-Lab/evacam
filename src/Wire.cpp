@@ -1,7 +1,5 @@
 #include "../include/Wire.h"
 #include "../include/formula.h"
-#include "../include/constant.h"
-#include <math.h>
 /*
    Wire::Wire() {
 // TODO Auto-generated constructor stub

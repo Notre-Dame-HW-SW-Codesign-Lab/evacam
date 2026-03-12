@@ -1,8 +1,6 @@
 #include "../include/formula.h"
-#include "../include/constant.h"
 
 #include <iostream>
-#include <math.h>
 
 void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::shared_ptr<Technology> tech, 
         double *_width, double *_height, bool UseUpdatedLib) {
