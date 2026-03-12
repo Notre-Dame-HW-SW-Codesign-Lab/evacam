@@ -10,44 +10,44 @@
 #include "typedef.h"
 #include "Wire.h"
 #include "Technology.h"
-#include "InputParameter.h"
+#include "EvaCamConfig.h"
 
 class CAM_Line {
-public:
-	CAM_Line() {
-                initialized = false;
-                invalid = false;
+    public:
+        CAM_Line() {
+            initialized = false;
+            invalid = false;
         }
 
-	CAM_Line(const CAM_Line&) {}
-	virtual ~CAM_Line() {}
+        CAM_Line(const CAM_Line&) {}
+        virtual ~CAM_Line() {}
 
-	/* Functions */
-	void Initialize(bool _isRow, int _index, double _len, long long _numCell, 
-                std::shared_ptr<InputParameter> _inputParameter, std::shared_ptr<Wire> _localWire);
-	void Initialize(double _len, long long _numCell, double _MuxWidth, 
-                std::shared_ptr<InputParameter> _inputParameter, std::shared_ptr<Wire> _localWire); // for mux signal only
+        /* Functions */
+        void Initialize(bool _isRow, int _index, double _len, long long _numCell, 
+                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire);
+        void Initialize(double _len, long long _numCell, double _MuxWidth, 
+                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire); // for mux signal only
 
-	void CalcMaxCurrent();
-	void CalcMuxWidth();
-	void PrintLine();
+        void CalcMaxCurrent();
+        void CalcMuxWidth();
+        void PrintLine();
 
-	/* Properties */
-	bool initialized;
-	bool invalid;
+        /* Properties */
+        bool initialized;
+        bool invalid;
 
-	CAMPort CellPort;
-	int index;
+        CAMPort CellPort;
+        int index;
         int temperature;
-	double len;
-	double cap;
-	double res;
-	bool isRow;
-	double numCell;
-	double maxCurrent;
-	double minMuxWidth;
+        double len;
+        double cap;
+        double res;
+        bool isRow;
+        double numCell;
+        double maxCurrent;
+        double minMuxWidth;
 
-        std::shared_ptr<InputParameter> inputParameter;
+        std::shared_ptr<EvaCamConfig> config;
         std::shared_ptr<Wire> localWire;
 };
 

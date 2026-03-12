@@ -3,36 +3,36 @@
 
 #include "FunctionUnit.h"
 #include "OutputDriver.h"
-#include "InputParameter.h"
+#include "EvaCamConfig.h"
 
 class CAM_OutputAccumulator: public FunctionUnit {
-public:
-	CAM_OutputAccumulator();
-	CAM_OutputAccumulator(const CAM_OutputAccumulator&) {}
-	virtual ~CAM_OutputAccumulator() {}
+    public:
+        CAM_OutputAccumulator();
+        CAM_OutputAccumulator(const CAM_OutputAccumulator&) {}
+        virtual ~CAM_OutputAccumulator() {}
 
-	/* Functions */
-	void PrintProperty();
-	void Initialize(double _capLoad, double _resLoad, std::shared_ptr<InputParameter> inputParameter);
-	void CalculateArea();
-	void CalculateRC();
-	void CalculateLatency(double _rampInput);
-	void CalculatePower();
-	/* Note that this is a single accumulator, not yet multiplied by number of inputs */
-	CAM_OutputAccumulator & operator=(const CAM_OutputAccumulator &);
+        /* Functions */
+        void PrintProperty();
+        void Initialize(double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> config);
+        void CalculateArea();
+        void CalculateRC();
+        void CalculateLatency(double _rampInput);
+        void CalculatePower();
+        /* Note that this is a single accumulator, not yet multiplied by number of inputs */
+        CAM_OutputAccumulator & operator=(const CAM_OutputAccumulator &);
         std::unique_ptr<FunctionUnit> clone() const override {
-                return std::make_unique<CAM_OutputAccumulator>(*this);
+            return std::make_unique<CAM_OutputAccumulator>(*this);
         }
 
-	/* Properties */
-	bool initialized;	/* Initialization flag */
-	double capLoad;		/* Load capacitance, Unit: F */
-	double resLoad;		/* Load resistance, Unit: ohm */
+        /* Properties */
+        bool initialized;	/* Initialization flag */
+        double capLoad;		/* Load capacitance, Unit: F */
+        double resLoad;		/* Load resistance, Unit: ohm */
 
-	double capNandIn, capNandOut;
-	double widthNandN, widthNandP;
-	OutputDriver outputDriver;
-	double rampInput, rampOutput;
+        double capNandIn, capNandOut;
+        double widthNandN, widthNandP;
+        OutputDriver outputDriver;
+        double rampInput, rampOutput;
 };
 
 #endif /* CAM_OUTPUTACCUMULATOR_H_ */

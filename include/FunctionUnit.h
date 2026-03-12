@@ -2,44 +2,43 @@
 #define FUNCTIONUNIT_H_
 
 #include <memory>
-#include <iostream>
 
-#include "InputParameter.h"
+#include "EvaCamConfig.h"
 
 /* Unused
-struct SearchPerf{
-	double hit;
-	double oneMiss;
-	double allMiss;
-	double* Miss;
-};
-*/
+   struct SearchPerf{
+   double hit;
+   double oneMiss;
+   double allMiss;
+   double* Miss;
+   };
+ */
 
 class FunctionUnit {
-public:
-	FunctionUnit();
+    public:
+        FunctionUnit();
         FunctionUnit(const FunctionUnit&) = default;
-	virtual ~FunctionUnit() = default;
+        virtual ~FunctionUnit() = default;
 
-	/* Functions */
-	virtual void PrintProperty();
+        /* Functions */
+        virtual void PrintProperty();
         virtual std::unique_ptr<FunctionUnit> clone() const = 0;
 
 
-	/* Properties */
-	double height;		/* Unit: m */
-	double width;		/* Unit: m */
-	double area;		/* Unit: m^2 */
-	double readLatency, writeLatency;		/* Unit: s */
-	double readDynamicEnergy, writeDynamicEnergy;	/* Unit: J */
-	double leakage;		/* Unit: W */
+        /* Properties */
+        double height;		/* Unit: m */
+        double width;		/* Unit: m */
+        double area;		/* Unit: m^2 */
+        double readLatency, writeLatency;		/* Unit: s */
+        double readDynamicEnergy, writeDynamicEnergy;	/* Unit: J */
+        double leakage;		/* Unit: W */
 
-	/* Optional properties (not valid for all the memory cells */
-	double setLatency, resetLatency;				/* Unit: s */
-	double setDynamicEnergy, resetDynamicEnergy;	/* Unit: J */
-	double cellReadEnergy, cellSetEnergy, cellResetEnergy;			/* Unit: J */
+        /* Optional properties (not valid for all the memory cells */
+        double setLatency, resetLatency;				/* Unit: s */
+        double setDynamicEnergy, resetDynamicEnergy;	/* Unit: J */
+        double cellReadEnergy, cellSetEnergy, cellResetEnergy;			/* Unit: J */
 
-        std::shared_ptr<InputParameter> inputParameter;
+        std::shared_ptr<EvaCamConfig> config;
 };
 
 #endif /* FUNCTIONUNIT_H_ */

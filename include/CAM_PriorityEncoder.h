@@ -11,37 +11,37 @@
 #include "CAM_Encoder.h"
 
 class CAM_PriorityEncoder: public FunctionUnit {
-public:
-	CAM_PriorityEncoder();
-	CAM_PriorityEncoder(const CAM_PriorityEncoder&) {}
-	virtual ~CAM_PriorityEncoder() {}
+    public:
+        CAM_PriorityEncoder();
+        CAM_PriorityEncoder(const CAM_PriorityEncoder&) {}
+        virtual ~CAM_PriorityEncoder() {}
 
-	/* Functions */
-	void PrintProperty();
-	void Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, 
-                double _capLoad, double _resLoad, std::shared_ptr<InputParameter> inputParameter);
-	void CalculateArea();
-	void CalculateRC();
-	void CalculateLatency(double _rampInput);
-	void CalculatePower();
-	CAM_PriorityEncoder & operator=(const CAM_PriorityEncoder &);
+        /* Functions */
+        void PrintProperty();
+        void Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, 
+                double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> config);
+        void CalculateArea();
+        void CalculateRC();
+        void CalculateLatency(double _rampInput);
+        void CalculatePower();
+        CAM_PriorityEncoder & operator=(const CAM_PriorityEncoder &);
         std::unique_ptr<FunctionUnit> clone() const override {
-                return std::make_unique<CAM_PriorityEncoder>(*this);
+            return std::make_unique<CAM_PriorityEncoder>(*this);
         }
-	/* Properties */
-	bool initialized;	/* Initialization flag */
-	int numInputBits;   /* Number of input bits */
-	BufferDesignTarget areaOptimizationLevel;
+        /* Properties */
+        bool initialized;	/* Initialization flag */
+        int numInputBits;   /* Number of input bits */
+        BufferDesignTarget areaOptimizationLevel;
 
-	double widthNorN, widthNorP;
-	double capNorInput, capNorOutput;
+        double widthNorN, widthNorP;
+        double capNorInput, capNorOutput;
 
-	double capLoad;		/* Load capacitance, Unit: F */
-	double resLoad;		/* Load resistance, Unit: ohm */
-	double rampInput, rampOutput;
+        double capLoad;		/* Load capacitance, Unit: F */
+        double resLoad;		/* Load resistance, Unit: ohm */
+        double rampInput, rampOutput;
 
-	CAM_MMR MMR;
-	CAM_Encoder Encoder;
+        CAM_MMR MMR;
+        CAM_Encoder Encoder;
 };
 
 

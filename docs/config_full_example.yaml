@@ -51,7 +51,7 @@ wires: # map
     low_swing: false # bool
 
 array: # optional map
-  # If omitted, EvaCAM uses exploration ranges from RestoreSearchSize()/ReduceSearchSize()
+  # If omitted, EvaCAM uses exploration ranges from SetDeepExploration()
   # instead of fixed bank/mat/mux values.
   banks: # map
     total: [1, 1] # [int, int]

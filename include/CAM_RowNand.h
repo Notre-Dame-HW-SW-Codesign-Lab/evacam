@@ -10,27 +10,27 @@
 
 
 class CAM_RowNand: public RowDecoder {
-public:
-	CAM_RowNand() {
-                initialized = false;
-                invalid = false;
-                driverInv = true;
+    public:
+        CAM_RowNand() {
+            initialized = false;
+            invalid = false;
+            driverInv = true;
         }
 
-	//CAM_RowNand(const CAM_RowNand&) {}
-	virtual ~CAM_RowNand() {}
+        //CAM_RowNand(const CAM_RowNand&) {}
+        virtual ~CAM_RowNand() {}
 
-	/* Functions */
-	void Initialize(int _numRow, double _capLoad, double _resLoad,
-			bool _multipleRowPerSet, bool _inv, BufferDesignTarget _areaOptimizationLevel, 
-                        double _minDriverCurrent, std::shared_ptr<InputParameter> _inputParameter);
-	CAM_RowNand & operator=(const CAM_RowNand &);
+        /* Functions */
+        void Initialize(int _numRow, double _capLoad, double _resLoad,
+                bool _multipleRowPerSet, bool _inv, BufferDesignTarget _areaOptimizationLevel, 
+                double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config);
+        CAM_RowNand & operator=(const CAM_RowNand &);
         std::unique_ptr<FunctionUnit> clone() const override {
-                return std::make_unique<CAM_RowNand>(*this);
+            return std::make_unique<CAM_RowNand>(*this);
         }
 
-	/* Properties */
-	bool driverInv;
+        /* Properties */
+        bool driverInv;
 };
 
 

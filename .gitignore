@@ -36,6 +36,7 @@
 *.exe
 *.out
 *.app
+EvaCAM
 
 # debug information files
 *.dwo

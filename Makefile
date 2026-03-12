@@ -1,5 +1,5 @@
 CC=g++
-CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -I/usr/include/yaml-cpp
+CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -MMD -MP -I/usr/include/yaml-cpp
 LD_LIBS= -lyaml-cpp 
 
 VALGRIND_FLAGS=--leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=.valgrind.supp
@@ -13,11 +13,14 @@ CONFIG_SELECT_FILE=$(ROOT_DIR)/config.txt
 
 BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
+UML_TEX=docs/repo_uml.tex
+UML_PDF=repo_uml.pdf
 
 # Automatically find all CPP files in the source directory
 SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
 # Create corresponding OBJ file paths in the object directory
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
+DEPS=$(OBJECTS:.o=.d)
 
 
 CONFIG_FILE_NAME = $(shell awk '!/^\/\// && NF {print $$1; exit}' "$(CONFIG_SELECT_FILE)")
@@ -35,14 +38,31 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CPP_FLAGS) -c $< -o $@
 
-.PHONY: test-yaml
+-include $(DEPS)
+
+.PHONY: test-yaml uml open-uml
 test-yaml:
 	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/YamlHelpers.cpp src/MemCell.cpp $(LD_LIBS)
 	./$(TEST_YAML_BIN)
 
+uml:
+	@if ! command -v pdflatex >/dev/null 2>&1; then \
+		echo "pdflatex not found"; \
+		exit 1; \
+	fi
+	pdflatex -interaction=nonstopmode -halt-on-error $(UML_TEX)
+
+open-uml: uml
+	@if ! command -v xdg-open >/dev/null 2>&1; then \
+		echo "xdg-open not found; built $(UML_PDF)"; \
+		exit 0; \
+	fi
+	xdg-open $(UML_PDF) >/dev/null 2>&1 &
+
 .PHONY: clean
 clean:
-	@rm -r $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN)
+	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) \
+		$(UML_PDF) repo_uml.aux repo_uml.log
 
 run: $(BIN)
 	@mkdir -p $(RES_DIR)

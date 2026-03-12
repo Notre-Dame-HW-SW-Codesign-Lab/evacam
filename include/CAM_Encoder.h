@@ -6,44 +6,44 @@
 #include "CAM_BasicEncoder.h"
 
 class CAM_Encoder: public FunctionUnit {
-public:
-	CAM_Encoder();
-	CAM_Encoder(const CAM_Encoder&) {}
-	virtual ~CAM_Encoder() {}
+    public:
+        CAM_Encoder();
+        CAM_Encoder(const CAM_Encoder&) {}
+        virtual ~CAM_Encoder() {}
 
-	/* Functions */
-	void PrintProperty();
-	void Initialize(int _numInputBit, BufferDesignTarget _areaOptimizationLevel, 
-                double _capLoad, double _resLoad, std::shared_ptr<InputParameter> _inputParameter);
-	void CalculateArea();
-	void CalculateRC();
-	void CalculateLatency(double _rampInput);
-	void CalculatePower();
+        /* Functions */
+        void PrintProperty();
+        void Initialize(int _numInputBit, BufferDesignTarget _areaOptimizationLevel, 
+                double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config);
+        void CalculateArea();
+        void CalculateRC();
+        void CalculateLatency(double _rampInput);
+        void CalculatePower();
         std::unique_ptr<FunctionUnit> clone() const override {
-                return std::make_unique<CAM_Encoder>(*this);
+            return std::make_unique<CAM_Encoder>(*this);
         }
 
-	/* Properties */
-	bool initialized;	/* Initialization flag */
-	double capLoad;		/* Load capacitance, Unit: F */
-	double resLoad;		/* Load resistance, Unit: ohm */
-	int numInputBit;
-	double rampInput, rampOutput;
+        /* Properties */
+        bool initialized;	/* Initialization flag */
+        double capLoad;		/* Load capacitance, Unit: F */
+        double resLoad;		/* Load resistance, Unit: ohm */
+        int numInputBit;
+        double rampInput, rampOutput;
 
-	int numStage;
-	int numBasicEncoder;
-	int numAdr;
+        int numStage;
+        int numBasicEncoder;
+        int numAdr;
 
 
-	double widthNorN, widthNorP;
-	double capNorInput, capNorOutput;
-	double capInvInput, capInvOutput;
+        double widthNorN, widthNorP;
+        double capNorInput, capNorOutput;
+        double capInvInput, capInvOutput;
 
-	double widthN, widthP;
-	BufferDesignTarget areaOptimizationLevel;
+        double widthN, widthP;
+        BufferDesignTarget areaOptimizationLevel;
 
-	CAM_BasicEncoder BasicEncoder;
-	OutputDriver outputDriver;
+        CAM_BasicEncoder BasicEncoder;
+        OutputDriver outputDriver;
 };
 
 

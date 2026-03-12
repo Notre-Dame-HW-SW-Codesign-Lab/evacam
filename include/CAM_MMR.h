@@ -13,37 +13,37 @@
 #include "CAM_BasicMMR.h"
 
 class CAM_MMR: public FunctionUnit {
-public:
-	CAM_MMR();
-	CAM_MMR(const CAM_MMR&) {}
-	virtual ~CAM_MMR() {}
+    public:
+        CAM_MMR();
+        CAM_MMR(const CAM_MMR&) {}
+        virtual ~CAM_MMR() {}
 
-	/* Functions */
-	void PrintProperty();
-	void Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, 
-                double _capLoad, double _resLoad, std::shared_ptr<InputParameter> inputParameter);
-	void CalculateArea();
-	void CalculateRC();
-	void CalculateLatency(double _rampInput);
-	void CalculatePower();
-	CAM_MMR & operator=(const CAM_MMR &);
+        /* Functions */
+        void PrintProperty();
+        void Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, 
+                double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> config);
+        void CalculateArea();
+        void CalculateRC();
+        void CalculateLatency(double _rampInput);
+        void CalculatePower();
+        CAM_MMR & operator=(const CAM_MMR &);
         std::unique_ptr<FunctionUnit> clone() const override {
-                return std::make_unique<CAM_MMR>(*this);
+            return std::make_unique<CAM_MMR>(*this);
         }
 
-	/* Properties */
-	bool initialized;			/* Initialization flag */
-	int numInputBits;  			/* Number of input bits */
-	BufferDesignTarget areaOptimizationLevel;
-	int numBasicMMR;
-	double capLoad;		/* Load capacitance, Unit: F */
-	double resLoad;		/* Load resistance, Unit: ohm */
-	int foldA, foldB;
-	double LookAheadLatency;
-	double rampInput, rampOutput;
+        /* Properties */
+        bool initialized;			/* Initialization flag */
+        int numInputBits;  			/* Number of input bits */
+        BufferDesignTarget areaOptimizationLevel;
+        int numBasicMMR;
+        double capLoad;		/* Load capacitance, Unit: F */
+        double resLoad;		/* Load resistance, Unit: ohm */
+        int foldA, foldB;
+        double LookAheadLatency;
+        double rampInput, rampOutput;
 
-	OutputDriver outputDriver;
-	CAM_BasicMMR BasicMMR;
+        OutputDriver outputDriver;
+        CAM_BasicMMR BasicMMR;
 };
 
 

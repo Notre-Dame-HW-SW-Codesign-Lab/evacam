@@ -7,7 +7,6 @@
 #define CAM_CUSTOMSAAREA_H_
 
 #include "formula.h"
-#include "global.h"
 #include "constant.h"
 
 extern void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, 

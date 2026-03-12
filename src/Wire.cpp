@@ -1,787 +1,786 @@
 #include "../include/Wire.h"
-#include "../include/global.h"
 #include "../include/formula.h"
 #include "../include/constant.h"
 #include <math.h>
 /*
-Wire::Wire() {
-	// TODO Auto-generated constructor stub
-	initialized = false;
-	senseAmp = NULL;
+   Wire::Wire() {
+// TODO Auto-generated constructor stub
+initialized = false;
+senseAmp = NULL;
 }
 
 Wire::~Wire() {
-	// TODO Auto-generated destructor stub
-        // smart pointers make this delete no longer needed
-	//if (senseAmp)
-		//delete senseAmp;
+// TODO Auto-generated destructor stub
+// smart pointers make this delete no longer needed
+//if (senseAmp)
+//delete senseAmp;
 }
-*/
+ */
 void Wire::Initialize(int _featureSizeInNano, WireType _wireType, WireRepeaterType _wireRepeaterType,
-		int _temperature, bool _isLowSwing, std::shared_ptr<InputParameter> _inputParameter) {
-	if (initialized) {
-		/* reload the new input, clear the previous setting */
-		initialized = false;
-		//if (senseAmp)
-			//delete senseAmp;
-		senseAmp = NULL;
-	}
+        int _temperature, bool _isLowSwing, std::shared_ptr<EvaCamConfig> _config) {
+    if (initialized) {
+        /* reload the new input, clear the previous setting */
+        initialized = false;
+        //if (senseAmp)
+        //delete senseAmp;
+        senseAmp = NULL;
+    }
 
-	featureSizeInNano = _featureSizeInNano;
-	featureSize = _featureSizeInNano * 1e-9;
-	wireType = _wireType;
-	wireRepeaterType = _wireRepeaterType;
-	temperature = _temperature;
-	isLowSwing = _isLowSwing;
-        inputParameter = _inputParameter;
+    featureSizeInNano = _featureSizeInNano;
+    featureSize = _featureSizeInNano * 1e-9;
+    wireType = _wireType;
+    wireRepeaterType = _wireRepeaterType;
+    temperature = _temperature;
+    isLowSwing = _isLowSwing;
+    config = _config;
 
-	if (wireRepeaterType != repeated_none && isLowSwing) {
-		std::cout << "[Wire] Error: Low Swing is not supported for repeated wires!" << std::endl;
-		exit(-1);
-	}
+    if (wireRepeaterType != repeated_none && isLowSwing) {
+        std::cout << "[Wire] Error: Low Swing is not supported for repeated wires!" << std::endl;
+        exit(-1);
+    }
 
-	copper_resistivity = COPPER_RESISTIVITY;
-	/* Initialize copper resistivity */
+    copper_resistivity = COPPER_RESISTIVITY;
+    /* Initialize copper resistivity */
 
-	if (_featureSizeInNano <= 22) {
-		featureSize = 22e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.55;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 1.9;
-			ildThickness = aspectRatio * featureSize;
-			copper_resistivity =  6.0e-8;
-			break;
-		case local_conservative:
-			barrierThickness = 0.0021e-6;
-			horizontalDielectric = 3;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 1.9;
-			ildThickness = aspectRatio * featureSize;
-			copper_resistivity =  6.0e-8;
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.55;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 1.9;
-			ildThickness = 2 * aspectRatio * featureSize;
-			copper_resistivity =  6.0e-8;
-			break;
-		case semi_conservative:
-			barrierThickness = 0.0021e-6;
-			horizontalDielectric = 3;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 1.9;
-			ildThickness = 2 * aspectRatio * featureSize;
-			copper_resistivity =  6.0e-8;
-			break;
-		case global_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.55;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.34;
-			ildThickness = 0.42e-6 * 22 / 32;
-			copper_resistivity =  3.0e-8; /* TODO confusing mem_data in ITRS */
-			break;
-		case global_conservative:
-			barrierThickness = 0.0063e-6; /* TODO No mem_data in ITRS */
-			horizontalDielectric = 3;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.34;
-			ildThickness = 0.385e-6 * 22 / 32;
-			copper_resistivity =  3.0e-8; /* TODO confusing mem_data in ITRS */
-			break;
-		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	} else if (_featureSizeInNano <= 32) {
-		featureSize = 32e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.82;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 1.8;
-			ildThickness = aspectRatio * featureSize;
-			copper_resistivity =  5.0e-8;
-			break;
-		case local_conservative:
-			barrierThickness = 0.0026e-6;
-			horizontalDielectric = 3.16;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 1.8;
-			ildThickness = aspectRatio * featureSize;
-			copper_resistivity =  5.0e-8;
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.82;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 1.9;
-			ildThickness = 2 * aspectRatio * featureSize;
-			copper_resistivity =  5.0e-8;
-			break;
-		case semi_conservative:
-			barrierThickness = 0.0026e-6;
-			horizontalDielectric = 3.16;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 1.9;
-			ildThickness = 2 * aspectRatio * featureSize;
-			copper_resistivity =  5.0e-8;
-			break;
-		case global_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.82;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.34;
-			ildThickness = 0.42e-6;
-			copper_resistivity =  2.5e-8; /* TODO confusing mem_data in ITRS */
-			break;
-		case global_conservative:
-			barrierThickness = 0.0078e-6; /* TODO No mem_data in ITRS */
-			horizontalDielectric = 3.16;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.34;
-			ildThickness = 0.385e-6;
-			copper_resistivity =  2.5e-8; /* TODO confusing mem_data in ITRS */
-			break;
-		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	} else if (_featureSizeInNano <= 45) {
-		featureSize = 45e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.6;
-			wirePitch = 0.102e-6;
-			aspectRatio = 1.8;
-			ildThickness = 0.0918e-6;
-			copper_resistivity =  4.08e-8;
-			break;
-		case local_conservative:
-			barrierThickness = 0.0033e-6;
-			horizontalDielectric = 2.9;
-			wirePitch = 0.102e-6;
-			aspectRatio = 1.8;
-			ildThickness = 0.0918e-6;
-			copper_resistivity =  4.08e-8;
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.6;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 1.8;
-			ildThickness = 2 * aspectRatio * featureSize;
-			copper_resistivity =  4.08e-8;
-			break;
-		case semi_conservative:
-			barrierThickness = 0.0033e-6;
-			horizontalDielectric = 2.9;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 1.8;
-			ildThickness = 2 * aspectRatio * featureSize;
-			copper_resistivity =  4.08e-8;
-			break;
-		case global_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.6;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.34;
-			ildThickness = 0.63e-6;
-			copper_resistivity =  2.06e-8;
-			break;
-		case global_conservative:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 2.9;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.34;
-			ildThickness = 0.55e-6;
-			copper_resistivity =  2.06e-8;
-			break;
-		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	} else if (_featureSizeInNano <= 65) {
-		featureSize = 65e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.303;
-			wirePitch = 2.5* featureSize;
-			aspectRatio = 2.7;
-			ildThickness = 0.405e-6;
-			break;
-		case local_conservative:
-			barrierThickness = 0.006e-6;
-			horizontalDielectric = 2.734;
-			wirePitch = 2.5* featureSize;
-			aspectRatio = 2.0;
-			ildThickness = 0.405e-6;
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.303;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 2.7;
-			ildThickness = 0.405e-6;
-			break;
-		case semi_conservative:
-			barrierThickness = 0.006e-6;
-			horizontalDielectric = 2.734;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 2.0;
-			ildThickness = 0.405e-6;
-			break;
-		case global_aggressive:
-			barrierThickness = 0.00e-6;
-			horizontalDielectric = 2.303;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.8;
-			ildThickness = 0.81e-6;
-			break;
-		case global_conservative:
-			barrierThickness = 0.006e-6;
-			horizontalDielectric = 2.734;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.2;
-			ildThickness = 0.77e-6;
-			break;
-		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	} else if (_featureSizeInNano <= 90) {
-		featureSize = 90e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 2.709;
-			wirePitch = 2.5* featureSize;
-			aspectRatio = 2.4;
-			ildThickness = 0.48e-6;
-			break;
-		case local_conservative:
-			barrierThickness = 0.008e-6;
-			horizontalDielectric = 3.038;
-			wirePitch = 2.5* featureSize;
-			aspectRatio = 2.0;
-			ildThickness = 0.48e-6;
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 2.709;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 2.4;
-			ildThickness = 0.48e-6;
-			break;
-		case semi_conservative:
-			barrierThickness = 0.008e-6;
-			horizontalDielectric = 3.038;
-			wirePitch = 4 * featureSize;
-			aspectRatio = 2.0;
-			ildThickness = 0.48e-6;
-			break;
-		case global_aggressive:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 2.709;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.7;
-			ildThickness = 0.96e-6;
-			break;
-		case global_conservative:
-			barrierThickness = 0.008e-6;
-			horizontalDielectric = 3.038;
-			wirePitch = 8 * featureSize;
-			aspectRatio = 2.2;
-			ildThickness = 1.1e-6;
-			break;
-  		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	} else if (_featureSizeInNano <= 120) {
-		featureSize = 120e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.012e-6;
-			horizontalDielectric = 3.3;
-			wirePitch = 240e-9;
-			aspectRatio = 1.6;
-			ildThickness = 0.48e-6;
-			break;
-		case local_conservative:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 3.6;
-			wirePitch = 240e-9;
-			aspectRatio = 1.4;
-			ildThickness = 0.48e-6;
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.012e-6;
-			horizontalDielectric = 3.3;
-			wirePitch = 320e-9;
-			aspectRatio = 1.7;
-			ildThickness = 0.48e-6;
-			break;
-		case semi_conservative:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 3.6;
-			wirePitch = 320e-9;
-			aspectRatio = 1.5;
-			ildThickness = 0.48e-6;
-			break;
-		case global_aggressive:
-			barrierThickness = 0.012e-6;
-			horizontalDielectric = 3.3;
-			wirePitch = 475e-9;
-			aspectRatio = 2.1;
-			ildThickness = 0.96e-6;
-			break;
-		case global_conservative:
-			barrierThickness = 0.01e-6;
-			horizontalDielectric = 3.6;
-			wirePitch = 475e-9;
-			aspectRatio = 1.9;
-			ildThickness = 1.1e-6;
-			break;
-  		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	} else if (_featureSizeInNano <= 200) {
-		featureSize = 200e-9;
-		switch (wireType) {
-		case local_aggressive:
-			barrierThickness = 0.016e-6;
-			horizontalDielectric = 3.75;
-			wirePitch = 0.45e-6;
-			aspectRatio = 2.4;
-			ildThickness = 1e-6; /* TODO: for test */
-			break;
-		case local_conservative:
-			barrierThickness = 0.016e-6 * 0.8;
-			horizontalDielectric = 3.75 * 3.038 / 2.709;
-			wirePitch = 0.45e-6;
-			aspectRatio = 1.2;
-			ildThickness = 1e-6; /* TODO: for test */
-			break;
-		case semi_aggressive:
-			barrierThickness = 0.016e-6;
-			horizontalDielectric = 3.75;
-			wirePitch = 0.575e-6;
-			aspectRatio = 2.1;
-			ildThickness = 1e-6; /* TODO: for test */
-			break;
-		case semi_conservative:
-			barrierThickness = 0.016e-6 * 0.8;
-			horizontalDielectric = 3.75 * 3.038 / 2.709;
-			wirePitch = 0.575e-6;
-			aspectRatio = 2.1 * 2.0 / 2.4;
-			ildThickness = 1e-6; /* TODO: for test */
-			break;
-		case global_aggressive:
-			barrierThickness = 0.016e-6;
-			horizontalDielectric = 3.75;
-			wirePitch = 0.945e-6;
-			aspectRatio = 2.1;
-			ildThickness = 2e-6; /* TODO: for test */
-			break;
-		case global_conservative:
-			barrierThickness = 0.016e-6 * 0.8;
-			horizontalDielectric = 3.75 * 3.038 / 2.709;
-			wirePitch = 0.945e-6;
-			aspectRatio = 2.1 * 2.2 / 2.7;
-			ildThickness = 2.2e-6; /* TODO: for test */
-			break;
-  		default:	/* dram_wordline */
-			/* TODO CACTI does not have a detailed model for it */
-			barrierThickness = 0e-6;
-			horizontalDielectric = 0;
-			wirePitch = 2 * featureSize;
-			aspectRatio = 0;
-			ildThickness = 0e-6;
-		}
-	}
+    if (_featureSizeInNano <= 22) {
+        featureSize = 22e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.55;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 1.9;
+                ildThickness = aspectRatio * featureSize;
+                copper_resistivity =  6.0e-8;
+                break;
+            case local_conservative:
+                barrierThickness = 0.0021e-6;
+                horizontalDielectric = 3;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 1.9;
+                ildThickness = aspectRatio * featureSize;
+                copper_resistivity =  6.0e-8;
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.55;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 1.9;
+                ildThickness = 2 * aspectRatio * featureSize;
+                copper_resistivity =  6.0e-8;
+                break;
+            case semi_conservative:
+                barrierThickness = 0.0021e-6;
+                horizontalDielectric = 3;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 1.9;
+                ildThickness = 2 * aspectRatio * featureSize;
+                copper_resistivity =  6.0e-8;
+                break;
+            case global_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.55;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.34;
+                ildThickness = 0.42e-6 * 22 / 32;
+                copper_resistivity =  3.0e-8; /* TODO confusing mem_data in ITRS */
+                break;
+            case global_conservative:
+                barrierThickness = 0.0063e-6; /* TODO No mem_data in ITRS */
+                horizontalDielectric = 3;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.34;
+                ildThickness = 0.385e-6 * 22 / 32;
+                copper_resistivity =  3.0e-8; /* TODO confusing mem_data in ITRS */
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    } else if (_featureSizeInNano <= 32) {
+        featureSize = 32e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.82;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 1.8;
+                ildThickness = aspectRatio * featureSize;
+                copper_resistivity =  5.0e-8;
+                break;
+            case local_conservative:
+                barrierThickness = 0.0026e-6;
+                horizontalDielectric = 3.16;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 1.8;
+                ildThickness = aspectRatio * featureSize;
+                copper_resistivity =  5.0e-8;
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.82;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 1.9;
+                ildThickness = 2 * aspectRatio * featureSize;
+                copper_resistivity =  5.0e-8;
+                break;
+            case semi_conservative:
+                barrierThickness = 0.0026e-6;
+                horizontalDielectric = 3.16;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 1.9;
+                ildThickness = 2 * aspectRatio * featureSize;
+                copper_resistivity =  5.0e-8;
+                break;
+            case global_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.82;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.34;
+                ildThickness = 0.42e-6;
+                copper_resistivity =  2.5e-8; /* TODO confusing mem_data in ITRS */
+                break;
+            case global_conservative:
+                barrierThickness = 0.0078e-6; /* TODO No mem_data in ITRS */
+                horizontalDielectric = 3.16;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.34;
+                ildThickness = 0.385e-6;
+                copper_resistivity =  2.5e-8; /* TODO confusing mem_data in ITRS */
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    } else if (_featureSizeInNano <= 45) {
+        featureSize = 45e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.6;
+                wirePitch = 0.102e-6;
+                aspectRatio = 1.8;
+                ildThickness = 0.0918e-6;
+                copper_resistivity =  4.08e-8;
+                break;
+            case local_conservative:
+                barrierThickness = 0.0033e-6;
+                horizontalDielectric = 2.9;
+                wirePitch = 0.102e-6;
+                aspectRatio = 1.8;
+                ildThickness = 0.0918e-6;
+                copper_resistivity =  4.08e-8;
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.6;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 1.8;
+                ildThickness = 2 * aspectRatio * featureSize;
+                copper_resistivity =  4.08e-8;
+                break;
+            case semi_conservative:
+                barrierThickness = 0.0033e-6;
+                horizontalDielectric = 2.9;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 1.8;
+                ildThickness = 2 * aspectRatio * featureSize;
+                copper_resistivity =  4.08e-8;
+                break;
+            case global_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.6;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.34;
+                ildThickness = 0.63e-6;
+                copper_resistivity =  2.06e-8;
+                break;
+            case global_conservative:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 2.9;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.34;
+                ildThickness = 0.55e-6;
+                copper_resistivity =  2.06e-8;
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    } else if (_featureSizeInNano <= 65) {
+        featureSize = 65e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.303;
+                wirePitch = 2.5* featureSize;
+                aspectRatio = 2.7;
+                ildThickness = 0.405e-6;
+                break;
+            case local_conservative:
+                barrierThickness = 0.006e-6;
+                horizontalDielectric = 2.734;
+                wirePitch = 2.5* featureSize;
+                aspectRatio = 2.0;
+                ildThickness = 0.405e-6;
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.303;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 2.7;
+                ildThickness = 0.405e-6;
+                break;
+            case semi_conservative:
+                barrierThickness = 0.006e-6;
+                horizontalDielectric = 2.734;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 2.0;
+                ildThickness = 0.405e-6;
+                break;
+            case global_aggressive:
+                barrierThickness = 0.00e-6;
+                horizontalDielectric = 2.303;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.8;
+                ildThickness = 0.81e-6;
+                break;
+            case global_conservative:
+                barrierThickness = 0.006e-6;
+                horizontalDielectric = 2.734;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.2;
+                ildThickness = 0.77e-6;
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    } else if (_featureSizeInNano <= 90) {
+        featureSize = 90e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 2.709;
+                wirePitch = 2.5* featureSize;
+                aspectRatio = 2.4;
+                ildThickness = 0.48e-6;
+                break;
+            case local_conservative:
+                barrierThickness = 0.008e-6;
+                horizontalDielectric = 3.038;
+                wirePitch = 2.5* featureSize;
+                aspectRatio = 2.0;
+                ildThickness = 0.48e-6;
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 2.709;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 2.4;
+                ildThickness = 0.48e-6;
+                break;
+            case semi_conservative:
+                barrierThickness = 0.008e-6;
+                horizontalDielectric = 3.038;
+                wirePitch = 4 * featureSize;
+                aspectRatio = 2.0;
+                ildThickness = 0.48e-6;
+                break;
+            case global_aggressive:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 2.709;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.7;
+                ildThickness = 0.96e-6;
+                break;
+            case global_conservative:
+                barrierThickness = 0.008e-6;
+                horizontalDielectric = 3.038;
+                wirePitch = 8 * featureSize;
+                aspectRatio = 2.2;
+                ildThickness = 1.1e-6;
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    } else if (_featureSizeInNano <= 120) {
+        featureSize = 120e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.012e-6;
+                horizontalDielectric = 3.3;
+                wirePitch = 240e-9;
+                aspectRatio = 1.6;
+                ildThickness = 0.48e-6;
+                break;
+            case local_conservative:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 3.6;
+                wirePitch = 240e-9;
+                aspectRatio = 1.4;
+                ildThickness = 0.48e-6;
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.012e-6;
+                horizontalDielectric = 3.3;
+                wirePitch = 320e-9;
+                aspectRatio = 1.7;
+                ildThickness = 0.48e-6;
+                break;
+            case semi_conservative:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 3.6;
+                wirePitch = 320e-9;
+                aspectRatio = 1.5;
+                ildThickness = 0.48e-6;
+                break;
+            case global_aggressive:
+                barrierThickness = 0.012e-6;
+                horizontalDielectric = 3.3;
+                wirePitch = 475e-9;
+                aspectRatio = 2.1;
+                ildThickness = 0.96e-6;
+                break;
+            case global_conservative:
+                barrierThickness = 0.01e-6;
+                horizontalDielectric = 3.6;
+                wirePitch = 475e-9;
+                aspectRatio = 1.9;
+                ildThickness = 1.1e-6;
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    } else if (_featureSizeInNano <= 200) {
+        featureSize = 200e-9;
+        switch (wireType) {
+            case local_aggressive:
+                barrierThickness = 0.016e-6;
+                horizontalDielectric = 3.75;
+                wirePitch = 0.45e-6;
+                aspectRatio = 2.4;
+                ildThickness = 1e-6; /* TODO: for test */
+                break;
+            case local_conservative:
+                barrierThickness = 0.016e-6 * 0.8;
+                horizontalDielectric = 3.75 * 3.038 / 2.709;
+                wirePitch = 0.45e-6;
+                aspectRatio = 1.2;
+                ildThickness = 1e-6; /* TODO: for test */
+                break;
+            case semi_aggressive:
+                barrierThickness = 0.016e-6;
+                horizontalDielectric = 3.75;
+                wirePitch = 0.575e-6;
+                aspectRatio = 2.1;
+                ildThickness = 1e-6; /* TODO: for test */
+                break;
+            case semi_conservative:
+                barrierThickness = 0.016e-6 * 0.8;
+                horizontalDielectric = 3.75 * 3.038 / 2.709;
+                wirePitch = 0.575e-6;
+                aspectRatio = 2.1 * 2.0 / 2.4;
+                ildThickness = 1e-6; /* TODO: for test */
+                break;
+            case global_aggressive:
+                barrierThickness = 0.016e-6;
+                horizontalDielectric = 3.75;
+                wirePitch = 0.945e-6;
+                aspectRatio = 2.1;
+                ildThickness = 2e-6; /* TODO: for test */
+                break;
+            case global_conservative:
+                barrierThickness = 0.016e-6 * 0.8;
+                horizontalDielectric = 3.75 * 3.038 / 2.709;
+                wirePitch = 0.945e-6;
+                aspectRatio = 2.1 * 2.2 / 2.7;
+                ildThickness = 2.2e-6; /* TODO: for test */
+                break;
+            default:	/* dram_wordline */
+                /* TODO CACTI does not have a detailed model for it */
+                barrierThickness = 0e-6;
+                horizontalDielectric = 0;
+                wirePitch = 2 * featureSize;
+                aspectRatio = 0;
+                ildThickness = 0e-6;
+        }
+    }
 
-	wireWidth = wirePitch / 2;
-	wireThickness = aspectRatio * wireWidth;
-	wireSpacing = wirePitch - wireWidth;
+    wireWidth = wirePitch / 2;
+    wireThickness = aspectRatio * wireWidth;
+    wireSpacing = wirePitch - wireWidth;
 
-	/* TODO: here we only support copper wire, aluminum is to be added */
-	copper_resistivity = copper_resistivity
-			* (1 + COPPER_RESISTIVITY_TEMPERATURE_COEFFICIENT * (temperature - 293));
-	resWirePerUnit = CalculateWireResistance(copper_resistivity, wireWidth, wireThickness, barrierThickness,
-			0 /* Dishing Thickness */, 1 /* Alpha Scatter */);
-	capWirePerUnit = CalculateWireCapacitance(PERMITTIVITY, wireWidth, wireThickness, wireSpacing,
-		ildThickness, 1.5 /* miller value */, horizontalDielectric, 3.9 /* Vertical Dielectric */,
-		1.15e-10 /* Fringe Capacitance (Unit: F/m), TODO: CACTI assumes a fixed number here */);
+    /* TODO: here we only support copper wire, aluminum is to be added */
+    copper_resistivity = copper_resistivity
+        * (1 + COPPER_RESISTIVITY_TEMPERATURE_COEFFICIENT * (temperature - 293));
+    resWirePerUnit = CalculateWireResistance(copper_resistivity, wireWidth, wireThickness, barrierThickness,
+            0 /* Dishing Thickness */, 1 /* Alpha Scatter */);
+    capWirePerUnit = CalculateWireCapacitance(PERMITTIVITY, wireWidth, wireThickness, wireSpacing,
+            ildThickness, 1.5 /* miller value */, horizontalDielectric, 3.9 /* Vertical Dielectric */,
+            1.15e-10 /* Fringe Capacitance (Unit: F/m), TODO: CACTI assumes a fixed number here */);
 
-	if (wireRepeaterType != repeated_none) {
-		/* If the repeaters are inserted in the wire */
-		findOptimalRepeater();
-		if (wireRepeaterType != repeated_opt) {
-			/* The repeated wire is not fully latency optimized */
-			double penalty;
-			switch (wireRepeaterType) {
-			case repeated_5:
-				penalty = 0.05;
-				break;
-			case repeated_10:
-				penalty = 0.10;
-				break;
-			case repeated_20:
-				penalty = 0.20;
-				break;
-			case repeated_30:
-				penalty = 0.30;
-				break;
-			case repeated_40:
-				penalty = 0.40;
-				break;
-			default:	/* repeated_50 ? */
-				penalty = 0.50;
-			}
-			findPenalizedRepeater(penalty);
-		}
-		/* calculate repeated wire pitch */
-		CalculateGateArea(INV, 1, repeaterSize * MIN_NMOS_SIZE * inputParameter->tech->featureSize,
-				repeaterSize * MIN_NMOS_SIZE * inputParameter->tech->featureSize * inputParameter->tech->pnSizeRatio, 1e41, inputParameter->tech,
-				&repeaterHeight, &repeaterWidth, inputParameter->UseUpdatedLib);
-		if (repeaterWidth < repeaterHeight) {
-			double temp = repeaterWidth;
-			repeaterWidth = repeaterHeight;
-			repeaterHeight = temp;
-		}
-		repeatedWirePitch = wirePitch + repeaterWidth;
-	}
+    if (wireRepeaterType != repeated_none) {
+        /* If the repeaters are inserted in the wire */
+        findOptimalRepeater();
+        if (wireRepeaterType != repeated_opt) {
+            /* The repeated wire is not fully latency optimized */
+            double penalty;
+            switch (wireRepeaterType) {
+                case repeated_5:
+                    penalty = 0.05;
+                    break;
+                case repeated_10:
+                    penalty = 0.10;
+                    break;
+                case repeated_20:
+                    penalty = 0.20;
+                    break;
+                case repeated_30:
+                    penalty = 0.30;
+                    break;
+                case repeated_40:
+                    penalty = 0.40;
+                    break;
+                default:	/* repeated_50 ? */
+                    penalty = 0.50;
+            }
+            findPenalizedRepeater(penalty);
+        }
+        /* calculate repeated wire pitch */
+        CalculateGateArea(INV, 1, repeaterSize * MIN_NMOS_SIZE * config->tech->featureSize,
+                repeaterSize * MIN_NMOS_SIZE * config->tech->featureSize * config->tech->pnSizeRatio, 1e41, config->tech,
+                &repeaterHeight, &repeaterWidth, config->UseUpdatedLib);
+        if (repeaterWidth < repeaterHeight) {
+            double temp = repeaterWidth;
+            repeaterWidth = repeaterHeight;
+            repeaterHeight = temp;
+        }
+        repeatedWirePitch = wirePitch + repeaterWidth;
+    }
 
-	initialized =true;
+    initialized =true;
 }
 
 
 void Wire::CalculateLatencyAndPower(double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower) {
-	if (!initialized) {
-		std::cout << "[Wire] Error: Require initialization first!" << std::endl;
-	} else {
-		if (isLowSwing) {
-			/* When it is low-swing */
-			if (wireRepeaterType == repeated_none) {
-				double widthNmos = MIN_NMOS_SIZE * inputParameter->tech->featureSize;
-				double widthPmos = widthNmos * inputParameter->tech->pnSizeRatio;
-				double capInput, capOutput;
-				double tr;
-				double gm;
-				double beta;
-				double resPullUp;
-				double resPullDown;
-				double capLoad;
-				double temp;
-				double riseTime, fallTime;
-				double rampInput;
+    if (!initialized) {
+        std::cout << "[Wire] Error: Require initialization first!" << std::endl;
+    } else {
+        if (isLowSwing) {
+            /* When it is low-swing */
+            if (wireRepeaterType == repeated_none) {
+                double widthNmos = MIN_NMOS_SIZE * config->tech->featureSize;
+                double widthPmos = widthNmos * config->tech->pnSizeRatio;
+                double capInput, capOutput;
+                double tr;
+                double gm;
+                double beta;
+                double resPullUp;
+                double resPullDown;
+                double capLoad;
+                double temp;
+                double riseTime, fallTime;
+                double rampInput;
 
-				/* Calculate rampInput */
-				CalculateGateCapacitance(INV, 1, widthNmos, widthPmos, inputParameter->tech->featureSize * MAX_TRANSISTOR_HEIGHT, inputParameter->tech, &capInput, &capOutput);
-				capLoad = capInput + capOutput;
-				resPullUp = CalculateOnResistance(widthNmos, NMOS, inputParameter->temperature, inputParameter->tech);
-				resPullUp = CalculateOnResistance(widthPmos, PMOS, inputParameter->temperature, inputParameter->tech);
-				tr = resPullUp * capLoad;
-				gm = CalculateTransconductance(widthPmos, PMOS, inputParameter->tech);
-				beta = 1 / (resPullUp * gm);
-				horowitz(tr, beta, 1e20, &riseTime);
-				resPullDown = CalculateOnResistance(widthNmos, NMOS, inputParameter->temperature, inputParameter->tech);
-				tr = resPullDown * capLoad;
-				gm = CalculateTransconductance(widthNmos, NMOS, inputParameter->tech);
-				beta = 1 / (resPullDown * gm);
-				horowitz(tr, beta, riseTime, &fallTime);
-				rampInput = fallTime;
+                /* Calculate rampInput */
+                CalculateGateCapacitance(INV, 1, widthNmos, widthPmos, config->tech->featureSize * MAX_TRANSISTOR_HEIGHT, config->tech, &capInput, &capOutput);
+                capLoad = capInput + capOutput;
+                resPullUp = CalculateOnResistance(widthNmos, NMOS, config->temperature, config->tech);
+                resPullUp = CalculateOnResistance(widthPmos, PMOS, config->temperature, config->tech);
+                tr = resPullUp * capLoad;
+                gm = CalculateTransconductance(widthPmos, PMOS, config->tech);
+                beta = 1 / (resPullUp * gm);
+                horowitz(tr, beta, 1e20, &riseTime);
+                resPullDown = CalculateOnResistance(widthNmos, NMOS, config->temperature, config->tech);
+                tr = resPullDown * capLoad;
+                gm = CalculateTransconductance(widthNmos, NMOS, config->tech);
+                beta = 1 / (resPullDown * gm);
+                horowitz(tr, beta, riseTime, &fallTime);
+                rampInput = fallTime;
 
-				/* Calculate FO4 delay */
-				double delayFO4;
-				capLoad = capOutput + 4 * capInput;
-				tr = resPullDown * capLoad;
-				delayFO4 = horowitz(tr, beta, 1e20, &temp);
+                /* Calculate FO4 delay */
+                double delayFO4;
+                capLoad = capOutput + 4 * capInput;
+                tr = resPullDown * capLoad;
+                delayFO4 = horowitz(tr, beta, 1e20, &temp);
 
-				/* Caluculate the size of driver */
-				double wireLength = _wireLength;
-				double capGateDriver;
-				double capWire = capWirePerUnit * wireLength;
-				double resWire = resWirePerUnit * wireLength;
-				double resDriver = ((-8) * delayFO4 / ( log(0.5) * capWire)) / RES_ADJ;
-				double widthNmosDriver = resPullDown * widthNmos / resDriver;
-				widthNmosDriver = MIN(widthNmosDriver, MAX_NMOS_SIZE * inputParameter->tech->featureSize);
-				widthNmosDriver = MAX(widthNmosDriver, MIN_NMOS_SIZE * inputParameter->tech->featureSize);
+                /* Caluculate the size of driver */
+                double wireLength = _wireLength;
+                double capGateDriver;
+                double capWire = capWirePerUnit * wireLength;
+                double resWire = resWirePerUnit * wireLength;
+                double resDriver = ((-8) * delayFO4 / ( log(0.5) * capWire)) / RES_ADJ;
+                double widthNmosDriver = resPullDown * widthNmos / resDriver;
+                widthNmosDriver = MIN(widthNmosDriver, MAX_NMOS_SIZE * config->tech->featureSize);
+                widthNmosDriver = MAX(widthNmosDriver, MIN_NMOS_SIZE * config->tech->featureSize);
 
-				if(resWire * capWire > 8 * delayFO4)
-				{
-					widthNmosDriver = inputParameter->maxNmosSize * inputParameter->tech->featureSize;
-				}
+                if(resWire * capWire > 8 * delayFO4)
+                {
+                    widthNmosDriver = config->maxNmosSize * config->tech->featureSize;
+                }
 
-				// size the inverter appropriately to minimize the transmitter delay
-				// Note - In order to minimize leakage, we are not adding a set of inverters to
-				// bring down delay. Instead, we are sizing the single gate
-				// based on the logical effort.
-				CalculateGateCapacitance(INV, 1, widthNmosDriver, 0, inputParameter->tech->featureSize*40, inputParameter->tech, &capGateDriver, &temp);
-				CalculateGateCapacitance(INV, 1, 2 * widthNmos, 2 * widthPmos, inputParameter->tech->featureSize*40, inputParameter->tech, &capInput, &capOutput);
-				double stageEffort   = sqrt(((2 + inputParameter->tech->pnSizeRatio) / (1 + inputParameter->tech->pnSizeRatio)) * capGateDriver / capInput);
-				double reqCin  = (((2 + inputParameter->tech->pnSizeRatio) / (1 + inputParameter->tech->pnSizeRatio)) * capGateDriver) / stageEffort;
-				CalculateGateCapacitance(INV, 1, widthNmos, widthPmos, inputParameter->tech->featureSize*40, inputParameter->tech, &capInput, &capOutput);
-				double sizeInverter = reqCin / capInput;
-				sizeInverter = MAX(sizeInverter, 1);
+                // size the inverter appropriately to minimize the transmitter delay
+                // Note - In order to minimize leakage, we are not adding a set of inverters to
+                // bring down delay. Instead, we are sizing the single gate
+                // based on the logical effort.
+                CalculateGateCapacitance(INV, 1, widthNmosDriver, 0, config->tech->featureSize*40, config->tech, &capGateDriver, &temp);
+                CalculateGateCapacitance(INV, 1, 2 * widthNmos, 2 * widthPmos, config->tech->featureSize*40, config->tech, &capInput, &capOutput);
+                double stageEffort   = sqrt(((2 + config->tech->pnSizeRatio) / (1 + config->tech->pnSizeRatio)) * capGateDriver / capInput);
+                double reqCin  = (((2 + config->tech->pnSizeRatio) / (1 + config->tech->pnSizeRatio)) * capGateDriver) / stageEffort;
+                CalculateGateCapacitance(INV, 1, widthNmos, widthPmos, config->tech->featureSize*40, config->tech, &capInput, &capOutput);
+                double sizeInverter = reqCin / capInput;
+                sizeInverter = MAX(sizeInverter, 1);
 
-				/* nand gate delay */
-				resPullDown *= 2;
-				beta = 1 / (resPullDown * gm);
-				double capNandInput, capNandOutput;
-				CalculateGateCapacitance(NAND, 2, 2 * widthNmos, widthPmos, inputParameter->tech->featureSize*40, inputParameter->tech, &capNandInput, &capNandOutput);
-				CalculateGateCapacitance(INV, 1, sizeInverter * widthNmos, sizeInverter * widthPmos, inputParameter->tech->featureSize*40, inputParameter->tech, &capInput, &capOutput);
-				capLoad = capNandOutput + capInput;
-				tr = resPullDown * capLoad;
-				*(delay) = horowitz(tr, beta, rampInput, &temp);
-				*(dynamicEnergy) = capLoad * inputParameter->tech->vdd * inputParameter->tech->vdd;
-				rampInput = temp; /* for the next stage */
+                /* nand gate delay */
+                resPullDown *= 2;
+                beta = 1 / (resPullDown * gm);
+                double capNandInput, capNandOutput;
+                CalculateGateCapacitance(NAND, 2, 2 * widthNmos, widthPmos, config->tech->featureSize*40, config->tech, &capNandInput, &capNandOutput);
+                CalculateGateCapacitance(INV, 1, sizeInverter * widthNmos, sizeInverter * widthPmos, config->tech->featureSize*40, config->tech, &capInput, &capOutput);
+                capLoad = capNandOutput + capInput;
+                tr = resPullDown * capLoad;
+                *(delay) = horowitz(tr, beta, rampInput, &temp);
+                *(dynamicEnergy) = capLoad * config->tech->vdd * config->tech->vdd;
+                rampInput = temp; /* for the next stage */
 
-				/* Inverter *(delay):
-				 *    * The load capacitance of this inv depends on
-				 *    * the gate capacitance of the final stage nmos
-				 *    * transistor which in turn depends on nsize
-				 *    */
-				resPullDown = CalculateOnResistance(sizeInverter * widthNmos, NMOS, inputParameter->temperature, inputParameter->tech);
-				gm = CalculateTransconductance(widthNmos, NMOS, inputParameter->tech);
-				beta = 1 / (resPullDown * gm);
-				capLoad = capOutput + capGateDriver;
-				tr = resPullDown * capLoad;
-				*(delay) += horowitz(tr, beta, rampInput, &temp);
-				*(dynamicEnergy) += capLoad * inputParameter->tech->vdd * inputParameter->tech->vdd;
-				rampInput = temp; /* for the next stage */
+                /* Inverter *(delay):
+                 *    * The load capacitance of this inv depends on
+                 *    * the gate capacitance of the final stage nmos
+                 *    * transistor which in turn depends on nsize
+                 *    */
+                resPullDown = CalculateOnResistance(sizeInverter * widthNmos, NMOS, config->temperature, config->tech);
+                gm = CalculateTransconductance(widthNmos, NMOS, config->tech);
+                beta = 1 / (resPullDown * gm);
+                capLoad = capOutput + capGateDriver;
+                tr = resPullDown * capLoad;
+                *(delay) += horowitz(tr, beta, rampInput, &temp);
+                *(dynamicEnergy) += capLoad * config->tech->vdd * config->tech->vdd;
+                rampInput = temp; /* for the next stage */
 
-				*(leakagePower) = 2 * inputParameter->tech->vdd * CalculateGateLeakage(INV, 1, sizeInverter * widthNmos, sizeInverter * widthPmos, inputParameter->temperature, inputParameter->tech);
-				*(leakagePower) += 2 * inputParameter->tech->vdd * CalculateGateLeakage(NAND, 2, 2 * widthNmos, widthPmos, inputParameter->temperature, inputParameter->tech);
-				*(leakagePower) *= 2;
+                *(leakagePower) = 2 * config->tech->vdd * CalculateGateLeakage(INV, 1, sizeInverter * widthNmos, sizeInverter * widthPmos, config->temperature, config->tech);
+                *(leakagePower) += 2 * config->tech->vdd * CalculateGateLeakage(NAND, 2, 2 * widthNmos, widthPmos, config->temperature, config->tech);
+                *(leakagePower) *= 2;
 
-				senseAmp = std::make_unique<SenseAmp>();
-				senseAmp->Initialize(1, false, inputParameter->cell->minSenseVoltage, 1, inputParameter /* for test */);
-				senseAmp->CalculateRC();
+                senseAmp = std::make_unique<SenseAmp>();
+                senseAmp->Initialize(1, false, config->cell->minSenseVoltage, 1, config /* for test */);
+                senseAmp->CalculateRC();
 
-				/* nmos *(delay) + wire *(delay) */
-				/*
-				 * 			   * NOTE: nmos is used as both pull up and pull down transistor
-				 * 			   * in the transmitter. This is because for low voltage swing, drive
-				 *			   * resistance of nmos is less than pmos
-				 *			   * (for a detailed graph ref: On-Chip Wires: Scaling and Efficiency)
-			   */
-				double drainCapDriver = CalculateDrainCap(widthNmosDriver, NMOS, inputParameter->tech->featureSize*40, inputParameter->tech);
-				capLoad = capWire + drainCapDriver * 2 + senseAmp->capLoad;
-				resPullDown = CalculateOnResistance(widthNmosDriver, NMOS, inputParameter->temperature, inputParameter->tech);
-				gm = CalculateTransconductance(widthNmosDriver, NMOS, inputParameter->tech);
-				beta = 1 / (resPullDown * gm);
-				tr = resPullDown * RES_ADJ *(capWire + drainCapDriver * 2) + capWire * resWire / 2 + (resPullDown + resWire) * senseAmp->capLoad;
-				if (delay)
-					*(delay) += horowitz(tr, beta, rampInput, &temp); //TODO: inconsistent with Cacti 6.5
-				if (dynamicEnergy) {
-					*(dynamicEnergy) += capLoad * VOL_SWING * 0.4; /* .4v is the over drive voltage */
-					*(dynamicEnergy) *=2;
-				}
-				if (leakagePower)
-					*(leakagePower) += 4 * inputParameter->tech->vdd * CalculateGateLeakage(INV, 1, widthNmosDriver, 0, inputParameter->temperature, inputParameter->tech);
+                /* nmos *(delay) + wire *(delay) */
+                /*
+                 * 			   * NOTE: nmos is used as both pull up and pull down transistor
+                 * 			   * in the transmitter. This is because for low voltage swing, drive
+                 *			   * resistance of nmos is less than pmos
+                 *			   * (for a detailed graph ref: On-Chip Wires: Scaling and Efficiency)
+                 */
+                double drainCapDriver = CalculateDrainCap(widthNmosDriver, NMOS, config->tech->featureSize*40, config->tech);
+                capLoad = capWire + drainCapDriver * 2 + senseAmp->capLoad;
+                resPullDown = CalculateOnResistance(widthNmosDriver, NMOS, config->temperature, config->tech);
+                gm = CalculateTransconductance(widthNmosDriver, NMOS, config->tech);
+                beta = 1 / (resPullDown * gm);
+                tr = resPullDown * RES_ADJ *(capWire + drainCapDriver * 2) + capWire * resWire / 2 + (resPullDown + resWire) * senseAmp->capLoad;
+                if (delay)
+                    *(delay) += horowitz(tr, beta, rampInput, &temp); //TODO: inconsistent with Cacti 6.5
+                if (dynamicEnergy) {
+                    *(dynamicEnergy) += capLoad * VOL_SWING * 0.4; /* .4v is the over drive voltage */
+                    *(dynamicEnergy) *=2;
+                }
+                if (leakagePower)
+                    *(leakagePower) += 4 * config->tech->vdd * CalculateGateLeakage(INV, 1, widthNmosDriver, 0, config->temperature, config->tech);
 
-				/* SA *(delay) and power */
-				if (delay)
-					*(delay) += senseAmp->readLatency;
-				if (dynamicEnergy)
-					*(dynamicEnergy) += senseAmp->readDynamicEnergy;
-				if (leakagePower)
-					*(leakagePower) += senseAmp->leakage;
+                /* SA *(delay) and power */
+                if (delay)
+                    *(delay) += senseAmp->readLatency;
+                if (dynamicEnergy)
+                    *(dynamicEnergy) += senseAmp->readDynamicEnergy;
+                if (leakagePower)
+                    *(leakagePower) += senseAmp->leakage;
 
-			} else {
-				std::cout<<"Error: Low Swing Wires with Repeaters is not supported in this version!" <<std::endl;
-				exit(-1);
-			}
-		} else {
-			/* When it is not a low-swing */
-			if (wireRepeaterType == repeated_none) {
-				if (delay)
-					*(delay) = 2.3 * resWirePerUnit * capWirePerUnit * _wireLength * _wireLength / 2;
-				if (dynamicEnergy)
-					*(dynamicEnergy) = capWirePerUnit * _wireLength * inputParameter->tech->vdd * inputParameter->tech->vdd;
-				if (leakagePower)
-					*(leakagePower) = 0;
-			} else {		/* with repeaters */
-				if (delay)
-					*(delay) = getRepeatedWireUnitDelay() * _wireLength;
-				if (dynamicEnergy)
-					*(dynamicEnergy) = getRepeatedWireUnitDynamicEnergy() * _wireLength;
-				if (leakagePower)
-					*(leakagePower) = getRepeatedWireUnitLeakage() * _wireLength;
-			}
-		}
-	}
+            } else {
+                std::cout<<"Error: Low Swing Wires with Repeaters is not supported in this version!" <<std::endl;
+                exit(-1);
+            }
+        } else {
+            /* When it is not a low-swing */
+            if (wireRepeaterType == repeated_none) {
+                if (delay)
+                    *(delay) = 2.3 * resWirePerUnit * capWirePerUnit * _wireLength * _wireLength / 2;
+                if (dynamicEnergy)
+                    *(dynamicEnergy) = capWirePerUnit * _wireLength * config->tech->vdd * config->tech->vdd;
+                if (leakagePower)
+                    *(leakagePower) = 0;
+            } else {		/* with repeaters */
+                if (delay)
+                    *(delay) = getRepeatedWireUnitDelay() * _wireLength;
+                if (dynamicEnergy)
+                    *(dynamicEnergy) = getRepeatedWireUnitDynamicEnergy() * _wireLength;
+                if (leakagePower)
+                    *(leakagePower) = getRepeatedWireUnitLeakage() * _wireLength;
+            }
+        }
+    }
 }
 
 void Wire::findOptimalRepeater() {
-	/* Use minimum sized inverter */
-	double nmosSize = MIN_NMOS_SIZE * inputParameter->tech->featureSize;
-	double pmosSize = nmosSize * inputParameter->tech->pnSizeRatio;
-	double inputCap = CalculateGateCap(nmosSize, inputParameter->tech) + CalculateGateCap(pmosSize, inputParameter->tech);
-	double outputCap = CalculateDrainCap(nmosSize, NMOS, 1 /*no limit*/, inputParameter->tech)
-			+ CalculateDrainCap(pmosSize, PMOS, 1 /*no limit*/, inputParameter->tech);
-	double outputRes = CalculateOnResistance(nmosSize, NMOS, inputParameter->temperature, inputParameter->tech)
-			+ CalculateOnResistance(pmosSize, PMOS, inputParameter->temperature, inputParameter->tech);
+    /* Use minimum sized inverter */
+    double nmosSize = MIN_NMOS_SIZE * config->tech->featureSize;
+    double pmosSize = nmosSize * config->tech->pnSizeRatio;
+    double inputCap = CalculateGateCap(nmosSize, config->tech) + CalculateGateCap(pmosSize, config->tech);
+    double outputCap = CalculateDrainCap(nmosSize, NMOS, 1 /*no limit*/, config->tech)
+        + CalculateDrainCap(pmosSize, PMOS, 1 /*no limit*/, config->tech);
+    double outputRes = CalculateOnResistance(nmosSize, NMOS, config->temperature, config->tech)
+        + CalculateOnResistance(pmosSize, PMOS, config->temperature, config->tech);
 
-	repeaterSize = sqrt(outputRes * capWirePerUnit / inputCap / resWirePerUnit);
-	repeaterSpacing = sqrt(2 * outputRes * (outputCap + inputCap) / (resWirePerUnit * capWirePerUnit));
+    repeaterSize = sqrt(outputRes * capWirePerUnit / inputCap / resWirePerUnit);
+    repeaterSpacing = sqrt(2 * outputRes * (outputCap + inputCap) / (resWirePerUnit * capWirePerUnit));
 
-	//double tau = outputRes * (inputCap + outputCap) + outputRes * capWirePerUnit * repeaterSpacing
-	//		+ resWirePerUnit * repeaterSpacing * inputCap * repeaterSize
+    //double tau = outputRes * (inputCap + outputCap) + outputRes * capWirePerUnit * repeaterSpacing
+    //		+ resWirePerUnit * repeaterSpacing * inputCap * repeaterSize
 }
 
 void Wire::findPenalizedRepeater(double _penalty) {
-	double targetDelay = getRepeatedWireUnitDelay() * (1 + _penalty);
-	double currentDynamicEnergy = getRepeatedWireUnitDynamicEnergy();
-	double currentLeakage = getRepeatedWireUnitLeakage();
+    double targetDelay = getRepeatedWireUnitDelay() * (1 + _penalty);
+    double currentDynamicEnergy = getRepeatedWireUnitDynamicEnergy();
+    double currentLeakage = getRepeatedWireUnitLeakage();
 
-	double targetRepeaterSpacing = repeaterSpacing;
-	double targetRepeaterSize = repeaterSize;
-	double stepSpacing = 100e-6;	/* 100um */
-	double endSpacing = 4 * repeaterSpacing;
-	double stepSize = 1;			/* minimum buffer size */
-	double endSize = 1;
+    double targetRepeaterSpacing = repeaterSpacing;
+    double targetRepeaterSize = repeaterSize;
+    double stepSpacing = 100e-6;	/* 100um */
+    double endSpacing = 4 * repeaterSpacing;
+    double stepSize = 1;			/* minimum buffer size */
+    double endSize = 1;
 
-	double thisDelay, thisDynamicEnergy, thisLeakage;
-	/* Start finding the target repeated wire */
-	for (; repeaterSpacing <= endSpacing; repeaterSpacing += stepSpacing) {
-		for (; repeaterSize >= endSize; repeaterSize -= stepSize) {
-			thisDelay = getRepeatedWireUnitDelay();
-			thisDynamicEnergy = getRepeatedWireUnitDynamicEnergy();
-			thisLeakage = getRepeatedWireUnitLeakage();
-			if (thisDelay <= targetDelay && thisDynamicEnergy / currentDynamicEnergy + thisLeakage / currentLeakage < 2) {
-				currentDynamicEnergy = thisDynamicEnergy;
-				currentLeakage = thisLeakage;
-				targetRepeaterSpacing = repeaterSpacing;
-				targetRepeaterSize = repeaterSize;
-			}
-		}
-	}
-	repeaterSpacing = targetRepeaterSpacing;
-	repeaterSize = targetRepeaterSize;
+    double thisDelay, thisDynamicEnergy, thisLeakage;
+    /* Start finding the target repeated wire */
+    for (; repeaterSpacing <= endSpacing; repeaterSpacing += stepSpacing) {
+        for (; repeaterSize >= endSize; repeaterSize -= stepSize) {
+            thisDelay = getRepeatedWireUnitDelay();
+            thisDynamicEnergy = getRepeatedWireUnitDynamicEnergy();
+            thisLeakage = getRepeatedWireUnitLeakage();
+            if (thisDelay <= targetDelay && thisDynamicEnergy / currentDynamicEnergy + thisLeakage / currentLeakage < 2) {
+                currentDynamicEnergy = thisDynamicEnergy;
+                currentLeakage = thisLeakage;
+                targetRepeaterSpacing = repeaterSpacing;
+                targetRepeaterSize = repeaterSize;
+            }
+        }
+    }
+    repeaterSpacing = targetRepeaterSpacing;
+    repeaterSize = targetRepeaterSize;
 }
 
 double Wire::getRepeatedWireUnitDelay() {
-	/* Use the scaled size of the repeater */
-	double nmosSize = MIN_NMOS_SIZE * inputParameter->tech->featureSize * repeaterSize;
-	double pmosSize = nmosSize * inputParameter->tech->pnSizeRatio;
-	double inputCap = CalculateGateCap(nmosSize, inputParameter->tech) + CalculateGateCap(pmosSize, inputParameter->tech);
-	double outputCap = CalculateDrainCap(nmosSize, NMOS, 1 /*no limit*/, inputParameter->tech)
-			+ CalculateDrainCap(pmosSize, PMOS, 1 /*no limit*/, inputParameter->tech);
-	double outputRes = CalculateOnResistance(nmosSize, NMOS, inputParameter->temperature, inputParameter->tech)
-			+ CalculateOnResistance(pmosSize, PMOS, inputParameter->temperature, inputParameter->tech);
-	double wireCap = capWirePerUnit * repeaterSpacing;
-	double wireRes = resWirePerUnit * repeaterSpacing;
+    /* Use the scaled size of the repeater */
+    double nmosSize = MIN_NMOS_SIZE * config->tech->featureSize * repeaterSize;
+    double pmosSize = nmosSize * config->tech->pnSizeRatio;
+    double inputCap = CalculateGateCap(nmosSize, config->tech) + CalculateGateCap(pmosSize, config->tech);
+    double outputCap = CalculateDrainCap(nmosSize, NMOS, 1 /*no limit*/, config->tech)
+        + CalculateDrainCap(pmosSize, PMOS, 1 /*no limit*/, config->tech);
+    double outputRes = CalculateOnResistance(nmosSize, NMOS, config->temperature, config->tech)
+        + CalculateOnResistance(pmosSize, PMOS, config->temperature, config->tech);
+    double wireCap = capWirePerUnit * repeaterSpacing;
+    double wireRes = resWirePerUnit * repeaterSpacing;
 
-	double tau = outputRes * (inputCap + outputCap) + outputRes * wireCap + wireRes * outputCap
-			+ 0.5 * wireRes * wireCap;
+    double tau = outputRes * (inputCap + outputCap) + outputRes * wireCap + wireRes * outputCap
+        + 0.5 * wireRes * wireCap;
 
-	/* Return as a unit value */
-	return 0.693 * tau / repeaterSpacing;
+    /* Return as a unit value */
+    return 0.693 * tau / repeaterSpacing;
 }
 
 double Wire::getRepeatedWireUnitDynamicEnergy() {
-	/* Use the scaled size of the repeater */
-	double nmosSize = MIN_NMOS_SIZE * inputParameter->tech->featureSize * repeaterSize;
-	double pmosSize = nmosSize * inputParameter->tech->pnSizeRatio;
-	double inputCap = CalculateGateCap(nmosSize, inputParameter->tech) + CalculateGateCap(pmosSize, inputParameter->tech);
-	double outputCap = CalculateDrainCap(nmosSize, NMOS, 1 /*no limit*/, inputParameter->tech)
-			+ CalculateDrainCap(pmosSize, PMOS, 1 /*no limit*/, inputParameter->tech);
-	double wireCap = capWirePerUnit * repeaterSpacing;
+    /* Use the scaled size of the repeater */
+    double nmosSize = MIN_NMOS_SIZE * config->tech->featureSize * repeaterSize;
+    double pmosSize = nmosSize * config->tech->pnSizeRatio;
+    double inputCap = CalculateGateCap(nmosSize, config->tech) + CalculateGateCap(pmosSize, config->tech);
+    double outputCap = CalculateDrainCap(nmosSize, NMOS, 1 /*no limit*/, config->tech)
+        + CalculateDrainCap(pmosSize, PMOS, 1 /*no limit*/, config->tech);
+    double wireCap = capWirePerUnit * repeaterSpacing;
 
-	double switchingEnergy = (inputCap + outputCap + wireCap) * inputParameter->tech->vdd * inputParameter->tech->vdd;
-	double shortCircuitEnergy = 0;		/* TODO: no short circuit energy in this version */
+    double switchingEnergy = (inputCap + outputCap + wireCap) * config->tech->vdd * config->tech->vdd;
+    double shortCircuitEnergy = 0;		/* TODO: no short circuit energy in this version */
 
-	return (switchingEnergy + shortCircuitEnergy) / repeaterSpacing;
+    return (switchingEnergy + shortCircuitEnergy) / repeaterSpacing;
 }
 
 double Wire::getRepeatedWireUnitLeakage() {
-	double nmosSize = MIN_NMOS_SIZE * inputParameter->tech->featureSize * repeaterSize;
-	double pmosSize = nmosSize * inputParameter->tech->pnSizeRatio;
-	double leakagePerRepeater = CalculateGateLeakage(INV, 1, nmosSize, pmosSize, inputParameter->temperature, inputParameter->tech)
-			* inputParameter->tech->vdd;
+    double nmosSize = MIN_NMOS_SIZE * config->tech->featureSize * repeaterSize;
+    double pmosSize = nmosSize * config->tech->pnSizeRatio;
+    double leakagePerRepeater = CalculateGateLeakage(INV, 1, nmosSize, pmosSize, config->temperature, config->tech)
+        * config->tech->vdd;
 
-	return leakagePerRepeater / repeaterSpacing;
+    return leakagePerRepeater / repeaterSpacing;
 }
 
 void Wire::PrintProperty() {
-	if (wireRepeaterType == repeated_none) {
-		std::cout << "Wire Type: passive (without repeaters)";
-		if (isLowSwing) {
-			std::cout << " Low Swing";
-		}
-		std::cout << std::endl;
-		std::cout << "Wire Resistance: " << resWirePerUnit / 1e6 << "ohm/um" << std::endl;
-		std::cout << "Wire Capacitance: " << capWirePerUnit / 1e6 << "F/um" << std::endl;
-	} else {
-		std::cout << "Wire type: active (with repeaters)" << std::endl;
-		std::cout << "Repeater Size: " << repeaterSize << std::endl;
-		std::cout << "Repeater Spacing: " << repeaterSpacing * 1e3 << "mm" <<std::endl;
-		std::cout << "Delay: " << getRepeatedWireUnitDelay() * 1e6 << "ns/mm" <<std::endl;
-		std::cout << "Dynamic Energy: " << getRepeatedWireUnitDynamicEnergy() * 1e6 << "nJ/mm" <<std::endl;
-	    std::cout << "Subtheshold Leakage Power: " << getRepeatedWireUnitLeakage() << "mW/mm" << std::endl;
-	}
+    if (wireRepeaterType == repeated_none) {
+        std::cout << "Wire Type: passive (without repeaters)";
+        if (isLowSwing) {
+            std::cout << " Low Swing";
+        }
+        std::cout << std::endl;
+        std::cout << "Wire Resistance: " << resWirePerUnit / 1e6 << "ohm/um" << std::endl;
+        std::cout << "Wire Capacitance: " << capWirePerUnit / 1e6 << "F/um" << std::endl;
+    } else {
+        std::cout << "Wire type: active (with repeaters)" << std::endl;
+        std::cout << "Repeater Size: " << repeaterSize << std::endl;
+        std::cout << "Repeater Spacing: " << repeaterSpacing * 1e3 << "mm" <<std::endl;
+        std::cout << "Delay: " << getRepeatedWireUnitDelay() * 1e6 << "ns/mm" <<std::endl;
+        std::cout << "Dynamic Energy: " << getRepeatedWireUnitDynamicEnergy() * 1e6 << "nJ/mm" <<std::endl;
+        std::cout << "Subtheshold Leakage Power: " << getRepeatedWireUnitLeakage() << "mW/mm" << std::endl;
+    }
 }
 
 Wire & Wire::operator=(const Wire &rhs) {
-	initialized = rhs.initialized;
-	featureSizeInNano = rhs.featureSizeInNano;
-	featureSize = rhs.featureSize;
-	wireType = rhs.wireType;
-	wireRepeaterType = rhs.wireRepeaterType;
-	temperature = rhs.temperature;
-	isLowSwing = rhs.isLowSwing;
-	barrierThickness = rhs.barrierThickness;
-	horizontalDielectric = rhs.horizontalDielectric;
-	wirePitch = rhs.wirePitch;
-	aspectRatio = rhs.aspectRatio;
-	ildThickness = rhs.ildThickness;
-	wireWidth = rhs.wireWidth;
-	wireThickness = rhs.wireThickness;
-	wireSpacing = rhs.wireSpacing;
-	repeaterSize = rhs.repeaterSize;
-	repeaterSpacing = rhs.repeaterSpacing;
-	repeaterHeight = rhs.repeaterHeight;
-	repeaterWidth = rhs.repeaterWidth;
-	repeatedWirePitch = rhs.repeatedWirePitch;
-	resWirePerUnit = rhs.resWirePerUnit;
-	capWirePerUnit = rhs.capWirePerUnit;
-	copper_resistivity = rhs.copper_resistivity;
+    initialized = rhs.initialized;
+    featureSizeInNano = rhs.featureSizeInNano;
+    featureSize = rhs.featureSize;
+    wireType = rhs.wireType;
+    wireRepeaterType = rhs.wireRepeaterType;
+    temperature = rhs.temperature;
+    isLowSwing = rhs.isLowSwing;
+    barrierThickness = rhs.barrierThickness;
+    horizontalDielectric = rhs.horizontalDielectric;
+    wirePitch = rhs.wirePitch;
+    aspectRatio = rhs.aspectRatio;
+    ildThickness = rhs.ildThickness;
+    wireWidth = rhs.wireWidth;
+    wireThickness = rhs.wireThickness;
+    wireSpacing = rhs.wireSpacing;
+    repeaterSize = rhs.repeaterSize;
+    repeaterSpacing = rhs.repeaterSpacing;
+    repeaterHeight = rhs.repeaterHeight;
+    repeaterWidth = rhs.repeaterWidth;
+    repeatedWirePitch = rhs.repeatedWirePitch;
+    resWirePerUnit = rhs.resWirePerUnit;
+    capWirePerUnit = rhs.capWirePerUnit;
+    copper_resistivity = rhs.copper_resistivity;
 
-	return *this;
+    return *this;
 }
