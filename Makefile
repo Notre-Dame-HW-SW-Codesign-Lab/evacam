@@ -8,8 +8,6 @@ ROOT_DIR=$(shell pwd)
 SRC_DIR=$(ROOT_DIR)/src
 OBJ_DIR=$(ROOT_DIR)/obj
 RES_DIR=$(ROOT_DIR)/results
-CONFIG_DIR=$(ROOT_DIR)/config
-CONFIG_SELECT_FILE=$(ROOT_DIR)/config.txt
 
 BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
@@ -23,9 +21,7 @@ OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 DEPS=$(OBJECTS:.o=.d)
 
 
-CONFIG_FILE_NAME = $(shell awk '!/^\/\// && NF {print $$1; exit}' "$(CONFIG_SELECT_FILE)")
-CONFIG_FILE      = $(CONFIG_FILE_NAME)
-BASE_NAME        = $(basename $(notdir $(CONFIG_FILE_NAME)))
+BASE_NAME = $(basename $(notdir $(CONFIG_FILE)))
 
 RES_FILE=$(RES_DIR)/$(BASE_NAME)_results.txt
 
@@ -65,13 +61,18 @@ clean:
 		$(UML_PDF) repo_uml.aux repo_uml.log
 
 run: $(BIN)
+	@if [ -z "$(CONFIG_FILE)" ]; then \
+		echo "Usage: make run CONFIG_FILE=path/to/config.yaml"; \
+		exit 1; \
+	fi
 	@mkdir -p $(RES_DIR)
 	@if [ -f $(CONFIG_FILE) ]; then \
-		echo "Running $(BIN) with $(CONFIG_FILE_NAME)..."; \
+		echo "Running $(BIN) with $(CONFIG_FILE)..."; \
 		./$(BIN) $(CONFIG_FILE) 2>&1 | tee $(RES_FILE); \
 		echo "Results are written into $(RES_FILE)"; \
 	else \
 		echo "Config file not found: $(CONFIG_FILE)!"; \
+		exit 1; \
 	fi
 
 test: $(BIN)

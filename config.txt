@@ -1,3 +1,0 @@
-// config/PCM-2T2R/PCM-2T2R-JSSC11.cfg
-config/2FeFET_TCAM/2FeFET_TCAM.cfg
-//config/2FeFET_MCAM/2FeFET_MCAM.cfg
