@@ -3,9 +3,6 @@
 #include <iostream>
 #include <math.h>
 void Technology::Initialize(int _featureSizeInNano, DeviceRoadmap _deviceRoadmap, bool _UseUpdatedLib) {
-    if (initialized)
-        std::cout << "Warning: Already initialized!" << std::endl;
-
     featureSizeInNano = _featureSizeInNano;
     featureSize = _featureSizeInNano * 1e-9;
     deviceRoadmap = _deviceRoadmap;

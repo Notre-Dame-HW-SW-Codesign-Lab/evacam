@@ -4,7 +4,7 @@
 void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _resLoad,
         std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[Predecoder Block] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Predecoder Block] Warning: Already initialized!";
 
     config = _config;
     numAddressBit =_numAddressBit;

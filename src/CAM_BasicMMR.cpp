@@ -29,7 +29,7 @@ CAM_BasicMMR::CAM_BasicMMR() {
 void CAM_BasicMMR::Initialize(int _numInputBits, double _capLoad, double _resLoad, 
         double _capLaLoad, double _resLaLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_MMR] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_MMR] Warning: Already initialized!";
     capLoad = _capLoad;
     resLoad = _resLoad;
     capLaLoad = _capLaLoad;

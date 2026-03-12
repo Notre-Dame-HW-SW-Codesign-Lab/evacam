@@ -60,15 +60,15 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 
 
     if (_numActiveMatPerRow > numColumnMat) {
-        std::cout << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!"  << std::endl;
-        std::cout << _numActiveMatPerRow << " > " << numColumnMat << std::endl;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << _numActiveMatPerRow << " > " << numColumnMat;
         numActiveMatPerRow = numColumnMat;
     } else {
         numActiveMatPerRow = _numActiveMatPerRow;
     }
     if (_numActiveMatPerColumn > numRowMat) {
-        std::cout << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!"  << std::endl;
-        std::cout << _numActiveMatPerColumn << " > " << numRowMat << std::endl;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << _numActiveMatPerColumn << " > " << numRowMat;
         numActiveMatPerColumn = numRowMat;
     } else {
         numActiveMatPerColumn = _numActiveMatPerColumn;
@@ -80,15 +80,15 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     numRowSubarray = _numRowSubarray;
     numColumnSubarray = _numColumnSubarray;
     if (_numActiveSubarrayPerRow > numColumnSubarray) {
-        std::cout << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!"  << std::endl;
-        std::cout << _numActiveSubarrayPerRow << " > " << numColumnSubarray << std::endl;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << _numActiveSubarrayPerRow << " > " << numColumnSubarray;
         numActiveSubarrayPerRow = numColumnSubarray;
     } else {
         numActiveSubarrayPerRow = _numActiveSubarrayPerRow;
     }
     if (_numActiveSubarrayPerColumn > numRowSubarray) {
-        std::cout << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!"  << std::endl;
-        std::cout << _numActiveSubarrayPerColumn << " > " << numRowSubarray << std::endl;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << _numActiveSubarrayPerColumn << " > " << numRowSubarray;
         numActiveSubarrayPerColumn = numRowSubarray;
     } else {
         numActiveSubarrayPerColumn = _numActiveSubarrayPerColumn;

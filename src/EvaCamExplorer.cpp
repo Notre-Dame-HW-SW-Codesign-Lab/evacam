@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -77,12 +78,17 @@ void EvaCamExplorer::InitializeExploration() {
 }
 
 void EvaCamExplorer::InitializeBestResults() {
-    bestResults_.resize((int)full_exploration);
+    bestResults_ = CreateBestResultsBuffer();
+}
+
+std::vector<std::shared_ptr<CAM_Result>> EvaCamExplorer::CreateBestResultsBuffer() const {
+    std::vector<std::shared_ptr<CAM_Result>> bestResults((int)full_exploration);
     for (int i = 0; i < (int)full_exploration; i++) {
-        bestResults_[i] = std::make_shared<CAM_Result>();
-        bestResults_[i]->Initialize(config_);
-        bestResults_[i]->optimizationTarget = (OptimizationTarget)i;
+        bestResults[i] = std::make_shared<CAM_Result>();
+        bestResults[i]->Initialize(config_);
+        bestResults[i]->optimizationTarget = (OptimizationTarget)i;
     }
+    return bestResults;
 }
 
 void EvaCamExplorer::OpenExplorationCsv() {
@@ -108,12 +114,19 @@ void EvaCamExplorer::RunPrimaryExploration() {
 
     if (fixedOuterGeometry_) {
         config_->logger.Verbose() << "Fixed bank/mat/subarray sizes detected; bypassing outer geometry loops.";
-        EvaluateGeometry(config_->minNumRowMat, config_->minNumColumnMat, config_->minNumRowSubarray);
+        EvaluateGeometry(config_->minNumRowMat, config_->minNumColumnMat, config_->minNumRowSubarray,
+                bestResults_, numSolution_, explorationCsv_.get(), localWire_, globalWire_);
         return;
     }
 
 #pragma omp parallel
     {
+        auto threadLocalWire = config_->CreateDefaultLocalWire();
+        auto threadGlobalWire = config_->CreateDefaultGlobalWire();
+        auto threadBestResults = CreateBestResultsBuffer();
+        long long threadNumSolutions = 0;
+        std::ostringstream threadCsv;
+
 #pragma omp for collapse(3)
         for (int i = 0; i < (int)numRowMatValues_.size(); i++) {
             for (int j = 0; j < (int)numColumnMatValues_.size(); j++) {
@@ -124,14 +137,35 @@ void EvaCamExplorer::RunPrimaryExploration() {
 #pragma omp critical
                         std::cout << "\rProgress: " << percentage << "%" << std::flush;
                     }
-                    EvaluateGeometry(numRowMatValues_[i], numColumnMatValues_[j], numRowSubarrayValues_[k]);
+                    EvaluateGeometry(numRowMatValues_[i], numColumnMatValues_[j], numRowSubarrayValues_[k],
+                            threadBestResults, threadNumSolutions, &threadCsv, threadLocalWire, threadGlobalWire);
                 }
             }
+        }
+
+        if (threadNumSolutions > 0) {
+            std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
+            numSolution_ += threadNumSolutions;
+        }
+
+        {
+            std::lock_guard<std::mutex> resultsLock(bestResultsMutex_);
+            MergeBestResults(threadBestResults);
+        }
+
+        if (!threadCsv.str().empty() && explorationCsv_) {
+            std::lock_guard<std::mutex> csvLock(explorationCsvMutex_);
+            *explorationCsv_ << threadCsv.str();
         }
     }
 }
 
-void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray) {
+void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
+        std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        long long &numSolutions,
+        std::ostream *csvStream,
+        const std::shared_ptr<Wire> &localWire,
+        const std::shared_ptr<Wire> &globalWire) {
     const auto numActiveMatPerRowValues = config_->NumActiveMatPerRowValues(numColumnMat);
     const auto numActiveMatPerColumnValues = config_->NumActiveMatPerColumnValues(numRowMat);
     const auto numColumnSubarrayValues = config_->NumColumnSubarrayValues();
@@ -176,18 +210,20 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                                 numActiveSubarrayPerColumn, muxSenseAmp, muxOutputLev1,
                                                                 muxOutputLev2, numRowPerSet,
                                                                 (BufferDesignTarget)areaOptimizationLevel,
-                                                                localWire_, globalWire_, iterCamOpt);
+                                                                localWire, globalWire, iterCamOpt);
 
                                                         if (!IsValidCandidate(dataBank)) {
                                                             continue;
                                                         }
 
                                                         ValidateCapacityOrThrow(dataBank);
-                                                        numSolution_++;
+                                                        numSolutions++;
 
-                                                        const auto tempResult = MakeResult(dataBank, localWire_, globalWire_, false);
-                                                        UpdateBestResults(tempResult);
-                                                        MaybeWriteExplorationCsv(tempResult);
+                                                        const auto tempResult = MakeResult(dataBank, localWire, globalWire, false);
+                                                        UpdateBestResults(bestResults, tempResult);
+                                                        if (csvStream) {
+                                                            MaybeWriteExplorationCsv(tempResult, *csvStream);
+                                                        }
                                                     }
 }
 
@@ -514,16 +550,35 @@ void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) 
 }
 
 void EvaCamExplorer::UpdateBestResults(const std::shared_ptr<Result> &result) {
+    UpdateBestResults(bestResults_, result);
+}
+
+void EvaCamExplorer::UpdateBestResults(std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        const std::shared_ptr<Result> &result) const {
     for (int i = 0; i < (int)full_exploration; i++) {
-        bestResults_[i]->compareAndUpdate(result);
+        bestResults[i]->compareAndUpdate(result);
+    }
+}
+
+void EvaCamExplorer::MergeBestResults(const std::vector<std::shared_ptr<CAM_Result>> &bestResults) {
+    for (int i = 0; i < (int)full_exploration; i++) {
+        bestResults_[i]->compareAndUpdate(bestResults[i]);
     }
 }
 
 void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result) {
-    if (!result || !config_->ShouldWriteExplorationCsv() || !explorationCsv_) {
+    if (!explorationCsv_) {
         return;
     }
 
-    result->printToCsvFile(*explorationCsv_);
-    *explorationCsv_ << std::endl;
+    MaybeWriteExplorationCsv(result, *explorationCsv_);
+}
+
+void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const {
+    if (!result || !config_->ShouldWriteExplorationCsv()) {
+        return;
+    }
+
+    result->printToCsvFile(stream);
+    stream << std::endl;
 }

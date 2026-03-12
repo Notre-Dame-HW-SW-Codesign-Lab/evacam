@@ -128,15 +128,15 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     }
 
     if (_numActiveMatPerRow > numColumnMat) {
-        config->logger.Verbose() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
-        config->logger.Verbose() << _numActiveMatPerRow << " > " << numColumnMat;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << _numActiveMatPerRow << " > " << numColumnMat;
         numActiveMatPerRow = numColumnMat;
     } else {
         numActiveMatPerRow = _numActiveMatPerRow;
     }
     if (_numActiveMatPerColumn > numRowMat) {
-        config->logger.Verbose() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
-        config->logger.Verbose() << _numActiveMatPerColumn << " > " << numRowMat;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << _numActiveMatPerColumn << " > " << numRowMat;
         numActiveMatPerColumn = numRowMat;
     } else {
         numActiveMatPerColumn = _numActiveMatPerColumn;
@@ -148,15 +148,15 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     numRowSubarray = _numRowSubarray;
     numColumnSubarray = _numColumnSubarray;
     if (_numActiveSubarrayPerRow > numColumnSubarray) {
-        config->logger.Verbose() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
-        config->logger.Verbose() << _numActiveSubarrayPerRow << " > " << numColumnSubarray;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << _numActiveSubarrayPerRow << " > " << numColumnSubarray;
         numActiveSubarrayPerRow = numColumnSubarray;
     } else {
         numActiveSubarrayPerRow = _numActiveSubarrayPerRow;
     }
     if (_numActiveSubarrayPerColumn > numRowSubarray) {
-        config->logger.Verbose() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
-        config->logger.Verbose() << _numActiveSubarrayPerColumn << " > " << numRowSubarray;
+        config->logger.Log() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << _numActiveSubarrayPerColumn << " > " << numRowSubarray;
         numActiveSubarrayPerColumn = numRowSubarray;
     } else {
         numActiveSubarrayPerColumn = _numActiveSubarrayPerColumn;

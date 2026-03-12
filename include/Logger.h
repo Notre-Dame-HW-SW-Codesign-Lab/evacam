@@ -2,6 +2,8 @@
 #define LOGGER_H_
 
 #include <iostream>
+#include <mutex>
+#include <sstream>
 #include <utility>
 
 class Logger {
@@ -13,36 +15,46 @@ class Logger {
                 Line(const Line&) = delete;
                 Line& operator=(const Line&) = delete;
 
-                Line(Line&& other) noexcept : stream_(other.stream_) {
+                Line(Line&& other) noexcept
+                    : stream_(other.stream_), buffer_(std::move(other.buffer_)) {
                     other.stream_ = nullptr;
                 }
 
                 ~Line() {
-                    if (stream_)
-                        *stream_ << std::endl;
+                    if (!stream_)
+                        return;
+
+                    std::lock_guard<std::mutex> lock(OutputMutex());
+                    *stream_ << buffer_.str() << std::endl;
                 }
 
                 template <typename T>
                 Line& operator<<(const T& value) {
                     if (stream_)
-                        *stream_ << value;
+                        buffer_ << value;
                     return *this;
                 }
 
                 Line& operator<<(std::ostream& (*manip)(std::ostream&)) {
                     if (stream_)
-                        *stream_ << manip;
+                        manip(buffer_);
                     return *this;
                 }
 
                 Line& operator<<(std::ios_base& (*manip)(std::ios_base&)) {
                     if (stream_)
-                        *stream_ << manip;
+                        manip(buffer_);
                     return *this;
                 }
 
             private:
+                static std::mutex& OutputMutex() {
+                    static std::mutex mutex;
+                    return mutex;
+                }
+
                 std::ostream *stream_;
+                std::ostringstream buffer_;
         };
 
         explicit Logger(bool enabled = false) : enabled_(enabled) {}
@@ -53,6 +65,10 @@ class Logger {
 
         bool IsVerbose() const {
             return enabled_;
+        }
+
+        Line Log() const {
+            return Line(&std::cout);
         }
 
         Line Verbose() const {

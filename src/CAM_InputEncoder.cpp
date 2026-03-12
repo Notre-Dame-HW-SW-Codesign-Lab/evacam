@@ -24,7 +24,7 @@ CAM_InputEncoder::CAM_InputEncoder() {
 void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCustom, double _capLoad, 
         double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_InputEncoder] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_InputEncoder] Warning: Already initialized!";
 
     outputDriver = std::make_shared<OutputDriver>();
 
@@ -201,4 +201,3 @@ CAM_InputEncoder & CAM_InputEncoder::operator=(const CAM_InputEncoder &rhs) {
     numInputBits = rhs.numInputBits;
     return *this;
 }
-

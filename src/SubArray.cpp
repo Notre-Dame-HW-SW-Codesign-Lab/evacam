@@ -5,7 +5,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
         BufferDesignTarget _areaOptimizationLevel, std::shared_ptr<EvaCamConfig> _config,
         std::shared_ptr<Wire> _localWire) {
     if (initialized)
-        std::cout << "[Subarray] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Subarray] Warning: Already initialized!";
 
     numRow = _numRow;
     numColumn = _numColumn;

@@ -38,7 +38,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
         bool _withVariation, std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire,
         std::shared_ptr<CAM_Opt> _CAM_opt) {
     if (initialized)
-        std::cout << "[CAM_SubArray] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_SubArray] Warning: Already initialized!";
     numRow = _numRow;
     numColumn = _numColumn;
     multipleRowPerSet = _multipleRowPerSet;
@@ -174,7 +174,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
             indexMatchline = i;
             if(Col[i]->CellPort.ConnectedRegion == gate){
                 invalid = true;
-                std::cout << "[Warning]: Impractical matchline connection (gate)." << std::endl;
+                config->logger.Log() << "[Warning]: Impractical matchline connection (gate).";
                 return;
             }
             else if(Col[i]->CellPort.ConnectedRegion == drain||Col[i]->CellPort.ConnectedRegion == source){
@@ -250,7 +250,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
             /* need to account for other cases for some variables to be initialized */ 
         } else if (Col[i]->CellPort.Type == Bitline) {
             //TODO: Actually calculate this correctly, put a placeholder for uninitialized value errors
-            std::cout << "[CAM_SubArray] Warning: Placeholders used for calculations." << std::endl;
+            config->logger.Log() << "[CAM_SubArray] Warning: Placeholders used for calculations.";
             resMemCellOn = 0.001;
             resMemCellOff = 0.001;
             capCellAccess = 0.001;
@@ -862,7 +862,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 invalid = true;
                 throw std::runtime_error("Only 2FeFET MCAM design is supported.");
             }else{
-                std::cout << "Warning: 2FeFET MCAM design is not properly supported and will return inaccurate results for some metrics." << std::endl;
+                config->logger.Log() << "Warning: 2FeFET MCAM design is not properly supported and will return inaccurate results for some metrics.";
                 // TODO: fix this placeholder
                 capTotalCell = 0.001;
                 searchLatency = 0.001;

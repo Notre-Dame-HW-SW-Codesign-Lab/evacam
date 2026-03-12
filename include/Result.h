@@ -21,8 +21,8 @@ class Result {
         void print();
         void printAsCache(Result &tagBank, CacheAccessMode cacheAccessMode);
         void reset();
-        void printToCsvFile(std::ofstream &outputFile);
-        void printAsCacheToCsvFile(Result &tagBank, CacheAccessMode cacheAccessMode, std::ofstream &outputFile);
+        void printToCsvFile(std::ostream &outputFile);
+        void printAsCacheToCsvFile(Result &tagBank, CacheAccessMode cacheAccessMode, std::ostream &outputFile);
         void compareAndUpdate(std::shared_ptr<Result> newResult);
 
         OptimizationTarget optimizationTarget;	/* Exploration should not be assigned here */

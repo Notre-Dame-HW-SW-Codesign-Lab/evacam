@@ -3,7 +3,7 @@
 void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, 
         std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
     if (initialized)
-        std::cout << "[Precharger] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Precharger] Warning: Already initialized!";
 
     voltagePrecharge = _voltagePrecharge;
     numColumn  = _numColumn;

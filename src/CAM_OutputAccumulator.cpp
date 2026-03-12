@@ -20,7 +20,7 @@ CAM_OutputAccumulator::CAM_OutputAccumulator() {
  */
 void CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_OutputAccumulator] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_OutputAccumulator] Warning: Already initialized!";
     /* structure: nand for out/out_last, nand for initial, FF (6 nand) */
     capLoad = _capLoad;
     resLoad = _resLoad;
@@ -148,6 +148,5 @@ CAM_OutputAccumulator & CAM_OutputAccumulator::operator=(const CAM_OutputAccumul
     rampOutput = rhs.rampOutput;
     return *this;
 }
-
 
 

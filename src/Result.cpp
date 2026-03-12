@@ -594,7 +594,7 @@ void Result::printAsCache(Result &tagResult, CacheAccessMode cacheAccessMode) {
     }
 }
 
-void Result::printToCsvFile(std::ofstream &outputFile) {
+void Result::printToCsvFile(std::ostream &outputFile) {
     outputFile << bank->numRowMat << "," << bank->numColumnMat << "," << bank->numActiveMatPerColumn << "," << bank->numActiveMatPerRow << ",";
     outputFile << bank->numRowSubarray << "," << bank->numColumnSubarray << "," << bank->numActiveSubarrayPerColumn << "," << bank->numActiveSubarrayPerRow << ",";
     outputFile << bank->mat->subarray->numRow << "," << bank->mat->subarray->numColumn << ",";
@@ -730,7 +730,7 @@ void Result::printToCsvFile(std::ofstream &outputFile) {
     outputFile << bank->leakage * 1e3 << ",";
 }
 
-void Result::printAsCacheToCsvFile(Result &tagResult, CacheAccessMode cacheAccessMode, std::ofstream &outputFile) {
+void Result::printAsCacheToCsvFile(Result &tagResult, CacheAccessMode cacheAccessMode, std::ostream &outputFile) {
     if (bank->memoryType != mem_data || tagResult.bank->memoryType != tag) {
         std::cout << "This is not a valid cache configuration." << std::endl;
         return;

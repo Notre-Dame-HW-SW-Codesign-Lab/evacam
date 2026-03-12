@@ -2,7 +2,7 @@
 #include "../include/formula.h"
 void Comparator::Initialize(int _numTagBits, double _capLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[Comparator] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Comparator] Warning: Already initialized!";
 
     numTagBits = _numTagBits / 4;  /* Assuming there are 4 quarter comparators. input tagbits is already a multiple of 4 */
     capLoad = _capLoad;

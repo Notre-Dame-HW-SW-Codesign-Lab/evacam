@@ -112,7 +112,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
             }
             maxCurrent += config->cell->leakageCurrentAccessDevice * (numCell - 1);
             if (CellPort.Type == Sourceline) { // the "column based resistor sourceline" in ISSCC'15 3t1r
-                std::cout << "[CAM_Line] Warning: Make sure you are using Meng-Fan Chang's design" << std::endl;
+                config->logger.Log() << "[CAM_Line] Warning: Make sure you are using Meng-Fan Chang's design";
                 // it is special coded for Dr. Chang's design
                 // for search operation: worst case, search all-0 or all-1
                 // TODO: replace Vp to Vdd for coding convenience

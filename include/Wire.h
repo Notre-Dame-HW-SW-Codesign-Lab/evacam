@@ -3,8 +3,6 @@
 
 #include <memory>
 #include "typedef.h"
-#include "SenseAmp.h"
-
 class EvaCamConfig;
 
 
@@ -57,7 +55,6 @@ class Wire {
 
         double copper_resistivity;
 
-        std::unique_ptr<SenseAmp> senseAmp;
         std::shared_ptr<EvaCamConfig> config;
 
 };

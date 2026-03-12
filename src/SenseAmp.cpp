@@ -3,7 +3,7 @@
 void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _senseVoltage, double _pitchSenseAmp,
         std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[Sense Amp] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Sense Amp] Warning: Already initialized!";
 
     numColumn = _numColumn;
     currentSense = _currentSense;

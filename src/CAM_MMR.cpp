@@ -17,7 +17,7 @@ CAM_MMR::CAM_MMR() {
 void CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, 
         double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config){
     if (initialized)
-        std::cout << "[CAM_MMR] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_MMR] Warning: Already initialized!";
     capLoad = _capLoad;
     resLoad = _resLoad;
     numInputBits = _numInputBits;
@@ -131,4 +131,3 @@ CAM_MMR & CAM_MMR::operator=(const CAM_MMR &rhs) {
     areaOptimizationLevel = rhs.areaOptimizationLevel;
     return *this;
 }
-

@@ -57,7 +57,7 @@ open-uml: uml
 
 .PHONY: clean
 clean:
-	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) \
+	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
 		$(UML_PDF) repo_uml.aux repo_uml.log
 
 run: $(BIN)

@@ -18,7 +18,7 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
         std::shared_ptr<EvaCamConfig> _config) {
 
     if (initialized)
-        std::cout << "[Output Driver] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Output Driver] Warning: Already initialized!";
 
     logicEffort = _logicEffort;
     inputCap = _inputCap;

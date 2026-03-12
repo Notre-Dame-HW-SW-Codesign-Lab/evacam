@@ -37,6 +37,7 @@
 *.out
 *.app
 EvaCAM
+YamlHelpersTest
 
 # debug information files
 *.dwo

@@ -2,7 +2,9 @@
 #define EVACAM_EXPLORER_H_
 
 #include <fstream>
+#include <iosfwd>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -28,9 +30,15 @@ class EvaCamExplorer {
     private:
         void InitializeExploration();
         void InitializeBestResults();
+        std::vector<std::shared_ptr<CAM_Result>> CreateBestResultsBuffer() const;
         void OpenExplorationCsv();
         void RunPrimaryExploration();
-        void EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray);
+        void EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
+                std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+                long long &numSolutions,
+                std::ostream *csvStream,
+                const std::shared_ptr<Wire> &localWire,
+                const std::shared_ptr<Wire> &globalWire);
         void RefineWires();
         void RefineLocalWires();
         void RefineGlobalWires();
@@ -53,7 +61,11 @@ class EvaCamExplorer {
         bool IsValidCandidate(const std::shared_ptr<Bank> &bank) const;
         void ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const;
         void UpdateBestResults(const std::shared_ptr<Result> &result);
+        void UpdateBestResults(std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+                const std::shared_ptr<Result> &result) const;
+        void MergeBestResults(const std::vector<std::shared_ptr<CAM_Result>> &bestResults);
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result);
+        void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const;
 
         std::shared_ptr<EvaCamConfig> config_;
         std::vector<std::shared_ptr<CAM_Result>> bestResults_;
@@ -72,6 +84,9 @@ class EvaCamExplorer {
         std::vector<int> numRowSubarrayValues_;
         bool hasConstraintLimits_ = false;
         ResultLimits constraintLimits_{};
+        std::mutex bestResultsMutex_;
+        std::mutex explorationCsvMutex_;
+        std::mutex numSolutionsMutex_;
 };
 
 #endif /* EVACAM_EXPLORER_H_ */

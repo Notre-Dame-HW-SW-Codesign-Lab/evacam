@@ -20,7 +20,7 @@ CAM_PriorityEncoder::CAM_PriorityEncoder() {
 void CAM_PriorityEncoder::Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel,
         double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_MMR] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_MMR] Warning: Already initialized!";
     capLoad = _capLoad;
     resLoad = _resLoad;
     numInputBits = _numInputBits;
@@ -114,7 +114,6 @@ CAM_PriorityEncoder & CAM_PriorityEncoder::operator=(const CAM_PriorityEncoder &
     capNorOutput = rhs.capNorOutput;
     return *this;
 }
-
 
 
 

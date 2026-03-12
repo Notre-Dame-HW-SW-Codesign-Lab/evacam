@@ -5,7 +5,7 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
         bool _multipleRowPerSet, bool _inv, BufferDesignTarget _areaOptimizationLevel, 
         double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[Row Decoder] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Row Decoder] Warning: Already initialized!";
 
     numRow = _numRow;
     capLoad = _capLoad;
@@ -106,4 +106,3 @@ CAM_RowNand & CAM_RowNand::operator=(const CAM_RowNand &rhs) {
 
     return *this;
 }
-

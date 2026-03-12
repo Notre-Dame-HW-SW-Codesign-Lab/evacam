@@ -21,7 +21,7 @@ CAM_DataBuffer::CAM_DataBuffer() {
  */
 void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_DataBuffer] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_DataBuffer] Warning: Already initialized!";
     /* structure: D-latch, contains 4 nand */
     capLoad = _capLoad;
     resLoad = _resLoad;
@@ -147,5 +147,4 @@ CAM_DataBuffer & CAM_DataBuffer::operator=(const CAM_DataBuffer &rhs) {
     rampOutput = rhs.rampOutput;
     return *this;
 }
-
 

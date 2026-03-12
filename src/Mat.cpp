@@ -28,15 +28,15 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     CAM_opt = _CAM_opt;
 
     if (_numActiveSubarrayPerRow > numColumnSubarray) {
-        config->logger.Verbose() << "[Mat] Warning: The number of active subarray per row is larger than the number of subarray per row!";
-        std::cout << _numActiveSubarrayPerRow << " > " << numColumnSubarray << std::endl;
+        config->logger.Log() << "[Mat] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << _numActiveSubarrayPerRow << " > " << numColumnSubarray;
         numActiveSubarrayPerRow = numColumnSubarray;
     } else {
         numActiveSubarrayPerRow = _numActiveSubarrayPerRow;
     }
     if (_numActiveSubarrayPerColumn > numRowSubarray) {
-        config->logger.Verbose() << "[Mat] Warning: The number of active subarray per column is larger than the number of subarray per column!";
-        std::cout << _numActiveSubarrayPerColumn << " > " << numRowSubarray << std::endl;
+        config->logger.Log() << "[Mat] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << _numActiveSubarrayPerColumn << " > " << numRowSubarray;
         numActiveSubarrayPerColumn = numRowSubarray;
     } else {
         numActiveSubarrayPerColumn = _numActiveSubarrayPerColumn;

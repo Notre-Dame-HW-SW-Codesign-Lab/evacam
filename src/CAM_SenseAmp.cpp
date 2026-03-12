@@ -22,7 +22,7 @@ CAM_SenseAmp::CAM_SenseAmp() {
  */
 void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool _isCustom, double _senseVoltage, double _pitchSenseAmp, std::string _fileCustomSA, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_SenseAmp] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_SenseAmp] Warning: Already initialized!";
     typeSA = _typeSA;
     isCustom = _isCustom;
     senseVoltage = _senseVoltage;
@@ -33,7 +33,7 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
 
     if (pitchSenseAmp <= config->tech->featureSize * 2) {
         /* too small, cannot do the layout */
-        std::cout << "[CAM_SenseAmp] Warning: Pitch size too small, cannot do the layout!" << std::endl;
+        config->logger.Log() << "[CAM_SenseAmp] Warning: Pitch size too small, cannot do the layout!";
         invalid = true;
     }
 
@@ -128,12 +128,12 @@ void CAM_SenseAmp::CalculateArea() {
         else if (typeSA == self_clock_sense) {
             // TODO: self clock sense
             height = width = area = 1e41;
-            std::cout << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!";
         }
         else if (typeSA == dual_threshold_sense) {
             // TODO: self clock sense
             height = width = area = 1e41;
-            std::cout << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!";
         }
         else {
             height = width = area = 1e41;
@@ -159,12 +159,12 @@ void CAM_SenseAmp::CalculateRC() {
         else if (typeSA == self_clock_sense) {
             // TODO: self clock sense
             capLoad = 1e41;
-            std::cout << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!";
         }
         else if (typeSA == dual_threshold_sense) {
             // TODO: self clock sense
             capLoad = 1e41;
-            std::cout << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!";
         }
         else {
             capLoad = 1e41;
@@ -191,12 +191,12 @@ void CAM_SenseAmp::CalculateLatency(double _rampInput) {	/* _rampInput is actual
         else if (typeSA == self_clock_sense) {
             // TODO: self clock sense
             readLatency = writeLatency = 0;
-            std::cout << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!";
         }
         else if (typeSA == dual_threshold_sense) {
             // TODO: self clock sense
             readLatency = writeLatency = 0;
-            std::cout << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!";
         }
         else {
             readLatency = writeLatency = 0;
@@ -234,12 +234,12 @@ void CAM_SenseAmp::CalculatePower() {
         else if (typeSA == self_clock_sense) {
             // TODO: self clock sense
             readDynamicEnergy = writeDynamicEnergy = leakage = 0;
-            std::cout << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Self clocked sensing is under development!";
         }
         else if (typeSA == dual_threshold_sense) {
             // TODO: self clock sense
             readDynamicEnergy = writeDynamicEnergy = leakage = 0;
-            std::cout << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!" << std::endl;
+            config->logger.Log() << "[CAM_SenseAmp] Warning: Dual threshold sensing is under development!";
         }
         else {
             readDynamicEnergy = writeDynamicEnergy = leakage = 0;
@@ -280,4 +280,3 @@ CAM_SenseAmp & CAM_SenseAmp::operator=(const CAM_SenseAmp &rhs) {
 
     return *this;
 }
-

@@ -4,7 +4,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         bool _multipleRowPerSet, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent,
         std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[Row Decoder] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Row Decoder] Warning: Already initialized!";
 
     outputDriver = std::make_shared<OutputDriver>();
     numRow = _numRow;

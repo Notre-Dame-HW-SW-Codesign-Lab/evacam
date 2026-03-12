@@ -20,7 +20,7 @@ CAM_LevelShifter::CAM_LevelShifter() {
  */
 void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config){
     if (initialized)
-        std::cout << "[CAM_LevelShifter] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_LevelShifter] Warning: Already initialized!";
     /* structure: D-latch, contains 4 nand */
     config = _config;
     numInputBit = _numInputBit;
@@ -151,5 +151,4 @@ CAM_LevelShifter & CAM_LevelShifter::operator=(const CAM_LevelShifter &rhs) {
     rampOutput = rhs.rampOutput;
     return *this;
 }
-
 

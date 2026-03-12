@@ -16,7 +16,7 @@ CAM_Encoder::CAM_Encoder() {
 void CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizationLevel, 
         double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[CAM_Encoder] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[CAM_Encoder] Warning: Already initialized!";
     numInputBit = _numInputBit;
     capLoad = _capLoad;
     resLoad = _resLoad;
@@ -109,5 +109,4 @@ void CAM_Encoder::PrintProperty() {
     std::cout << "8 to 3 CAM_Encoder Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-
 

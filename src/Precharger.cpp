@@ -13,7 +13,7 @@ Precharger::~Precharger() {
  */
 void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
     if (initialized)
-        std::cout << "[Precharger] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Precharger] Warning: Already initialized!";
 
     outputDriver = std::make_shared<OutputDriver>();
     voltagePrecharge = _voltagePrecharge;

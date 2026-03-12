@@ -17,7 +17,7 @@ Mux::Mux() {
 void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _capInputNextStage, 
         double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
-        std::cout << "[Mux] Warning: Already initialized!" << std::endl;
+        _config->logger.Verbose() << "[Mux] Warning: Already initialized!";
 
     numInput = _numInput;
     numMux = _numMux;
