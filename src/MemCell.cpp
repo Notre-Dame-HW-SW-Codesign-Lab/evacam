@@ -6,7 +6,6 @@
 #include <bits/stdc++.h>
 
 MemCell::MemCell() {
-    // TODO Auto-generated constructor stub
     memCellType         = PCRAM;
     area                = 0;
     aspectRatio         = 0;
@@ -83,8 +82,7 @@ MemCell::MemCell() {
 
 }
 /*
-   MemCell::~MemCell() {
-// TODO Auto-generated destructor stub
+MemCell::~MemCell() {
 }
  */
 

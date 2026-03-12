@@ -3,7 +3,6 @@
 #include <stdexcept>
 
 CAM_MemCell::CAM_MemCell() {
-    // TODO Auto-generated constructor stub
     memCellType         = PCRAM;
     area                = 0;
     aspectRatio         = 0;
@@ -58,8 +57,7 @@ CAM_MemCell::CAM_MemCell() {
 
 }
 /*
-   CAM_MemCell::~CAM_MemCell() {
-// TODO Auto-generated destructor stub
+CAM_MemCell::~CAM_MemCell() {
 }
  */
 void CAM_MemCell::ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd) {

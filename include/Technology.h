@@ -2,6 +2,7 @@
 #define TECHNOLOGY_H_
 
 #include <memory>
+#include "TechnologySpec.h"
 #include "typedef.h"
 
 
@@ -17,6 +18,14 @@ class Technology {
         void PrintProperty();
         void Initialize(int _featureSizeInNano, DeviceRoadmap _deviceRoadmap, bool _UseUpdatedLib);
         void InterpolateWith(const std::shared_ptr<Technology>& rhs, double _alpha);
+
+    private:
+        void ApplySpec(const TechnologySpec &spec);
+        std::array<double, 11> CollectTemperatureAnchors(const double (&src)[101]);
+        void ExpandCurrentTable(const std::array<double, 11> &src, double (&dst)[101]);
+        void ExpandTemperatureTables(const TechnologySpec &spec);
+
+    public:
 
         /* Properties */
         bool initialized;	/* Initialization flag */

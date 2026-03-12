@@ -6,7 +6,6 @@
 #include <cstring>
 #include <iostream>
 CAM_SenseAmp::CAM_SenseAmp() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     invalid = false;
     typeSA = nvsim_voltage_sense;
@@ -17,7 +16,6 @@ CAM_SenseAmp::CAM_SenseAmp() {
 }
 /*
    CAM_SenseAmp::~CAM_SenseAmp() {
-// TODO Auto-generated destructor stub
 }
  */
 void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool _isCustom, double _senseVoltage, double _pitchSenseAmp, std::string _fileCustomSA, std::shared_ptr<EvaCamConfig> _config) {

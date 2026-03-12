@@ -2,7 +2,6 @@
 
 
 BankWithHtree::BankWithHtree() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     invalid = false;
 }
@@ -13,7 +12,6 @@ BankWithHtree::BankWithHtree(const BankWithHtree& old_bank) {
 }
 
 BankWithHtree::~BankWithHtree() {
-    // TODO Auto-generated destructor stub
 }
 
 void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,

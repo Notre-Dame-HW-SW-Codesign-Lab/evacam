@@ -2,7 +2,6 @@
 #include "../include/formula.h"
 
 CAM_InputEncoder::CAM_InputEncoder() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;
@@ -18,7 +17,6 @@ CAM_InputEncoder::CAM_InputEncoder() {
 }
 /*
    CAM_InputEncoder::~CAM_InputEncoder() {
-// TODO Auto-generated destructor stub
 }
  */
 void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCustom, double _capLoad, 

@@ -19,13 +19,11 @@
 
 /*
    CAM_SubArray::CAM_SubArray() {
-// TODO Auto-generated constructor stub
 initialized = false;
 invalid = false;
 }
 
 CAM_SubArray::~CAM_SubArray() {
-// TODO Auto-generated destructor stub
 }
  */
 void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,

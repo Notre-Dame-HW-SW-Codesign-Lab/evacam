@@ -3,6 +3,7 @@
 #include "../include/BankWithHtree.h"
 #include "../include/BankWithoutHtree.h"
 #include "../include/Result.h"
+#include "../include/TechnologyTables.h"
 #include "../include/YamlHelpers.h"
 #include <filesystem>
 //#include <magic_enum.hpp>
@@ -24,10 +25,98 @@ namespace {
             values.push_back(value);
         return values;
     }
+
+    const char *ToString(DeviceRoadmap roadmap) {
+        switch (roadmap) {
+            case HP: return "HP";
+            case LSTP: return "LSTP";
+            case LOP: return "LOP";
+            case FEFET: return "FEFET";
+            case LP: return "LP";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(MemCellType type) {
+        switch (type) {
+            case SRAM: return "SRAM";
+            case DRAM: return "DRAM";
+            case eDRAM: return "eDRAM";
+            case MRAM: return "MRAM";
+            case PCRAM: return "PCRAM";
+            case memristor: return "Memristor";
+            case FBRAM: return "FBRAM";
+            case SLCNAND: return "SLC NAND";
+            case MLCNAND: return "MLC NAND";
+            case FEFETRAM: return "FEFET RAM";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(SearchFunction function) {
+        switch (function) {
+            case EX: return "Exact match";
+            case BE: return "Best match";
+            case TH: return "Threshold match";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(CacheAccessMode mode) {
+        switch (mode) {
+            case normal_access_mode: return "Normal";
+            case sequential_access_mode: return "Sequential";
+            case fast_access_mode: return "Fast";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(WriteScheme scheme) {
+        switch (scheme) {
+            case set_before_reset: return "Set before reset";
+            case reset_before_set: return "Reset before set";
+            case erase_before_set: return "Erase before set";
+            case erase_before_reset: return "Erase before reset";
+            case write_and_verify: return "Write and verify";
+            case normal_write: return "Normal write";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(TypeOfInputEncoder type) {
+        switch (type) {
+            case encoding_two_bit: return "Two-bit";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(TypeOfSenseAmp type) {
+        switch (type) {
+            case nvsim_voltage_sense: return "Voltage sense";
+            case nvsim_current_sense: return "Current sense";
+            case self_clock_sense: return "Self-clock sense";
+            case dual_threshold_sense: return "Dual-threshold sense";
+            case discharge: return "Discharge";
+            default: return "Unknown";
+        }
+    }
+
+    const char *ToString(BufferDesignTarget target) {
+        switch (target) {
+            case latency_first: return "Latency first";
+            case latency_area_trade_off: return "Latency/area trade-off";
+            case area_first: return "Area first";
+            default: return "Unknown";
+        }
+    }
+
+    void PrintConstraintIfSet(const char *label, double value) {
+        if (value < 1e40)
+            std::cout << " - " << label << ": " << value << std::endl;
+    }
 }
 
 EvaCamConfig::EvaCamConfig() {
-    // TODO Auto-generated constructor stub
     designTarget = cache;
     searchFunction = EX;
     optimizationTarget = read_latency_optimized;
@@ -520,31 +609,44 @@ void EvaCamConfig::ReadConfigFromFile(const std::string &inputFile) {
     minIsGlobalWireLowSwing = maxIsGlobalWireLowSwing = YamlHelpers::read_required<bool>(wiresGlobal, "low_swing");
 
     // Array
-    // If array is omitted, keep exploration ranges from SetDeepExploration().
+    // If array is omitted, or if specific subsections are omitted, keep the
+    // current exploration ranges/defaults for those dimensions.
     auto array = YamlHelpers::child_optional(config, "array");
     if (array) {
-        auto banks = YamlHelpers::child_required(array, "banks");
-        auto banks_total = YamlHelpers::child_required(banks, "total");
-        auto banks_active = YamlHelpers::child_required(banks, "active");
+        auto banks = YamlHelpers::child_optional(array, "banks");
+        if (banks) {
+            auto banks_total = YamlHelpers::child_required(banks, "total");
+            auto banks_active = YamlHelpers::child_required(banks, "active");
 
-        minNumRowMat             = maxNumRowMat             = YamlHelpers::read_required_index<int>(banks_total, 0, "array.banks.total[0]");
-        minNumColumnMat          = maxNumColumnMat          = YamlHelpers::read_required_index<int>(banks_total, 1, "array.banks.total[1]");
-        minNumActiveMatPerColumn = maxNumActiveMatPerColumn = YamlHelpers::read_required_index<int>(banks_active, 0, "array.banks.active[0]");
-        minNumActiveMatPerRow    = maxNumActiveMatPerRow    = YamlHelpers::read_required_index<int>(banks_active, 1, "array.banks.active[1]");
+            minNumRowMat             = maxNumRowMat             = YamlHelpers::read_required_index<int>(banks_total, 0, "array.banks.total[0]");
+            minNumColumnMat          = maxNumColumnMat          = YamlHelpers::read_required_index<int>(banks_total, 1, "array.banks.total[1]");
+            minNumActiveMatPerColumn = maxNumActiveMatPerColumn = YamlHelpers::read_required_index<int>(banks_active, 0, "array.banks.active[0]");
+            minNumActiveMatPerRow    = maxNumActiveMatPerRow    = YamlHelpers::read_required_index<int>(banks_active, 1, "array.banks.active[1]");
+        }
 
-        auto mats = YamlHelpers::child_required(array, "mats");
-        auto mats_total = YamlHelpers::child_required(mats, "total");
-        auto mats_active = YamlHelpers::child_required(mats, "active");
+        auto mats = YamlHelpers::child_optional(array, "mats");
+        if (mats) {
+            auto mats_total = YamlHelpers::child_required(mats, "total");
+            auto mats_active = YamlHelpers::child_required(mats, "active");
 
-        minNumRowSubarray = maxNumRowSubarray = YamlHelpers::read_required_index<int>(mats_total, 0, "array.mats.total[0]");
-        minNumColumnSubarray = maxNumColumnSubarray = YamlHelpers::read_required_index<int>(mats_total, 1, "array.mats.total[1]");
-        minNumActiveSubarrayPerColumn = maxNumActiveSubarrayPerColumn = YamlHelpers::read_required_index<int>(mats_active, 0, "array.mats.active[0]");
-        minNumActiveSubarrayPerRow = maxNumActiveSubarrayPerRow = YamlHelpers::read_required_index<int>(mats_active, 1, "array.mats.active[1]");
+            minNumRowSubarray = maxNumRowSubarray = YamlHelpers::read_required_index<int>(mats_total, 0, "array.mats.total[0]");
+            minNumColumnSubarray = maxNumColumnSubarray = YamlHelpers::read_required_index<int>(mats_total, 1, "array.mats.total[1]");
+            minNumActiveSubarrayPerColumn = maxNumActiveSubarrayPerColumn = YamlHelpers::read_required_index<int>(mats_active, 0, "array.mats.active[0]");
+            minNumActiveSubarrayPerRow = maxNumActiveSubarrayPerRow = YamlHelpers::read_required_index<int>(mats_active, 1, "array.mats.active[1]");
+        }
 
-        auto mux = YamlHelpers::child_required(array, "mux");
-        maxMuxSenseAmp = minMuxSenseAmp = YamlHelpers::read_required<int>(mux, "sense_amp");
-        maxMuxOutputLev1 = minMuxOutputLev1 = YamlHelpers::read_required<int>(mux, "output_level1");
-        maxMuxOutputLev2 = minMuxOutputLev2 = YamlHelpers::read_required<int>(mux, "output_level2");
+        auto mux = YamlHelpers::child_optional(array, "mux");
+        if (mux) {
+            if (YamlHelpers::child_optional(mux, "sense_amp")) {
+                maxMuxSenseAmp = minMuxSenseAmp = YamlHelpers::read_required<int>(mux, "sense_amp");
+            }
+            if (YamlHelpers::child_optional(mux, "output_level1")) {
+                maxMuxOutputLev1 = minMuxOutputLev1 = YamlHelpers::read_required<int>(mux, "output_level1");
+            }
+            if (YamlHelpers::child_optional(mux, "output_level2")) {
+                maxMuxOutputLev2 = minMuxOutputLev2 = YamlHelpers::read_required<int>(mux, "output_level2");
+            }
+        }
     }
 
     // Matchline
@@ -821,7 +923,22 @@ void EvaCamConfig::MemCellSetup() {
 
 void EvaCamConfig::FEFETTechSetup() {
     FEFET_tech = std::make_shared<Technology>();
-    FEFET_tech->Initialize(processNode, FEFET, UseUpdatedLib);
+    if (FindTechnologySpec(processNode, FEFET, UseUpdatedLib)) {
+        FEFET_tech->Initialize(processNode, FEFET, UseUpdatedLib);
+        return;
+    }
+
+    if (!UseUpdatedLib && FindTechnologySpec(processNode, FEFET, true)) {
+        FEFET_tech->Initialize(processNode, FEFET, true);
+        return;
+    }
+
+    if (FindTechnologySpec(processNode, deviceRoadmap, UseUpdatedLib)) {
+        FEFET_tech->Initialize(processNode, deviceRoadmap, UseUpdatedLib);
+        return;
+    }
+
+    throw std::runtime_error("[Technology] Unsupported FeFET technology configuration.");
 }
 
 void EvaCamConfig::PrintConfig() {
@@ -862,7 +979,96 @@ void EvaCamConfig::PrintConfig() {
         std::cout << "Page Size  : " << pageSize / 8 << "Bytes" << std::endl;
         std::cout << "Block Size : " << flashBlockSize / 8 / 1024 << "KB" << std::endl;
     }
-    // TODO: tedious work here!!!
+    std::cout << "Process Node: " << processNode << "nm" << std::endl;
+    std::cout << "Device Roadmap: " << ToString(deviceRoadmap) << std::endl;
+    std::cout << "Temperature: " << temperature << "K" << std::endl;
+    std::cout << "Memory Cell: " << ToString(cell->memCellType) << std::endl;
+    std::cout << "Cell File  : " << fileMemCell << std::endl;
+
+    if (designTarget == cache) {
+        std::cout << "Cache Access Mode: " << ToString(cacheAccessMode) << std::endl;
+    }
+
+    if (designTarget == CAM_chip) {
+        std::cout << "Search Function: " << ToString(searchFunction) << std::endl;
+    }
+
+    if (designTarget != RAM_chip || (cell->memCellType != SLCNAND && cell->memCellType != MLCNAND)) {
+        std::cout << "Write Scheme: " << ToString(writeScheme) << std::endl;
+    }
+
+    std::cout << "Routing Mode: " << (routingMode == h_tree ? "H-tree" : "Non-H-tree") << std::endl;
+    std::cout << "Sensing: " << (internalSensing ? "Internal" : "External")
+              << ", " << ToString(typeSenseAmp);
+    if (customSenseAmp)
+        std::cout << " (custom)";
+    std::cout << std::endl;
+
+    std::cout << "Peripherals:" << std::endl;
+    std::cout << " - Write Driver: " << (withWriteDriver ? "enabled" : "disabled") << std::endl;
+    if (withInputBuffer || withInputEnc) {
+        std::cout << " - Input Path:";
+        if (withInputBuffer)
+            std::cout << " buffer";
+        if (withInputEnc) {
+            std::cout << (withInputBuffer ? "," : "") << " encoder=" << ToString(typeInputEnc);
+            if (customInputEnc)
+                std::cout << " (custom)";
+        }
+        std::cout << std::endl;
+    }
+    if (withOutputBuffer || withPriorityEnc || withOutputAcc) {
+        std::cout << " - Output Path:";
+        bool needSeparator = false;
+        if (withOutputBuffer) {
+            std::cout << " buffer";
+            needSeparator = true;
+        }
+        if (withPriorityEnc) {
+            std::cout << (needSeparator ? "," : "") << " priority encoder";
+            needSeparator = true;
+        }
+        if (withOutputAcc) {
+            std::cout << (needSeparator ? "," : "") << " accumulator";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "Optimization:" << std::endl;
+    std::cout << " - Buffer Design: " << ToString((BufferDesignTarget)minAreaOptimizationLevel) << std::endl;
+    std::cout << " - Row Driver: " << ToString((BufferDesignTarget)minRowDriverOptLevel) << std::endl;
+    if (withPriorityEnc)
+        std::cout << " - Priority Encoder: " << ToString((BufferDesignTarget)minPriorityOptLevel) << std::endl;
+    if (withOutputAcc)
+        std::cout << " - Bit Serial Width: " << minBitSerialWidth << std::endl;
+
+    if (isConstraintApplied) {
+        std::cout << "Constraints:" << std::endl;
+        PrintConstraintIfSet("Read Latency", readLatencyConstraint);
+        PrintConstraintIfSet("Write Latency", writeLatencyConstraint);
+        PrintConstraintIfSet("Read Dynamic Energy", readDynamicEnergyConstraint);
+        PrintConstraintIfSet("Write Dynamic Energy", writeDynamicEnergyConstraint);
+        PrintConstraintIfSet("Read EDP", readEdpConstraint);
+        PrintConstraintIfSet("Write EDP", writeEdpConstraint);
+        PrintConstraintIfSet("Area", areaConstraint);
+        PrintConstraintIfSet("Leakage", leakageConstraint);
+    }
+
+    if (UseUpdatedLib || NoPrechargeInc || IncludeLeakge || scaledVoltage != 0 || !fileCustomSA.empty() || isPruningEnabled) {
+        std::cout << "Advanced Options:" << std::endl;
+        if (UseUpdatedLib)
+            std::cout << " - Updated Library Enabled" << std::endl;
+        if (NoPrechargeInc)
+            std::cout << " - Excluding Precharge Latency" << std::endl;
+        if (IncludeLeakge)
+            std::cout << " - Including Leakage in Results" << std::endl;
+        if (scaledVoltage != 0)
+            std::cout << " - Scaled Voltage: " << scaledVoltage << std::endl;
+        if (!fileCustomSA.empty())
+            std::cout << " - Custom Sense Amp File: " << fileCustomSA << std::endl;
+        if (isPruningEnabled)
+            std::cout << " - Exploration Pruning Enabled" << std::endl;
+    }
 
     if (optimizationTarget == full_exploration) {
         std::cout << std::endl << "Full design space exploration ... might take hours" << std::endl;

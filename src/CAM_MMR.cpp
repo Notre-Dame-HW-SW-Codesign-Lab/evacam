@@ -3,7 +3,6 @@
 #include <math.h>
 
 CAM_MMR::CAM_MMR() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;

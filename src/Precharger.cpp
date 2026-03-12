@@ -2,13 +2,11 @@
 #include "../include/formula.h"
 /*
    Precharger::Precharger() {
-// TODO Auto-generated constructor stub
 initialized = false;
 enableLatency = 0;
 }
 
 Precharger::~Precharger() {
-// TODO Auto-generated destructor stub
 }
  */
 void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {

@@ -2,7 +2,6 @@
 #include "../include/formula.h"
 
 CAM_OutputAccumulator::CAM_OutputAccumulator() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;
@@ -15,7 +14,6 @@ CAM_OutputAccumulator::CAM_OutputAccumulator() {
 }
 /*
    CAM_OutputAccumulator::~CAM_OutputAccumulator() {
-// TODO Auto-generated destructor stub
 }
  */
 void CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
@@ -148,5 +146,4 @@ CAM_OutputAccumulator & CAM_OutputAccumulator::operator=(const CAM_OutputAccumul
     rampOutput = rhs.rampOutput;
     return *this;
 }
-
 

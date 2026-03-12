@@ -2,7 +2,6 @@
 #include "../include/formula.h"
 
 CAM_DataBuffer::CAM_DataBuffer() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;
@@ -16,7 +15,6 @@ CAM_DataBuffer::CAM_DataBuffer() {
 }
 /*
    CAM_DataBuffer::~CAM_DataBuffer() {
-// TODO Auto-generated destructor stub
 }
  */
 void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
@@ -147,4 +145,3 @@ CAM_DataBuffer & CAM_DataBuffer::operator=(const CAM_DataBuffer &rhs) {
     rampOutput = rhs.rampOutput;
     return *this;
 }
-

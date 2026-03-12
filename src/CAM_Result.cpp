@@ -2,12 +2,10 @@
 #include "../include/macros.h"
 
 CAM_Result::CAM_Result() {
-    // TODO Auto-generated constructor stub
 }
 
 
 CAM_Result::~CAM_Result() {
-    // TODO Auto-generated destructor stub
     //if (bank) delete bank;
     //if (localWire) delete localWire;
     //if (globalWire) delete globalWire;

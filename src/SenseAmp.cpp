@@ -88,6 +88,7 @@ void SenseAmp::CalculateRC() {
 }
 
 void SenseAmp::CalculateLatency(double _rampInput) {	/* TODO: _rampInput is actually no use in SenseAmp */
+    (void)_rampInput;
     if (!initialized) {
         std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
     } else {

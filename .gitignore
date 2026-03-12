@@ -41,3 +41,6 @@ YamlHelpersTest
 
 # debug information files
 *.dwo
+
+# Generated results
+results/

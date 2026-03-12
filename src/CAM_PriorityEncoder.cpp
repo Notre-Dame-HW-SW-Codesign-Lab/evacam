@@ -7,7 +7,6 @@
 #include "../include/formula.h"
 
 CAM_PriorityEncoder::CAM_PriorityEncoder() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;
@@ -114,7 +113,6 @@ CAM_PriorityEncoder & CAM_PriorityEncoder::operator=(const CAM_PriorityEncoder &
     capNorOutput = rhs.capNorOutput;
     return *this;
 }
-
 
 
 

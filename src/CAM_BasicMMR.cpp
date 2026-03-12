@@ -4,7 +4,6 @@
 #include <cstring>
 
 CAM_BasicMMR::CAM_BasicMMR() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;
@@ -21,11 +20,6 @@ CAM_BasicMMR::CAM_BasicMMR() {
     capIn = 0;
 }
 
-/*
-   CAM_BasicMMR::~CAM_BasicMMR() {
-// TODO Auto-generated destructor stub
-}
- */
 void CAM_BasicMMR::Initialize(int _numInputBits, double _capLoad, double _resLoad, 
         double _capLaLoad, double _resLaLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)

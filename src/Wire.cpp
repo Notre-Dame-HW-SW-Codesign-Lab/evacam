@@ -3,13 +3,11 @@
 #include "../include/SenseAmp.h"
 /*
    Wire::Wire() {
-// TODO Auto-generated constructor stub
 initialized = false;
 senseAmp = NULL;
 }
 
 Wire::~Wire() {
-// TODO Auto-generated destructor stub
 // smart pointers make this delete no longer needed
 //if (senseAmp)
 //delete senseAmp;

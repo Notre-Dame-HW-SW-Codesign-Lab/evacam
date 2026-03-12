@@ -2,7 +2,6 @@
 #include "../include/formula.h"
 
 Mux::Mux() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capForPreviousPowerCalculation = 0;
     capForPreviousDelayCalculation = 0;
@@ -11,7 +10,6 @@ Mux::Mux() {
 }
 /*
    Mux::~Mux() {
-// TODO Auto-generated destructor stub
 }
  */
 void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _capInputNextStage, 

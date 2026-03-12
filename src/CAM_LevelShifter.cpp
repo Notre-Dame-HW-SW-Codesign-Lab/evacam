@@ -2,7 +2,6 @@
 #include "../include/formula.h"
 
 CAM_LevelShifter::CAM_LevelShifter() {
-    // TODO Auto-generated constructor stub
     initialized = false;
     capLoad = 0;
     resLoad = 0;
@@ -15,7 +14,6 @@ CAM_LevelShifter::CAM_LevelShifter() {
 }
 /*
    CAM_LevelShifter::~CAM_LevelShifter() {
-// TODO Auto-generated destructor stub
 }
  */
 void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config){
@@ -151,4 +149,3 @@ CAM_LevelShifter & CAM_LevelShifter::operator=(const CAM_LevelShifter &rhs) {
     rampOutput = rhs.rampOutput;
     return *this;
 }
-

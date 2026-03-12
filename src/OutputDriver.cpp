@@ -10,7 +10,6 @@
    }
 
    OutputDriver::~OutputDriver() {
-// TODO Auto-generated destructor stub
 }
  */
 void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _outputCap, double _outputRes,
