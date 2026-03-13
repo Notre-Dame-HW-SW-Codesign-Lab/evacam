@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../include/EvaCAM_Match.h"
+#include "EvaCAM_Match.h"
 
 bool verbose = false;
 

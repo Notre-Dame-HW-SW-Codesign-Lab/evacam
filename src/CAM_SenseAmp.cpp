@@ -1,6 +1,6 @@
-#include "../include/CAM_SenseAmp.h"
-#include "../include/EvaCamConfig.h"
-#include "../include/formula.h"
+#include "CAM_SenseAmp.h"
+#include "EvaCamConfig.h"
+#include "formula.h"
 
 #include <cstdio>
 #include <cstring>
@@ -29,7 +29,7 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
     fileCustomSA = _fileCustomSA;
     config = _config;
 
-    if (pitchSenseAmp <= config->tech->featureSize * 2) {
+    if (pitchSenseAmp <= config->tech->featureSize() * 2) {
         /* too small, cannot do the layout */
         config->logger.Log() << "[CAM_SenseAmp] Warning: Pitch size too small, cannot do the layout!";
         invalid = true;
@@ -56,12 +56,12 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
             double tmp;
             if (!strncmp("-Height", line, strlen("-Height"))) {
                 sscanf(line, "-Height (F): %lf", &tmp);
-                customSA->height = tmp * config->tech->featureSize;
+                customSA->height = tmp * config->tech->featureSize();
                 continue;
             }
             if (!strncmp("-Width", line, strlen("-Width"))) {
                 sscanf(line, "-Width (F): %lf", &tmp);
-                customSA->width = tmp * config->tech->featureSize;
+                customSA->width = tmp * config->tech->featureSize();
                 continue;
             }
             if (!strncmp("-Area", line, strlen("-Area"))) {

@@ -1,6 +1,6 @@
-#include "../include/Bank.h"
-#include "../include/formula.h"
-#include "../include/macros.h"
+#include "Bank.h"
+#include "formula.h"
+#include "macros.h"
 
 void Bank::PrintProperty() {
     std::cout << "Bank Properties:" << std::endl;
@@ -37,7 +37,7 @@ void Bank::printbreakdown() {
         energy += mat->leakage * latency;
     }
     if (config->scaledVoltage > 0) {
-        energy = energy / config->tech->vdd / config->tech->vdd * config->scaledVoltage * config->scaledVoltage;
+        energy = energy / config->tech->vdd() / config->tech->vdd() * config->scaledVoltage * config->scaledVoltage;
     }
 
 

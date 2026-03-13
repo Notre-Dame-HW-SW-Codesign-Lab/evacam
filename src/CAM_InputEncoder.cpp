@@ -1,5 +1,5 @@
-#include "../include/CAM_InputEncoder.h"
-#include "../include/formula.h"
+#include "CAM_InputEncoder.h"
+#include "formula.h"
 
 CAM_InputEncoder::CAM_InputEncoder() {
     initialized = false;
@@ -39,10 +39,10 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
     else if(typeEncoder == encoding_two_bit) {
         numInputBits = 2;
         /* gate sizing: built up with 2-input nand */
-        widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize;
-        widthNandP = config->tech->pnSizeRatio * MIN_NMOS_SIZE * config->tech->featureSize;
-        double logicEffort = (2+config->tech->pnSizeRatio) / (1+config->tech->pnSizeRatio);
-        CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+        widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize();
+        widthNandP = config->tech->pnSizeRatio() * MIN_NMOS_SIZE * config->tech->featureSize();
+        double logicEffort = (2+config->tech->pnSizeRatio()) / (1+config->tech->pnSizeRatio());
+        CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
         outputDriver->Initialize(logicEffort, capNandOut, capLoad, resLoad, true, latency_first, 0, config);
         initialized = true;
     }
@@ -67,7 +67,7 @@ void CAM_InputEncoder::CalculateArea(){
             height = outputDriver->height * numInputBits * 2;
             width = outputDriver->width;
             double hNand, wNand;
-            CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &hNand, &wNand, config->UseUpdatedLib);
+            CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &hNand, &wNand, config->UseUpdatedLib);
             width += wNand;
             height = MAX(height, hNand * numInputBits * 2);
             area = height * width;
@@ -91,7 +91,7 @@ void CAM_InputEncoder::CalculateRC() {
         }
         else if(typeEncoder == encoding_two_bit) {
             //outputDriver->CalculateRC();
-            CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+            CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
         }
         else {
             // TODO Encoding scheme look up table
@@ -151,13 +151,13 @@ void CAM_InputEncoder::CalculatePower() {
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
-            leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->temperature, config->tech) * config->tech->vdd * numInputBits * 2;
+            leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->temperature, config->tech) * config->tech->vdd() * numInputBits * 2;
             leakage += outputDriver->leakage * numInputBits * 2;
 
             /* nand and the driver */
             double cap;
             cap = outputDriver->capInput[0] + capNandOut;
-            readDynamicEnergy = numInputBits * 2 * cap * config->tech->vdd * config->tech->vdd;
+            readDynamicEnergy = numInputBits * 2 * cap * config->tech->vdd() * config->tech->vdd();
             readDynamicEnergy += (numInputBits * 2 * outputDriver->readDynamicEnergy);
             writeDynamicEnergy = readDynamicEnergy;
         }

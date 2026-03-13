@@ -1,5 +1,5 @@
-#include "../include/CAM_OutputAccumulator.h"
-#include "../include/formula.h"
+#include "CAM_OutputAccumulator.h"
+#include "formula.h"
 
 CAM_OutputAccumulator::CAM_OutputAccumulator() {
     initialized = false;
@@ -23,14 +23,14 @@ void CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::sh
     capLoad = _capLoad;
     resLoad = _resLoad;
     config = _config;
-    widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize;
-    widthNandP = config->tech->pnSizeRatio * MIN_NMOS_SIZE * config->tech->featureSize;
-    CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+    widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize();
+    widthNandP = config->tech->pnSizeRatio() * MIN_NMOS_SIZE * config->tech->featureSize();
+    CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
 
     /* logic effort: built up with 1+1+3 nand */
-    double logicEffort = (2+config->tech->pnSizeRatio) / (1+config->tech->pnSizeRatio);
+    double logicEffort = (2+config->tech->pnSizeRatio()) / (1+config->tech->pnSizeRatio());
     logicEffort = pow(logicEffort,5.0);
-    CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+    CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
     outputDriver.Initialize(logicEffort, capNandOut, capLoad, resLoad, true, latency_first, 0, config);
     initialized = true;
     CalculateArea();
@@ -46,7 +46,7 @@ void CAM_OutputAccumulator::CalculateArea(){
         outputDriver.CalculateArea();
         area = outputDriver.area;
         double hNand, wNand;
-        CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &hNand, &wNand, config->UseUpdatedLib);
+        CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &hNand, &wNand, config->UseUpdatedLib);
         area += (hNand * wNand * (1+1+6));
         height = hNand * 3;
         width = area / height;
@@ -58,7 +58,7 @@ void CAM_OutputAccumulator::CalculateRC() {
         std::cout << "[CAM_OutputAccumulator] Error: Require initialization first!" << std::endl;
     } else {
         outputDriver.CalculateRC();
-        CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+        CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
     }
 }
 
@@ -107,13 +107,13 @@ void CAM_OutputAccumulator::CalculatePower() {
         std::cout << "[CAM_OutputAccumulator] Error: Require initialization first!" << std::endl;
     } else {
         outputDriver.CalculatePower();
-        leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->temperature, config->tech) * config->tech->vdd * (1+1+6);
+        leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->temperature, config->tech) * config->tech->vdd() * (1+1+6);
         leakage += outputDriver.leakage;
 
         /* nand and the driver */
         double cap;
         cap = outputDriver.capInput[0] + capNandOut * 7 + capNandIn * 11;
-        readDynamicEnergy = cap * config->tech->vdd * config->tech->vdd;
+        readDynamicEnergy = cap * config->tech->vdd() * config->tech->vdd();
         readDynamicEnergy += outputDriver.readDynamicEnergy;
         writeDynamicEnergy = readDynamicEnergy;
     }

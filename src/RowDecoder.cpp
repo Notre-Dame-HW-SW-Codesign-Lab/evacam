@@ -1,5 +1,5 @@
-#include "../include/RowDecoder.h"
-#include "../include/formula.h"
+#include "RowDecoder.h"
+#include "formula.h"
 void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         bool _multipleRowPerSet, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent,
         std::shared_ptr<EvaCamConfig> _config) {
@@ -31,21 +31,21 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         double logicEffortNand;
         double capNand;
         if (numNandInput == 2) {	/* NAND2 */
-            widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize;
-            logicEffortNand = (2+config->tech->pnSizeRatio) / (1+config->tech->pnSizeRatio);
+            widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize();
+            logicEffortNand = (2+config->tech->pnSizeRatio()) / (1+config->tech->pnSizeRatio());
         } else {					/* NAND3 */
-            widthNandN = 3 * MIN_NMOS_SIZE * config->tech->featureSize;
-            logicEffortNand = (3+config->tech->pnSizeRatio) / (1+config->tech->pnSizeRatio);
+            widthNandN = 3 * MIN_NMOS_SIZE * config->tech->featureSize();
+            logicEffortNand = (3+config->tech->pnSizeRatio()) / (1+config->tech->pnSizeRatio());
         }
-        widthNandP = config->tech->pnSizeRatio * MIN_NMOS_SIZE * config->tech->featureSize;
+        widthNandP = config->tech->pnSizeRatio() * MIN_NMOS_SIZE * config->tech->featureSize();
         capNand = CalculateGateCap(widthNandN, config->tech) + CalculateGateCap(widthNandP, config->tech);
         outputDriver->Initialize(logicEffortNand, capNand, capLoad, resLoad, true, 
                 areaOptimizationLevel, minDriverCurrent, config);
     } else {
         /* we only need an 1-level output buffer to driver the wordline */
         double capInv;
-        widthNandN = MIN_NMOS_SIZE * config->tech->featureSize;
-        widthNandP = config->tech->pnSizeRatio * MIN_NMOS_SIZE * config->tech->featureSize;
+        widthNandN = MIN_NMOS_SIZE * config->tech->featureSize();
+        widthNandP = config->tech->pnSizeRatio() * MIN_NMOS_SIZE * config->tech->featureSize();
         capInv = CalculateGateCap(widthNandN, config->tech) + CalculateGateCap(widthNandP, config->tech);
         outputDriver->Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, 
                 minDriverCurrent, config);
@@ -73,7 +73,7 @@ void RowDecoder::CalculateArea() {
             width = outputDriver->width;
         } else {
             double hNand, wNand;
-            CalculateGateArea(NAND, numNandInput, widthNandN, widthNandP, config->tech->featureSize*40, config->tech, 
+            CalculateGateArea(NAND, numNandInput, widthNandN, widthNandP, config->tech->featureSize()*40, config->tech, 
                     &hNand, &wNand, config->UseUpdatedLib);
             height = MAX(hNand, outputDriver->height);
             width = wNand + outputDriver->width;
@@ -92,7 +92,7 @@ void RowDecoder::CalculateRC() {
             capNandInput = capNandOutput = 0;
         } else {
             CalculateGateCapacitance(NAND, numNandInput, widthNandN, widthNandP, 
-                    config->tech->featureSize * MAX_TRANSISTOR_HEIGHT, config->tech, &capNandInput, &capNandOutput);
+                    config->tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->tech, &capNandInput, &capNandOutput);
         }
     }
 }
@@ -149,10 +149,10 @@ void RowDecoder::CalculatePower() {
         } else {
             /* Leakage power */
             leakage += CalculateGateLeakage(NAND, numNandInput, widthNandN, widthNandP,
-                    config->temperature, config->tech) * config->tech->vdd;
+                    config->temperature, config->tech) * config->tech->vdd();
             /* Dynamic energy */
             double capLoad = capNandOutput + outputDriver->capInput[0];
-            readDynamicEnergy = capLoad * config->tech->vdd * config->tech->vdd;
+            readDynamicEnergy = capLoad * config->tech->vdd() * config->tech->vdd();
             readDynamicEnergy += outputDriver->readDynamicEnergy;
             readDynamicEnergy *= 1;	/* only one row is activated each time */
             writeDynamicEnergy = readDynamicEnergy;

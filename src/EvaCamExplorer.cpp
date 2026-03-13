@@ -1,4 +1,4 @@
-#include "../include/EvaCamExplorer.h"
+#include "EvaCamExplorer.h"
 
 #include <omp.h>
 
@@ -12,12 +12,12 @@
 #include <utility>
 #include <vector>
 
-#include "../include/Bank.h"
-#include "../include/CAM_Result.h"
-#include "../include/EvaCamConfig.h"
-#include "../include/Result.h"
-#include "../include/Wire.h"
-#include "../include/macros.h"
+#include "Bank.h"
+#include "CAM_Result.h"
+#include "EvaCamConfig.h"
+#include "Result.h"
+#include "Wire.h"
+#include "macros.h"
 
 namespace {
 

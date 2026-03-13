@@ -1,0 +1,26 @@
+Spec(
+    45, FEFET, false,
+    Op(Vdd(0.7), Vth(0.28894), GateLength(2.2e-08)),
+    Caps(IdealGateCap(6.13e-10), FringeCap(2e-10), OxCap(0.0279)),
+    Mobility(ElectronMobility(0.060695), HoleMobility(0.01246)),
+    Sizing(PnSizeRatio(2.28), ResistanceMultiplier(1.76)),
+    Gm(GmNmos(0), GmPmos(0)),
+    Fin(FinHeight(0), FinWidth(0), FinPitch(0), PolywireCap(0)),
+    Tables(
+        OnNmos({682.1, 672.3, 662.5, 652.8, 643, 632.8, 620.9, 605, 583.6, 561, 542.7}),
+        OnPmos({772.4, 759.6, 746.9, 734.4, 722.1, 710, 698.1, 686.3, 674.4, 662.3, 650.2}),
+        OffNmos({0.00403, 0.00502, 0.00618, 0.00751, 0.00904, 0.0108, 0.0127, 0.0147, 0.0166, 0.0184, 0.0203}),
+        OffPmos({0.00403, 0.00502, 0.00618, 0.00751, 0.00904, 0.0108, 0.0127, 0.0147, 0.0166, 0.0184, 0.0203}))),
+Spec(
+    22, FEFET, false,
+    Op(Vdd(0.5), Vth(0.21739), GateLength(1.1e-08)),
+    Caps(IdealGateCap(3.45e-10), FringeCap(1.7e-10), OxCap(0.0314)),
+    Mobility(ElectronMobility(0.074737), HoleMobility(0.011835)),
+    Sizing(PnSizeRatio(2.28), ResistanceMultiplier(1.73)),
+    Gm(GmNmos(0), GmPmos(0)),
+    Fin(FinHeight(0), FinWidth(0), FinPitch(0), PolywireCap(0)),
+    Tables(
+        OnNmos({716.1, 704.3, 692.6, 681.2, 669.9, 658.8, 647.9, 637.1, 626.5, 616, 605.7}),
+        OnPmos({358.05, 358.05, 352.15, 346.3, 340.6, 334.95, 329.4, 323.95, 318.55, 313.25, 308}),
+        OffNmos({0.021, 0.0247647, 0.0288824, 0.0334118, 0.0382941, 0.0436471, 0.0495882, 0.0562941, 0.0647059, 0.0752941, 0.0870588}),
+        OffPmos({0.021, 0.0247647, 0.0288824, 0.0334118, 0.0382941, 0.0436471, 0.0495882, 0.0562941, 0.0647059, 0.0752941, 0.0870588}))),

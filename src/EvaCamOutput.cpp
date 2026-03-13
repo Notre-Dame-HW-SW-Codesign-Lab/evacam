@@ -1,4 +1,4 @@
-#include "../include/EvaCamOutput.h"
+#include "EvaCamOutput.h"
 
 #include <filesystem>
 #include <fstream>
@@ -6,9 +6,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "../include/CAM_Result.h"
-#include "../include/EvaCamConfig.h"
-#include "../include/ResultsYaml.h"
+#include "CAM_Result.h"
+#include "EvaCamConfig.h"
+#include "ResultsYaml.h"
 
 namespace {
 

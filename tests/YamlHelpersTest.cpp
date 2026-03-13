@@ -1,5 +1,5 @@
-#include "../include/YamlHelpers.h"
-#include "../include/MemCell.h"
+#include "YamlHelpers.h"
+#include "MemCell.h"
 
 #include <cassert>
 #include <cmath>

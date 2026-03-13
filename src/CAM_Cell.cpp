@@ -1,4 +1,4 @@
-#include "../include/CAM_Cell.h"
+#include "CAM_Cell.h"
 
 #include <stdexcept>
 

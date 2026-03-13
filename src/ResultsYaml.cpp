@@ -1,9 +1,9 @@
-#include "../include/ResultsYaml.h"
+#include "ResultsYaml.h"
 
 #include <iomanip>
 #include <string>
 
-#include "../include/macros.h"
+#include "macros.h"
 
 namespace {
 
@@ -85,8 +85,8 @@ namespace {
         }
 
         return result.config->cell->area
-            * result.config->tech->featureSize
-            * result.config->tech->featureSize;
+            * result.config->tech->featureSize()
+            * result.config->tech->featureSize();
     }
 
     double safe_percent(double numerator, double denominator) {

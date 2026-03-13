@@ -1,7 +1,7 @@
-#include "../include/MemCell.h"
-#include "../include/formula.h"
-#include "../include/macros.h"
-#include "../include/YamlHelpers.h"
+#include "MemCell.h"
+#include "formula.h"
+#include "macros.h"
+#include "YamlHelpers.h"
 #include <math.h>
 #include <bits/stdc++.h>
 

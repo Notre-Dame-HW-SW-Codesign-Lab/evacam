@@ -1,5 +1,5 @@
-#include "../include/CAM_Result.h"
-#include "../include/macros.h"
+#include "CAM_Result.h"
+#include "macros.h"
 
 CAM_Result::CAM_Result() {
 }
@@ -251,16 +251,16 @@ void CAM_Result::print() {
     std::cout << " - Total Area = " << TO_METER(bank->height) << " x " << TO_METER(bank->width)
         << " = " << TO_SQM(bank->area) << std::endl;
     std::cout << " |--- Mat Area      = " << TO_METER(bank->mat->height) << " x " << TO_METER(bank->mat->width)
-        << " = " << TO_SQM(bank->mat->area) << "   (" << config->cell->area * config->tech->featureSize * config->tech->featureSize
+        << " = " << TO_SQM(bank->mat->area) << "   (" << config->cell->area * config->tech->featureSize() * config->tech->featureSize()
         * bank->capacity / bank->numRowMat / bank->numColumnMat / bank->mat->area * 100 << "%)" << std::endl;
     std::cout << " |--- Subarray Area = " << TO_METER(bank->mat->subarray->height) << " x "
         << TO_METER(bank->mat->subarray->width) << " = " << TO_SQM(bank->mat->subarray->area) << "   ("
-        << config->cell->area * config->tech->featureSize * config->tech->featureSize * bank->capacity / bank->numRowMat
+        << config->cell->area * config->tech->featureSize() * config->tech->featureSize() * bank->capacity / bank->numRowMat
         / bank->numColumnMat / bank->numRowSubarray / bank->numColumnSubarray
         / bank->mat->subarray->area * 100 << "%)" <<std::endl;
     std::cout << " |--- Subarray Dimensions = " << bank->mat->subarray->numRow
         << " Rows x " << bank->mat->subarray->numColumn << " Columns" << std::endl;
-    std::cout << " - Area Efficiency = " << config->cell->area * config->tech->featureSize * config->tech->featureSize
+    std::cout << " - Area Efficiency = " << config->cell->area * config->tech->featureSize() * config->tech->featureSize()
         * bank->capacity / bank->area * 100 << "%" << std::endl;
     std::cout << "Timing:" << std::endl;
 

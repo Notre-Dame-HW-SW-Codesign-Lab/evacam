@@ -1,5 +1,5 @@
-#include "../include/CAM_Line.h"
-#include "../include/formula.h"
+#include "CAM_Line.h"
+#include "formula.h"
 
 void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCell, 
         std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
@@ -41,49 +41,49 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
 
         if (CellPort.ConnectedRegion == gate) {
             if (config->cell->memCellType == FEFETRAM) {
-                cap += CalculateGateCap(CellPort.widthCmos * config->FEFET_tech->featureSize, config->FEFET_tech) 
+                cap += CalculateGateCap(CellPort.widthCmos * config->FEFET_tech->featureSize(), config->FEFET_tech) 
                     * numCell * CellPort.numCmos;
             } else {
-                cap += CalculateGateCap(CellPort.widthCmos * config->tech->featureSize, config->tech) 
+                cap += CalculateGateCap(CellPort.widthCmos * config->tech->featureSize(), config->tech) 
                     * numCell * CellPort.numCmos;
             }			
         } else if (CellPort.ConnectedRegion == drain) {
             if (config->cell->memCellType == FEFETRAM) {
-                cap += CalculateDrainCap(CellPort.widthCmos * config->FEFET_tech->featureSize, NMOS, 
-                        config->cell->widthInFeatureSize * config->FEFET_tech->featureSize, config->FEFET_tech)
+                cap += CalculateDrainCap(CellPort.widthCmos * config->FEFET_tech->featureSize(), NMOS, 
+                        config->cell->widthInFeatureSize * config->FEFET_tech->featureSize(), config->FEFET_tech)
                     * numCell * CellPort.numCmos;
             } else {
-                cap += CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize, NMOS, 
-                        config->cell->widthInFeatureSize * config->tech->featureSize, config->tech)
+                cap += CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize(), NMOS, 
+                        config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech)
                     * numCell * CellPort.numCmos;
             }
 
         } else if (CellPort.ConnectedRegion == diode) {
             if (config->cell->memCellType == FEFETRAM) {
-                cap += ( CalculateGateCap(CellPort.widthCmos * config->FEFET_tech->featureSize, config->FEFET_tech) 
-                        * numCell + CalculateDrainCap(CellPort.widthCmos * config->FEFET_tech->featureSize, 
-                            NMOS, config->cell->widthInFeatureSize * config->FEFET_tech->featureSize, config->FEFET_tech) )
+                cap += ( CalculateGateCap(CellPort.widthCmos * config->FEFET_tech->featureSize(), config->FEFET_tech) 
+                        * numCell + CalculateDrainCap(CellPort.widthCmos * config->FEFET_tech->featureSize(), 
+                            NMOS, config->cell->widthInFeatureSize * config->FEFET_tech->featureSize(), config->FEFET_tech) )
                     * numCell * CellPort.numCmos;
             } else {
-                cap += ( CalculateGateCap(CellPort.widthCmos * config->tech->featureSize, config->tech) * numCell
-                        + CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize, NMOS, 
-                            config->cell->widthInFeatureSize * config->tech->featureSize, config->tech) )
+                cap += ( CalculateGateCap(CellPort.widthCmos * config->tech->featureSize(), config->tech) * numCell
+                        + CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize(), NMOS, 
+                            config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech) )
                     * numCell * CellPort.numCmos;
             }
         } else if (CellPort.ConnectedRegion == source) { // it is source, which is the weird case in ISSCC'15 3t1r
                                                          // TODO
             if (config->cell->memCellType == FEFETRAM){
-                cap += CalculateDrainCap(CellPort.widthCmos * config->FEFET_tech->featureSize, NMOS, 
-                        config->cell->widthInFeatureSize * config->FEFET_tech->featureSize, config->FEFET_tech)
+                cap += CalculateDrainCap(CellPort.widthCmos * config->FEFET_tech->featureSize(), NMOS, 
+                        config->cell->widthInFeatureSize * config->FEFET_tech->featureSize(), config->FEFET_tech)
                     * numCell * CellPort.numCmos;
             } else {
-                cap += CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize, NMOS,
-                        config->cell->widthInFeatureSize * config->tech->featureSize, config->tech)
+                cap += CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize(), NMOS,
+                        config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech)
                     * numCell * CellPort.numCmos;
             }
         } else {
-            cap += CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize, NMOS, 
-                    config->cell->widthInFeatureSize * config->tech->featureSize, config->tech)
+            cap += CalculateDrainCap(CellPort.widthCmos * config->tech->featureSize(), NMOS, 
+                    config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech)
                 * numCell * CellPort.numCmos;
         }
 
@@ -117,9 +117,9 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
                 // for search operation: worst case, search all-0 or all-1
                 // TODO: replace Vp to Vdd for coding convenience
                 // TODO: the current is toooo large, have no idea, make it smaller
-                double res = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize, NMOS, 
+                double res = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, 
                         config->temperature, config->tech) + config->cell->resistanceOn;
-                maxCurrent = MAX(maxCurrent, config->tech->vdd / res);
+                maxCurrent = MAX(maxCurrent, config->tech->vdd() / res);
                 maxCurrent = MAX(maxCurrent, MAX(CellPort.volSearch0,CellPort.volSearch1) / res);
             }
         } else if (CellPort.Type == Matchline || CellPort.Type == Matchline_Bitline) {
@@ -130,21 +130,21 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
                 // TODO
                 // Note that no  such a large current, just large enough to recognize it is miss
                 if (config->cell->accessType == CMOS_access) {
-                    maxCurrent = CellPort.widthCmos * config->tech->featureSize * 
-                        (config->tech->currentOnNmos[config->temperature - 300]
-                         + config->tech->currentOffNmos[config->temperature - 300] 
+                    maxCurrent = CellPort.widthCmos * config->tech->featureSize() * 
+                        (config->tech->currentOnNmos()[config->temperature - 300]
+                         + config->tech->currentOffNmos()[config->temperature - 300] 
                          * (numCell - 1));
                 } else if (config->cell->accessType == diode_access) {
-                    double res = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize, 
+                    double res = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize(), 
                             NMOS, config->temperature, config->tech) + config->cell->resistanceOn;
-                    maxCurrent = config->tech->vdd / res + CellPort.widthCmos * config->tech->featureSize * 
-                        config->tech->currentOffNmos[config->temperature - 300] * (numCell - 1);
+                    maxCurrent = config->tech->vdd() / res + CellPort.widthCmos * config->tech->featureSize() * 
+                        config->tech->currentOffNmos()[config->temperature - 300] * (numCell - 1);
                 } else if (config->cell->accessType == none_access) {
                     // TODO: too lazy to consider encoding here
                 } else {
-                    double res = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize, 
+                    double res = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize(), 
                             NMOS, config->temperature, config->tech) + config->cell->resistanceOn;
-                    maxCurrent = config->tech->vdd / res * numCell;
+                    maxCurrent = config->tech->vdd() / res * numCell;
                 }
             }
 
@@ -179,7 +179,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
     if (isRow) {
         minMuxWidth = 0;
     } else {
-        minMuxWidth = maxCurrent/ config->tech->currentOnNmos[config->temperature - 300];
+        minMuxWidth = maxCurrent/ config->tech->currentOnNmos()[config->temperature - 300];
     }
 
 
@@ -201,7 +201,7 @@ void CAM_Line::Initialize(double _len, long long _numCell, double _MuxWidth,
         cap = len * localWire->capWirePerUnit;
         res = len * localWire->resWirePerUnit;
 
-        cap += CalculateGateCap(_MuxWidth * config->tech->featureSize, config->tech) * numCell;
+        cap += CalculateGateCap(_MuxWidth * config->tech->featureSize(), config->tech) * numCell;
         maxCurrent = 1e11;
         minMuxWidth = 0;
         initialized = true;

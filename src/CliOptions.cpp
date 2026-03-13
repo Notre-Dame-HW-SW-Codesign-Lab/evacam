@@ -1,4 +1,4 @@
-#include "../include/CliOptions.h"
+#include "CliOptions.h"
 
 #include <omp.h>
 

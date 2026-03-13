@@ -2,10 +2,10 @@
 #include <iomanip>
 #include <yaml-cpp/yaml.h>
 
-#include "../include/CliOptions.h"
-#include "../include/EvaCamContextBuilder.h"
-#include "../include/EvaCamExplorer.h"
-#include "../include/EvaCamOutput.h"
+#include "CliOptions.h"
+#include "EvaCamContextBuilder.h"
+#include "EvaCamExplorer.h"
+#include "EvaCamOutput.h"
 
 int main(int argc, char *argv[]) {
     std::setw(10);

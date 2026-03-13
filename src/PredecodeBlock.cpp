@@ -1,6 +1,6 @@
-#include "../include/PredecodeBlock.h"
-#include "../include/formula.h"
-#include "../include/macros.h"
+#include "PredecodeBlock.h"
+#include "formula.h"
+#include "macros.h"
 void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _resLoad,
         std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)

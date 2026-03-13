@@ -1,5 +1,5 @@
-#include "../include/CAM_Precharger.h"
-#include "../include/formula.h"
+#include "CAM_Precharger.h"
+#include "formula.h"
 void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, 
         std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
     if (initialized)
@@ -11,16 +11,16 @@ void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double
     resBitline = _resBitline;
     config = _config;
     localWire = _localWire;
-    capWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize * localWire->capWirePerUnit;
-    resWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize * localWire->resWirePerUnit;
-    widthInvNmos = MIN_NMOS_SIZE * config->tech->featureSize;
-    widthInvPmos = widthInvNmos * config->tech->pnSizeRatio;
-    widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->tech->featureSize;
-    widthPMOSBitlinePrecharger = PRECHARGER_SIZE * config->tech->featureSize;
+    capWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize() * localWire->capWirePerUnit;
+    resWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize() * localWire->resWirePerUnit;
+    widthInvNmos = MIN_NMOS_SIZE * config->tech->featureSize();
+    widthInvPmos = widthInvNmos * config->tech->pnSizeRatio();
+    widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->tech->featureSize();
+    widthPMOSBitlinePrecharger = PRECHARGER_SIZE * config->tech->featureSize();
     capLoadInv  = CalculateGateCap(widthPMOSBitlineEqual, config->tech) + 2 * CalculateGateCap(widthPMOSBitlinePrecharger, config->tech)
-        + CalculateDrainCap(widthInvNmos, NMOS, config->tech->featureSize*40, config->tech)
-        + CalculateDrainCap(widthInvPmos, PMOS, config->tech->featureSize*40, config->tech);
-    capOutputBitlinePrecharger = CalculateDrainCap(widthPMOSBitlinePrecharger, PMOS, config->tech->featureSize*40, config->tech) + CalculateDrainCap(widthPMOSBitlineEqual, PMOS, config->tech->featureSize*40, config->tech);
+        + CalculateDrainCap(widthInvNmos, NMOS, config->tech->featureSize()*40, config->tech)
+        + CalculateDrainCap(widthInvPmos, PMOS, config->tech->featureSize()*40, config->tech);
+    capOutputBitlinePrecharger = CalculateDrainCap(widthPMOSBitlinePrecharger, PMOS, config->tech->featureSize()*40, config->tech) + CalculateDrainCap(widthPMOSBitlineEqual, PMOS, config->tech->featureSize()*40, config->tech);
     double capInputInv         = CalculateGateCap(widthInvNmos, config->tech) + CalculateGateCap(widthInvPmos, config->tech);
     capLoadPerColumn           = capInputInv + capWireLoadPerColumn;
     double capLoadOutputDriver = numColumn * capLoadPerColumn;
@@ -41,9 +41,9 @@ void CAM_Precharger::CalculateArea() {
         double hBitlinePrechareger, wBitlinePrechareger;
         double hBitlineEqual, wBitlineEqual;
         double hInverter, wInverter;
-        CalculateGateArea(INV, 1, 0, widthPMOSBitlinePrecharger, config->tech->featureSize*40, config->tech, &hBitlinePrechareger, &wBitlinePrechareger, config->UseUpdatedLib);
-        CalculateGateArea(INV, 1, 0, widthPMOSBitlineEqual, config->tech->featureSize*40, config->tech, &hBitlineEqual, &wBitlineEqual, config->UseUpdatedLib);
-        CalculateGateArea(INV, 1, widthInvNmos, widthInvPmos, config->tech->featureSize*40, config->tech, &hInverter, &wInverter, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, 0, widthPMOSBitlinePrecharger, config->tech->featureSize()*40, config->tech, &hBitlinePrechareger, &wBitlinePrechareger, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, 0, widthPMOSBitlineEqual, config->tech->featureSize()*40, config->tech, &hBitlineEqual, &wBitlineEqual, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, widthInvNmos, widthInvPmos, config->tech->featureSize()*40, config->tech, &hInverter, &wInverter, config->UseUpdatedLib);
         // begin_change
         //width = 2 * wBitlinePrechareger + wBitlineEqual;
         width = 2 * wBitlinePrechareger;

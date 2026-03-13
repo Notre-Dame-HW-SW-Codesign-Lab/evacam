@@ -1,5 +1,5 @@
-#include "../include/CAM_MMR.h"
-#include "../include/formula.h"
+#include "CAM_MMR.h"
+#include "formula.h"
 #include <math.h>
 
 CAM_MMR::CAM_MMR() {
@@ -33,7 +33,7 @@ void CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimization
 
     CAM_BasicMMR tmp;
     tmp.Initialize(8, 0, 0, 0, 0, config);
-    double logicEffort = 6 / (1+config->tech->pnSizeRatio);
+    double logicEffort = 6 / (1+config->tech->pnSizeRatio());
     outputDriver.Initialize(logicEffort, tmp.capD[3], capLoad, resLoad, false, areaOptimizationLevel, 0, config);
 
     // 3-level folding, the LA is connected with four blocks

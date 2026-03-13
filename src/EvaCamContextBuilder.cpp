@@ -1,10 +1,10 @@
-#include "../include/EvaCamContextBuilder.h"
+#include "EvaCamContextBuilder.h"
 
 #include <omp.h>
 
 #include <filesystem>
 
-#include "../include/EvaCamConfig.h"
+#include "EvaCamConfig.h"
 
 namespace {
 

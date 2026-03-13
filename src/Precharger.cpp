@@ -1,5 +1,5 @@
-#include "../include/Precharger.h"
-#include "../include/formula.h"
+#include "Precharger.h"
+#include "formula.h"
 /*
    Precharger::Precharger() {
 initialized = false;
@@ -21,16 +21,16 @@ void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _ca
     config = _config;
     localWire = _localWire;
 
-    capWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize * localWire->capWirePerUnit;
-    resWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize * localWire->resWirePerUnit;
-    widthInvNmos = MIN_NMOS_SIZE * config->tech->featureSize;
-    widthInvPmos = widthInvNmos * config->tech->pnSizeRatio;
-    widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->tech->featureSize;
-    widthPMOSBitlinePrecharger = 6 * config->tech->featureSize;
+    capWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize() * localWire->capWirePerUnit;
+    resWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize() * localWire->resWirePerUnit;
+    widthInvNmos = MIN_NMOS_SIZE * config->tech->featureSize();
+    widthInvPmos = widthInvNmos * config->tech->pnSizeRatio();
+    widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->tech->featureSize();
+    widthPMOSBitlinePrecharger = 6 * config->tech->featureSize();
     capLoadInv  = CalculateGateCap(widthPMOSBitlineEqual, config->tech) + 2 * CalculateGateCap(widthPMOSBitlinePrecharger, config->tech)
-        + CalculateDrainCap(widthInvNmos, NMOS, config->tech->featureSize*40, config->tech)
-        + CalculateDrainCap(widthInvPmos, PMOS, config->tech->featureSize*40, config->tech);
-    capOutputBitlinePrecharger = CalculateDrainCap(widthPMOSBitlinePrecharger, PMOS, config->tech->featureSize*40, config->tech) + CalculateDrainCap(widthPMOSBitlineEqual, PMOS, config->tech->featureSize*40, config->tech);
+        + CalculateDrainCap(widthInvNmos, NMOS, config->tech->featureSize()*40, config->tech)
+        + CalculateDrainCap(widthInvPmos, PMOS, config->tech->featureSize()*40, config->tech);
+    capOutputBitlinePrecharger = CalculateDrainCap(widthPMOSBitlinePrecharger, PMOS, config->tech->featureSize()*40, config->tech) + CalculateDrainCap(widthPMOSBitlineEqual, PMOS, config->tech->featureSize()*40, config->tech);
     double capInputInv         = CalculateGateCap(widthInvNmos, config->tech) + CalculateGateCap(widthInvPmos, config->tech);
     capLoadPerColumn           = capInputInv + capWireLoadPerColumn;
     double capLoadOutputDriver = numColumn * capLoadPerColumn;
@@ -50,9 +50,9 @@ void Precharger::CalculateArea() {
         double hBitlinePrechareger, wBitlinePrechareger;
         double hBitlineEqual, wBitlineEqual;
         double hInverter, wInverter;
-        CalculateGateArea(INV, 1, 0, widthPMOSBitlinePrecharger, config->tech->featureSize*40, config->tech, &hBitlinePrechareger, &wBitlinePrechareger, config->UseUpdatedLib);
-        CalculateGateArea(INV, 1, 0, widthPMOSBitlineEqual, config->tech->featureSize*40, config->tech, &hBitlineEqual, &wBitlineEqual, config->UseUpdatedLib);
-        CalculateGateArea(INV, 1, widthInvNmos, widthInvPmos, config->tech->featureSize*40, config->tech, &hInverter, &wInverter, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, 0, widthPMOSBitlinePrecharger, config->tech->featureSize()*40, config->tech, &hBitlinePrechareger, &wBitlinePrechareger, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, 0, widthPMOSBitlineEqual, config->tech->featureSize()*40, config->tech, &hBitlineEqual, &wBitlineEqual, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, widthInvNmos, widthInvPmos, config->tech->featureSize()*40, config->tech, &hInverter, &wInverter, config->UseUpdatedLib);
         width = 2 * wBitlinePrechareger + wBitlineEqual;
         width = MAX(width, wInverter);
         width *= numColumn;
@@ -109,14 +109,14 @@ void Precharger::CalculatePower() {
         //outputDriver->CalculatePower();
         /* Leakage power */
         leakage = outputDriver->leakage;
-        leakage += numColumn * config->tech->vdd * CalculateGateLeakage(INV, 1, widthInvNmos, widthInvPmos, config->temperature, config->tech);
+        leakage += numColumn * config->tech->vdd() * CalculateGateLeakage(INV, 1, widthInvNmos, widthInvPmos, config->temperature, config->tech);
         leakage += numColumn * voltagePrecharge * CalculateGateLeakage(INV, 1, 0, widthPMOSBitlinePrecharger,
                 config->temperature, config->tech);
 
         /* Dynamic energy */
         /* We don't count bitline precharge energy into account because it is a charging process */
         readDynamicEnergy = outputDriver->readDynamicEnergy;
-        readDynamicEnergy += capLoadInv * config->tech->vdd * config->tech->vdd * numColumn;
+        readDynamicEnergy += capLoadInv * config->tech->vdd() * config->tech->vdd() * numColumn;
         writeDynamicEnergy = 0;		/* No precharging is needed during the write operation */
     }
 }

@@ -1,10 +1,10 @@
-#include "../include/EvaCamConfig.h"
-#include "../include/formula.h"
-#include "../include/BankWithHtree.h"
-#include "../include/BankWithoutHtree.h"
-#include "../include/Result.h"
-#include "../include/TechnologyTables.h"
-#include "../include/YamlHelpers.h"
+#include "EvaCamConfig.h"
+#include "formula.h"
+#include "BankWithHtree.h"
+#include "BankWithoutHtree.h"
+#include "Result.h"
+#include "TechnologyTables.h"
+#include "YamlHelpers.h"
 #include <filesystem>
 //#include <magic_enum.hpp>
 
@@ -918,7 +918,7 @@ void EvaCamConfig::TechSetup() {
 
 void EvaCamConfig::MemCellSetup() {
     cell = std::make_shared<MemCell>();
-    cell->ReadCellFromFile(fileMemCell, designTarget, tech->vdd);
+    cell->ReadCellFromFile(fileMemCell, designTarget, tech->vdd());
 }
 
 void EvaCamConfig::FEFETTechSetup() {

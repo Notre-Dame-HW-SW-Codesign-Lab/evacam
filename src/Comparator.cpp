@@ -1,21 +1,21 @@
-#include "../include/Comparator.h"
-#include "../include/formula.h"
+#include "Comparator.h"
+#include "formula.h"
 void Comparator::Initialize(int _numTagBits, double _capLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
         _config->logger.Verbose() << "[Comparator] Warning: Already initialized!";
 
     numTagBits = _numTagBits / 4;  /* Assuming there are 4 quarter comparators. input tagbits is already a multiple of 4 */
     capLoad = _capLoad;
-    widthNMOSInv[0] = 7.5 * config->tech->featureSize;
-    widthPMOSInv[0] = 12.5 * config->tech->featureSize;
-    widthNMOSInv[1] = 15 * config->tech->featureSize;
-    widthPMOSInv[1] = 25 * config->tech->featureSize;
-    widthNMOSInv[2] = 30 * config->tech->featureSize;
-    widthPMOSInv[2] = 50 * config->tech->featureSize;
-    widthNMOSInv[3] = 50 * config->tech->featureSize;
-    widthPMOSInv[3] = 100 * config->tech->featureSize;
-    widthNMOSComp = 12.5 * config->tech->featureSize;
-    widthPMOSComp = 37.5 * config->tech->featureSize;
+    widthNMOSInv[0] = 7.5 * config->tech->featureSize();
+    widthPMOSInv[0] = 12.5 * config->tech->featureSize();
+    widthNMOSInv[1] = 15 * config->tech->featureSize();
+    widthPMOSInv[1] = 25 * config->tech->featureSize();
+    widthNMOSInv[2] = 30 * config->tech->featureSize();
+    widthPMOSInv[2] = 50 * config->tech->featureSize();
+    widthNMOSInv[3] = 50 * config->tech->featureSize();
+    widthPMOSInv[3] = 100 * config->tech->featureSize();
+    widthNMOSComp = 12.5 * config->tech->featureSize();
+    widthPMOSComp = 37.5 * config->tech->featureSize();
 
     config = _config;
 
@@ -33,12 +33,12 @@ void Comparator::CalculateArea() {
         double totalWidth = 0;
         double h, w;
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
-            CalculateGateArea(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->tech->featureSize*40, config->tech, &h, &w,
+            CalculateGateArea(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->tech->featureSize()*40, config->tech, &h, &w,
                     config->UseUpdatedLib);
             totalHeight = MAX(totalHeight, h);
             totalWidth += w;
         }
-        CalculateGateArea(NAND, 2, widthNMOSComp, 0, config->tech->featureSize*40, config->tech, &h, &w,
+        CalculateGateArea(NAND, 2, widthNMOSComp, 0, config->tech->featureSize()*40, config->tech, &h, &w,
                 config->UseUpdatedLib);
         totalHeight += h;
         totalWidth = MAX(totalWidth, numTagBits * w);
@@ -53,12 +53,12 @@ void Comparator::CalculateRC() {
         std::cout << "[Comparator] Error: Require initialization first!" << std::endl;
     } else {
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
-            CalculateGateCapacitance(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->tech->featureSize * MAX_TRANSISTOR_HEIGHT, config->tech, &(capInput[i]), &(capOutput[i]));
+            CalculateGateCapacitance(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->tech, &(capInput[i]), &(capOutput[i]));
         }
         double capComp, capTemp;
-        CalculateGateCapacitance(NAND, 2, widthNMOSComp, 0, config->tech->featureSize*40, config->tech, &capTemp, &capComp);
+        CalculateGateCapacitance(NAND, 2, widthNMOSComp, 0, config->tech->featureSize()*40, config->tech, &capTemp, &capComp);
         capBottom = capOutput[COMPARATOR_INV_CHAIN_LEN-1] + numTagBits * capComp;
-        capTop = numTagBits * capComp + CalculateDrainCap(widthPMOSComp, PMOS, config->tech->featureSize * MAX_TRANSISTOR_HEIGHT, config->tech) + capLoad;
+        capTop = numTagBits * capComp + CalculateDrainCap(widthPMOSComp, PMOS, config->tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->tech) + capLoad;
         resBottom = CalculateOnResistance(widthNMOSInv[COMPARATOR_INV_CHAIN_LEN-1], NMOS, config->temperature, config->tech);
         resTop = 2 * CalculateOnResistance(widthNMOSComp, NMOS, config->temperature, config->tech);
     }
@@ -100,19 +100,19 @@ void Comparator::CalculatePower() {
         leakage = 0;
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
             leakage += CalculateGateLeakage(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->temperature, config->tech)
-                * config->tech->vdd;
+                * config->tech->vdd();
         }
         leakage += numTagBits * CalculateGateLeakage(NAND, 2, widthNMOSComp, 0, config->temperature, config->tech)
-            * config->tech->vdd;
+            * config->tech->vdd();
         leakage *= 4;
         /* Dynamic energy */
         readDynamicEnergy = 0;
         double capNode;
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN - 1; i++) {
             capNode = capOutput[i] + capInput[i+1];
-            readDynamicEnergy += capNode * config->tech->vdd * config->tech->vdd;
+            readDynamicEnergy += capNode * config->tech->vdd() * config->tech->vdd();
         }
-        readDynamicEnergy += (capBottom + capTop) * config->tech->vdd * config->tech->vdd;
+        readDynamicEnergy += (capBottom + capTop) * config->tech->vdd() * config->tech->vdd();
         readDynamicEnergy *= 4;
         writeDynamicEnergy = readDynamicEnergy;
     }

@@ -1,5 +1,5 @@
 CC=g++
-CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -MMD -MP -I/usr/include/yaml-cpp
+CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -MMD -MP -I$(ROOT_DIR)/include -I/usr/include/yaml-cpp
 LD_LIBS= -lyaml-cpp 
 
 VALGRIND_FLAGS=--leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=.valgrind.supp

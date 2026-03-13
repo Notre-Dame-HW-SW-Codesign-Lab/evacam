@@ -1,5 +1,5 @@
-#include "../include/BankWithoutHtree.h"
-#include "../include/formula.h"
+#include "BankWithoutHtree.h"
+#include "formula.h"
 
 void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
         long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
@@ -308,7 +308,7 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                         readLatency += latency;
                     }
                     if (i <  numActiveMatPerColumn) {
-                        energy = capGlobalBitline * config->tech->vdd * config->tech->vdd * numAddressBitRouteToMat;
+                        energy = capGlobalBitline * config->tech->vdd() * config->tech->vdd() * numAddressBitRouteToMat;
                         readDynamicEnergy += energy;
                         writeDynamicEnergy += energy;
                         readDynamicEnergy += capGlobalBitline * vpre * vpre * numWay;
@@ -356,7 +356,7 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                         }
                     }
                     if (i <  numActiveMatPerColumn) {
-                        energy = capGlobalBitline * config->tech->vdd * config->tech->vdd * numAddressBitRouteToMat;
+                        energy = capGlobalBitline * config->tech->vdd() * config->tech->vdd() * numAddressBitRouteToMat;
                         readDynamicEnergy += energy;
                         writeDynamicEnergy += energy;
                         writeDynamicEnergy += capGlobalBitline * vWrite * vWrite * numDataBitRouteToMat;

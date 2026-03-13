@@ -1,9 +1,39 @@
-#include "../include/EvaCAM_Match.h"
+#include "EvaCAM_Match.h"
 
-#include "../include/BankWithHtree.h"
-#include "../include/BankWithoutHtree.h"
+#include <memory>
+#include <stdexcept>
+#include <utility>
 
-EvaCAM_Match::EvaCAM_Match(const std::string &configPath) {
+#include "Bank.h"
+#include "BankWithHtree.h"
+#include "BankWithoutHtree.h"
+#include "CAM_SubArray.h"
+#include "EvaCamConfig.h"
+#include "Wire.h"
+
+class EvaCAM_Match::Impl {
+    public:
+        explicit Impl(const std::string &configPath);
+
+        bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
+        EvaCAMMatchResult evaluate(const std::vector<int> &stored, const std::vector<int> &query) const;
+        size_t word_width() const;
+
+    private:
+        void InitializeConfiguredBank();
+        int SelectConfiguredValue(int minValue, int maxValue) const;
+        void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
+        std::shared_ptr<Wire> CreateLocalWire() const;
+        std::shared_ptr<Wire> CreateGlobalWire() const;
+
+        std::shared_ptr<EvaCamConfig> config;
+        std::shared_ptr<Bank> bank;
+        std::shared_ptr<Wire> localWire;
+        std::shared_ptr<Wire> globalWire;
+        std::shared_ptr<CAM_Opt> camOpt;
+};
+
+EvaCAM_Match::Impl::Impl(const std::string &configPath) {
     config = std::make_shared<EvaCamConfig>();
     config->SetDeepExploration(false);
     config->ReadConfigFromFile(configPath);
@@ -12,13 +42,14 @@ EvaCAM_Match::EvaCAM_Match(const std::string &configPath) {
     InitializeConfiguredBank();
 }
 
-bool EvaCAM_Match::match(const std::vector<int> &stored, const std::vector<int> &query) const {
+bool EvaCAM_Match::Impl::match(const std::vector<int> &stored, const std::vector<int> &query) const {
     return evaluate(stored, query).hit;
 }
 
-EvaCAMMatchResult EvaCAM_Match::evaluate(const std::vector<int> &stored, const std::vector<int> &query) const {
-    if (!bank || !bank->mat || !bank->mat->subarray)
+EvaCAMMatchResult EvaCAM_Match::Impl::evaluate(const std::vector<int> &stored, const std::vector<int> &query) const {
+    if (!bank || !bank->mat || !bank->mat->subarray) {
         throw std::runtime_error("[EvaCAM_Match] Error: matcher is not initialized.");
+    }
 
     ValidateBinaryVector(stored, "stored");
     ValidateBinaryVector(query, "query");
@@ -26,11 +57,11 @@ EvaCAMMatchResult EvaCAM_Match::evaluate(const std::vector<int> &stored, const s
     return bank->mat->subarray->EvaluateBinaryMatch(stored, query);
 }
 
-size_t EvaCAM_Match::word_width() const {
+size_t EvaCAM_Match::Impl::word_width() const {
     return static_cast<size_t>(config->wordWidth);
 }
 
-void EvaCAM_Match::InitializeConfiguredBank() {
+void EvaCAM_Match::Impl::InitializeConfiguredBank() {
     long long capacity = config->capacity * 8;
     long blockSize = config->wordWidth;
 
@@ -59,10 +90,11 @@ void EvaCAM_Match::InitializeConfiguredBank() {
     camOpt->Proirity = priorityOpt;
     camOpt->BitSerialWidth = bitSerialWidth;
 
-    if (config->routingMode == h_tree)
+    if (config->routingMode == h_tree) {
         bank = std::make_shared<BankWithHtree>();
-    else
+    } else {
         bank = std::make_shared<BankWithoutHtree>();
+    }
 
     bank->Initialize(numRowMat, numColumnMat, capacity, blockSize, config->associativity,
             numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
@@ -72,28 +104,31 @@ void EvaCAM_Match::InitializeConfiguredBank() {
             config->cell->camType, config->searchFunction, config,
             localWire, globalWire, camOpt);
 
-    if (bank->invalid)
+    if (bank->invalid) {
         throw std::runtime_error("[EvaCAM_Match] Error: configured bank is invalid for matching.");
+    }
 }
 
-int EvaCAM_Match::SelectConfiguredValue(int minValue, int maxValue) const {
+int EvaCAM_Match::Impl::SelectConfiguredValue(int minValue, int maxValue) const {
     (void)maxValue;
     return minValue;
 }
 
-void EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const char *name) const {
-    if (value.size() != word_width())
+void EvaCAM_Match::Impl::ValidateBinaryVector(const std::vector<int> &value, const char *name) const {
+    if (value.size() != word_width()) {
         throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
                 + " vector length does not match configured word width.");
+    }
 
     for (int bit : value) {
-        if (bit != 0 && bit != 1)
+        if (bit != 0 && bit != 1) {
             throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
                     + " vector must contain only binary values.");
+        }
     }
 }
 
-std::shared_ptr<Wire> EvaCAM_Match::CreateLocalWire() const {
+std::shared_ptr<Wire> EvaCAM_Match::Impl::CreateLocalWire() const {
     auto wire = std::make_shared<Wire>();
     WireType wireType = static_cast<WireType>(SelectConfiguredValue(
                 config->minLocalWireType, config->maxLocalWireType));
@@ -107,7 +142,7 @@ std::shared_ptr<Wire> EvaCAM_Match::CreateLocalWire() const {
     return wire;
 }
 
-std::shared_ptr<Wire> EvaCAM_Match::CreateGlobalWire() const {
+std::shared_ptr<Wire> EvaCAM_Match::Impl::CreateGlobalWire() const {
     auto wire = std::make_shared<Wire>();
     WireType wireType = static_cast<WireType>(SelectConfiguredValue(
                 config->minGlobalWireType, config->maxGlobalWireType));
@@ -119,4 +154,25 @@ std::shared_ptr<Wire> EvaCAM_Match::CreateGlobalWire() const {
     wire->Initialize(config->processNode, wireType, repeaterType,
             config->temperature, isLowSwing, config);
     return wire;
+}
+
+EvaCAM_Match::EvaCAM_Match(const std::string &configPath)
+    : impl_(std::make_unique<Impl>(configPath)) {}
+
+EvaCAM_Match::~EvaCAM_Match() = default;
+
+EvaCAM_Match::EvaCAM_Match(EvaCAM_Match&&) noexcept = default;
+
+EvaCAM_Match& EvaCAM_Match::operator=(EvaCAM_Match&&) noexcept = default;
+
+bool EvaCAM_Match::match(const std::vector<int> &stored, const std::vector<int> &query) const {
+    return impl_->match(stored, query);
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate(const std::vector<int> &stored, const std::vector<int> &query) const {
+    return impl_->evaluate(stored, query);
+}
+
+size_t EvaCAM_Match::word_width() const {
+    return impl_->word_width();
 }

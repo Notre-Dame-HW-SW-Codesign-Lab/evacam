@@ -3,8 +3,8 @@
  *
  */
 
-#include "../include/CAM_PriorityEncoder.h"
-#include "../include/formula.h"
+#include "CAM_PriorityEncoder.h"
+#include "formula.h"
 
 CAM_PriorityEncoder::CAM_PriorityEncoder() {
     initialized = false;
@@ -27,9 +27,9 @@ void CAM_PriorityEncoder::Initialize(int _numInputBits, BufferDesignTarget _area
     config = _config;
 
     Encoder.Initialize(numInputBits, areaOptimizationLevel, capLoad, resLoad, _config);
-    widthNorN = MIN_NMOS_SIZE * config->tech->featureSize;
-    widthNorP = config->tech->pnSizeRatio * MIN_NMOS_SIZE * config->tech->featureSize;
-    CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->tech->featureSize*MAX_TRANSISTOR_HEIGHT, config->tech, &capNorInput, &capNorOutput);
+    widthNorN = MIN_NMOS_SIZE * config->tech->featureSize();
+    widthNorP = config->tech->pnSizeRatio() * MIN_NMOS_SIZE * config->tech->featureSize();
+    CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNorInput, &capNorOutput);
     MMR.Initialize(numInputBits, areaOptimizationLevel, capNorInput, 0, _config/*TODO gate resistance */);
     initialized = true;
     CalculateArea();
