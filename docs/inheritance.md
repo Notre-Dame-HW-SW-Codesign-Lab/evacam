@@ -106,4 +106,4 @@ These classes do not have a base class or derived class within EvaCAM's own clas
 - `BankFactory`
 - `WireFactory`
 
-Note: `EvaCamConfig` is also outside the repo-local inheritance tree, but it does inherit from `std::enable_shared_from_this<EvaCamConfig>` in the C++ standard library.
+- `EvaCamConfig`

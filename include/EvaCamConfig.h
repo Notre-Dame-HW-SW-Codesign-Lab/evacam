@@ -36,7 +36,7 @@ struct ResultLimits {
     double leakage;
 };
 
-class EvaCamConfig : public std::enable_shared_from_this<EvaCamConfig> {
+class EvaCamConfig {
     public:
         EvaCamConfig();
         EvaCamConfig(const EvaCamConfig&) = delete;
