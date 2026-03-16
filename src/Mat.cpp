@@ -45,7 +45,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     muxOutputLev1 = _muxOutputLev1;
     muxOutputLev2 = _muxOutputLev2;
 
-    // modified for Eva-CAM
+    // modified for EvaCAM
     long long numRow = 0;		/* Number of rows in a subarray */
     long long numColumn = 0;	/* Number of columns in a subarray */
 
@@ -61,7 +61,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     }
 
     /* Determine the number of rows in a subarray */
-    // modified for Eva-CAM
+    // modified for EvaCAM
     numRow = 1 << _numAddressBit;
     if (numRow < 16) {
         invalid = true;
@@ -77,7 +77,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     // TODO
     //numRow /= (muxSenseAmp);	/* Distribute to column decoding */
 
-    // modified for Eva-CAM
+    // modified for EvaCAM
     numColumn = (long long)numDataBit / (numActiveSubarrayPerRow * numActiveSubarrayPerColumn);	/* Adjust the number of columns depending on the access types */
 
 
