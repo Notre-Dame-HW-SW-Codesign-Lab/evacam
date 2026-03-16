@@ -80,13 +80,13 @@ namespace {
     }
 
     double safe_cell_area(const Result& result) {
-        if (!result.config || !result.config->cell || !result.config->tech) {
+        if (!result.config || !result.config->technology.cell || !result.config->technology.tech) {
             return 0;
         }
 
-        return result.config->cell->area
-            * result.config->tech->featureSize()
-            * result.config->tech->featureSize();
+        return result.config->technology.cell->area
+            * result.config->technology.tech->featureSize()
+            * result.config->technology.tech->featureSize();
     }
 
     double safe_percent(double numerator, double denominator) {
@@ -141,14 +141,14 @@ namespace {
         y.line("input_encoder_area", fmt_sqm(sub->inputEnc->area));
         y.line("row_decoder_area", fmt_sqm(sub->RowDecMergeNand->area));
         double row_driver_area = 0;
-        for (int i = 0; i < input->cell->camNumRow; i++)
+        for (int i = 0; i < input->technology.cell->camNumRow; i++)
             row_driver_area += sub->RowDriver[i]->area;
         y.line("row_driver_area", fmt_sqm(row_driver_area));
         y.line("precharger_area", fmt_sqm(sub->precharger->area));
-        if (input->withWriteDriver)
+        if (input->peripherals.withWriteDriver)
             y.line("write_driver_area", fmt_sqm(sub->WriteDriverArea));
         double col_mux_area = 0;
-        for (int i = 0; i < input->cell->camNumCol; i++)
+        for (int i = 0; i < input->technology.cell->camNumCol; i++)
             col_mux_area += sub->ColMux[i]->area;
         y.line("column_mux_area", fmt_sqm(col_mux_area));
         y.line("sense_amplifier_area", fmt_sqm(sub->senseAmp->area));
@@ -156,7 +156,7 @@ namespace {
                     sub->senseAmpMuxLev1Nand->area + sub->senseAmpMuxLev2Nand->area));
         y.line("output_accumulator_area",
                 fmt_sqm(sub->outputAcc->area * sub->numColumn / sub->muxSenseAmp));
-        if (input->withPriorityEnc)
+        if (input->peripherals.withPriorityEnc)
             y.line("priority_encoder_area", fmt_sqm(sub->priorityEnc->area));
         y.line("output_buffer_area", fmt_sqm(sub->outputBuf->area * sub->numColumn / sub->muxSenseAmp));
         y.end_map();
@@ -166,20 +166,20 @@ namespace {
         y.line("row_decoder", fmt_second(sub->RowDecMergeNand->readLatency + sub->senseAmpMuxLev1Nand->readLatency +
                     sub->senseAmpMuxLev2Nand->readLatency));
         double row_driver_latency = 0;
-        for (int i = 0; i < input->cell->camNumRow; i++)
+        for (int i = 0; i < input->technology.cell->camNumRow; i++)
             row_driver_latency = std::max(row_driver_latency, sub->RowDriver[i]->readLatency);
         y.line("row_driver", fmt_second(row_driver_latency));
         y.line("precharger", fmt_second(sub->precharger->readLatency));
         y.line("matchline", fmt_second(sub->matchlineDelay));
         double col_driver_latency = 0;
-        for (int i = 0; i < input->cell->camNumCol; i++)
+        for (int i = 0; i < input->technology.cell->camNumCol; i++)
             col_driver_latency = std::max(col_driver_latency, sub->ColMux[i]->readLatency);
         y.line("column_mux", fmt_second(col_driver_latency));
         y.line("sense_amplifier", fmt_second(sub->senseAmpLatency));
         y.line("mux_of_sa", fmt_second(sub->senseAmpMuxLev1->readLatency + sub->senseAmpMuxLev2->readLatency));
-        if (input->withOutputAcc)
+        if (input->peripherals.withOutputAcc)
             y.line("output_accumulator", fmt_second(sub->outputAcc->readLatency));
-        if (input->withPriorityEnc)
+        if (input->peripherals.withPriorityEnc)
             y.line("priority_encoder", fmt_second(sub->priorityEnc->readLatency));
         y.end_map();
 
@@ -187,20 +187,20 @@ namespace {
         y.line("input_encoder", fmt_joule(sub->inputEnc->readDynamicEnergy));
         y.line("row_decoder", fmt_joule(sub->RowDecMergeNand->readDynamicEnergy));
         double row_search_dynamic_energy = 0;
-        for (int i = 0; i < input->cell->camNumRow; i++)
+        for (int i = 0; i < input->technology.cell->camNumRow; i++)
             row_search_dynamic_energy += sub->RowDriver[i]->readDynamicEnergy;
         y.line("row_driver", fmt_joule(row_search_dynamic_energy));
         y.line("precharger", fmt_joule(sub->precharger->readDynamicEnergy));
         y.line("cell_read", fmt_joule(sub->cellReadEnergy));
         double col_mux_read_dynamic_energy = 0;
-        for (int i = 0; i < input->cell->camNumCol; i++)
+        for (int i = 0; i < input->technology.cell->camNumCol; i++)
             col_mux_read_dynamic_energy += sub->ColMux[i]->readDynamicEnergy;
         y.line("column_mux", fmt_joule(col_mux_read_dynamic_energy));
         y.line("sense_amplifier", fmt_joule(sub->senseAmp->readDynamicEnergy));
         y.line("mux_of_sa", fmt_joule(sub->senseAmpMuxLev1->readDynamicEnergy + sub->senseAmpMuxLev2->readDynamicEnergy));
-        if (input->withOutputAcc)
+        if (input->peripherals.withOutputAcc)
             y.line("output_accumulator", fmt_joule(sub->outputAcc->readDynamicEnergy));
-        if (input->withPriorityEnc)
+        if (input->peripherals.withPriorityEnc)
             y.line("priority_encoder", fmt_joule(sub->priorityEnc->readDynamicEnergy));
         y.end_map();
 
@@ -210,19 +210,19 @@ namespace {
         y.line("input_encoder", fmt_joule(sub->inputEnc->writeDynamicEnergy));
         y.line("row_decoder", fmt_joule(sub->RowDecMergeNand->writeDynamicEnergy));
         double row_write_dynamic_energy = 0;
-        for (int i = 0; i < input->cell->camNumRow; i++)
+        for (int i = 0; i < input->technology.cell->camNumRow; i++)
             row_write_dynamic_energy += sub->RowDriver[i]->writeDynamicEnergy * 16;
         y.line("row_driver", fmt_joule(row_write_dynamic_energy));
         y.line("precharger", fmt_joule(sub->precharger->writeDynamicEnergy));
         double col_write_dynamic_energy = 0;
-        for (int i = 0; i < input->cell->camNumCol; i++)
+        for (int i = 0; i < input->technology.cell->camNumCol; i++)
             col_write_dynamic_energy += sub->ColMux[i]->writeDynamicEnergy;
         y.line("column_mux", fmt_joule(col_write_dynamic_energy));
         y.line("sense_amplifier", fmt_joule(sub->senseAmp->writeDynamicEnergy));
         y.line("mux_of_sa", fmt_joule(sub->senseAmpMuxLev1->writeDynamicEnergy + sub->senseAmpMuxLev2->writeDynamicEnergy));
-        if (input->withOutputAcc)
+        if (input->peripherals.withOutputAcc)
             y.line("output_accumulator", fmt_joule(sub->outputAcc->writeDynamicEnergy));
-        if (input->withPriorityEnc)
+        if (input->peripherals.withPriorityEnc)
             y.line("priority_encoder", fmt_joule(sub->priorityEnc->writeDynamicEnergy));
         y.end_map();
 
@@ -230,19 +230,19 @@ namespace {
         y.line("input_encoder", fmt_watt(sub->inputEnc->leakage));
         y.line("row_decoder", fmt_watt(sub->RowDecMergeNand->leakage));
         double leakage = 0;
-        for (int i = 0; i < input->cell->camNumRow; i++)
+        for (int i = 0; i < input->technology.cell->camNumRow; i++)
             leakage += sub->RowDriver[i]->leakage;
         y.line("row_driver", fmt_watt(leakage));
         y.line("precharger", fmt_watt(sub->precharger->leakage));
         leakage = 0;
-        for (int i = 0; i < input->cell->camNumCol; i++)
+        for (int i = 0; i < input->technology.cell->camNumCol; i++)
             leakage += sub->ColMux[i]->leakage;
         y.line("column_mux", fmt_watt(leakage));
         y.line("sense_amplifier", fmt_watt(sub->senseAmp->leakage));
         y.line("mux_of_sa", fmt_watt(sub->senseAmpMuxLev1->leakage + sub->senseAmpMuxLev2->leakage));
-        if (input->withOutputAcc)
+        if (input->peripherals.withOutputAcc)
             y.line("output_accumulator", fmt_watt(sub->outputAcc->leakage));
-        if (input->withPriorityEnc)
+        if (input->peripherals.withPriorityEnc)
             y.line("priority_encoder", fmt_watt(sub->priorityEnc->leakage));
         y.end_map();
 
@@ -252,7 +252,7 @@ namespace {
     void write_summary(YamlWriter& y, const Result& result) {
         const auto& input = result.config;
         const auto& bank = result.bank;
-        const std::string route_key = (input->routingMode == h_tree) ? "h_tree" : "non_h_tree";
+        const std::string route_key = (input->input.routingMode == h_tree) ? "h_tree" : "non_h_tree";
 
         y.begin_map("summary");
 
@@ -296,10 +296,10 @@ namespace {
         y.line("predecoder", fmt_second(bank->mat->predecoderLatency));
         y.end_map();
 
-        if (input->cell->memCellType == PCRAM || input->cell->memCellType == FBRAM ||
-                input->cell->memCellType == FEFETRAM ||
-                (input->cell->memCellType == memristor &&
-                 (input->cell->accessType == CMOS_access || input->cell->accessType == BJT_access))) {
+        if (input->technology.cell->memCellType == PCRAM || input->technology.cell->memCellType == FBRAM ||
+                input->technology.cell->memCellType == FEFETRAM ||
+                (input->technology.cell->memCellType == memristor &&
+                 (input->technology.cell->accessType == CMOS_access || input->technology.cell->accessType == BJT_access))) {
             y.line("reset_latency", fmt_second(bank->resetLatency));
             y.begin_map("reset_latency_breakdown");
             y.line(route_key, fmt_second(bank->resetLatency - bank->mat->resetLatency));
@@ -314,7 +314,7 @@ namespace {
             y.line("predecoder", fmt_second(bank->mat->predecoderLatency));
             y.line("subarray", fmt_second(bank->mat->subarray->setLatency));
             y.end_map();
-        } else if (input->cell->memCellType == SLCNAND) {
+        } else if (input->technology.cell->memCellType == SLCNAND) {
             y.line("erase_latency", fmt_second(bank->resetLatency));
             y.begin_map("erase_latency_breakdown");
             y.line(route_key, fmt_second(bank->resetLatency - bank->mat->resetLatency));
@@ -354,10 +354,10 @@ namespace {
         y.line("subarray", fmt_joule(bank->mat->subarray->readDynamicEnergy), "per active subarray");
         y.end_map();
 
-        if (input->cell->memCellType == PCRAM || input->cell->memCellType == FBRAM ||
-                (input->cell->memCellType == memristor &&
-                 (input->cell->accessType == CMOS_access || input->cell->accessType == BJT_access ||
-                  input->cell->memCellType == FEFETRAM))) {
+        if (input->technology.cell->memCellType == PCRAM || input->technology.cell->memCellType == FBRAM ||
+                (input->technology.cell->memCellType == memristor &&
+                 (input->technology.cell->accessType == CMOS_access || input->technology.cell->accessType == BJT_access ||
+                  input->technology.cell->memCellType == FEFETRAM))) {
             y.line("reset_dynamic_energy", fmt_joule(bank->resetDynamicEnergy));
             y.begin_map("reset_dynamic_energy_breakdown");
             y.line(route_key, fmt_joule(bank->resetDynamicEnergy - bank->mat->resetDynamicEnergy *
@@ -377,7 +377,7 @@ namespace {
                         bank->numActiveSubarrayPerRow * bank->numActiveSubarrayPerColumn));
             y.line("subarray", fmt_joule(bank->mat->subarray->writeDynamicEnergy), "per active subarray");
             y.end_map();
-        } else if (input->cell->memCellType == SLCNAND) {
+        } else if (input->technology.cell->memCellType == SLCNAND) {
             y.line("erase_dynamic_energy", fmt_joule(bank->resetDynamicEnergy));
             y.begin_map("erase_dynamic_energy_breakdown");
             y.line(route_key, fmt_joule(bank->resetDynamicEnergy - bank->mat->resetDynamicEnergy *

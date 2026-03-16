@@ -1,7 +1,6 @@
 #ifndef EVACAM_EXPLORER_H_
 #define EVACAM_EXPLORER_H_
 
-#include <fstream>
 #include <iosfwd>
 #include <memory>
 #include <mutex>
@@ -64,6 +63,7 @@ class EvaCamExplorer {
         void UpdateBestResults(std::vector<std::shared_ptr<CAM_Result>> &bestResults,
                 const std::shared_ptr<Result> &result) const;
         void MergeBestResults(const std::vector<std::shared_ptr<CAM_Result>> &bestResults);
+        void FlushExplorationCsvBuffer(const std::string &buffer);
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result);
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const;
 
@@ -72,7 +72,6 @@ class EvaCamExplorer {
         std::shared_ptr<Wire> localWire_;
         std::shared_ptr<Wire> globalWire_;
         std::shared_ptr<CAM_Opt> camOpt_;
-        std::unique_ptr<std::ofstream> explorationCsv_;
         std::string explorationCsvPath_;
         long long numSolution_ = 0;
         long long capacityBits_ = 0;
@@ -87,6 +86,7 @@ class EvaCamExplorer {
         std::mutex bestResultsMutex_;
         std::mutex explorationCsvMutex_;
         std::mutex numSolutionsMutex_;
+        std::mutex progressMutex_;
 };
 
 #endif /* EVACAM_EXPLORER_H_ */

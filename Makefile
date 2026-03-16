@@ -11,11 +11,12 @@ RES_DIR=$(ROOT_DIR)/results
 
 BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
+TEST_EXPLORATION_BIN=ExplorationDomainTest
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
 
 # Automatically find all CPP files in the source directory
-SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
+SOURCES=$(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/config/*.cpp) $(wildcard $(SRC_DIR)/factories/*.cpp)
 # Create corresponding OBJ file paths in the object directory
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 DEPS=$(OBJECTS:.o=.d)
@@ -31,15 +32,20 @@ $(BIN): $(OBJECTS)
 	$(CC) $(CPP_FLAGS) -o $@ $^ $(LD_LIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
+	@mkdir -p $(dir $@)
 	$(CC) $(CPP_FLAGS) -c $< -o $@
 
 -include $(DEPS)
 
-.PHONY: test-yaml uml open-uml
+.PHONY: test-yaml test-exploration uml open-uml
 test-yaml:
 	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/YamlHelpers.cpp src/MemCell.cpp $(LD_LIBS)
 	./$(TEST_YAML_BIN)
+
+test-exploration:
+	$(CC) $(CPP_FLAGS) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
+		src/config/IntValueDomain.cpp src/config/ExplorationSpec.cpp src/config/ExplorationSpaceResolver.cpp $(LD_LIBS)
+	./$(TEST_EXPLORATION_BIN)
 
 uml:
 	@if ! command -v pdflatex >/dev/null 2>&1; then \
@@ -58,7 +64,7 @@ open-uml: uml
 .PHONY: clean
 clean:
 	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
-		$(UML_PDF) repo_uml.aux repo_uml.log
+		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(UML_PDF) repo_uml.aux repo_uml.log
 
 run: $(BIN)
 	@if [ -z "$(CONFIG_FILE)" ]; then \

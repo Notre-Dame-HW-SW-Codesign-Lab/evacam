@@ -25,18 +25,18 @@ void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _
     config = _config;
 
     if ((numInput > 1) && (numMux > 0 )) {
-        double minNMOSWidth = minDriverCurrent / config->tech->currentOnNmos()[config->temperature - 300];
-        if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor || config->cell->memCellType == FEFETRAM) {
+        double minNMOSWidth = minDriverCurrent / config->technology.tech->currentOnNmos()[config->input.temperature - 300];
+        if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FEFETRAM) {
             /* Mux resistance should be small enough for voltage dividing */
-            double maxResNMOSPassTransistor = config->cell->resistanceOn * IR_DROP_TOLERANCE;
-            widthNMOSPassTransistor = CalculateOnResistance(config->tech->featureSize(), NMOS, config->temperature, config->tech)
-                * config->tech->featureSize() / maxResNMOSPassTransistor;
-            if (widthNMOSPassTransistor > config->maxNmosSize * config->tech->featureSize()) {	// Change the transistor size to avoid severe IR drop
-                widthNMOSPassTransistor = config->maxNmosSize * config->tech->featureSize();
+            double maxResNMOSPassTransistor = config->technology.cell->resistanceOn * IR_DROP_TOLERANCE;
+            widthNMOSPassTransistor = CalculateOnResistance(config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech)
+                * config->technology.tech->featureSize() / maxResNMOSPassTransistor;
+            if (widthNMOSPassTransistor > config->input.maxNmosSize * config->technology.tech->featureSize()) {	// Change the transistor size to avoid severe IR drop
+                widthNMOSPassTransistor = config->input.maxNmosSize * config->technology.tech->featureSize();
             }
-            widthNMOSPassTransistor = MAX(MAX(widthNMOSPassTransistor,minNMOSWidth), 6 * MIN_NMOS_SIZE * config->tech->featureSize());
+            widthNMOSPassTransistor = MAX(MAX(widthNMOSPassTransistor,minNMOSWidth), 6 * MIN_NMOS_SIZE * config->technology.tech->featureSize());
         } else {
-            widthNMOSPassTransistor = MAX(6 * MIN_NMOS_SIZE * config->tech->featureSize(), minNMOSWidth);
+            widthNMOSPassTransistor = MAX(6 * MIN_NMOS_SIZE * config->technology.tech->featureSize(), minNMOSWidth);
         }
     }
 
@@ -52,7 +52,7 @@ void Mux::CalculateArea(){
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             double h,w;
-            CalculateGateArea(INV, 1, widthNMOSPassTransistor, 0, config->tech->featureSize()*40, config->tech, &h, &w, config->UseUpdatedLib);
+            CalculateGateArea(INV, 1, widthNMOSPassTransistor, 0, config->technology.tech->featureSize()*40, config->technology.tech, &h, &w, config->peripherals.useUpdatedLib);
             width = numMux * numInput * w;
             height = h;
             area = width * height;
@@ -67,11 +67,11 @@ void Mux::CalculateRC() {
         std::cout << "[Mux] Error: Require initialization first!" << std::endl;
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
-            capNMOSPassTransistor = CalculateDrainCap(widthNMOSPassTransistor, NMOS, config->tech->featureSize()*40, config->tech);
+            capNMOSPassTransistor = CalculateDrainCap(widthNMOSPassTransistor, NMOS, config->technology.tech->featureSize()*40, config->technology.tech);
             capForPreviousPowerCalculation = capNMOSPassTransistor;
             capOutput = numInput * capNMOSPassTransistor;
             capForPreviousDelayCalculation = capOutput + capNMOSPassTransistor + capLoad;
-            resNMOSPassTransistor = CalculateOnResistance(widthNMOSPassTransistor, NMOS, config->temperature, config->tech);
+            resNMOSPassTransistor = CalculateOnResistance(widthNMOSPassTransistor, NMOS, config->input.temperature, config->technology.tech);
         } else {
             ;	/* nothing to do */
         }
@@ -100,7 +100,7 @@ void Mux::CalculatePower() {
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             leakage = 0; //TODO
-            readDynamicEnergy = (capOutput + capInputNextStage) * config->tech->vdd() * (config->tech->vdd() - config->tech->vth());
+            readDynamicEnergy = (capOutput + capInputNextStage) * config->technology.tech->vdd() * (config->technology.tech->vdd() - config->technology.tech->vth());
             readDynamicEnergy *= numMux;  //worst-case dynamic power analysis
             writeDynamicEnergy = readDynamicEnergy;
         } else {

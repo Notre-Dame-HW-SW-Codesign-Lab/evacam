@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "EvaCamConfig.h"
+#include "config/OutputPathBuilder.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ EvaCamContext EvaCamContextBuilder::Build(const CliOptions &options) {
     context.inputFileName = options.inputFileName;
     context.outputYamlFileName = options.outputYamlFileName;
     if (context.outputYamlFileName.empty()) {
-        context.outputYamlFileName = config->DefaultResultsYamlPath(context.inputFileName);
+        context.outputYamlFileName = OutputPathBuilder::DefaultResultsYamlPath(context.inputFileName);
     }
 
     return context;

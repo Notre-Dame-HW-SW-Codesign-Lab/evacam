@@ -9,6 +9,7 @@
 #include "CAM_Result.h"
 #include "EvaCamConfig.h"
 #include "ResultsYaml.h"
+#include "config/DerivedValueHelpers.h"
 
 namespace {
 
@@ -28,9 +29,9 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
         long long numSolution,
         const std::vector<std::shared_ptr<CAM_Result>> &bestResults,
         const std::string &explorationOutputFileName) {
-    if (!config.IsFullExploration()) {
+    if (!DerivedValueHelpers::IsFullExploration(config.input)) {
         if (numSolution > 0) {
-            bestResults[config.optimizationTarget]->print();
+            bestResults[config.input.optimizationTarget]->print();
         } else {
             std::cout << "No valid solutions." << std::endl;
         }
@@ -40,7 +41,7 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
     }
 
     std::cout << std::endl << explorationOutputFileName << " generated successfully!" << std::endl;
-    if (config.isPruningEnabled) {
+    if (config.constraints.pruningEnabled) {
         std::cout << "The results are pruned" << std::endl;
     }
 
@@ -124,9 +125,9 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
 
     if (numSolution <= 0) {
         WriteResultsYamlNoSolutions(yamlOut);
-    } else if (config.IsFullExploration()) {
+    } else if (DerivedValueHelpers::IsFullExploration(config.input)) {
         WriteResultsYamlMulti(yamlOut, AsResults(bestResults));
     } else {
-        WriteResultsYaml(yamlOut, *bestResults[config.optimizationTarget]);
+        WriteResultsYaml(yamlOut, *bestResults[config.input.optimizationTarget]);
     }
 }

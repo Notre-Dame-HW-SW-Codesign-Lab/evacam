@@ -33,7 +33,7 @@ void CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimization
 
     CAM_BasicMMR tmp;
     tmp.Initialize(8, 0, 0, 0, 0, config);
-    double logicEffort = 6 / (1+config->tech->pnSizeRatio());
+    double logicEffort = 6 / (1+config->technology.tech->pnSizeRatio());
     outputDriver.Initialize(logicEffort, tmp.capD[3], capLoad, resLoad, false, areaOptimizationLevel, 0, config);
 
     // 3-level folding, the LA is connected with four blocks

@@ -82,7 +82,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
 
 
 
-    // if (config->designTarget == CAM_chip) {
+    // if (config->input.designTarget == CAM_chip) {
     // 	numColumn *= muxSenseAmp;
     // } else {
     // 	numColumn *= muxSenseAmp * muxOutputLev1 * muxOutputLev2;
@@ -112,20 +112,20 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
             muxOutputLev2,			
             areaOptimizationLevel, 
             (BufferDesignTarget)CAM_opt->RowDriver,		
-            config->withInputEnc, 
-            config->typeInputEnc,  
-            config->customInputEnc,
-            config->typeSenseAmp,  
-            config->customSenseAmp, 
-            config->withWriteDriver,
-            config->withOutputAcc, 
-            config->withPriorityEnc,  
+            config->peripherals.withInputEnc, 
+            config->peripherals.typeInputEnc,  
+            config->peripherals.customInputEnc,
+            config->peripherals.typeSenseAmp,  
+            config->peripherals.customSenseAmp, 
+            config->peripherals.withWriteDriver,
+            config->peripherals.withOutputAcc, 
+            config->peripherals.withPriorityEnc,  
             (BufferDesignTarget)CAM_opt->Proirity,
-            config->withInputBuffer, 
-            config->withOutputBuffer, 
-            config->cell->camType, 
-            config->searchFunction, 
-            config->cell->withVariation, 
+            config->peripherals.withInputBuffer, 
+            config->peripherals.withOutputBuffer, 
+            config->technology.cell->camType, 
+            config->input.searchFunction, 
+            config->technology.cell->withVariation, 
             config,
             localWire,
             CAM_opt);
@@ -140,7 +140,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
 
     int numAddressRowPredecoderBlock1 = _numAddressBit - (int)(log2(muxSenseAmp * muxOutputLev1 * muxOutputLev2)+0.1);	/* The address bit on row decodeing */
 
-    if( config->designTarget == CAM_chip) {
+    if( config->input.designTarget == CAM_chip) {
         numAddressRowPredecoderBlock1 = _numAddressBit - (int)(log2(muxSenseAmp)+0.1);	/* The address bit on row decodeing */
     }
 

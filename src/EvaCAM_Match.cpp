@@ -10,6 +10,7 @@
 #include "CAM_SubArray.h"
 #include "EvaCamConfig.h"
 #include "Wire.h"
+#include "config/EvaCamConfigValidator.h"
 
 class EvaCAM_Match::Impl {
     public:
@@ -21,7 +22,6 @@ class EvaCAM_Match::Impl {
 
     private:
         void InitializeConfiguredBank();
-        int SelectConfiguredValue(int minValue, int maxValue) const;
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
         std::shared_ptr<Wire> CreateLocalWire() const;
         std::shared_ptr<Wire> CreateGlobalWire() const;
@@ -37,7 +37,7 @@ EvaCAM_Match::Impl::Impl(const std::string &configPath) {
     config = std::make_shared<EvaCamConfig>();
     config->SetDeepExploration(false);
     config->ReadConfigFromFile(configPath);
-    config->ValidateSupportedConfiguration();
+    EvaCamConfigValidator::Validate(*config);
 
     InitializeConfiguredBank();
 }
@@ -58,29 +58,30 @@ EvaCAMMatchResult EvaCAM_Match::Impl::evaluate(const std::vector<int> &stored, c
 }
 
 size_t EvaCAM_Match::Impl::word_width() const {
-    return static_cast<size_t>(config->wordWidth);
+    return static_cast<size_t>(config->input.wordWidth);
 }
 
 void EvaCAM_Match::Impl::InitializeConfiguredBank() {
-    long long capacity = config->capacity * 8;
-    long blockSize = config->wordWidth;
+    long long capacity = config->input.capacity * 8;
+    long blockSize = config->input.wordWidth;
 
-    int numRowMat = SelectConfiguredValue(config->minNumRowMat, config->maxNumRowMat);
-    int numColumnMat = SelectConfiguredValue(config->minNumColumnMat, config->maxNumColumnMat);
-    int numActiveMatPerRow = SelectConfiguredValue(config->minNumActiveMatPerRow, config->maxNumActiveMatPerRow);
-    int numActiveMatPerColumn = SelectConfiguredValue(config->minNumActiveMatPerColumn, config->maxNumActiveMatPerColumn);
-    int numRowSubarray = SelectConfiguredValue(config->minNumRowSubarray, config->maxNumRowSubarray);
-    int numColumnSubarray = SelectConfiguredValue(config->minNumColumnSubarray, config->maxNumColumnSubarray);
-    int numActiveSubarrayPerRow = SelectConfiguredValue(config->minNumActiveSubarrayPerRow, config->maxNumActiveSubarrayPerRow);
-    int numActiveSubarrayPerColumn = SelectConfiguredValue(config->minNumActiveSubarrayPerColumn, config->maxNumActiveSubarrayPerColumn);
-    int muxSenseAmp = SelectConfiguredValue(config->minMuxSenseAmp, config->maxMuxSenseAmp);
-    int muxOutputLev1 = SelectConfiguredValue(config->minMuxOutputLev1, config->maxMuxOutputLev1);
-    int muxOutputLev2 = SelectConfiguredValue(config->minMuxOutputLev2, config->maxMuxOutputLev2);
-    int numRowPerSet = SelectConfiguredValue(config->minNumRowPerSet, config->maxNumRowPerSet);
-    int areaOptimizationLevel = SelectConfiguredValue(config->minAreaOptimizationLevel, config->maxAreaOptimizationLevel);
-    int rowDriverOpt = SelectConfiguredValue(config->minRowDriverOptLevel, config->maxRowDriverOptLevel);
-    int priorityOpt = SelectConfiguredValue(config->minPriorityOptLevel, config->maxPriorityOptLevel);
-    int bitSerialWidth = SelectConfiguredValue(config->minBitSerialWidth, config->maxBitSerialWidth);
+    const auto &resolved = config->resolvedExploration;
+    int numRowMat = resolved.geometry.numRowMatValues.front();
+    int numColumnMat = resolved.geometry.numColumnMatValues.front();
+    int numActiveMatPerRow = config->exploration.ActiveMatPerRowValues(numColumnMat).front();
+    int numActiveMatPerColumn = config->exploration.ActiveMatPerColumnValues(numRowMat).front();
+    int numRowSubarray = resolved.geometry.numRowSubarrayValues.front();
+    int numColumnSubarray = resolved.geometry.numColumnSubarrayValues.front();
+    int numActiveSubarrayPerRow = config->exploration.ActiveSubarrayPerRowValues(numColumnSubarray).front();
+    int numActiveSubarrayPerColumn = config->exploration.ActiveSubarrayPerColumnValues(numRowSubarray).front();
+    int muxSenseAmp = resolved.geometry.muxSenseAmpValues.front();
+    int muxOutputLev1 = resolved.geometry.muxOutputLev1Values.front();
+    int muxOutputLev2 = resolved.geometry.muxOutputLev2Values.front();
+    int numRowPerSet = resolved.geometry.numRowPerSetValues.front();
+    int areaOptimizationLevel = resolved.cam.areaOptimizationLevelValues.front();
+    int rowDriverOpt = resolved.cam.rowDriverOptLevelValues.front();
+    int priorityOpt = resolved.cam.priorityOptLevelValues.front();
+    int bitSerialWidth = resolved.cam.bitSerialWidthValues.front();
 
     localWire = CreateLocalWire();
     globalWire = CreateGlobalWire();
@@ -90,28 +91,23 @@ void EvaCAM_Match::Impl::InitializeConfiguredBank() {
     camOpt->Proirity = priorityOpt;
     camOpt->BitSerialWidth = bitSerialWidth;
 
-    if (config->routingMode == h_tree) {
+    if (config->input.routingMode == h_tree) {
         bank = std::make_shared<BankWithHtree>();
     } else {
         bank = std::make_shared<BankWithoutHtree>();
     }
 
-    bank->Initialize(numRowMat, numColumnMat, capacity, blockSize, config->associativity,
+    bank->Initialize(numRowMat, numColumnMat, capacity, blockSize, config->input.associativity,
             numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
-            config->internalSensing, muxOutputLev1, muxOutputLev2, numRowSubarray,
+            config->input.internalSensing, muxOutputLev1, muxOutputLev2, numRowSubarray,
             numColumnSubarray, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
             static_cast<BufferDesignTarget>(areaOptimizationLevel), mem_data,
-            config->cell->camType, config->searchFunction, config,
+            config->technology.cell->camType, config->input.searchFunction, config,
             localWire, globalWire, camOpt);
 
     if (bank->invalid) {
         throw std::runtime_error("[EvaCAM_Match] Error: configured bank is invalid for matching.");
     }
-}
-
-int EvaCAM_Match::Impl::SelectConfiguredValue(int minValue, int maxValue) const {
-    (void)maxValue;
-    return minValue;
 }
 
 void EvaCAM_Match::Impl::ValidateBinaryVector(const std::vector<int> &value, const char *name) const {
@@ -130,29 +126,27 @@ void EvaCAM_Match::Impl::ValidateBinaryVector(const std::vector<int> &value, con
 
 std::shared_ptr<Wire> EvaCAM_Match::Impl::CreateLocalWire() const {
     auto wire = std::make_shared<Wire>();
-    WireType wireType = static_cast<WireType>(SelectConfiguredValue(
-                config->minLocalWireType, config->maxLocalWireType));
-    WireRepeaterType repeaterType = static_cast<WireRepeaterType>(SelectConfiguredValue(
-                config->minLocalWireRepeaterType, config->maxLocalWireRepeaterType));
-    bool isLowSwing = static_cast<bool>(SelectConfiguredValue(
-                config->minIsLocalWireLowSwing, config->maxIsLocalWireLowSwing));
+    const auto &resolved = config->resolvedExploration;
+    WireType wireType = static_cast<WireType>(resolved.wires.localWireTypeValues.front());
+    WireRepeaterType repeaterType = static_cast<WireRepeaterType>(
+            resolved.wires.localWireRepeaterTypeValues.front());
+    bool isLowSwing = static_cast<bool>(resolved.wires.isLocalWireLowSwingValues.front());
 
-    wire->Initialize(config->processNode, wireType, repeaterType,
-            config->temperature, isLowSwing, config);
+    wire->Initialize(config->input.processNode, wireType, repeaterType,
+            config->input.temperature, isLowSwing, config);
     return wire;
 }
 
 std::shared_ptr<Wire> EvaCAM_Match::Impl::CreateGlobalWire() const {
     auto wire = std::make_shared<Wire>();
-    WireType wireType = static_cast<WireType>(SelectConfiguredValue(
-                config->minGlobalWireType, config->maxGlobalWireType));
-    WireRepeaterType repeaterType = static_cast<WireRepeaterType>(SelectConfiguredValue(
-                config->minGlobalWireRepeaterType, config->maxGlobalWireRepeaterType));
-    bool isLowSwing = static_cast<bool>(SelectConfiguredValue(
-                config->minIsGlobalWireLowSwing, config->maxIsGlobalWireLowSwing));
+    const auto &resolved = config->resolvedExploration;
+    WireType wireType = static_cast<WireType>(resolved.wires.globalWireTypeValues.front());
+    WireRepeaterType repeaterType = static_cast<WireRepeaterType>(
+            resolved.wires.globalWireRepeaterTypeValues.front());
+    bool isLowSwing = static_cast<bool>(resolved.wires.isGlobalWireLowSwingValues.front());
 
-    wire->Initialize(config->processNode, wireType, repeaterType,
-            config->temperature, isLowSwing, config);
+    wire->Initialize(config->input.processNode, wireType, repeaterType,
+            config->input.temperature, isLowSwing, config);
     return wire;
 }
 

@@ -3,12 +3,14 @@
 #include <omp.h>
 
 #include <atomic>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -17,6 +19,12 @@
 #include "EvaCamConfig.h"
 #include "Result.h"
 #include "Wire.h"
+#include "config/EvaCamConfigPrinter.h"
+#include "config/EvaCamConfigValidator.h"
+#include "config/DerivedValueHelpers.h"
+#include "config/OutputPathBuilder.h"
+#include "factories/BankFactory.h"
+#include "factories/WireFactory.h"
 #include "macros.h"
 
 namespace {
@@ -38,41 +46,44 @@ EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config)
 }
 
 EvaCamExplorationResult EvaCamExplorer::Run() {
-    config_->cell->PrintCell();
+    config_->technology.cell->PrintCell();
     InitializeExploration();
     RunPrimaryExploration();
     RefineWires();
     BuildPruningResults();
     RunConstrainedExploration();
 
-    if (explorationCsv_ && explorationCsv_->is_open()) {
-        explorationCsv_->close();
-    }
-
     EvaCamExplorationResult result;
-    result.numSolution = numSolution_;
-    result.bestResults = bestResults_;
+    {
+        std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
+        result.numSolution = numSolution_;
+    }
+    {
+        std::lock_guard<std::mutex> resultsLock(bestResultsMutex_);
+        result.bestResults = bestResults_;
+    }
     result.explorationCsvPath = explorationCsvPath_;
     return result;
 }
 
 void EvaCamExplorer::InitializeExploration() {
-    config_->ValidateSupportedConfiguration();
+    EvaCamConfigValidator::Validate(*config_);
     InitializeBestResults();
-    localWire_ = config_->CreateDefaultLocalWire();
-    globalWire_ = config_->CreateDefaultGlobalWire();
+    localWire_ = WireFactory::CreateDefaultLocalWire(config_);
+    globalWire_ = WireFactory::CreateDefaultGlobalWire(config_);
     camOpt_ = std::make_shared<CAM_Opt>();
 
-    config_->PrintConfig();
+    EvaCamConfigPrinter::Print(*config_);
 
-    capacityBits_ = config_->EffectiveCapacityBits();
-    blockSizeBits_ = config_->EffectiveBlockSizeBits();
-    associativity_ = config_->EffectiveAssociativity();
+    capacityBits_ = DerivedValueHelpers::EffectiveCapacityBits(config_->input);
+    blockSizeBits_ = DerivedValueHelpers::EffectiveBlockSizeBits(config_->input);
+    associativity_ = DerivedValueHelpers::EffectiveAssociativity(config_->input);
 
-    fixedOuterGeometry_ = config_->HasFixedOuterGeometry();
-    numRowMatValues_ = config_->NumRowMatValues();
-    numColumnMatValues_ = config_->NumColumnMatValues();
-    numRowSubarrayValues_ = config_->NumRowSubarrayValues();
+    const auto &resolved = config_->resolvedExploration;
+    fixedOuterGeometry_ = DerivedValueHelpers::HasFixedOuterGeometry(resolved);
+    numRowMatValues_ = resolved.geometry.numRowMatValues;
+    numColumnMatValues_ = resolved.geometry.numColumnMatValues;
+    numRowSubarrayValues_ = resolved.geometry.numRowSubarrayValues;
 
     OpenExplorationCsv();
 }
@@ -92,18 +103,19 @@ std::vector<std::shared_ptr<CAM_Result>> EvaCamExplorer::CreateBestResultsBuffer
 }
 
 void EvaCamExplorer::OpenExplorationCsv() {
-    if (!config_->IsFullExploration()) {
+    if (!DerivedValueHelpers::IsFullExploration(config_->input)) {
         return;
     }
 
-    explorationCsvPath_ = config_->ExplorationCsvPath();
+    explorationCsvPath_ = OutputPathBuilder::ExplorationCsvPath(config_->input, config_->technology);
     std::filesystem::path csvPath(explorationCsvPath_);
     if (!csvPath.parent_path().empty()) {
         std::filesystem::create_directories(csvPath.parent_path());
     }
-
-    explorationCsv_ = std::make_unique<std::ofstream>();
-    explorationCsv_->open(explorationCsvPath_.c_str(), std::ofstream::app);
+    std::ofstream clearFile(explorationCsvPath_.c_str(), std::ofstream::trunc);
+    if (!clearFile) {
+        throw std::runtime_error("Failed to open exploration CSV file: " + explorationCsvPath_);
+    }
 }
 
 void EvaCamExplorer::RunPrimaryExploration() {
@@ -114,15 +126,34 @@ void EvaCamExplorer::RunPrimaryExploration() {
 
     if (fixedOuterGeometry_) {
         config_->logger.Verbose() << "Fixed bank/mat/subarray sizes detected; bypassing outer geometry loops.";
-        EvaluateGeometry(config_->minNumRowMat, config_->minNumColumnMat, config_->minNumRowSubarray,
-                bestResults_, numSolution_, explorationCsv_.get(), localWire_, globalWire_);
+        std::ostringstream fixedCsv;
+        EvaluateGeometry(numRowMatValues_.front(), numColumnMatValues_.front(), numRowSubarrayValues_.front(),
+                bestResults_, numSolution_, &fixedCsv, localWire_, globalWire_);
+        FlushExplorationCsvBuffer(fixedCsv.str());
         return;
+    }
+
+    std::atomic<bool> progressDone = false;
+    std::thread progressThread;
+    if (total > 1) {
+        progressThread = std::thread([&]() {
+            long long lastReportedPercentage = -1;
+            while (!progressDone.load(std::memory_order_relaxed)) {
+                const long long percentage = loopsComplete.load(std::memory_order_relaxed) * 100 / total;
+                if (percentage > lastReportedPercentage) {
+                    std::lock_guard<std::mutex> progressLock(progressMutex_);
+                    std::cout << "\rProgress: " << percentage << "%" << std::flush;
+                    lastReportedPercentage = percentage;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        });
     }
 
 #pragma omp parallel
     {
-        auto threadLocalWire = config_->CreateDefaultLocalWire();
-        auto threadGlobalWire = config_->CreateDefaultGlobalWire();
+        auto threadLocalWire = WireFactory::CreateDefaultLocalWire(config_);
+        auto threadGlobalWire = WireFactory::CreateDefaultGlobalWire(config_);
         auto threadBestResults = CreateBestResultsBuffer();
         long long threadNumSolutions = 0;
         std::ostringstream threadCsv;
@@ -131,19 +162,14 @@ void EvaCamExplorer::RunPrimaryExploration() {
         for (int i = 0; i < (int)numRowMatValues_.size(); i++) {
             for (int j = 0; j < (int)numColumnMatValues_.size(); j++) {
                 for (int k = 0; k < (int)numRowSubarrayValues_.size(); k++) {
-                    loopsComplete += 1;
-                    const long long percentage = loopsComplete * 100 / total;
-                    if (total > 1) {
-#pragma omp critical
-                        std::cout << "\rProgress: " << percentage << "%" << std::flush;
-                    }
+                    loopsComplete.fetch_add(1, std::memory_order_relaxed);
                     EvaluateGeometry(numRowMatValues_[i], numColumnMatValues_[j], numRowSubarrayValues_[k],
                             threadBestResults, threadNumSolutions, &threadCsv, threadLocalWire, threadGlobalWire);
                 }
             }
         }
 
-        if (threadNumSolutions > 0) {
+        {
             std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
             numSolution_ += threadNumSolutions;
         }
@@ -153,10 +179,14 @@ void EvaCamExplorer::RunPrimaryExploration() {
             MergeBestResults(threadBestResults);
         }
 
-        if (!threadCsv.str().empty() && explorationCsv_) {
-            std::lock_guard<std::mutex> csvLock(explorationCsvMutex_);
-            *explorationCsv_ << threadCsv.str();
-        }
+        FlushExplorationCsvBuffer(threadCsv.str());
+    }
+
+    progressDone.store(true, std::memory_order_relaxed);
+    if (progressThread.joinable()) {
+        progressThread.join();
+        std::lock_guard<std::mutex> progressLock(progressMutex_);
+        std::cout << "\rProgress: 100%" << std::endl;
     }
 }
 
@@ -166,23 +196,24 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
         std::ostream *csvStream,
         const std::shared_ptr<Wire> &localWire,
         const std::shared_ptr<Wire> &globalWire) {
-    const auto numActiveMatPerRowValues = config_->NumActiveMatPerRowValues(numColumnMat);
-    const auto numActiveMatPerColumnValues = config_->NumActiveMatPerColumnValues(numRowMat);
-    const auto numColumnSubarrayValues = config_->NumColumnSubarrayValues();
-    const auto muxSenseAmpValues = config_->MuxSenseAmpValues();
-    const auto muxOutputLev1Values = config_->MuxOutputLev1Values();
-    const auto muxOutputLev2Values = config_->MuxOutputLev2Values();
-    const auto numRowPerSetValues = config_->NumRowPerSetValues();
-    const auto areaOptimizationLevels = config_->AreaOptimizationLevels();
-    const auto rowDriverOptimizationLevels = config_->RowDriverOptimizationLevels();
-    const auto priorityOptimizationLevels = config_->PriorityOptimizationLevels();
-    const auto bitSerialWidthValues = config_->BitSerialWidthValues();
+    const auto numActiveMatPerRowValues = config_->exploration.ActiveMatPerRowValues(numColumnMat);
+    const auto numActiveMatPerColumnValues = config_->exploration.ActiveMatPerColumnValues(numRowMat);
+    const auto &resolved = config_->resolvedExploration;
+    const auto &numColumnSubarrayValues = resolved.geometry.numColumnSubarrayValues;
+    const auto &muxSenseAmpValues = resolved.geometry.muxSenseAmpValues;
+    const auto &muxOutputLev1Values = resolved.geometry.muxOutputLev1Values;
+    const auto &muxOutputLev2Values = resolved.geometry.muxOutputLev2Values;
+    const auto &numRowPerSetValues = resolved.geometry.numRowPerSetValues;
+    const auto &areaOptimizationLevels = resolved.cam.areaOptimizationLevelValues;
+    const auto &rowDriverOptimizationLevels = resolved.cam.rowDriverOptLevelValues;
+    const auto &priorityOptimizationLevels = resolved.cam.priorityOptLevelValues;
+    const auto &bitSerialWidthValues = resolved.cam.bitSerialWidthValues;
 
     for (int numActiveMatPerRow : numActiveMatPerRowValues)
         for (int numActiveMatPerColumn : numActiveMatPerColumnValues)
             for (int numColumnSubarray : numColumnSubarrayValues)
-                for (int numActiveSubarrayPerRow : config_->NumActiveSubarrayPerRowValues(numColumnSubarray))
-                    for (int numActiveSubarrayPerColumn : config_->NumActiveSubarrayPerColumnValues(numRowSubarray))
+                for (int numActiveSubarrayPerRow : config_->exploration.ActiveSubarrayPerRowValues(numColumnSubarray))
+                    for (int numActiveSubarrayPerColumn : config_->exploration.ActiveSubarrayPerColumnValues(numRowSubarray))
                         for (int muxSenseAmp : muxSenseAmpValues)
                             for (int muxOutputLev1 : muxOutputLev1Values)
                                 for (int muxOutputLev2 : muxOutputLev2Values)
@@ -191,7 +222,7 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                             for (int rowDriverOptLevel : rowDriverOptimizationLevels)
                                                 for (int priorityOptLevel : priorityOptimizationLevels)
                                                     for (int bitSerialWidth : bitSerialWidthValues) {
-                                                        if (!config_->IsValidPartitioning(blockSizeBits_,
+                                                        if (!config_->exploration.IsValidPartitioning(blockSizeBits_,
                                                                     numActiveMatPerRow,
                                                                     numActiveMatPerColumn,
                                                                     numActiveSubarrayPerRow,
@@ -228,6 +259,8 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
 }
 
 void EvaCamExplorer::RefineWires() {
+    std::lock_guard<std::mutex> resultsLock(bestResultsMutex_);
+    std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
     if (numSolution_ <= 0) {
         return;
     }
@@ -240,24 +273,19 @@ void EvaCamExplorer::RefineWires() {
 }
 
 void EvaCamExplorer::RefineLocalWires() {
-    for (int localWireType = config_->minLocalWireType;
-            localWireType <= config_->maxLocalWireType;
-            localWireType++) {
-        for (int localWireRepeaterType = config_->minLocalWireRepeaterType;
-                localWireRepeaterType <= config_->maxLocalWireRepeaterType;
-                localWireRepeaterType++) {
-            for (int isLocalWireLowSwing = config_->minIsLocalWireLowSwing;
-                    isLocalWireLowSwing <= config_->maxIsLocalWireLowSwing;
-                    isLocalWireLowSwing++) {
+    const auto &resolved = config_->resolvedExploration;
+    for (int localWireType : resolved.wires.localWireTypeValues) {
+        for (int localWireRepeaterType : resolved.wires.localWireRepeaterTypeValues) {
+            for (int isLocalWireLowSwing : resolved.wires.isLocalWireLowSwingValues) {
                 if ((WireRepeaterType)localWireRepeaterType != repeated_none
                         && (bool)isLocalWireLowSwing != false) {
                     continue;
                 }
 
-                localWire_->Initialize(config_->processNode,
+                localWire_->Initialize(config_->input.processNode,
                         (WireType)localWireType,
                         (WireRepeaterType)localWireRepeaterType,
-                        config_->temperature,
+                        config_->input.temperature,
                         (bool)isLocalWireLowSwing,
                         config_);
 
@@ -267,10 +295,10 @@ void EvaCamExplorer::RefineLocalWires() {
                         continue;
                     }
 
-                    globalWire_->Initialize(config_->processNode,
+                    globalWire_->Initialize(config_->input.processNode,
                             bestResults_[i]->globalWire->wireType,
                             bestResults_[i]->globalWire->wireRepeaterType,
-                            config_->temperature,
+                            config_->input.temperature,
                             bestResults_[i]->globalWire->isLowSwing,
                             config_);
                     tempResult = ReevaluateBestResultWithWires(i, localWire_, globalWire_);
@@ -283,24 +311,19 @@ void EvaCamExplorer::RefineLocalWires() {
 }
 
 void EvaCamExplorer::RefineGlobalWires() {
-    for (int globalWireType = config_->minGlobalWireType;
-            globalWireType <= config_->maxGlobalWireType;
-            globalWireType++) {
-        for (int globalWireRepeaterType = config_->minGlobalWireRepeaterType;
-                globalWireRepeaterType <= config_->maxGlobalWireRepeaterType;
-                globalWireRepeaterType++) {
-            for (int isGlobalWireLowSwing = config_->minIsGlobalWireLowSwing;
-                    isGlobalWireLowSwing <= config_->maxIsGlobalWireLowSwing;
-                    isGlobalWireLowSwing++) {
+    const auto &resolved = config_->resolvedExploration;
+    for (int globalWireType : resolved.wires.globalWireTypeValues) {
+        for (int globalWireRepeaterType : resolved.wires.globalWireRepeaterTypeValues) {
+            for (int isGlobalWireLowSwing : resolved.wires.isGlobalWireLowSwingValues) {
                 if ((WireRepeaterType)globalWireRepeaterType != repeated_none
                         && (bool)isGlobalWireLowSwing != false) {
                     continue;
                 }
 
-                globalWire_->Initialize(config_->processNode,
+                globalWire_->Initialize(config_->input.processNode,
                         (WireType)globalWireType,
                         (WireRepeaterType)globalWireRepeaterType,
-                        config_->temperature,
+                        config_->input.temperature,
                         (bool)isGlobalWireLowSwing,
                         config_);
 
@@ -310,10 +333,10 @@ void EvaCamExplorer::RefineGlobalWires() {
                         continue;
                     }
 
-                    localWire_->Initialize(config_->processNode,
+                    localWire_->Initialize(config_->input.processNode,
                             bestResults_[i]->localWire->wireType,
                             bestResults_[i]->localWire->wireRepeaterType,
-                            config_->temperature,
+                            config_->input.temperature,
                             bestResults_[i]->localWire->isLowSwing,
                             config_);
                     tempResult = ReevaluateBestResultWithWires(i, localWire_, globalWire_);
@@ -356,7 +379,7 @@ std::shared_ptr<Result> EvaCamExplorer::ReevaluateBestResultWithWires(int optimi
 }
 
 void EvaCamExplorer::BuildPruningResults() {
-    if (!config_->IsPruningEnabledForExploration()) {
+    if (!DerivedValueHelpers::IsPruningEnabledForExploration(config_->input, config_->constraints)) {
         return;
     }
 
@@ -413,7 +436,7 @@ void EvaCamExplorer::BuildPruningResults() {
 }
 
 void EvaCamExplorer::RunConstrainedExploration() {
-    if (config_->optimizationTarget == full_exploration || !config_->isConstraintApplied) {
+    if (config_->input.optimizationTarget == full_exploration || !config_->constraints.enabled) {
         return;
     }
 
@@ -423,12 +446,12 @@ void EvaCamExplorer::RunConstrainedExploration() {
     config_->ApplyResultLimits(constraintLimits_, bestResults);
 
     numSolution_ = 0;
-    localWire_ = config_->CreateDefaultLocalWire();
-    globalWire_ = config_->CreateDefaultGlobalWire();
+    localWire_ = WireFactory::CreateDefaultLocalWire(config_);
+    globalWire_ = WireFactory::CreateDefaultGlobalWire(config_);
 
     if (fixedOuterGeometry_) {
         config_->logger.Verbose() << "Fixed bank/mat/subarray sizes detected; bypassing constrained outer geometry loops.";
-        EvaluateConstrainedGeometry(config_->minNumRowMat, config_->minNumColumnMat, config_->minNumRowSubarray);
+        EvaluateConstrainedGeometry(numRowMatValues_.front(), numColumnMatValues_.front(), numRowSubarrayValues_.front());
         return;
     }
 
@@ -442,26 +465,27 @@ void EvaCamExplorer::RunConstrainedExploration() {
 }
 
 void EvaCamExplorer::EvaluateConstrainedGeometry(int numRowMat, int numColumnMat, int numRowSubarray) {
-    const auto numActiveMatPerRowValues = config_->NumActiveMatPerRowValues(numColumnMat);
-    const auto numActiveMatPerColumnValues = config_->NumActiveMatPerColumnValues(numRowMat);
-    const auto numColumnSubarrayValues = config_->NumColumnSubarrayValues();
-    const auto muxSenseAmpValues = config_->MuxSenseAmpValues();
-    const auto muxOutputLev1Values = config_->MuxOutputLev1Values();
-    const auto muxOutputLev2Values = config_->MuxOutputLev2Values();
-    const auto numRowPerSetValues = config_->NumRowPerSetValues();
-    const auto areaOptimizationLevels = config_->AreaOptimizationLevels();
+    const auto numActiveMatPerRowValues = config_->exploration.ActiveMatPerRowValues(numColumnMat);
+    const auto numActiveMatPerColumnValues = config_->exploration.ActiveMatPerColumnValues(numRowMat);
+    const auto &resolved = config_->resolvedExploration;
+    const auto &numColumnSubarrayValues = resolved.geometry.numColumnSubarrayValues;
+    const auto &muxSenseAmpValues = resolved.geometry.muxSenseAmpValues;
+    const auto &muxOutputLev1Values = resolved.geometry.muxOutputLev1Values;
+    const auto &muxOutputLev2Values = resolved.geometry.muxOutputLev2Values;
+    const auto &numRowPerSetValues = resolved.geometry.numRowPerSetValues;
+    const auto &areaOptimizationLevels = resolved.cam.areaOptimizationLevelValues;
 
     for (int numActiveMatPerRow : numActiveMatPerRowValues)
         for (int numActiveMatPerColumn : numActiveMatPerColumnValues)
             for (int numColumnSubarray : numColumnSubarrayValues)
-                for (int numActiveSubarrayPerRow : config_->NumActiveSubarrayPerRowValues(numColumnSubarray))
-                    for (int numActiveSubarrayPerColumn : config_->NumActiveSubarrayPerColumnValues(numRowSubarray))
+                for (int numActiveSubarrayPerRow : config_->exploration.ActiveSubarrayPerRowValues(numColumnSubarray))
+                    for (int numActiveSubarrayPerColumn : config_->exploration.ActiveSubarrayPerColumnValues(numRowSubarray))
                         for (int muxSenseAmp : muxSenseAmpValues)
                             for (int muxOutputLev1 : muxOutputLev1Values)
                                 for (int muxOutputLev2 : muxOutputLev2Values)
                                     for (int numRowPerSet : numRowPerSetValues)
                                         for (int areaOptimizationLevel : areaOptimizationLevels) {
-                                            if (!config_->IsValidPartitioning(blockSizeBits_,
+                                            if (!config_->exploration.IsValidPartitioning(blockSizeBits_,
                                                         numActiveMatPerRow,
                                                         numActiveMatPerColumn,
                                                         numActiveSubarrayPerRow,
@@ -500,8 +524,8 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
         int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
         BufferDesignTarget areaOptimizationLevel, const std::shared_ptr<Wire> &localWire,
         const std::shared_ptr<Wire> &globalWire, const std::shared_ptr<CAM_Opt> &camOpt) const {
-    const auto bank = config_->CreateBank();
-    config_->InitializeBank(bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
+    const auto bank = BankFactory::CreateBank(config_);
+    BankFactory::InitializeBank(config_, bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
             associativity_, numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
             muxOutputLev1, muxOutputLev2, numRowSubarray, numColumnSubarray,
             numActiveSubarrayPerRow, numActiveSubarrayPerColumn, areaOptimizationLevel,
@@ -566,16 +590,31 @@ void EvaCamExplorer::MergeBestResults(const std::vector<std::shared_ptr<CAM_Resu
     }
 }
 
-void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result) {
-    if (!explorationCsv_) {
+void EvaCamExplorer::FlushExplorationCsvBuffer(const std::string &buffer) {
+    if (buffer.empty() || explorationCsvPath_.empty()) {
         return;
     }
 
-    MaybeWriteExplorationCsv(result, *explorationCsv_);
+    std::lock_guard<std::mutex> csvLock(explorationCsvMutex_);
+    std::ofstream csv(explorationCsvPath_.c_str(), std::ofstream::app);
+    if (!csv) {
+        throw std::runtime_error("Failed to append exploration CSV file: " + explorationCsvPath_);
+    }
+    csv << buffer;
+}
+
+void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result) {
+    if (explorationCsvPath_.empty()) {
+        return;
+    }
+
+    std::ostringstream csvBuffer;
+    MaybeWriteExplorationCsv(result, csvBuffer);
+    FlushExplorationCsvBuffer(csvBuffer.str());
 }
 
 void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const {
-    if (!result || !config_->ShouldWriteExplorationCsv()) {
+    if (!result || !DerivedValueHelpers::ShouldWriteExplorationCsv(config_->input, config_->constraints)) {
         return;
     }
 

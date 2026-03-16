@@ -26,7 +26,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     }
 
     if (!_internalSenseAmp) {
-        if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+        if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
             invalid = true;
             std::cout << "[BankWithoutHtree] Error: DRAM does not support external sense amplification!" << std::endl;
             return;
@@ -113,7 +113,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         int numWayPerRow = numWay / numRowPerSet;	/* At least 1, otherwise it is invalid, and returned already */
         if (numWayPerRow > 1) {		/* multiple ways per row, needs extra mux level */
             /* Do mux level recalculation to contain the multiple ways */
-            if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+            if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
                 /* for DRAM, mux before sense amp has to be 1, only mux output1 and mux output2 can be used */
                 int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
                 int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 2);
@@ -154,12 +154,12 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     if (!internalSenseAmp) {
         bool voltageSense = true;
         double senseVoltage;
-        senseVoltage = config->cell->minSenseVoltage;
-        if (config->cell->memCellType == SRAM) {
+        senseVoltage = config->technology.cell->minSenseVoltage;
+        if (config->technology.cell->memCellType == SRAM) {
             /* SRAM, DRAM, and eDRAM all use voltage sensing */
             voltageSense = true;
-        } else if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor || config->cell->memCellType == FBRAM || config->cell->memCellType == FEFETRAM) {
-            voltageSense = config->cell->readMode;
+        } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM || config->technology.cell->memCellType == FEFETRAM) {
+            voltageSense = config->technology.cell->readMode;
         } else {/* NAND flash */
             // TODO
         }
@@ -293,8 +293,8 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                 capGlobalBitline = lengthWire * globalWire->capWirePerUnit;
                 double capGlobalBitlineMux;
                 capGlobalBitlineMux = globalBitlineMux->capForPreviousDelayCalculation;
-                if (config->cell->memCellType == SRAM) {
-                    double vpre = config->cell->readVoltage;	/* This value should be equal to resetVoltage and setVoltage for SRAM */
+                if (config->technology.cell->memCellType == SRAM) {
+                    double vpre = config->technology.cell->readVoltage;	/* This value should be equal to resetVoltage and setVoltage for SRAM */
                     if (i == 0) {
                         latency = resLocalBitline * capGlobalBitline / 2 +
                             (resLocalBitline + resGlobalBitline) * (capGlobalBitline / 2 + capGlobalBitlineMux);
@@ -308,15 +308,15 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                         readLatency += latency;
                     }
                     if (i <  numActiveMatPerColumn) {
-                        energy = capGlobalBitline * config->tech->vdd() * config->tech->vdd() * numAddressBitRouteToMat;
+                        energy = capGlobalBitline * config->technology.tech->vdd() * config->technology.tech->vdd() * numAddressBitRouteToMat;
                         readDynamicEnergy += energy;
                         writeDynamicEnergy += energy;
                         readDynamicEnergy += capGlobalBitline * vpre * vpre * numWay;
                         writeDynamicEnergy += capGlobalBitline * vpre * vpre * numDataBitRouteToMat;
                     }
                     // TODO: cap calculation needs further consideration
-                } else if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor || config->cell->memCellType == FBRAM || config->cell->memCellType == FEFETRAM) {
-                    double vWrite = MAX(fabs(config->cell->resetVoltage), fabs(config->cell->setVoltage));
+                } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM || config->technology.cell->memCellType == FEFETRAM) {
+                    double vWrite = MAX(fabs(config->technology.cell->resetVoltage), fabs(config->technology.cell->setVoltage));
                     double tau, latencyOff, latencyOn;
                     double vPre = mat->subarray->voltagePrecharge;
                     double vOn = mat->subarray->voltageMemCellOn;
@@ -326,18 +326,18 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                             * (capGlobalBitline + capLocalBitline) / 2 + (resBitlineMux + resGlobalBitline
                                     + resLocalBitline) * capLocalBitline / 2;
                         writeLatency += 0.63 * tau;
-                        if (config->cell->readMode == false) {	/* current-sensing */
+                        if (config->technology.cell->readMode == false) {	/* current-sensing */
                             /* Use ICCAD 2009 model */
                             resLocalBitline += mat->subarray->resMemCellOff;
                             tau = resGlobalBitline * capGlobalBitline / 2 *
                                 (resLocalBitline + resGlobalBitline / 3) / (resLocalBitline + resGlobalBitline);
                             readLatency += 0.63 * tau;
                         } else {						/* voltage-sensing */
-                            if (config->cell->readVoltage == 0) {  /* Current-in voltage sensing */
+                            if (config->technology.cell->readVoltage == 0) {  /* Current-in voltage sensing */
                                 resLocalBitline += mat->subarray->resMemCellOn;
                                 tau = resLocalBitline * capGlobalBitline + (resLocalBitline + resGlobalBitline) * capGlobalBitline / 2;
                                 latencyOn = tau * log((vPre - vOn)/(vPre - vOn - globalSenseAmp->senseVoltage));
-                                resLocalBitline += config->cell->resistanceOff - config->cell->resistanceOn;
+                                resLocalBitline += config->technology.cell->resistanceOff - config->technology.cell->resistanceOn;
                                 tau = resLocalBitline * capGlobalBitline + (resLocalBitline + resGlobalBitline) * capGlobalBitline / 2;
                                 latencyOff = tau * log((vOff - vPre)/(vOff - vPre - globalSenseAmp->senseVoltage));
                             } else {   /*Voltage-in voltage sensing */
@@ -356,11 +356,11 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                         }
                     }
                     if (i <  numActiveMatPerColumn) {
-                        energy = capGlobalBitline * config->tech->vdd() * config->tech->vdd() * numAddressBitRouteToMat;
+                        energy = capGlobalBitline * config->technology.tech->vdd() * config->technology.tech->vdd() * numAddressBitRouteToMat;
                         readDynamicEnergy += energy;
                         writeDynamicEnergy += energy;
                         writeDynamicEnergy += capGlobalBitline * vWrite * vWrite * numDataBitRouteToMat;
-                        if (config->cell->readMode) { /*Voltage-in voltage sensing */
+                        if (config->technology.cell->readMode) { /*Voltage-in voltage sensing */
                             readDynamicEnergy += capGlobalBitline * (vPre * vPre - vOn * vOn )* numDataBitRouteToMat;
                         }
                     }

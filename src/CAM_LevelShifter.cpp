@@ -25,13 +25,13 @@ void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _res
     capLoad = _capLoad;
     resLoad = _resLoad;
     /* gate sizing: built up with 2-input nand */
-    widthNandN = 2 * MIN_NMOS_SIZE * config->tech->featureSize();
-    widthNandP = config->tech->pnSizeRatio() * MIN_NMOS_SIZE * config->tech->featureSize();
+    widthNandN = 2 * MIN_NMOS_SIZE * config->technology.tech->featureSize();
+    widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
     /* logic effort: two stages of nand and then to the driver */
-    double logicEffort = (2+config->tech->pnSizeRatio()) / (1+config->tech->pnSizeRatio());
+    double logicEffort = (2+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
     logicEffort *= logicEffort;
     /* driver's cap-in: both the input and output of nand */
-    CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+    CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
 
 
     initialized = true;
@@ -49,8 +49,8 @@ void CAM_LevelShifter::CalculateArea(){
         width = 0;
 
         double hlow, /* hlatch,*/  hhigh, wlow, wlatch, whigh; // TODO: why is hlatch unused?
-        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &hlow, &wlow, config->UseUpdatedLib);
-        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &hhigh, &whigh, config->UseUpdatedLib);
+        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &hlow, &wlow, config->peripherals.useUpdatedLib);
+        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &hhigh, &whigh, config->peripherals.useUpdatedLib);
         double hLS = MAX(hlow, hhigh);
 
         //TODO: figure out what this is supposed to be initialized to
@@ -66,7 +66,7 @@ void CAM_LevelShifter::CalculateRC() {
         std::cout << "[CAM_LevelShifter] Error: Require initialization first!" << std::endl;
     } else {
 
-        CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->tech, &capNandIn, &capNandOut);
+        CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
     }
 }
 
@@ -83,10 +83,10 @@ void CAM_LevelShifter::CalculateLatency(double _rampInput) {
         double rampInternal;
 
         /* 2 stage nand and the driver */
-        resPullDown = CalculateOnResistance(widthNandP*10, PMOS, config->temperature, config->tech);
+        resPullDown = CalculateOnResistance(widthNandP*10, PMOS, config->input.temperature, config->technology.tech);
         cap = capNandOut + capNandIn;
         tr = resPullDown * cap;
-        gm = CalculateTransconductance(widthNandN, NMOS, config->tech);
+        gm = CalculateTransconductance(widthNandN, NMOS, config->technology.tech);
         beta = 1 / (resPullDown * gm);
         readLatency = horowitz(tr, beta, rampInput, &rampInternal);
 
@@ -111,14 +111,14 @@ void CAM_LevelShifter::CalculatePower() {
 
         // Read dynamic energy
         // during read, high voltage is not triggered
-        readDynamicEnergy += cap * config->tech->vdd() * config->tech->vdd() * numInputBit; 
+        readDynamicEnergy += cap * config->technology.tech->vdd() * config->technology.tech->vdd() * numInputBit; 
 
         //std::cout << "[CAM_LevelShifter] readDynamicEnergy: " << readDynamicEnergy << std::endl;
 
 
         // Write dynamic energy (2-step write and average case half SET and half RESET)
         // 1T1R
-        writeDynamicEnergy += cap * config->tech->vdd() * config->tech->vdd()*9;    
+        writeDynamicEnergy += cap * config->technology.tech->vdd() * config->technology.tech->vdd()*9;    
     }
 }
 

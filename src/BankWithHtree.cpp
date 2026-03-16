@@ -373,7 +373,7 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         int numWayPerRow = numWay / numRowPerSet;	/* At least 1, otherwise it is invalid, and returned already */
         if (numWayPerRow > 1) {		/* multiple ways per row, needs extra mux level */
             /* Do mux level recalculation to contain the multiple ways */
-            if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+            if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
                 /* for DRAM, mux before sense amp has to be 1, only mux output1 and mux output2 can be used */
                 int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
                 int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 2);
@@ -560,13 +560,13 @@ void BankWithHtree::CalculateLatencyAndPower() {
         resetDynamicEnergy = mat->resetDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
         setDynamicEnergy = mat->setDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
 
-        if (config->designTarget == CAM_chip) {
-            if (config->NoPrechargeInc) {
+        if (config->input.designTarget == CAM_chip) {
+            if (config->peripherals.noPrechargeInc) {
                 searchLatency = mat->subarray->matchlineDelay
                     + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
                     + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
 
-                if (config->withOutputAcc || mat->muxSenseAmp > 1) {
+                if (config->peripherals.withOutputAcc || mat->muxSenseAmp > 1) {
                     config->logger.Verbose() << "[Bank] Warning: Bit serial or Mux on SA design, but latency only shows a single sense.";
                 }
             } else {
@@ -578,15 +578,15 @@ void BankWithHtree::CalculateLatencyAndPower() {
                 searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
                     - (mat->subarray->inputBuf->readLatency) * (mat->muxSenseAmp - 1);
                 //std::cout << "[BankWithHtree] searchLatency: " << searchLatency << std::endl;
-                if (config->withOutputAcc) {
-                    searchLatency *= config->wordWidth / CAM_opt->BitSerialWidth;
+                if (config->peripherals.withOutputAcc) {
+                    searchLatency *= config->input.wordWidth / CAM_opt->BitSerialWidth;
                 }
             }
 
             searchDynamicEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
                 - (mat->subarray->inputBuf->readDynamicEnergy + mat->subarray->inputEnc->readDynamicEnergy) * (mat->muxSenseAmp - 1);
-            if (config->withOutputAcc) {
-                searchDynamicEnergy *= config->wordWidth / CAM_opt->BitSerialWidth;
+            if (config->peripherals.withOutputAcc) {
+                searchDynamicEnergy *= config->input.wordWidth / CAM_opt->BitSerialWidth;
             }
             numBitSerial = CAM_opt->BitSerialWidth;
         }
@@ -609,8 +609,8 @@ void BankWithHtree::CalculateLatencyAndPower() {
             leakage += leakageWire * numSumHorizontalWire[i] * (numHorizontalAddressBitToRoute[i] +
                     numHorizontalDataDistributeBitToRoute[i] + numHorizontalDataBroadcastBitToRoute[i]);
 
-            if (config->designTarget == CAM_chip) {
-                if (!config->NoPrechargeInc)
+            if (config->input.designTarget == CAM_chip) {
+                if (!config->peripherals.noPrechargeInc)
                     searchLatency += latency * 2;
                 searchDynamicEnergy += mat->subarray->searchDynamicEnergy + energy * numActiveHorizontalWire[i] *
                     (numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i]
@@ -634,8 +634,8 @@ void BankWithHtree::CalculateLatencyAndPower() {
             leakage += leakageWire * numSumVerticalWire[i] * (numVerticalAddressBitToRoute[i] +
                     numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i]);
 
-            if (config->designTarget == CAM_chip) {
-                if (!config->NoPrechargeInc)
+            if (config->input.designTarget == CAM_chip) {
+                if (!config->peripherals.noPrechargeInc)
                     searchLatency += latency * 2;
 
                 searchDynamicEnergy += mat->subarray->searchDynamicEnergy + energy * numActiveVerticalWire[i] *

@@ -11,17 +11,17 @@ void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double
     resBitline = _resBitline;
     config = _config;
     localWire = _localWire;
-    capWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize() * localWire->capWirePerUnit;
-    resWireLoadPerColumn = config->cell->widthInFeatureSize * config->tech->featureSize() * localWire->resWirePerUnit;
-    widthInvNmos = MIN_NMOS_SIZE * config->tech->featureSize();
-    widthInvPmos = widthInvNmos * config->tech->pnSizeRatio();
-    widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->tech->featureSize();
-    widthPMOSBitlinePrecharger = PRECHARGER_SIZE * config->tech->featureSize();
-    capLoadInv  = CalculateGateCap(widthPMOSBitlineEqual, config->tech) + 2 * CalculateGateCap(widthPMOSBitlinePrecharger, config->tech)
-        + CalculateDrainCap(widthInvNmos, NMOS, config->tech->featureSize()*40, config->tech)
-        + CalculateDrainCap(widthInvPmos, PMOS, config->tech->featureSize()*40, config->tech);
-    capOutputBitlinePrecharger = CalculateDrainCap(widthPMOSBitlinePrecharger, PMOS, config->tech->featureSize()*40, config->tech) + CalculateDrainCap(widthPMOSBitlineEqual, PMOS, config->tech->featureSize()*40, config->tech);
-    double capInputInv         = CalculateGateCap(widthInvNmos, config->tech) + CalculateGateCap(widthInvPmos, config->tech);
+    capWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire->capWirePerUnit;
+    resWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire->resWirePerUnit;
+    widthInvNmos = MIN_NMOS_SIZE * config->technology.tech->featureSize();
+    widthInvPmos = widthInvNmos * config->technology.tech->pnSizeRatio();
+    widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->technology.tech->featureSize();
+    widthPMOSBitlinePrecharger = PRECHARGER_SIZE * config->technology.tech->featureSize();
+    capLoadInv  = CalculateGateCap(widthPMOSBitlineEqual, config->technology.tech) + 2 * CalculateGateCap(widthPMOSBitlinePrecharger, config->technology.tech)
+        + CalculateDrainCap(widthInvNmos, NMOS, config->technology.tech->featureSize()*40, config->technology.tech)
+        + CalculateDrainCap(widthInvPmos, PMOS, config->technology.tech->featureSize()*40, config->technology.tech);
+    capOutputBitlinePrecharger = CalculateDrainCap(widthPMOSBitlinePrecharger, PMOS, config->technology.tech->featureSize()*40, config->technology.tech) + CalculateDrainCap(widthPMOSBitlineEqual, PMOS, config->technology.tech->featureSize()*40, config->technology.tech);
+    double capInputInv         = CalculateGateCap(widthInvNmos, config->technology.tech) + CalculateGateCap(widthInvPmos, config->technology.tech);
     capLoadPerColumn           = capInputInv + capWireLoadPerColumn;
     double capLoadOutputDriver = numColumn * capLoadPerColumn;
     outputDriver = std::make_shared<OutputDriver>();
@@ -41,9 +41,9 @@ void CAM_Precharger::CalculateArea() {
         double hBitlinePrechareger, wBitlinePrechareger;
         double hBitlineEqual, wBitlineEqual;
         double hInverter, wInverter;
-        CalculateGateArea(INV, 1, 0, widthPMOSBitlinePrecharger, config->tech->featureSize()*40, config->tech, &hBitlinePrechareger, &wBitlinePrechareger, config->UseUpdatedLib);
-        CalculateGateArea(INV, 1, 0, widthPMOSBitlineEqual, config->tech->featureSize()*40, config->tech, &hBitlineEqual, &wBitlineEqual, config->UseUpdatedLib);
-        CalculateGateArea(INV, 1, widthInvNmos, widthInvPmos, config->tech->featureSize()*40, config->tech, &hInverter, &wInverter, config->UseUpdatedLib);
+        CalculateGateArea(INV, 1, 0, widthPMOSBitlinePrecharger, config->technology.tech->featureSize()*40, config->technology.tech, &hBitlinePrechareger, &wBitlinePrechareger, config->peripherals.useUpdatedLib);
+        CalculateGateArea(INV, 1, 0, widthPMOSBitlineEqual, config->technology.tech->featureSize()*40, config->technology.tech, &hBitlineEqual, &wBitlineEqual, config->peripherals.useUpdatedLib);
+        CalculateGateArea(INV, 1, widthInvNmos, widthInvPmos, config->technology.tech->featureSize()*40, config->technology.tech, &hInverter, &wInverter, config->peripherals.useUpdatedLib);
         // begin_change
         //width = 2 * wBitlinePrechareger + wBitlineEqual;
         width = 2 * wBitlinePrechareger;

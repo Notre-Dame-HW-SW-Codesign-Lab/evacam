@@ -33,7 +33,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
     precharger = std::make_shared<Precharger>();
     senseAmp = std::make_shared<SenseAmp>();
 
-    if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+    if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
         if (muxSenseAmp > 1) {
             /* DRAM does not allow muxed bitline because of its destructive readout */
             invalid = true;
@@ -41,8 +41,8 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             return;
         }
     }
-    if (config->cell->memCellType == SLCNAND) {
-        if (numRow < config->flashBlockSize / config->pageSize) {
+    if (config->technology.cell->memCellType == SLCNAND) {
+        if (numRow < config->input.flashBlockSize / config->input.pageSize) {
             /* SLC NAND does not have enough rows to hold the page count */
             invalid = true;
             initialized = true;
@@ -56,7 +56,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
         }
     }
 
-    if (config->cell->memCellType == memristor || config->cell->memCellType == FBRAM) {
+    if (config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM) {
         if (internalSenseAmp && muxSenseAmp < 2) {
             /* There is no way to put the sense amp */
             invalid = true;
@@ -66,110 +66,110 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
         }
     }
 
-    if (config->cell->memCellType == FBRAM) {
-        if (config->cell->resistanceOff / config->cell->resistanceOn < numRow / BITLINE_LEAKAGE_TOLERANCE) {
+    if (config->technology.cell->memCellType == FBRAM) {
+        if (config->technology.cell->resistanceOff / config->technology.cell->resistanceOn < numRow / BITLINE_LEAKAGE_TOLERANCE) {
             /* bitline too long */
             invalid = true;
             std::cout << "bitline too long" << std::endl;
             initialized = true;
             return;
         }
-        maxBitlineCurrent = MAX(config->cell->resetCurrent, config->cell->setCurrent) + config->cell->leakageCurrentAccessDevice * (numRow - 1);
+        maxBitlineCurrent = MAX(config->technology.cell->resetCurrent, config->technology.cell->setCurrent) + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
     }
 
-    if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor) {
-        if (config->cell->accessType == CMOS_access){
-            if (config->tech->currentOnNmos()[config->temperature - 300]
-                    / config->tech->currentOffNmos()[config->temperature - 300] < numRow / BITLINE_LEAKAGE_TOLERANCE) {
+    if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor) {
+        if (config->technology.cell->accessType == CMOS_access){
+            if (config->technology.tech->currentOnNmos()[config->input.temperature - 300]
+                    / config->technology.tech->currentOffNmos()[config->input.temperature - 300] < numRow / BITLINE_LEAKAGE_TOLERANCE) {
                 /* bitline too long */
                 invalid = true;
                 std::cout << "bitline too long" << std::endl;
                 initialized = true;
                 return;
             }
-            maxBitlineCurrent = MAX(config->cell->resetCurrent, config->cell->setCurrent) + config->cell->leakageCurrentAccessDevice * (numRow - 1);
+            maxBitlineCurrent = MAX(config->technology.cell->resetCurrent, config->technology.cell->setCurrent) + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
         } else { //non-CMOS access
             /* Write half select problem limit the array size */
             double resetCurrent;
-            if (config->cell->resetCurrent == 0) {
-                resetCurrent = (fabs (config->cell->resetVoltage) - config->cell->voltageDropAccessDevice) / config->cell->resistanceOnAtResetVoltage;
+            if (config->technology.cell->resetCurrent == 0) {
+                resetCurrent = (fabs (config->technology.cell->resetVoltage) - config->technology.cell->voltageDropAccessDevice) / config->technology.cell->resistanceOnAtResetVoltage;
             } else
-                resetCurrent = config->cell->resetCurrent;
+                resetCurrent = config->technology.cell->resetCurrent;
             int numSelectedColumnPerRow = numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
-            if (config->cell->accessType == none_access) {
-                maxWordlineCurrent = resetCurrent * numSelectedColumnPerRow + resetCurrent * config->cell->resistanceOnAtResetVoltage
-                    / 2 / config->cell->resistanceOnAtHalfResetVoltage * (numColumn - numSelectedColumnPerRow);
+            if (config->technology.cell->accessType == none_access) {
+                maxWordlineCurrent = resetCurrent * numSelectedColumnPerRow + resetCurrent * config->technology.cell->resistanceOnAtResetVoltage
+                    / 2 / config->technology.cell->resistanceOnAtHalfResetVoltage * (numColumn - numSelectedColumnPerRow);
             } else { //diode or BJT
-                maxWordlineCurrent = resetCurrent * numSelectedColumnPerRow + config->cell->leakageCurrentAccessDevice
+                maxWordlineCurrent = resetCurrent * numSelectedColumnPerRow + config->technology.cell->leakageCurrentAccessDevice
                     * (numColumn - numSelectedColumnPerRow);
             }
-            double minWordlineDriverWidth = maxWordlineCurrent / config->tech->currentOnNmos()[config->temperature - 300];
-            if (minWordlineDriverWidth > config->maxNmosSize * config->tech->featureSize()) {
+            double minWordlineDriverWidth = maxWordlineCurrent / config->technology.tech->currentOnNmos()[config->input.temperature - 300];
+            if (minWordlineDriverWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
                 invalid = true;
                 std::cout << "too large minWordlineDriverWidth" << std::endl;
                 return;
             }
-            if (config->cell->accessType == none_access) {
-                maxBitlineCurrent = resetCurrent + resetCurrent * config->cell->resistanceOnAtResetVoltage / 2
-                    / config->cell->resistanceOnAtHalfResetVoltage * (numRow - 1);
+            if (config->technology.cell->accessType == none_access) {
+                maxBitlineCurrent = resetCurrent + resetCurrent * config->technology.cell->resistanceOnAtResetVoltage / 2
+                    / config->technology.cell->resistanceOnAtHalfResetVoltage * (numRow - 1);
             } else { //diode or BJT
-                maxBitlineCurrent = resetCurrent + config->cell->leakageCurrentAccessDevice * (numRow - 1);
+                maxBitlineCurrent = resetCurrent + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
             }
         }
     }
 
-    double minBitlineMuxWidth = maxBitlineCurrent / config->tech->currentOnNmos()[config->temperature - 300];
-    minBitlineMuxWidth = MAX(MIN_NMOS_SIZE * config->tech->featureSize(), minBitlineMuxWidth);
-    if (minBitlineMuxWidth > config->maxNmosSize * config->tech->featureSize()) {
+    double minBitlineMuxWidth = maxBitlineCurrent / config->technology.tech->currentOnNmos()[config->input.temperature - 300];
+    minBitlineMuxWidth = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(), minBitlineMuxWidth);
+    if (minBitlineMuxWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
         invalid = true;
-        std::cout << "minBitlineMuxWidth > config->maxNmosSize * config->tech->featureSize()" << std::endl;
+        std::cout << "minBitlineMuxWidth > config->input.maxNmosSize * config->technology.tech->featureSize()" << std::endl;
         return;
     }
 
     if (internalSenseAmp) {
-        if (config->cell->memCellType == SRAM || config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+        if (config->technology.cell->memCellType == SRAM || config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
             /* SRAM, DRAM, and eDRAM all use voltage sensing */
             voltageSense = true;
-        } else if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor || config->cell->memCellType == FBRAM) {
-            voltageSense = config->cell->readMode;
+        } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM) {
+            voltageSense = config->technology.cell->readMode;
         } else {/* NAND flash */
             voltageSense = true;
         }
-    } else if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+    } else if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
         std::cout << "[Subarray] Error: DRAM does not support external sense amplifiers!" << std::endl;
         exit(-1);
     }
 
-    if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
-        senseVoltage = config->tech->vdd() / 2 * config->cell->capDRAMCell / (config->cell->capDRAMCell + capBitline);
-        if (senseVoltage < config->cell->minSenseVoltage) {		/* Bitline is too long */
+    if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
+        senseVoltage = config->technology.tech->vdd() / 2 * config->technology.cell->capDRAMCell / (config->technology.cell->capDRAMCell + capBitline);
+        if (senseVoltage < config->technology.cell->minSenseVoltage) {		/* Bitline is too long */
             invalid = true;
             std::cout << "bitline is too long" << std::endl;
             initialized = true;
             return;
         }
-    } else if (config->cell->memCellType == SLCNAND){
+    } else if (config->technology.cell->memCellType == SLCNAND){
         /* suppose the reference voltage is 0.5Vdd, the initial bitline voltage is 0.6Vdd
          * if the bitline drops to 0.4Vdd, the senseamp can tell which mem_data is stored */
-        senseVoltage = MAX(config->cell->minSenseVoltage, 0.2 * config->tech->vdd());
+        senseVoltage = MAX(config->technology.cell->minSenseVoltage, 0.2 * config->technology.tech->vdd());
     } else {
         /* TODO: different memory config->technology might have different values here */
-        senseVoltage = config->cell->minSenseVoltage;
+        senseVoltage = config->technology.cell->minSenseVoltage;
     }
 
     /* Derived parameters */
     numSenseAmp = numColumn / muxSenseAmp;
-    lenWordline = (double)numColumn * config->cell->widthInFeatureSize * config->tech->featureSize();
-    lenBitline = (double)numRow * config->cell->heightInFeatureSize * config->tech->featureSize();
+    lenWordline = (double)numColumn * config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize();
+    lenBitline = (double)numRow * config->technology.cell->heightInFeatureSize * config->technology.tech->featureSize();
     /* Add stitching overhead if necessary */
-    if (config->cell->stitching) {
-        lenWordline += ((numColumn - 1) / config->cell->stitching + 1) * STITCHING_OVERHEAD * config->tech->featureSize();
+    if (config->technology.cell->stitching) {
+        lenWordline += ((numColumn - 1) / config->technology.cell->stitching + 1) * STITCHING_OVERHEAD * config->technology.tech->featureSize();
     }
     /* Add select transistors into the length calculation */
-    if (config->cell->memCellType == SLCNAND) {
-        int pageCount = config->flashBlockSize / config->pageSize;
+    if (config->technology.cell->memCellType == SLCNAND) {
+        int pageCount = config->input.flashBlockSize / config->input.pageSize;
         /* Two select transistor including contacts have total length of 5F */
-        lenBitline += (numRow / pageCount) * 5 * config->tech->featureSize();
+        lenBitline += (numRow / pageCount) * 5 * config->technology.tech->featureSize();
     }
     /* Calculate wire resistance/capacitance */
     capWordline = lenWordline * localWire->capWirePerUnit;
@@ -180,37 +180,37 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
     /* Caclulate the load resistance and capacitance for Mux Decoders */
     double capMuxLoad, resMuxLoad;
     resMuxLoad = resWordline;
-    capMuxLoad = CalculateGateCap(minBitlineMuxWidth, config->tech) * numColumn;
+    capMuxLoad = CalculateGateCap(minBitlineMuxWidth, config->technology.tech) * numColumn;
     capMuxLoad += capWordline;
 
     /* Add transistor resistance/capacitance */
-    if (config->cell->memCellType == SRAM) {
+    if (config->technology.cell->memCellType == SRAM) {
         /* SRAM has two access transistors */
-        resCellAccess = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->temperature, config->tech);
-        capCellAccess = CalculateDrainCap(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech);
-        capWordline += 2 * CalculateGateCap(config->cell->widthAccessCMOS * config->tech->featureSize(), config->tech) * numColumn;
+        resCellAccess = CalculateOnResistance(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech);
+        capCellAccess = CalculateDrainCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech);
+        capWordline += 2 * CalculateGateCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), config->technology.tech) * numColumn;
         capBitline  += capCellAccess * numRow / 2;	/* Due to shared contact */
-        voltagePrecharge = config->tech->vdd() / 2;	/* SRAM read voltage is always half of vdd */
-    } else if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+        voltagePrecharge = config->technology.tech->vdd() / 2;	/* SRAM read voltage is always half of vdd */
+    } else if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
         /* DRAM and eDRAM only has one access transistors */
-        resCellAccess = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->temperature, config->tech);
-        capCellAccess = CalculateDrainCap(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech);
-        capWordline += CalculateGateCap(config->cell->widthAccessCMOS * config->tech->featureSize(), config->tech) * numColumn;
+        resCellAccess = CalculateOnResistance(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech);
+        capCellAccess = CalculateDrainCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech);
+        capWordline += CalculateGateCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), config->technology.tech) * numColumn;
         capBitline  += capCellAccess * numRow / 2;	/* Due to shared contact */
-        voltagePrecharge = config->tech->vdd() / 2;	/* DRAM read voltage is always half of vdd */
-    } else if (config->cell->memCellType == FBRAM) { /* Floating Body RAM */
+        voltagePrecharge = config->technology.tech->vdd() / 2;	/* DRAM read voltage is always half of vdd */
+    } else if (config->technology.cell->memCellType == FBRAM) { /* Floating Body RAM */
         resCellAccess = 0;
-        capCellAccess = CalculateFBRAMDrainCap(config->cell->widthSOIDevice * config->tech->featureSize(), config->tech);
-        capWordline += CalculateFBRAMGateCap(config->cell->widthSOIDevice * config->tech->featureSize(), config->cell->gateOxThicknessFactor, config->tech) * numColumn;
+        capCellAccess = CalculateFBRAMDrainCap(config->technology.cell->widthSOIDevice * config->technology.tech->featureSize(), config->technology.tech);
+        capWordline += CalculateFBRAMGateCap(config->technology.cell->widthSOIDevice * config->technology.tech->featureSize(), config->technology.cell->gateOxThicknessFactor, config->technology.tech) * numColumn;
         capBitline  += capCellAccess * numRow / 2;	/* Due to shared contact */
-        resMemCellOff = config->cell->resistanceOff;
-        resMemCellOn = config->cell->resistanceOn;
-        if (config->cell->readMode) {						/* voltage-sensing */
-            if (config->cell->readVoltage == 0) {  /* Current-in voltage sensing */
-                voltageMemCellOff = config->cell->readCurrent * resMemCellOff;
-                voltageMemCellOn = config->cell->readCurrent * resMemCellOn;
+        resMemCellOff = config->technology.cell->resistanceOff;
+        resMemCellOn = config->technology.cell->resistanceOn;
+        if (config->technology.cell->readMode) {						/* voltage-sensing */
+            if (config->technology.cell->readVoltage == 0) {  /* Current-in voltage sensing */
+                voltageMemCellOff = config->technology.cell->readCurrent * resMemCellOff;
+                voltageMemCellOn = config->technology.cell->readCurrent * resMemCellOn;
                 voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-                voltagePrecharge = MIN(config->tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+                voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
                 if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                     std::cout <<"Error[Subarray]: Read current too large or too small that no reasonable precharge voltage existing" <<std::endl;
                     invalid = true;
@@ -220,10 +220,10 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 resInSerialForSenseAmp = sqrt(resMemCellOn * resMemCellOff);
                 resEquivalentOn = resMemCellOn * resInSerialForSenseAmp / (resMemCellOn + resInSerialForSenseAmp);
                 resEquivalentOff = resMemCellOff * resInSerialForSenseAmp / (resMemCellOff + resInSerialForSenseAmp);
-                voltageMemCellOff = config->cell->readVoltage * resMemCellOff / (resMemCellOff + resInSerialForSenseAmp);
-                voltageMemCellOn = config->cell->readVoltage * resMemCellOn / (resMemCellOn + resInSerialForSenseAmp);
+                voltageMemCellOff = config->technology.cell->readVoltage * resMemCellOff / (resMemCellOff + resInSerialForSenseAmp);
+                voltageMemCellOn = config->technology.cell->readVoltage * resMemCellOn / (resMemCellOn + resInSerialForSenseAmp);
                 voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-                voltagePrecharge = MIN(config->tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+                voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
                 if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                     std::cout <<"Error[Subarray]: Read Voltage too large or too small that no reasonable precharge voltage existing" <<std::endl;
                     invalid = true;
@@ -231,44 +231,44 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 }
             }
         }
-    } else if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor) {
+    } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor) {
         /* MRAM, PCRAM, and memristor have three types of access devices: CMOS, BJT, and diode */
-        if (config->cell->accessType == CMOS_access) {
-            resCellAccess = CalculateOnResistance(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->temperature, config->tech);
-            capCellAccess = CalculateDrainCap(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech);
-            capWordline += CalculateGateCap(config->cell->widthAccessCMOS * config->tech->featureSize(), config->tech) * numColumn;
+        if (config->technology.cell->accessType == CMOS_access) {
+            resCellAccess = CalculateOnResistance(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech);
+            capCellAccess = CalculateDrainCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech);
+            capWordline += CalculateGateCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), config->technology.tech) * numColumn;
             capBitline  += capCellAccess * numRow / 2;	/* Due to shared contact */
-        } else if (config->cell->accessType == BJT_access) {
+        } else if (config->technology.cell->accessType == BJT_access) {
             // TODO
-            /*	} else if (config->cell->accessType == diode_access){
-                if (config->cell->readVoltage == 0) {
-                resCellAccess = config->cell->voltageDropAccessDevice / config->cell->readCurrent;
+            /*	} else if (config->technology.cell->accessType == diode_access){
+                if (config->technology.cell->readVoltage == 0) {
+                resCellAccess = config->technology.cell->voltageDropAccessDevice / config->technology.cell->readCurrent;
                 } else {
-                if (config->cell->readMode == false) {
-                resCellAccess = config->cell->voltageDropAccessDevice / (config->cell->readVoltage
-                - config->cell->voltageDropAccessDevice) * config->cell->resistanceOn;
+                if (config->technology.cell->readMode == false) {
+                resCellAccess = config->technology.cell->voltageDropAccessDevice / (config->technology.cell->readVoltage
+                - config->technology.cell->voltageDropAccessDevice) * config->technology.cell->resistanceOn;
                 } else {
                 std::cout<<"Error[Subarray]: Diode access do not support voltage-input voltage sensing" <<std::endl;
                 exit(-1);
                 }
                 }
-                capCellAccess = MAX(config->cell->capacitanceOn, config->cell->capacitanceOff);
-                capWordline += MAX(config->cell->capacitanceOff, config->cell->capacitanceOn) * numColumn;
-                capBitline += MAX(config->cell->capacitanceOff, config->cell->capacitanceOn) * numRow;      */
+                capCellAccess = MAX(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
+                capWordline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numColumn;
+                capBitline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numRow;      */
     } else { // none_access || diode_access
              // resCellAccess = 0;
-             // capCellAccess = MAX(config->cell->capacitanceOn, config->cell->capacitanceOff);
-             // capWordline += MAX(config->cell->capacitanceOff, config->cell->capacitanceOn) * numColumn;  //TODO: choose the right capacitance
-             // capBitline += MAX(config->cell->capacitanceOff, config->cell->capacitanceOn) * numRow;      //TODO: choose the right capacitance
+             // capCellAccess = MAX(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
+             // capWordline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numColumn;  //TODO: choose the right capacitance
+             // capBitline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numRow;      //TODO: choose the right capacitance
     }
-    resMemCellOff = resCellAccess + config->cell->resistanceOff;
-    resMemCellOn = resCellAccess + config->cell->resistanceOn;
-    if (config->cell->readMode) {						/* voltage-sensing */
-        if (config->cell->readVoltage == 0) {  /* Current-in voltage sensing */
-            voltageMemCellOff = config->cell->readCurrent * resMemCellOff;
-            voltageMemCellOn = config->cell->readCurrent * resMemCellOn;
+    resMemCellOff = resCellAccess + config->technology.cell->resistanceOff;
+    resMemCellOn = resCellAccess + config->technology.cell->resistanceOn;
+    if (config->technology.cell->readMode) {						/* voltage-sensing */
+        if (config->technology.cell->readVoltage == 0) {  /* Current-in voltage sensing */
+            voltageMemCellOff = config->technology.cell->readCurrent * resMemCellOff;
+            voltageMemCellOn = config->technology.cell->readCurrent * resMemCellOn;
             voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-            voltagePrecharge = MIN(config->tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+            voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
             if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                 std::cout <<"Error[Subarray]: Read current too large or too small that no reasonable precharge voltage existing" <<std::endl;
                 invalid = true;
@@ -278,10 +278,10 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             resInSerialForSenseAmp = sqrt(resMemCellOn * resMemCellOff);
             resEquivalentOn = resMemCellOn * resInSerialForSenseAmp / (resMemCellOn + resInSerialForSenseAmp);
             resEquivalentOff = resMemCellOff * resInSerialForSenseAmp / (resMemCellOff + resInSerialForSenseAmp);
-            voltageMemCellOff = config->cell->readVoltage * resMemCellOff / (resMemCellOff + resInSerialForSenseAmp);
-            voltageMemCellOn = config->cell->readVoltage * resMemCellOn / (resMemCellOn + resInSerialForSenseAmp);
+            voltageMemCellOff = config->technology.cell->readVoltage * resMemCellOff / (resMemCellOff + resInSerialForSenseAmp);
+            voltageMemCellOn = config->technology.cell->readVoltage * resMemCellOn / (resMemCellOn + resInSerialForSenseAmp);
             voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-            voltagePrecharge = MIN(config->tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+            voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
             if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                 std::cout <<"Error[Subarray]: Read Voltage too large or too small that no reasonable precharge voltage existing" <<std::endl;
                 invalid = true;
@@ -289,23 +289,23 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             }
         }
     }
-    } else if (config->cell->memCellType == SLCNAND) {
+    } else if (config->technology.cell->memCellType == SLCNAND) {
         /* Calculate the NAND flash string length, which is the page count per block plus 2 (two select transistors) */
-        int pageCount = config->flashBlockSize / config->pageSize;
+        int pageCount = config->input.flashBlockSize / config->input.pageSize;
         int stringLength = pageCount + 2;
-        resCellAccess = CalculateOnResistance(config->tech->featureSize(), NMOS, config->temperature, config->tech) * stringLength;
-        capCellAccess = CalculateDrainCap(config->tech->featureSize(), NMOS, config->cell->widthInFeatureSize * config->tech->featureSize(), config->tech);
+        resCellAccess = CalculateOnResistance(config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech) * stringLength;
+        capCellAccess = CalculateDrainCap(config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech);
         /* The capacitance of each cell at the gate terminal is the series of C_control_gate | C_floating_gate */
-        capWordline += CalculateGateCap(config->tech->featureSize(), config->tech) * numColumn * config->cell->gateCouplingRatio / (config->cell->gateCouplingRatio + 1);
+        capWordline += CalculateGateCap(config->technology.tech->featureSize(), config->technology.tech) * numColumn * config->technology.cell->gateCouplingRatio / (config->technology.cell->gateCouplingRatio + 1);
         capBitline  += capCellAccess * (numRow / pageCount) / 2;	/* 2 is due to shared contact and the effective row count is numRow/pageCount */
-        voltagePrecharge = config->tech->vdd() * 0.6;	/* SLC NAND flash bitline precharge voltage is assumed to 0.6Vdd */
+        voltagePrecharge = config->technology.tech->vdd() * 0.6;	/* SLC NAND flash bitline precharge voltage is assumed to 0.6Vdd */
     } else {	/* MLC NAND flash */
         // TODO
     }
 
     /* Initialize sub-component */
 
-    precharger->Initialize(config->tech->vdd(), numColumn, capBitline, resBitline, config, localWire);
+    precharger->Initialize(config->technology.tech->vdd(), numColumn, capBitline, resBitline, config, localWire);
     //precharger->CalculateRC();
 
     rowDecoder->Initialize(numRow, capWordline, resWordline, multipleRowPerSet, areaOptimizationLevel, maxWordlineCurrent, config);
@@ -466,14 +466,14 @@ void SubArray::CalculateLatency(double _rampInput) {
         double tauChargeLatency = resPassTransistor * (capPassTransistor + capBitline) + resBitline * capBitline / 2;
         chargeLatency = horowitz(tauChargeLatency, 0, 1e20, NULL);
 
-        if (config->cell->memCellType == SRAM) {
+        if (config->technology.cell->memCellType == SRAM) {
             /* Codes below calculate the bitline latency */
-            double resPullDown = CalculateOnResistance(config->cell->widthSRAMCellNMOS * config->tech->featureSize(), NMOS,
-                    config->temperature, config->tech);
+            double resPullDown = CalculateOnResistance(config->technology.cell->widthSRAMCellNMOS * config->technology.tech->featureSize(), NMOS,
+                    config->input.temperature, config->technology.tech);
             double tau = (resCellAccess + resPullDown) * (capCellAccess + capBitline + bitlineMux->capForPreviousDelayCalculation)
                 + resBitline * (bitlineMux->capForPreviousDelayCalculation + capBitline / 2);
             tau *= log(voltagePrecharge / (voltagePrecharge - senseVoltage / 2));	/* one signal raises and the other drops, so senseVoltage/2 is enough */
-            double gm = CalculateTransconductance(config->cell->widthAccessCMOS * config->tech->featureSize(), NMOS, config->tech);
+            double gm = CalculateTransconductance(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), NMOS, config->technology.tech);
             double beta = 1 / (resPullDown * gm);
             double bitlineRamp = 0;
             bitlineDelay = horowitz(tau, beta, rowDecoder->rampOutput, &bitlineRamp);
@@ -490,9 +490,9 @@ void SubArray::CalculateLatency(double _rampInput) {
                 + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency;
             /* assume symmetric read/write for SRAM bitline delay */
             writeLatency = readLatency;
-        } else if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
-            double cap = (capCellAccess + config->cell->capDRAMCell) * (capBitline + bitlineMux->capForPreviousDelayCalculation)
-                / (capCellAccess + config->cell->capDRAMCell + capBitline + bitlineMux->capForPreviousDelayCalculation);
+        } else if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
+            double cap = (capCellAccess + config->technology.cell->capDRAMCell) * (capBitline + bitlineMux->capForPreviousDelayCalculation)
+                / (capCellAccess + config->technology.cell->capDRAMCell + capBitline + bitlineMux->capForPreviousDelayCalculation);
             double res = resBitline + resCellAccess;
             double tau = 2.3 * res * cap;
             double bitlineRamp = 0;
@@ -505,14 +505,14 @@ void SubArray::CalculateLatency(double _rampInput) {
                 + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency;
             /* assume symmetric read/write for DRAM/eDRAM bitline delay */
             writeLatency = readLatency;
-        } else if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor || config->cell->memCellType == FBRAM) {
+        } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM) {
             double bitlineRamp = 0;
-            if (config->cell->readMode == false) {	/* current-sensing */
+            if (config->technology.cell->readMode == false) {	/* current-sensing */
                 /* Use ICCAD 2009 model */
                 double tau = resBitline * capBitline / 2 * (resMemCellOff + resBitline / 3) / (resMemCellOff + resBitline);
                 bitlineDelay = horowitz(tau, 0, rowDecoder->rampOutput, &bitlineRamp);
             } else {						/* voltage-sensing */
-                if (config->cell->readVoltage == 0) {  /* Current-in voltage sensing */
+                if (config->technology.cell->readVoltage == 0) {  /* Current-in voltage sensing */
                     double tau = resMemCellOn * (capCellAccess + capBitline + bitlineMux->capForPreviousDelayCalculation)
                         + resBitline * (bitlineMux->capForPreviousDelayCalculation + capBitline / 2); /* time constant of LRS */
                     bitlineDelayOn = tau * log((voltagePrecharge - voltageMemCellOn)/(voltagePrecharge - voltageMemCellOn - senseVoltage));  /* BitlineDelay of HRS */
@@ -543,47 +543,47 @@ void SubArray::CalculateLatency(double _rampInput) {
             readLatency = decoderLatency + bitlineDelay + bitlineMux->readLatency + senseAmp->readLatency
                 + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency;
 
-            if (config->cell->memCellType == PCRAM) {
-                if (config->writeScheme == write_and_verify) {
+            if (config->technology.cell->memCellType == PCRAM) {
+                if (config->input.writeScheme == write_and_verify) {
                     /*TODO: write and verify programming */
                 } else {
                     writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);	/* TODO: why not directly use precharger latency? */
-                    resetLatency = writeLatency + config->cell->resetPulse;
-                    setLatency = writeLatency + config->cell->setPulse;
-                    writeLatency += MAX(config->cell->resetPulse, config->cell->setPulse);
+                    resetLatency = writeLatency + config->technology.cell->resetPulse;
+                    setLatency = writeLatency + config->technology.cell->setPulse;
+                    writeLatency += MAX(config->technology.cell->resetPulse, config->technology.cell->setPulse);
                 }
-            } else if (config->cell->memCellType == FBRAM) {
+            } else if (config->technology.cell->memCellType == FBRAM) {
                 writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
-                resetLatency = writeLatency + config->cell->resetPulse;
-                setLatency = writeLatency + config->cell->setPulse;
-                writeLatency += MAX(config->cell->resetPulse, config->cell->setPulse);
+                resetLatency = writeLatency + config->technology.cell->resetPulse;
+                setLatency = writeLatency + config->technology.cell->setPulse;
+                writeLatency += MAX(config->technology.cell->resetPulse, config->technology.cell->setPulse);
             } else { //memristor and MRAM
-                if (config->cell->accessType == diode_access || config->cell->accessType == none_access) {
-                    if (config->writeScheme == erase_before_reset || config->writeScheme == erase_before_set)
+                if (config->technology.cell->accessType == diode_access || config->technology.cell->accessType == none_access) {
+                    if (config->input.writeScheme == erase_before_reset || config->input.writeScheme == erase_before_set)
                         writeLatency = MAX(rowDecoder->writeLatency, chargeLatency);
                     else
                         writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
                     writeLatency += chargeLatency;
-                    writeLatency += config->cell->resetPulse + config->cell->setPulse;
+                    writeLatency += config->technology.cell->resetPulse + config->technology.cell->setPulse;
                 } else { // CMOS or Bipolar access
                     writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
-                    resetLatency = writeLatency + config->cell->resetPulse;
-                    setLatency = writeLatency + config->cell->setPulse;
-                    writeLatency += MAX(config->cell->resetPulse, config->cell->setPulse);
+                    resetLatency = writeLatency + config->technology.cell->resetPulse;
+                    setLatency = writeLatency + config->technology.cell->setPulse;
+                    writeLatency += MAX(config->technology.cell->resetPulse, config->technology.cell->setPulse);
                 }
             }
-        } else if (config->cell->memCellType == SLCNAND) {
+        } else if (config->technology.cell->memCellType == SLCNAND) {
             /* Calculate the NAND flash string length, which is the page count per block plus 2 (two select transistors) */
-            int pageCount = config->flashBlockSize / config->pageSize;
+            int pageCount = config->input.flashBlockSize / config->input.pageSize;
             int stringLength = pageCount + 2;
             /* Codes below calculate the bitline latency */
-            double resPullDown = CalculateOnResistance(config->tech->featureSize(), NMOS, config->temperature, config->tech)
+            double resPullDown = CalculateOnResistance(config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech)
                 * stringLength;
             double tau = resPullDown * (capCellAccess + capBitline + bitlineMux->capForPreviousDelayCalculation)
                 + resBitline * (bitlineMux->capForPreviousDelayCalculation + capBitline / 2);
             /* in one case the bitline is unchanged, and in the other case the bitline drops from 0.6V to 0.4V */
             tau *= log((voltagePrecharge)/ (voltagePrecharge - senseVoltage));
-            double gm = CalculateTransconductance(config->tech->featureSize(), NMOS, config->tech);	/* minimum size transistor */
+            double gm = CalculateTransconductance(config->technology.tech->featureSize(), NMOS, config->technology.tech);	/* minimum size transistor */
             double beta = 1 / (resPullDown * gm);
             double bitlineRamp = 0;
             bitlineDelay = horowitz(tau, beta, rowDecoder->rampOutput, &bitlineRamp);
@@ -601,9 +601,9 @@ void SubArray::CalculateLatency(double _rampInput) {
             readLatency = decoderLatency + bitlineDelay + bitlineMux->readLatency + senseAmp->readLatency
                 + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency;
             /* calculate the erase time, a.k.a. reset here */
-            resetLatency = MAX(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->cell->flashEraseTime;
+            resetLatency = MAX(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->technology.cell->flashEraseTime;
             /* calculate the programming time, a.k.a. set here */
-            setLatency = MAX(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->cell->flashProgramTime;
+            setLatency = MAX(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->technology.cell->flashProgramTime;
             /* use the programming latency as the write latency for SLC NAND*/
             writeLatency = setLatency;
         } else {	/* MLC NAND */
@@ -630,30 +630,30 @@ void SubArray::CalculatePower() {
         senseAmpMuxLev1->CalculatePower();
         senseAmpMuxLev2->CalculatePower();
 
-        if (config->cell->memCellType == SRAM) {
+        if (config->technology.cell->memCellType == SRAM) {
             /* Codes below calculate the SRAM bitline power */
             readDynamicEnergy = (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation)
                 * voltagePrecharge * voltagePrecharge * numColumn;
             writeDynamicEnergy = (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation)
                 * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
-            leakage = CalculateGateLeakage(INV, 1, config->cell->widthSRAMCellNMOS * config->tech->featureSize(),
-                    config->cell->widthSRAMCellPMOS * config->tech->featureSize(), config->temperature, config->tech)
-                * config->tech->vdd() * 2;	/* two inverters per SRAM cell */
-            leakage += CalculateGateLeakage(INV, 1, config->cell->widthAccessCMOS * config->tech->featureSize(), 0,
-                    config->temperature, config->tech) * config->tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
+            leakage = CalculateGateLeakage(INV, 1, config->technology.cell->widthSRAMCellNMOS * config->technology.tech->featureSize(),
+                    config->technology.cell->widthSRAMCellPMOS * config->technology.tech->featureSize(), config->input.temperature, config->technology.tech)
+                * config->technology.tech->vdd() * 2;	/* two inverters per SRAM cell */
+            leakage += CalculateGateLeakage(INV, 1, config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), 0,
+                    config->input.temperature, config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
             leakage *= numRow * numColumn;
-        } else if (config->cell->memCellType == DRAM || config->cell->memCellType == eDRAM) {
+        } else if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
             /* Codes below calculate the DRAM bitline power */
-            readDynamicEnergy = (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * senseVoltage * config->tech->vdd() * numColumn;
-            double writeVoltage = config->cell->resetVoltage;	/* should also equal to setVoltage, for DRAM, it is Vdd */
+            readDynamicEnergy = (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * senseVoltage * config->technology.tech->vdd() * numColumn;
+            double writeVoltage = config->technology.cell->resetVoltage;	/* should also equal to setVoltage, for DRAM, it is Vdd */
             writeDynamicEnergy = (capBitline + bitlineMux->capForPreviousPowerCalculation) * writeVoltage * writeVoltage * numColumn;
             leakage = readDynamicEnergy / DRAM_REFRESH_PERIOD * numRow;
-        } else if (config->cell->memCellType == MRAM || config->cell->memCellType == PCRAM || config->cell->memCellType == memristor || config->cell->memCellType == FBRAM) {
-            if (config->cell->readMode == false) {	/* current-sensing */
+        } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM) {
+            if (config->technology.cell->readMode == false) {	/* current-sensing */
                 /* Use ICCAD 2009 model */
                 double resBitlineMux = bitlineMux->resNMOSPassTransistor;
-                double vpreMin = config->cell->readVoltage * resBitlineMux / (resBitlineMux + resBitline +resMemCellOn);
-                double vpreMax = config->cell->readVoltage * (resBitlineMux + resBitline) / (resBitlineMux + resBitline + resMemCellOn);
+                double vpreMin = config->technology.cell->readVoltage * resBitlineMux / (resBitlineMux + resBitline +resMemCellOn);
+                double vpreMax = config->technology.cell->readVoltage * (resBitlineMux + resBitline) / (resBitlineMux + resBitline + resMemCellOn);
                 readDynamicEnergy = capCellAccess * vpreMax * vpreMax + bitlineMux->capForPreviousPowerCalculation
                     * vpreMin * vpreMin + capBitline * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
                 readDynamicEnergy *= numColumn;
@@ -662,29 +662,29 @@ void SubArray::CalculatePower() {
                     (voltagePrecharge * voltagePrecharge - voltageMemCellOn * voltageMemCellOn ) * numColumn;
             }
 
-            if (config->cell->readPower == 0) 
-                cellReadEnergy = 2 * config->cell->CalculateReadPower() * senseAmp->readLatency; /* x2 is because of the reference cell */
+            if (config->technology.cell->readPower == 0) 
+                cellReadEnergy = 2 * config->technology.cell->CalculateReadPower() * senseAmp->readLatency; /* x2 is because of the reference cell */
             else
-                cellReadEnergy = 2 * config->cell->readPower * senseAmp->readLatency;
+                cellReadEnergy = 2 * config->technology.cell->readPower * senseAmp->readLatency;
             cellReadEnergy *= numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
 
             /* Ignore the dynamic transition during the SET/RESET operation */
             /* Assume that the cell resistance keeps high for worst-case power estimation */
-            config->cell->CalculateWriteEnergy();
+            config->technology.cell->CalculateWriteEnergy();
 
-            double resetEnergyPerBit = config->cell->resetEnergy;
-            double setEnergyPerBit = config->cell->setEnergy;
-            if (config->cell->setMode)
-                setEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->cell->setVoltage * config->cell->setVoltage;
+            double resetEnergyPerBit = config->technology.cell->resetEnergy;
+            double setEnergyPerBit = config->technology.cell->setEnergy;
+            if (config->technology.cell->setMode)
+                setEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->technology.cell->setVoltage * config->technology.cell->setVoltage;
             else
-                setEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->tech->vdd() * config->tech->vdd();
-            if (config->cell->resetMode)
-                resetEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->cell->resetVoltage * config->cell->resetVoltage;
+                setEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->technology.tech->vdd() * config->technology.tech->vdd();
+            if (config->technology.cell->resetMode)
+                resetEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->technology.cell->resetVoltage * config->technology.cell->resetVoltage;
             else
-                resetEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->tech->vdd() * config->tech->vdd();
+                resetEnergyPerBit += (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation) * config->technology.tech->vdd() * config->technology.tech->vdd();
 
-            if (config->cell->memCellType == PCRAM) { //PCRAM write energy
-                if (config->writeScheme == write_and_verify) {
+            if (config->technology.cell->memCellType == PCRAM) { //PCRAM write energy
+                if (config->input.writeScheme == write_and_verify) {
                     /*TODO: write and verify programming */
                 } else {
                     cellResetEnergy = resetEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
@@ -693,15 +693,15 @@ void SubArray::CalculatePower() {
                     cellSetEnergy /= SHAPER_EFFICIENCY_CONSERVATIVE;  /* Due to the shaper inefficiency */
                     writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
                 }
-            } else if (config->cell->memCellType == FBRAM){ //FBRAM write energy
+            } else if (config->technology.cell->memCellType == FBRAM){ //FBRAM write energy
                 cellResetEnergy = resetEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                 cellSetEnergy = setEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                 cellResetEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;
                 cellSetEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;  /* Due to the shaper inefficiency */
                 writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
             } else { //MRAM and memristor write energy
-                if (config->cell->accessType == diode_access || config->cell->accessType == none_access) {
-                    if (config->writeScheme == erase_before_reset || config->writeScheme == erase_before_set) {
+                if (config->technology.cell->accessType == diode_access || config->technology.cell->accessType == none_access) {
+                    if (config->input.writeScheme == erase_before_reset || config->input.writeScheme == erase_before_set) {
                         cellResetEnergy = resetEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                         cellSetEnergy = setEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                         writeDynamicEnergy = cellResetEnergy + cellSetEnergy;	/* TODO: bug here, did you consider the write pattern? */
@@ -720,9 +720,9 @@ void SubArray::CalculatePower() {
                 writeDynamicEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;
             }
             leakage = 0;                       //TODO: cell leaks during read/write operation
-        } else if (config->cell->memCellType == SLCNAND) {
+        } else if (config->technology.cell->memCellType == SLCNAND) {
             /* Calculate the NAND flash string length, which is the page count per block plus 2 (two select transistors) */
-            int pageCount = config->flashBlockSize / config->pageSize;
+            int pageCount = config->input.flashBlockSize / config->input.pageSize;
             int stringLength = pageCount + 2;
 
             /* === READ energy === */
@@ -735,50 +735,50 @@ void SubArray::CalculatePower() {
              */
             rowDecoder->resetDynamicEnergy = rowDecoder->readDynamicEnergy;
             rowDecoder->setDynamicEnergy = rowDecoder->readDynamicEnergy;
-            double actualWordlineReadEnergy = rowDecoder->readDynamicEnergy / config->tech->vdd() / config->tech->vdd()
-                * config->cell->flashPassVoltage * config->cell->flashPassVoltage;	/* approximate calculate, the wordline is charged to Vpass instead of Vdd */
+            double actualWordlineReadEnergy = rowDecoder->readDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+                * config->technology.cell->flashPassVoltage * config->technology.cell->flashPassVoltage;	/* approximate calculate, the wordline is charged to Vpass instead of Vdd */
             actualWordlineReadEnergy = actualWordlineReadEnergy * (numRow / pageCount * stringLength - 1);	/* except the selected wordline itself */
             rowDecoder->readDynamicEnergy = actualWordlineReadEnergy;	/* update the correct value */
 
             /* === Programming (SET) energy === */
             /* first calculate the source line energy (charged to Vdd), which is a part of "bitline" in this scenario */
             setDynamicEnergy = (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation)
-                * config->cell->flashProgramVoltage * config->cell->flashProgramVoltage * numColumn;
+                * config->technology.cell->flashProgramVoltage * config->technology.cell->flashProgramVoltage * numColumn;
             /* add tunneling current */
             /* originally it should be multiplied by numColumn/muxSenseAmp/muxOutputLev1/muxOutputLev2,
              * but it is multiplied by numColumn here because all the unselected bitlines also need to precharge to Vdd
              */
-            setDynamicEnergy += DELTA_V_TH * TUNNEL_CURRENT_FLOW * config->cell->area
-                * config->tech->featureSize() * config->tech->featureSize() * config->cell->flashProgramTime * numColumn;
+            setDynamicEnergy += DELTA_V_TH * TUNNEL_CURRENT_FLOW * config->technology.cell->area
+                * config->technology.tech->featureSize() * config->technology.tech->featureSize() * config->technology.cell->flashProgramTime * numColumn;
             /* in programming, the SSL is precharged to Vdd, which is equal to the original value calculated
              * from row decoder
              */
             double actualWordlineSetEnergy = rowDecoder->setDynamicEnergy;
             /* however, the unselected wordlines in the same block have to precharge to Vpass */
-            actualWordlineSetEnergy += rowDecoder->setDynamicEnergy / config->tech->vdd() / config->tech->vdd()
-                * config->cell->flashPassVoltage * config->cell->flashPassVoltage * (numRow / pageCount * stringLength - 1);
+            actualWordlineSetEnergy += rowDecoder->setDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+                * config->technology.cell->flashPassVoltage * config->technology.cell->flashPassVoltage * (numRow / pageCount * stringLength - 1);
             /* And the selected wordline is precharged to Vpgm */
-            actualWordlineSetEnergy += rowDecoder->setDynamicEnergy / config->tech->vdd() / config->tech->vdd()
-                * config->cell->flashProgramVoltage * config->cell->flashProgramVoltage;
+            actualWordlineSetEnergy += rowDecoder->setDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+                * config->technology.cell->flashProgramVoltage * config->technology.cell->flashProgramVoltage;
             rowDecoder->setDynamicEnergy = actualWordlineSetEnergy;	/* update the correct value */
 
             /* === Erase (RESET) energy === */
             /* in erase, all the bitlines (selected or unselected) and the sourceline are precharged to Vera-Vbi */
 
             resetDynamicEnergy = (capCellAccess + capBitline + bitlineMux->capForPreviousPowerCalculation)
-                * (config->cell->flashEraseVoltage - config->tech->buildInPotential()) * (config->cell->flashEraseVoltage - config->tech->buildInPotential());
+                * (config->technology.cell->flashEraseVoltage - config->technology.tech->buildInPotential()) * (config->technology.cell->flashEraseVoltage - config->technology.tech->buildInPotential());
             resetDynamicEnergy *= (numColumn + 1);	/* plus 1 is due to the source line */
             /* the p-well shared by the selected block is precharged to Vera */
-            double wellJunctionCap = config->tech->capJunction() * config->cell->area * config->tech->featureSize() * config->tech->featureSize();
-            wellJunctionCap *= config->flashBlockSize;	/* one block shares the same well */
-            resetDynamicEnergy += wellJunctionCap * config->cell->flashEraseVoltage * config->cell->flashEraseVoltage;
+            double wellJunctionCap = config->technology.tech->capJunction() * config->technology.cell->area * config->technology.tech->featureSize() * config->technology.tech->featureSize();
+            wellJunctionCap *= config->input.flashBlockSize;	/* one block shares the same well */
+            resetDynamicEnergy += wellJunctionCap * config->technology.cell->flashEraseVoltage * config->technology.cell->flashEraseVoltage;
             /* in erase, all the wordlines, SSL, and GSL in unselected block are precharged to Vera * beta
              * in selected block, SSL and GSL are precharged to Vera * beta
              * here beta is fixed at 0.8
              */
             double beta = 0.8;
-            double actualWordlineResetEnergy = rowDecoder->resetDynamicEnergy / config->tech->vdd() / config->tech->vdd()
-                * (config->cell->flashEraseVoltage * beta) * (config->cell->flashEraseVoltage * beta);
+            double actualWordlineResetEnergy = rowDecoder->resetDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+                * (config->technology.cell->flashEraseVoltage * beta) * (config->technology.cell->flashEraseVoltage * beta);
             actualWordlineResetEnergy *= (numRow / pageCount * stringLength - pageCount);
             rowDecoder->resetDynamicEnergy = actualWordlineResetEnergy;
 
@@ -806,7 +806,7 @@ void SubArray::CalculatePower() {
             + senseAmpMuxLev2Decoder->writeDynamicEnergy + bitlineMux->writeDynamicEnergy
             + senseAmp->writeDynamicEnergy + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy;
 
-        if (config->cell->accessType == diode_access || config->cell->accessType == none_access) {
+        if (config->technology.cell->accessType == diode_access || config->technology.cell->accessType == none_access) {
             writeDynamicEnergy += bitlineMux->writeDynamicEnergy + senseAmp->writeDynamicEnergy
                 + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy;
         }
