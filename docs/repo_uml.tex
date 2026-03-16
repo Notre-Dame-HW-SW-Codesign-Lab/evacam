@@ -40,16 +40,18 @@
 % Core config objects
 \node[class, fill=blue!8] (config) at (0, 7.1) {%
   \textbf{EvaCamConfig}\\
-  + tech: Technology\\
-  + cell: MemCell\\
+  + input/peripherals/constraints\\
+  + technology: TechnologyContext\\
   + ReadConfigFromFile()\\
-  + ValidateSupportedConfiguration()
+  + SetDeepExploration()\\
+  + BuildResultLimits()
 };
 
 \node[class, fill=blue!8, right=4.0cm of config] (tech) {%
   \textbf{Technology}\\
   + Initialize()\\
-  + InterpolateWith()
+  + InterpolateWith()\\
+  + ApplySpec()
 };
 
 \node[class, fill=blue!8, left=4.0cm of config] (memcell) {%
@@ -57,6 +59,19 @@
   + ReadCellFromFile()\\
   + CalculateWriteEnergy()\\
   + CalculateReadPower()
+};
+
+\node[class, fill=blue!8, below=2.0cm of config, text width=4.8cm] (techctx) {%
+  \textbf{TechnologyContext}\\
+  + tech: Technology\\
+  + fefetTech: Technology\\
+  + cell: MemCell
+};
+
+\node[class, fill=blue!8, right=4.0cm of techctx, text width=4.8cm] (techloader) {%
+  \textbf{TechnologyLoader}\\
+  + Load(input, peripherals)\\
+  returns TechnologyContext
 };
 
 % Base hierarchy
@@ -159,7 +174,12 @@
 
 % Relationships
 \draw[owns] (config) -- node[above] {\scriptsize owns} (tech);
-\draw[owns] (config) -- node[above] {\scriptsize owns} (memcell);
+\draw[owns] (config) -- node[left] {\scriptsize owns} (techctx);
+\draw[owns] (techctx) -- node[above] {\scriptsize owns} (tech);
+\draw[owns] (techctx) -- node[above] {\scriptsize owns} (memcell);
+\draw[uses] (config) -- node[above] {\scriptsize loads via} (techloader);
+\draw[uses] (techloader) -- (tech);
+\draw[uses] (techloader) -- (memcell);
 \draw[assoc] (fu) -- node[left, xshift=-6pt, yshift=4pt] {\scriptsize config} (config);
 
 \draw[inherit] (bank) -- (fu);
@@ -185,7 +205,7 @@
 \draw[uses] (main) -- (yaml);
 
 % Package outlines
-\node[package, fit=(config)(tech)(memcell), label=above:{\textbf{Configuration Model}}] {};
+\node[package, fit=(config)(tech)(memcell)(techctx)(techloader), label=above:{\textbf{Configuration Model}}] {};
 \node[package, fit=(bank)(mat)(camsub)(bankwo)(bankwh)(predecode)(periph), label=above:{\textbf{Hardware / Simulation Hierarchy}}] {};
 \node[package, fit=(result)(camresult)(yaml), label=above:{\textbf{Result Model}}] {};
 
