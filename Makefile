@@ -6,8 +6,9 @@ CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -f
 	-I$(ROOT_DIR)/include/circuit \
 	-I$(ROOT_DIR)/include/config \
 	-I$(ROOT_DIR)/include/factories \
-	-I$(ROOT_DIR)/include/io \
+	-I$(ROOT_DIR)/include/input \
 	-I$(ROOT_DIR)/include/model \
+	-I$(ROOT_DIR)/include/output \
 	-I$(ROOT_DIR)/include/technology \
 	-I/usr/include/yaml-cpp
 LD_LIBS= -lyaml-cpp 
@@ -24,6 +25,8 @@ TEST_YAML_BIN=YamlHelpersTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
+UML_SLIDE_TEX=docs/repo_uml_slide.tex
+UML_SLIDE_PDF=repo_uml_slide.pdf
 
 # Automatically find all CPP files in the source tree
 SOURCES=$(shell find $(SRC_DIR) -type f -name '*.cpp' | sort)
@@ -47,9 +50,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(DEPS)
 
-.PHONY: test-yaml test-exploration uml open-uml
+.PHONY: test-yaml test-exploration uml uml-slide open-uml
 test-yaml:
-	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/io/YamlHelpers.cpp src/technology/MemCell.cpp $(LD_LIBS)
+	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/input/YamlHelpers.cpp src/technology/MemCell.cpp $(LD_LIBS)
 	./$(TEST_YAML_BIN)
 
 test-exploration:
@@ -64,6 +67,13 @@ uml:
 	fi
 	pdflatex -interaction=nonstopmode -halt-on-error $(UML_TEX)
 
+uml-slide:
+	@if ! command -v pdflatex >/dev/null 2>&1; then \
+		echo "pdflatex not found"; \
+		exit 1; \
+	fi
+	pdflatex -interaction=nonstopmode -halt-on-error $(UML_SLIDE_TEX)
+
 open-uml: uml
 	@if ! command -v xdg-open >/dev/null 2>&1; then \
 		echo "xdg-open not found; built $(UML_PDF)"; \
@@ -74,7 +84,8 @@ open-uml: uml
 .PHONY: clean
 clean:
 	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
-		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(UML_PDF) repo_uml.aux repo_uml.log
+		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(UML_PDF) $(UML_SLIDE_PDF) \
+		repo_uml.aux repo_uml.log repo_uml_slide.aux repo_uml_slide.log
 
 run: $(BIN)
 	@if [ -z "$(CONFIG_FILE)" ]; then \

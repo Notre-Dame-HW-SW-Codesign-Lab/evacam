@@ -8,7 +8,7 @@
 
 #include "CAM_Result.h"
 #include "EvaCamConfig.h"
-#include "ResultsYaml.h"
+#include "output/ResultsYaml.h"
 #include "config/DerivedValueHelpers.h"
 
 namespace {

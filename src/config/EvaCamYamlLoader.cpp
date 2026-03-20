@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "EvaCamConfig.h"
-#include "YamlHelpers.h"
+#include "input/YamlHelpers.h"
 
 namespace {
 

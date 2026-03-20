@@ -1,13 +1,13 @@
 \documentclass{article}
 \usepackage{tikz}
-\usepackage[margin=0.5in,landscape]{geometry}
+\usepackage[margin=0.4in,landscape]{geometry}
 \usepackage{graphicx}
 \usetikzlibrary{arrows.meta,positioning,fit}
 \pagestyle{empty}
 
 \begin{document}
 \centering
-\resizebox{\textwidth}{!}{%
+\resizebox{\textwidth}{0.88\textheight}{%
 \begin{tikzpicture}[
   font=\small,
   >=Latex,
@@ -15,15 +15,15 @@
     draw,
     rounded corners=2pt,
     align=left,
-    minimum width=4.8cm,
-    minimum height=1.1cm,
-    text width=4.5cm,
+    minimum width=4.6cm,
+    minimum height=1.0cm,
+    text width=4.3cm,
     inner sep=6pt,
     fill=white
   },
   abstract/.style={
     class,
-    fill=gray!10
+    fill=gray!12
   },
   package/.style={
     draw,
@@ -32,189 +32,256 @@
     inner sep=10pt
   },
   inherit/.style={-Latex, thick},
-  assoc/.style={Latex-Latex, thin},
   owns/.style={-Latex, thick},
-  uses/.style={-Latex, dashed}
+  uses/.style={-Latex, dashed},
+  assoc/.style={Latex-Latex, thin}
 ]
 
-% Core config objects
-\node[class, fill=blue!8] (config) at (0, 7.1) {%
-  \textbf{EvaCamConfig}\\
-  + input/peripherals/constraints\\
-  + technology: TechnologyContext\\
-  + ReadConfigFromFile()\\
-  + SetDeepExploration()\\
-  + BuildResultLimits()
+% Application flow
+\node[class, fill=red!10] (main) at (-11.0, 11.8) {%
+  \textbf{src/app/main.cpp}\\
+  parse CLI\\
+  build context\\
+  run exploration\\
+  print and write outputs
 };
 
-\node[class, fill=blue!8, right=4.0cm of config] (tech) {%
+\node[class, fill=red!10] (cli) at (-5.4, 11.8) {%
+  \textbf{CliOptions}\\
+  input/\\
+  + Parse(argc, argv)\\
+  + PrintUsage()
+};
+
+\node[class, fill=red!10, text width=4.7cm, minimum width=5.0cm] (builder) at (0.7, 11.8) {%
+  \textbf{EvaCamContextBuilder}\\
+  + Build(options)\\
+  validates input path\\
+  sets OpenMP threads\\
+  loads config and output path
+};
+
+\node[class, fill=red!10, text width=4.9cm, minimum width=5.2cm] (explorer) at (1.4, 9.0) {%
+  \textbf{EvaCamExplorer}\\
+  + Run()\\
+  primary exploration\\
+  wire refinement\\
+  constrained rerun
+};
+
+\node[class, fill=red!10, text width=4.7cm, minimum width=5.0cm] (output) at (8.8, 9.0) {%
+  \textbf{EvaCamOutput}\\
+  + PrintConsoleSummary()\\
+  + WriteYamlResults()
+};
+
+\node[class, fill=red!10] (context) at (7.3, 11.8) {%
+  \textbf{EvaCamContext}\\
+  + config\\
+  + inputFileName\\
+  + outputYamlFileName
+};
+
+% Configuration and IO
+\node[class, fill=blue!10, text width=4.8cm, minimum width=5.1cm] (config) at (-6.2, 5.8) {%
+  \textbf{EvaCamConfig}\\
+  + input, peripherals, constraints\\
+  + runtimeSizing, exploration\\
+  + resolvedExploration\\
+  + technology: TechnologyContext\\
+  + ReadConfigFromFile()
+};
+
+\node[class, fill=blue!10] (yamlLoader) at (-12.1, 6.2) {%
+  \textbf{EvaCamYamlLoader}\\
+  input helper client\\
+  parse top-level YAML\\
+  build typed config sections
+};
+
+\node[class, fill=blue!10] (techCtx) at (-6.2, 2.3) {%
+  \textbf{TechnologyContext}\\
+  + tech\\
+  + fefetTech\\
+  + cell
+};
+
+\node[class, fill=blue!10] (techLoader) at (-12.1, 2.9) {%
+  \textbf{TechnologyLoader}\\
+  + Load(input, peripherals)\\
+  returns TechnologyContext
+};
+
+\node[class, fill=blue!10] (tech) at (-0.1, 2.3) {%
   \textbf{Technology}\\
   + Initialize()\\
   + InterpolateWith()\\
   + ApplySpec()
 };
 
-\node[class, fill=blue!8, left=4.0cm of config] (memcell) {%
+\node[class, fill=blue!10] (memcell) at (-0.1, 5.8) {%
   \textbf{MemCell}\\
   + ReadCellFromFile()\\
   + CalculateWriteEnergy()\\
   + CalculateReadPower()
 };
 
-\node[class, fill=blue!8, below=2.0cm of config, text width=4.8cm] (techctx) {%
-  \textbf{TechnologyContext}\\
-  + tech: Technology\\
-  + fefetTech: Technology\\
-  + cell: MemCell
+\node[class, fill=blue!10] (outPath) at (-12.1, -0.4) {%
+  \textbf{OutputPathBuilder}\\
+  + DefaultResultsYamlPath()\\
+  + ExplorationCsvPath()
 };
 
-\node[class, fill=blue!8, right=4.0cm of techctx, text width=4.8cm] (techloader) {%
-  \textbf{TechnologyLoader}\\
-  + Load(input, peripherals)\\
-  returns TechnologyContext
+\node[class, fill=blue!10] (resultsYaml) at (-6.2, -0.4) {%
+  \textbf{ResultsYaml}\\
+  output/\\
+  + WriteResultsYaml()\\
+  + WriteResultsYamlMulti()
 };
 
-% Base hierarchy
-\node[abstract, fill=orange!12] (fu) at (0, 3.1) {%
+% Exploration support
+\node[class, fill=purple!10] (bankFactory) at (7.8, 5.2) {%
+  \textbf{BankFactory}\\
+  create Bank subclass\\
+  from geometry and config
+};
+
+\node[class, fill=purple!10] (wireFactory) at (14.2, 5.2) {%
+  \textbf{WireFactory}\\
+  create default\\
+  local/global wires
+};
+
+\node[class, fill=purple!10] (result) at (7.8, 1.9) {%
+  \textbf{Result}\\
+  + config\\
+  + bank, localWire, globalWire\\
+  + compareAndUpdate()
+};
+
+\node[class, fill=purple!10] (camResult) at (14.2, 1.9) {%
+  \textbf{CAM\_Result}\\
+  + print()\\
+  + reset()\\
+  CAM-specific best-point view
+};
+
+% Hardware hierarchy
+\node[abstract, fill=orange!12] (fu) at (-3.2, -3.0) {%
   \textbf{FunctionUnit}\\
   <<abstract>>\\
   + area, latency, energy, leakage\\
-  + config: EvaCamConfig\\
+  + config\\
   + clone() = 0
 };
 
-\node[abstract, fill=orange!12, below left=2.6cm and 3.2cm of fu] (bank) {%
+\node[abstract, fill=orange!12] (bank) at (-9.0, -6.7) {%
   \textbf{Bank}\\
   <<abstract>>\\
-  + mat: Mat\\
+  + mat\\
   + localWire, globalWire\\
   + Initialize() = 0\\
   + CalculateLatencyAndPower() = 0
 };
 
-\node[class, fill=orange!8, below right=2.6cm and 3.4cm of fu] (mat) {%
+\node[class, fill=orange!10, text width=4.7cm, minimum width=5.0cm] (mat) at (0.8, -6.7) {%
   \textbf{Mat}\\
   + subarray: CAM\_SubArray\\
-  + rowPredecoderBlock1/2\\
-  + comparator: Comparator\\
+  + multiple predecoder blocks\\
+  + comparator\\
   + CalculateArea(), CalculateLatency()
 };
 
-\node[class, fill=orange!8, below=3.0cm of mat] (camsub) {%
+\node[class, fill=orange!10, text width=4.9cm, minimum width=5.2cm] (camsub) at (0.8, -10.8) {%
   \textbf{CAM\_SubArray}\\
-  + RowDriver: CAM\_RowNand[]\\
-  + ColMux: Mux[]\\
-  + senseAmp: CAM\_SenseAmp\\
-  + inputEnc, priorityEnc, outputAcc\\
-  + EvaluateBinaryMatch()
+  + RowNand, Mux, SenseAmp\\
+  + InputEncoder\\
+  + PriorityEncoder\\
+  + OutputAccumulator
 };
 
-\node[class, fill=orange!8, below left=2.8cm and 1.6cm of bank] (bankwo) {%
+\node[class, fill=orange!10] (bankNoTree) at (-13.4, -10.8) {%
   \textbf{BankWithoutHtree}\\
-  + globalBitlineMux\\
-  + globalSenseAmp\\
-  + globalComparator
+  compact bank organization
 };
 
-\node[class, fill=orange!8, below right=2.8cm and 1.8cm of bank] (bankwh) {%
+\node[class, fill=orange!10] (bankTree) at (-8.2, -10.8) {%
   \textbf{BankWithHtree}\\
-  + routing level metadata\\
-  + horizontal/vertical wire tiers
+  hierarchical routing organization
 };
 
-% Peripheral blocks
-\node[class, fill=green!8, right=5.3cm of mat, text width=4.0cm, minimum width=4.3cm] (predecode) {%
-  \textbf{PredecodeBlock}\\
-  \textbf{Comparator}\\
-  \textbf{Wire}
+\node[class, fill=green!10, text width=4.1cm, minimum width=4.4cm] (sharedBlocks) at (7.4, -6.7) {%
+  \textbf{Shared blocks}\\
+  PredecodeBlock\\
+  Comparator\\
+  Wire
 };
 
-\node[class, fill=green!8, right=5.3cm of camsub, text width=4.4cm, minimum width=4.7cm] (periph) {%
-  \textbf{CAM peripherals}\\
+\node[class, fill=green!10, text width=4.6cm, minimum width=4.9cm] (camBlocks) at (8.4, -10.8) {%
+  \textbf{CAM blocks}\\
   CAM\_DataBuffer\\
   CAM\_LevelShifter\\
-  CAM\_InputEncoder\\
-  CAM\_PriorityEncoder\\
-  CAM\_OutputAccumulator\\
   CAM\_Precharger\\
   CAM\_SenseAmp\\
-  CAM\_RowNand, RowDecoder, Mux
-};
-
-% Result side
-\node[class, fill=purple!8, below=3.3cm of bankwo] (result) {%
-  \textbf{Result}\\
-  + bank: Bank\\
-  + localWire, globalWire\\
-  + Initialize()\\
-  + compareAndUpdate()
-};
-
-\node[class, fill=purple!8, right=4.0cm of result] (camresult) {%
-  \textbf{CAM\_Result}\\
-  + print()\\
-  + reset()
-};
-
-\node[class, fill=purple!8, right=4.0cm of camresult] (yaml) {%
-  \textbf{ResultsYaml}\\
-  + WriteResultsYaml()\\
-  + WriteResultsYamlMulti()
-};
-
-% Entry point
-\node[class, fill=red!8, above=2.0cm of tech] (main) {%
-  \textbf{main.cpp}\\
-  parse CLI\\
-  build config\\
-  initialize technology\\
-  run exploration\\
-  emit YAML results
+  CAM\_RowNand and encoders
 };
 
 % Relationships
-\draw[owns] (config) -- node[above] {\scriptsize owns} (tech);
-\draw[owns] (config) -- node[left] {\scriptsize owns} (techctx);
-\draw[owns] (techctx) -- node[above] {\scriptsize owns} (tech);
-\draw[owns] (techctx) -- node[above] {\scriptsize owns} (memcell);
-\draw[uses] (config) -- node[above] {\scriptsize loads via} (techloader);
-\draw[uses] (techloader) -- (tech);
-\draw[uses] (techloader) -- (memcell);
-\draw[assoc] (fu) -- node[left, xshift=-6pt, yshift=4pt] {\scriptsize config} (config);
+\draw[uses] (main) -- node[above] {\scriptsize parses} (cli);
+\draw[uses] (main) -- node[above] {\scriptsize builds} (builder);
+\draw[uses] (main) -- node[right] {\scriptsize runs} (explorer);
+\draw[uses] (main) -- node[above] {\scriptsize emits via} (output);
 
+\draw[owns] (builder) -- node[right] {\scriptsize returns} (context);
+\draw[owns] (context) -- node[above] {\scriptsize holds} (config);
+\draw[uses] (builder) -- node[above] {\scriptsize reads} (config);
+\draw[uses] (builder) -- node[left] {\scriptsize default paths} (outPath);
+
+\draw[uses] (config) -- node[above] {\scriptsize parses via} (yamlLoader);
+\draw[uses] (config) -- node[left] {\scriptsize loads via} (techLoader);
+\draw[owns] (config) -- node[right] {\scriptsize owns} (techCtx);
+\draw[owns] (techCtx) -- node[above] {\scriptsize owns} (tech);
+\draw[owns] (techCtx) -- node[above] {\scriptsize owns} (memcell);
+\draw[uses] (techLoader) -- (tech);
+\draw[uses] (techLoader) -- (memcell);
+
+\draw[uses] (explorer) -- node[above] {\scriptsize reads} (config);
+\draw[uses] (explorer) -- node[left] {\scriptsize builds banks} (bankFactory);
+\draw[uses] (explorer) -- node[above] {\scriptsize builds wires} (wireFactory);
+\draw[owns] (explorer) -- node[right] {\scriptsize best results} (camResult);
+\draw[uses] (explorer) -- node[left] {\scriptsize CSV path} (outPath);
+
+\draw[inherit] (camResult) -- (result);
+\draw[owns] (result) -- node[above] {\scriptsize selected design} (bank);
+\draw[assoc] (result) -- node[above] {\scriptsize config} (config);
+
+\draw[uses] (output) -- node[left] {\scriptsize serializes} (resultsYaml);
+\draw[uses] (output) -- node[above] {\scriptsize prints} (camResult);
+\draw[uses] (output) -- node[left] {\scriptsize checks mode} (config);
+
+\draw[assoc] (fu) -- node[left] {\scriptsize config} (config);
 \draw[inherit] (bank) -- (fu);
 \draw[inherit] (mat) -- (fu);
 \draw[inherit] (camsub) -- (fu);
-\draw[inherit] (bankwo) -- (bank);
-\draw[inherit] (bankwh) -- (bank);
-
+\draw[inherit] (bankNoTree) -- (bank);
+\draw[inherit] (bankTree) -- (bank);
 \draw[owns] (bank) -- node[left] {\scriptsize has-a} (mat);
 \draw[owns] (mat) -- node[right] {\scriptsize has-a} (camsub);
-\draw[owns] (mat) -- node[above] {\scriptsize uses} (predecode);
-\draw[owns] (camsub) -- node[above] {\scriptsize aggregates} (periph);
+\draw[owns] (mat) -- node[above] {\scriptsize uses} (sharedBlocks);
+\draw[owns] (camsub) -- node[above] {\scriptsize aggregates} (camBlocks);
 
-\draw[owns] (result) -- node[above] {\scriptsize selected design} (bank);
-\draw[assoc] (result) -- node[below] {\scriptsize constraints/input} (config);
-\draw[inherit] (camresult) -- (result);
-\draw[uses] (yaml) -- node[above] {\scriptsize serializes} (camresult);
-\draw[uses] (yaml) -- node[below] {\scriptsize serializes} (result);
+% Packages
+\node[package, fit=(main)(cli)(builder)(context)(explorer)(output), label=above:{\textbf{Application Flow}}] {};
+\node[package, fit=(config)(yamlLoader)(techCtx)(techLoader)(tech)(memcell)(outPath)(resultsYaml), label=above:{\textbf{Configuration, Technology, Input IO, and Output IO}}] {};
+\node[package, fit=(bankFactory)(wireFactory)(result)(camResult), label=above:{\textbf{Exploration Support}}] {};
+\node[package, fit=(fu)(bank)(mat)(camsub)(bankNoTree)(bankTree)(sharedBlocks)(camBlocks), label=above:{\textbf{Hardware and CAM Hierarchy}}] {};
 
-\draw[uses] (main) -- (config);
-\draw[uses] (main) -- (tech);
-\draw[uses] (main) -- (camresult);
-\draw[uses] (main) -- (yaml);
-
-% Package outlines
-\node[package, fit=(config)(tech)(memcell)(techctx)(techloader), label=above:{\textbf{Configuration Model}}] {};
-\node[package, fit=(bank)(mat)(camsub)(bankwo)(bankwh)(predecode)(periph), label=above:{\textbf{Hardware / Simulation Hierarchy}}] {};
-\node[package, fit=(result)(camresult)(yaml), label=above:{\textbf{Result Model}}] {};
-
-% Legend / scope note
+% Scope note
 \node[draw, rounded corners=2pt, fill=yellow!10, align=left, anchor=south east] at (current bounding box.south east) {%
   \textbf{Scope note}\\
-  Diagram focuses on the repo's main architecture.\\
-  Many leaf subclasses and enum/helper types in typedef.h\\
-  and YamlHelpers.h are intentionally omitted.
+  Diagram reflects the current top-level structure used by the codebase.\\
+  Helper structs, validators, and many leaf components are grouped to keep\\
+  the figure readable for architecture review and presentation slides.
 };
 
 \end{tikzpicture}

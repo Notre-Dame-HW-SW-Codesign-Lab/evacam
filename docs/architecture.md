@@ -4,7 +4,7 @@ This is the high-level execution flow for the current codebase.
 
 ## Main Flow
 
-1. `src/main.cpp` parses CLI arguments with `CliOptionsParser`.
+1. `src/app/main.cpp` parses CLI arguments with `CliOptionsParser`.
 2. `EvaCamContextBuilder` validates the config path, applies thread settings, enables verbose logging, and loads the config.
 3. `EvaCamExplorer` runs the design-space exploration.
 4. `EvaCamOutput` prints the console summary and writes YAML results.
@@ -20,7 +20,8 @@ This is the high-level execution flow for the current codebase.
 ## Module Layout
 
 - `src/app`, `include/app`: exploration orchestration and top-level runtime flow
-- `src/io`, `include/io`: CLI parsing, YAML parsing helpers, and result serialization
+- `src/input`, `include/input`: CLI parsing and YAML input helpers
+- `src/output`, `include/output`: result serialization
 - `src/config`, `include/config`: config loading, validation, and derived exploration settings
 - `src/technology`, `include/technology`: technology models, memory-cell models, and built-in technology tables
 - `src/circuit`, `include/circuit`: reusable circuit blocks and shared equations
@@ -68,10 +69,10 @@ The CLI flag `--deep-exploration` expands the search space used during optimizat
 
 ## Where To Extend
 
-- Add or adjust CLI behavior in `src/io/CliOptions.cpp`
+- Add or adjust CLI behavior in `src/input/CliOptions.cpp`
 - Add new YAML fields in the YAML parsing helpers and the typed config structs owned by `EvaCamConfig`
 - Add technology-table entries in `src/technology/TechnologyTables.cpp` and update `TechnologyLoader` if new loading rules are required
-- Change result serialization in `src/io/ResultsYaml.cpp`
+- Change result serialization in `src/output/ResultsYaml.cpp`
 - Change exploration logic in `src/app/EvaCamExplorer.cpp`
 
 ## Documentation Priority

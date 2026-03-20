@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "CliOptions.h"
+#include "input/CliOptions.h"
 
 class EvaCamConfig;
 

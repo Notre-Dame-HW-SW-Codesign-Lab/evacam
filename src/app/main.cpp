@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <yaml-cpp/yaml.h>
 
-#include "CliOptions.h"
+#include "input/CliOptions.h"
 #include "EvaCamContextBuilder.h"
 #include "EvaCamExplorer.h"
 #include "EvaCamOutput.h"
