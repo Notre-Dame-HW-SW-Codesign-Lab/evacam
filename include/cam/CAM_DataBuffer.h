@@ -24,9 +24,6 @@ class CAM_DataBuffer: public FunctionUnit {
         void CalculatePower();
         /* Note that this is a single latch, not yet multiplied by number of inputs */
         CAM_DataBuffer & operator=(const CAM_DataBuffer &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_DataBuffer>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

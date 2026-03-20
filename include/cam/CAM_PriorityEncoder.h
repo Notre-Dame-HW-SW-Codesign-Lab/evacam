@@ -25,9 +25,6 @@ class CAM_PriorityEncoder: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         CAM_PriorityEncoder & operator=(const CAM_PriorityEncoder &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_PriorityEncoder>(*this);
-        }
         /* Properties */
         bool initialized;	/* Initialization flag */
         int numInputBits;   /* Number of input bits */

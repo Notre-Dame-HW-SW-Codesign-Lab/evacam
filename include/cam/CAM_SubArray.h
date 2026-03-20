@@ -61,9 +61,6 @@ class CAM_SubArray: public FunctionUnit {
         void CalculatePower();
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         CAM_SubArray & operator=(const CAM_SubArray &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_SubArray>(*this);
-        }
         /* Properties */
         std::shared_ptr<CAM_DataBuffer> inputBuf;
         std::shared_ptr<CAM_DataBuffer> outputBuf;

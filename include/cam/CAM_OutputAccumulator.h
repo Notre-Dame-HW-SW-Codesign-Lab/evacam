@@ -20,9 +20,6 @@ class CAM_OutputAccumulator: public FunctionUnit {
         void CalculatePower();
         /* Note that this is a single accumulator, not yet multiplied by number of inputs */
         CAM_OutputAccumulator & operator=(const CAM_OutputAccumulator &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_OutputAccumulator>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

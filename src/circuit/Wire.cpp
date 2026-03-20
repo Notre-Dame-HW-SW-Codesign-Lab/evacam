@@ -29,8 +29,7 @@ void Wire::Initialize(int _featureSizeInNano, WireType _wireType, WireRepeaterTy
     config = _config;
 
     if (wireRepeaterType != repeated_none && isLowSwing) {
-        std::cout << "[Wire] Error: Low Swing is not supported for repeated wires!" << std::endl;
-        exit(-1);
+        throw std::runtime_error("[Wire] Error: low swing is not supported for repeated wires.");
     }
 
     copper_resistivity = COPPER_RESISTIVITY;
@@ -485,7 +484,7 @@ void Wire::Initialize(int _featureSizeInNano, WireType _wireType, WireRepeaterTy
 
 void Wire::CalculateLatencyAndPower(double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower) {
     if (!initialized) {
-        std::cout << "[Wire] Error: Require initialization first!" << std::endl;
+        throw std::runtime_error("[Wire] Error: Require initialization first!");
     } else {
         if (isLowSwing) {
             /* When it is low-swing */
@@ -617,8 +616,7 @@ void Wire::CalculateLatencyAndPower(double _wireLength, double *delay, double *d
                     *(leakagePower) += senseAmp.leakage;
 
             } else {
-                std::cout<<"Error: Low Swing Wires with Repeaters is not supported in this version!" <<std::endl;
-                exit(-1);
+                throw std::runtime_error("[Wire] Error: low swing wires with repeaters are not supported.");
             }
         } else {
             /* When it is not a low-swing */

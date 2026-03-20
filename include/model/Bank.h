@@ -43,8 +43,6 @@ class Bank: public FunctionUnit {
         virtual void CalculateRC() = 0;
         virtual void CalculateLatencyAndPower() = 0;
         virtual Bank & operator=(const Bank &);
-        virtual std::unique_ptr<FunctionUnit> clone() const = 0;
-        virtual std::unique_ptr<Bank> clone_bank() const = 0;
 
         /* Properties */
         bool initialized;	/* Initialization flag */

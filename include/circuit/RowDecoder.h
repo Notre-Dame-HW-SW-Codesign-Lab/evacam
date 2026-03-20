@@ -24,9 +24,6 @@ class RowDecoder: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         RowDecoder & operator=(const RowDecoder &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<RowDecoder>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

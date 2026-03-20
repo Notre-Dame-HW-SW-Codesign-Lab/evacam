@@ -145,7 +145,7 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
 
 void OutputDriver::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Output Driver] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Output Driver]");
     } else if (invalid) {
         height = width = area = 1e41;
     } else {
@@ -165,7 +165,7 @@ void OutputDriver::CalculateArea() {
 
 void OutputDriver::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Output Driver] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Output Driver]");
     } else if (invalid) {
         ;  // nothing to do if invalid
     } else if (numStage == 0) {
@@ -181,7 +181,7 @@ void OutputDriver::CalculateRC() {
 void OutputDriver::CalculateLatency(double _rampInput) {
     if (!initialized) {
         // TODO: Decide whether these are runtime errors or warnings
-        std::cout << "[Output Driver] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Output Driver]");
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
     } else {
@@ -233,7 +233,7 @@ void OutputDriver::CalculateLatency(double _rampInput) {
 
 void OutputDriver::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Output Driver] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Output Driver]");
     } else if (invalid) {
         readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
     } else {

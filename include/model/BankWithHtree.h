@@ -23,13 +23,6 @@ class BankWithHtree: public Bank {
         void CalculateLatencyAndPower();
         using Bank::operator=;
         BankWithHtree & operator=(const BankWithHtree &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<BankWithHtree>(*this);
-        }
-
-        std::unique_ptr<Bank> clone_bank() const override {
-            return std::make_unique<BankWithHtree>(*this);
-        }
 
         int numAddressBit;		/* Number of bank address bits */
         int numDataDistributeBit;	/* Number of bank mem_data bits (these bits will be distributed along with the address) */

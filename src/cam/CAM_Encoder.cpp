@@ -1,6 +1,8 @@
 #include "CAM_Encoder.h"
 #include "formula.h"
 
+#include <stdexcept>
+
 CAM_Encoder::CAM_Encoder() {
     initialized = false;
     capLoad = resLoad = 0;
@@ -23,8 +25,7 @@ void CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizat
     areaOptimizationLevel = _areaOptimizationLevel;
     config= _config;
     if (numInputBit > pow(2,27)) {
-        std::cout << "[CAM_Encoder] Error: Invalid number of subarray bits" <<std::endl;
-        exit(-1);
+        throw std::runtime_error("[CAM_Encoder] Error: invalid number of subarray bits.");
     }
     numBasicEncoder = (int)(numInputBit/8) + ( (numInputBit%8)>0 );
     numAdr = (int)log2(numInputBit);
@@ -53,7 +54,7 @@ void CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizat
 
 void CAM_Encoder::CalculateArea() {
     if (!initialized) {
-        std::cout << "[CAM_Encoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_Encoder]");
     } else {
         outputDriver.CalculateArea();
         BasicEncoder.CalculateArea();
@@ -68,7 +69,7 @@ void CAM_Encoder::CalculateArea() {
 
 void CAM_Encoder::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_Encoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_Encoder]");
     } else {
         outputDriver.CalculateRC();
         BasicEncoder.CalculateRC();
@@ -77,7 +78,7 @@ void CAM_Encoder::CalculateRC() {
 
 void CAM_Encoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_Encoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_Encoder]");
     } else {
         rampInput = _rampInput;
         BasicEncoder.CalculateLatency(rampInput);
@@ -95,7 +96,7 @@ void CAM_Encoder::CalculateLatency(double _rampInput) {
 
 void CAM_Encoder::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_Encoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_Encoder]");
     } else {
         outputDriver.CalculatePower();
         BasicEncoder.CalculatePower();
@@ -109,4 +110,3 @@ void CAM_Encoder::PrintProperty() {
     std::cout << "8 to 3 CAM_Encoder Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-

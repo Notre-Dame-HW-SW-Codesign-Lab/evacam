@@ -194,8 +194,7 @@ void CalculateGateCapacitance(
             heightDrainP = widthPMOS;
         } else {	/* Folding */
             // if (maxWidthPMOS < 3 * tech->featureSize()) {
-            // 	std::cout << "Error: Unable to do PMOS folding because PMOS size limitation is less than 3F!" <<endl;
-            // 	exit(-1);
+            // 	throw std::runtime_error("Unable to do PMOS folding because PMOS size limitation is less than 3F.");
             // }
             numFoldedPMOS = (int)(ceil(widthPMOS / (maxWidthPMOS - 3 * tech->featureSize())));	/* 3F for folding overhead */
             unitWidthDrainP = (numFoldedPMOS-1) * tech->featureSize() * MIN_GAP_BET_POLY;
@@ -212,8 +211,7 @@ void CalculateGateCapacitance(
             heightDrainN = widthNMOS;
         } else {	/* Folding */
             /*	if (maxWidthNMOS < 3 * tech->featureSize()) {
-                std::cout << "Error: Unable to do NMOS folding because NMOS size limitation is less than 3F!" <<endl;
-                exit(-1);
+                throw std::runtime_error("Unable to do NMOS folding because NMOS size limitation is less than 3F.");
                 }*/
             numFoldedNMOS = (int)(ceil(widthNMOS / (maxWidthNMOS - 3 * tech->featureSize())));	/* 3F for folding overhead */
             unitWidthDrainN = (numFoldedNMOS-1) * tech->featureSize() * MIN_GAP_BET_POLY;

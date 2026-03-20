@@ -27,9 +27,6 @@ class CAM_InputEncoder: public FunctionUnit {
         void CalculatePower();
         /* Note that this is a single encoder, not yet multiplied by number of inputs */
         CAM_InputEncoder & operator=(const CAM_InputEncoder &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_InputEncoder>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

@@ -2,6 +2,8 @@
 #define FUNCTIONUNIT_H_
 
 #include <memory>
+#include <stdexcept>
+#include <string>
 
 #include "EvaCamConfig.h"
 
@@ -22,8 +24,6 @@ class FunctionUnit {
 
         /* Functions */
         virtual void PrintProperty();
-        virtual std::unique_ptr<FunctionUnit> clone() const = 0;
-
 
         /* Properties */
         double height;		/* Unit: m */
@@ -39,6 +39,11 @@ class FunctionUnit {
         double cellReadEnergy, cellSetEnergy, cellResetEnergy;			/* Unit: J */
 
         std::shared_ptr<EvaCamConfig> config;
+
+    protected:
+        [[noreturn]] static void ThrowInitializationError(const char *component) {
+            throw std::runtime_error(std::string(component) + " Error: Require initialization first!");
+        }
 };
 
 #endif /* FUNCTIONUNIT_H_ */

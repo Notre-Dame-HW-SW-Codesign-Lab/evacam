@@ -20,7 +20,6 @@ class CAM_Controller: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         CAM_Controller & operator=(const CAM_Controller &);
-        std::unique_ptr<FunctionUnit> clone() const override;
         /* Note that this is a single write controller, not yet multiplied by number of columns */
 
         /* Properties */

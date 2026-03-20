@@ -35,7 +35,7 @@ void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double
 
 void CAM_Precharger::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Precharger] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_Precharger]");
     } else {
         //outputDriver->CalculateArea();
         double hBitlinePrechareger, wBitlinePrechareger;

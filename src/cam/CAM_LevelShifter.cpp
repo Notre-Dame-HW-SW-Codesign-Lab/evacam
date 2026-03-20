@@ -42,7 +42,7 @@ void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _res
 
 void CAM_LevelShifter::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_LevelShifter] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_LevelShifter]");
     } else {
         area = 0;
         height = 0;
@@ -63,7 +63,7 @@ void CAM_LevelShifter::CalculateArea(){
 
 void CAM_LevelShifter::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_LevelShifter] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_LevelShifter]");
     } else {
 
         CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
@@ -72,7 +72,7 @@ void CAM_LevelShifter::CalculateRC() {
 
 void CAM_LevelShifter::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[LevelShifter] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_LevelShifter]");
     } else {
         rampInput = _rampInput;
         double resPullDown;
@@ -101,7 +101,7 @@ void CAM_LevelShifter::CalculateLatency(double _rampInput) {
 
 void CAM_LevelShifter::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_LevelShifter] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_LevelShifter]");
     } else {
         leakage = 0;
         readDynamicEnergy = 0;

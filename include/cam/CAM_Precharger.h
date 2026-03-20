@@ -21,9 +21,6 @@ class CAM_Precharger: public Precharger {
                 std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire);
         void CalculateArea();
         CAM_Precharger & operator=(const CAM_Precharger &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_Precharger>(*this);
-        }
 };
 
 

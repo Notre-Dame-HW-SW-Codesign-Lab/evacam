@@ -11,35 +11,19 @@ int main(int argc, char *argv[]) {
     std::setw(10);
     std::cout << std::fixed << std::setprecision(3);
 
-    CliOptions cliOptions;
     try {
-        cliOptions = CliOptionsParser::Parse(argc, argv);
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-        CliOptionsParser::PrintUsage(std::cerr);
-        return 1;
-    }
+        const CliOptions cliOptions = CliOptionsParser::Parse(argc, argv);
+        if (cliOptions.showHelp) {
+            CliOptionsParser::PrintUsage(std::cout);
+            return 0;
+        }
 
-    if (cliOptions.showHelp) {
-        CliOptionsParser::PrintUsage(std::cout);
-        return 0;
-    }
+        EvaCamContext context = EvaCamContextBuilder::Build(cliOptions);
+        auto config = context.config;
+        std::string outputYamlFileName = context.outputYamlFileName;
 
-    EvaCamContext context;
-    try {
-        context = EvaCamContextBuilder::Build(cliOptions);
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-        return 1;
-    }
-
-    auto config = context.config;
-    std::string outputYamlFileName = context.outputYamlFileName;
-    EvaCamExplorationResult explorationResult;
-
-    try {
         EvaCamExplorer explorer(config);
-        explorationResult = explorer.Run();
+        EvaCamExplorationResult explorationResult = explorer.Run();
 
         EvaCamOutput::PrintConsoleSummary(*config,
                 explorationResult.numSolution,
@@ -51,6 +35,10 @@ int main(int argc, char *argv[]) {
                 explorationResult.bestResults);
         return 0;
 
+    } catch (const std::invalid_argument &e) {
+        std::cerr << e.what() << std::endl;
+        CliOptionsParser::PrintUsage(std::cerr);
+        return 1;
     } catch (const YAML::Exception& e) {
         if (e.mark.line != -1) {
             std::cerr << "YAML error at line " 

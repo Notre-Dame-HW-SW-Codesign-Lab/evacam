@@ -29,9 +29,6 @@ class CAM_BasicMMR: public FunctionUnit {
         void CalculatePower();
         /* Note that this is a single encoder, not yet multiplied by number of inputs */
         CAM_BasicMMR & operator=(const CAM_BasicMMR &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_BasicMMR>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

@@ -48,7 +48,7 @@ void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _
 
 void Mux::CalculateArea(){
     if (!initialized) {
-        std::cout << "[Mux] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Mux]");
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             double h,w;
@@ -64,7 +64,7 @@ void Mux::CalculateArea(){
 
 void Mux::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Mux] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Mux]");
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             capNMOSPassTransistor = CalculateDrainCap(widthNMOSPassTransistor, NMOS, config->technology.tech->featureSize()*40, config->technology.tech);
@@ -80,7 +80,7 @@ void Mux::CalculateRC() {
 
 void Mux::CalculateLatency(double _rampInput) {  //rampInput is actually useless in Mux module
     if (!initialized) {
-        std::cout << "[Mux] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Mux]");
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             rampInput = _rampInput;
@@ -96,7 +96,7 @@ void Mux::CalculateLatency(double _rampInput) {  //rampInput is actually useless
 
 void Mux::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Mux] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Mux]");
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             leakage = 0; //TODO

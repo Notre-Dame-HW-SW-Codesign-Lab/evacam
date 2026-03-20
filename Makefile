@@ -35,9 +35,11 @@ OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 DEPS=$(OBJECTS:.o=.d)
 
 
-BASE_NAME = $(basename $(notdir $(CONFIG_FILE)))
+CONFIG_STEM=$(basename $(notdir $(CONFIG_FILE)))
+RESULT_BASE=$(patsubst %_config,%,$(patsubst %-config,%,$(CONFIG_STEM)))
 
-RES_FILE=$(RES_DIR)/$(BASE_NAME)_results.txt
+RES_YAML=$(RES_DIR)/$(RESULT_BASE)_results.yaml
+RUN_LOG=$(RES_DIR)/$(RESULT_BASE)_run.log
 
 all: $(BIN)
 
@@ -95,8 +97,9 @@ run: $(BIN)
 	@mkdir -p $(RES_DIR)
 	@if [ -f $(CONFIG_FILE) ]; then \
 		echo "Running $(BIN) with $(CONFIG_FILE)..."; \
-		./$(BIN) $(CONFIG_FILE) 2>&1 | tee $(RES_FILE); \
-		echo "Results are written into $(RES_FILE)"; \
+		./$(BIN) -o $(RES_YAML) $(CONFIG_FILE) 2>&1 | tee $(RUN_LOG); \
+		echo "Results YAML: $(RES_YAML)"; \
+		echo "Console log:  $(RUN_LOG)"; \
 	else \
 		echo "Config file not found: $(CONFIG_FILE)!"; \
 		exit 1; \

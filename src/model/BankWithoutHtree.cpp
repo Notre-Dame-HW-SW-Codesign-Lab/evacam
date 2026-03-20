@@ -28,7 +28,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     if (!_internalSenseAmp) {
         if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
             invalid = true;
-            std::cout << "[BankWithoutHtree] Error: DRAM does not support external sense amplification!" << std::endl;
+            config->logger.Verbose() << "[BankWithoutHtree] DRAM does not support external sense amplification.";
             return;
         } else if (globalWire->wireRepeaterType != repeated_none) {
             invalid = true;
@@ -193,7 +193,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 
 void BankWithoutHtree::CalculateArea() {
     if (!initialized) {
-        std::cout << "[BankWithoutHtree] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[BankWithoutHtree]");
     } else if (invalid) {
         height = width = area = 1e41;
     } else {
@@ -236,7 +236,7 @@ void BankWithoutHtree::CalculateArea() {
 
 void BankWithoutHtree::CalculateRC() {
     if (!initialized) {
-        std::cout << "[BankWithoutHtree] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[BankWithoutHtree]");
     } else if (!invalid) {
         mat->CalculateRC();
         if (!internalSenseAmp) {
@@ -248,7 +248,7 @@ void BankWithoutHtree::CalculateRC() {
 
 void BankWithoutHtree::CalculateLatencyAndPower() {
     if (!initialized) {
-        std::cout << "[BankWithoutHtree] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[BankWithoutHtree]");
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
         readDynamicEnergy = writeDynamicEnergy = 1e41;

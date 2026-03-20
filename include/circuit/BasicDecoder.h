@@ -23,9 +23,6 @@ class BasicDecoder: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<BasicDecoder>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

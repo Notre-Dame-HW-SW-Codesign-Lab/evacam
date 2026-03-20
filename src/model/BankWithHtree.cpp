@@ -423,8 +423,8 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
 
 void BankWithHtree::CalculateArea() {
     /* Make this happen on initilization 
-       if (!initialized) {
-       std::cout << "[Bank] Error: Require initialization first!" << std::endl;
+    if (!initialized) {
+       ThrowInitializationError("[Bank]");
        } else */
     if (invalid) {
         height = width = area = 1e41;

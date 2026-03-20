@@ -19,9 +19,6 @@ class CAM_Encoder: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_Encoder>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

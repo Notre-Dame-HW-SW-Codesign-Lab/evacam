@@ -37,8 +37,7 @@ void CAM_BasicEncoder::Initialize(int _numInputBit, double _capLoad, double _res
     }
     else {
         // TODO 4-to-2 and 2-to-1 encoder
-        std::cout << "[CAM_BasicEncoder] Error: Only support 8-to-3 Encoder block by now!" << std::endl;
-        return;
+        throw std::runtime_error("[CAM_BasicEncoder] Error: only 8-to-3 encoder blocks are supported.");
     }
     initialized = true;
     CalculateArea();
@@ -48,7 +47,7 @@ void CAM_BasicEncoder::Initialize(int _numInputBit, double _capLoad, double _res
 
 void CAM_BasicEncoder::CalculateArea() {
     if (!initialized) {
-        std::cout << "[CAM_BasicEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicEncoder]");
     } else {
         outputDriver.CalculateArea();
         if (numInputBit == 8) {
@@ -82,15 +81,14 @@ void CAM_BasicEncoder::CalculateArea() {
             height = area / width;
         } else {
             // TODO 4-to-2 and 2-to-1 encoder
-            std::cout << "[CAM_BasicEncoder] Error: Only support 8-to-3 Encoder block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicEncoder] Error: only 8-to-3 encoder blocks are supported.");
         }
     }
 }
 
 void CAM_BasicEncoder::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_BasicEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicEncoder]");
     } else {
         outputDriver.CalculateRC();
         CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNorInput, &capNorOutput);
@@ -101,7 +99,7 @@ void CAM_BasicEncoder::CalculateRC() {
 
 void CAM_BasicEncoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_BasicEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicEncoder]");
     } else {
         rampInput = _rampInput;
         if (numInputBit == 8) {
@@ -126,15 +124,14 @@ void CAM_BasicEncoder::CalculateLatency(double _rampInput) {
             rampOutput = outputDriver.rampOutput;
         } else {
             // TODO 4-to-2 and 2-to-1 encoder
-            std::cout << "[CAM_BasicEncoder] Error: Only support 8-to-3 Encoder block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicEncoder] Error: only 8-to-3 encoder blocks are supported.");
         }
     }
 }
 
 void CAM_BasicEncoder::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_BasicEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicEncoder]");
     } else {
         outputDriver.CalculatePower();
         if (numInputBit == 8) {
@@ -164,8 +161,7 @@ void CAM_BasicEncoder::CalculatePower() {
             writeDynamicEnergy = readDynamicEnergy;
         }  else {
             // TODO 4-to-2 and 2-to-1 encoder
-            std::cout << "[CAM_BasicEncoder] Error: Only support 8-to-3 Encoder block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicEncoder] Error: only 8-to-3 encoder blocks are supported.");
         }
     }
 }

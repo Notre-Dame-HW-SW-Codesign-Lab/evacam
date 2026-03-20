@@ -27,9 +27,6 @@ class CAM_MMR: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         CAM_MMR & operator=(const CAM_MMR &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_MMR>(*this);
-        }
 
         /* Properties */
         bool initialized;			/* Initialization flag */

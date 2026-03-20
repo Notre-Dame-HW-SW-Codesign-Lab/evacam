@@ -25,9 +25,6 @@ class CAM_RowNand: public RowDecoder {
                 bool _multipleRowPerSet, bool _inv, BufferDesignTarget _areaOptimizationLevel, 
                 double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config);
         CAM_RowNand & operator=(const CAM_RowNand &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_RowNand>(*this);
-        }
 
         /* Properties */
         bool driverInv;

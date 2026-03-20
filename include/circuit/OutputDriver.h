@@ -25,9 +25,6 @@ class OutputDriver: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         OutputDriver & operator=(const OutputDriver &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<OutputDriver>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

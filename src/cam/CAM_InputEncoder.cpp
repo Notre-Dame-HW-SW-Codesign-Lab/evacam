@@ -55,7 +55,7 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
 
 void CAM_InputEncoder::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_InputEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_InputEncoder]");
     } else {
         if(isCustom) {
             // TODO Customizable Input Encoder
@@ -82,7 +82,7 @@ void CAM_InputEncoder::CalculateArea(){
 
 void CAM_InputEncoder::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_InputEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_InputEncoder]");
     } else {
         if(isCustom) {
             // TODO Customizable Input Encoder
@@ -103,7 +103,7 @@ void CAM_InputEncoder::CalculateRC() {
 
 void CAM_InputEncoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_InputEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_InputEncoder]");
     } else {
 
         if(isCustom) {
@@ -142,7 +142,7 @@ void CAM_InputEncoder::CalculateLatency(double _rampInput) {
 
 void CAM_InputEncoder::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_InputEncoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_InputEncoder]");
     } else {
         //outputDriver->CalculatePower();
         if(isCustom) {

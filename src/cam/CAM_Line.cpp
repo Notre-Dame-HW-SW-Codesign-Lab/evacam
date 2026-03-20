@@ -17,6 +17,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
         CellPort.ConnectedRegion = config->technology.cell->camPort[!isRow][index].ConnectedRegion;
         CellPort.Type = config->technology.cell->camPort[!isRow][index].Type;
         CellPort.isNMOS = config->technology.cell->camPort[!isRow][index].isNMOS;
+        CellPort.leak = config->technology.cell->camPort[!isRow][index].leak;
         //CellPort.isNVMdischarge = config->technology.cell->camPort[!isRow][index].isNVMdischarge;
         CellPort.numCmos = config->technology.cell->camPort[!isRow][index].numCmos;
         CellPort.volReset = config->technology.cell->camPort[!isRow][index].volReset;
@@ -91,13 +92,13 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
         if (CellPort.Type == Wordline) {
             if (CellPort.ConnectedRegion != gate) {
                 invalid = true;
-                std::cout << "[CAM_Line] Error: Weird Wordline description!" << std::endl;
+                config->logger.Verbose() << "[CAM_Line] Weird wordline description.";
                 return;
             }
         } else if (CellPort.Type == Bitline || CellPort.Type == Sourceline) {
             if (CellPort.ConnectedRegion != drain && CellPort.ConnectedRegion != none) {
                 invalid = true;
-                std::cout << "[CAM_Line] Error: Weird Bitline/Sourceline description!" << std::endl;
+                config->logger.Verbose() << "[CAM_Line] Weird bitline/sourceline description.";
                 return;
             }
             if (config->technology.cell->setMode) {

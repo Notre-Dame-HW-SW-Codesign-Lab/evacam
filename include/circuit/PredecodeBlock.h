@@ -24,9 +24,6 @@ class PredecodeBlock: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         PredecodeBlock & operator=(const PredecodeBlock &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<PredecodeBlock>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

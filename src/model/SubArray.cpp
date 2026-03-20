@@ -122,7 +122,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
     minBitlineMuxWidth = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(), minBitlineMuxWidth);
     if (minBitlineMuxWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
         invalid = true;
-        std::cout << "minBitlineMuxWidth > config->input.maxNmosSize * config->technology.tech->featureSize()" << std::endl;
+        config->logger.Verbose() << "[Subarray] minBitlineMuxWidth exceeds max supported NMOS size.";
         return;
     }
 
@@ -136,15 +136,17 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             voltageSense = true;
         }
     } else if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
-        std::cout << "[Subarray] Error: DRAM does not support external sense amplifiers!" << std::endl;
-        exit(-1);
+        invalid = true;
+        config->logger.Verbose() << "[Subarray] DRAM does not support external sense amplifiers.";
+        initialized = true;
+        return;
     }
 
     if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
         senseVoltage = config->technology.tech->vdd() / 2 * config->technology.cell->capDRAMCell / (config->technology.cell->capDRAMCell + capBitline);
         if (senseVoltage < config->technology.cell->minSenseVoltage) {		/* Bitline is too long */
             invalid = true;
-            std::cout << "bitline is too long" << std::endl;
+            config->logger.Verbose() << "[Subarray] Bitline is too long.";
             initialized = true;
             return;
         }
@@ -212,8 +214,8 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
                 voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
                 if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
-                    std::cout <<"Error[Subarray]: Read current too large or too small that no reasonable precharge voltage existing" <<std::endl;
                     invalid = true;
+                    config->logger.Verbose() << "[Subarray] Read current does not allow a reasonable precharge voltage.";
                     return;
                 }
             } else {   /*Voltage-divider sensing */
@@ -225,8 +227,8 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
                 voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
                 if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
-                    std::cout <<"Error[Subarray]: Read Voltage too large or too small that no reasonable precharge voltage existing" <<std::endl;
                     invalid = true;
+                    config->logger.Verbose() << "[Subarray] Read voltage does not allow a reasonable precharge voltage.";
                     return;
                 }
             }
@@ -248,8 +250,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 resCellAccess = config->technology.cell->voltageDropAccessDevice / (config->technology.cell->readVoltage
                 - config->technology.cell->voltageDropAccessDevice) * config->technology.cell->resistanceOn;
                 } else {
-                std::cout<<"Error[Subarray]: Diode access do not support voltage-input voltage sensing" <<std::endl;
-                exit(-1);
+                throw std::runtime_error("[Subarray] Error: diode access does not support voltage-input voltage sensing.");
                 }
                 }
                 capCellAccess = MAX(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
@@ -270,8 +271,8 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
             voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
             if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
-                std::cout <<"Error[Subarray]: Read current too large or too small that no reasonable precharge voltage existing" <<std::endl;
                 invalid = true;
+                config->logger.Verbose() << "[Subarray] Read current does not allow a reasonable precharge voltage.";
                 return;
             }
         } else {   /*Voltage-in voltage sensing */
@@ -283,8 +284,8 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
             voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
             if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
-                std::cout <<"Error[Subarray]: Read Voltage too large or too small that no reasonable precharge voltage existing" <<std::endl;
                 invalid = true;
+                config->logger.Verbose() << "[Subarray] Read voltage does not allow a reasonable precharge voltage.";
                 return;
             }
         }
@@ -310,8 +311,8 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
 
     rowDecoder->Initialize(numRow, capWordline, resWordline, multipleRowPerSet, areaOptimizationLevel, maxWordlineCurrent, config);
     if (rowDecoder->invalid) {
-        std::cout << "rowdecoder invalid" << std::endl;
         invalid = true;
+        config->logger.Verbose() << "[Subarray] Row decoder initialization failed.";
         return;
     }
     //rowDecoder->CalculateRC();
@@ -386,7 +387,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
 
 void SubArray::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Subarray] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Subarray]");
     } else if (invalid) {
         height = width = area = 1e41;
     } else {
@@ -447,7 +448,7 @@ void SubArray::CalculateArea() {
 
 void SubArray::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[Subarray] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Subarray]");
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
     } else {
@@ -614,7 +615,7 @@ void SubArray::CalculateLatency(double _rampInput) {
 
 void SubArray::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Subarray] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Subarray]");
     } else if (invalid) {
         readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
     } else {

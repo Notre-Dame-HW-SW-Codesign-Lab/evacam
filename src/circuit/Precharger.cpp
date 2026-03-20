@@ -44,7 +44,7 @@ void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _ca
 
 void Precharger::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Precharger] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Precharger]");
     } else {
         //outputDriver->CalculateArea();
         double hBitlinePrechareger, wBitlinePrechareger;
@@ -66,7 +66,7 @@ void Precharger::CalculateArea() {
 
 void Precharger::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Precharger] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Precharger]");
     } else {
         //outputDriver->CalculateRC();
         //more accurate RC model would include drain Capacitances of Precharger and Equalization PMOS transistors
@@ -76,7 +76,7 @@ void Precharger::CalculateRC() {
 
 void Precharger::CalculateLatency(double _rampInput){
     if (!initialized) {
-        std::cout << "[Precharger] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Precharger]");
     } else {
         rampInput= _rampInput;
         outputDriver->CalculateLatency(rampInput);
@@ -104,7 +104,7 @@ void Precharger::CalculateLatency(double _rampInput){
 
 void Precharger::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Precharger] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Precharger]");
     } else {
         //outputDriver->CalculatePower();
         /* Leakage power */

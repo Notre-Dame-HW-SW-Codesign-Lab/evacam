@@ -45,7 +45,7 @@ void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _res
 
 void CAM_DataBuffer::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_DataBuffer] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_DataBuffer]");
     } else {
         //outputDriver->CalculateArea();
         height = outputDriver->height * (1+differential);
@@ -60,7 +60,7 @@ void CAM_DataBuffer::CalculateArea(){
 
 void CAM_DataBuffer::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_DataBuffer] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_DataBuffer]");
     } else {
         //outputDriver->CalculateRC();
         CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
@@ -69,7 +69,7 @@ void CAM_DataBuffer::CalculateRC() {
 
 void CAM_DataBuffer::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[DataBuffer] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_DataBuffer]");
     } else {
         rampInput = _rampInput;
         double resPullDown;
@@ -103,7 +103,7 @@ void CAM_DataBuffer::CalculateLatency(double _rampInput) {
 
 void CAM_DataBuffer::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_DataBuffer] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_DataBuffer]");
     } else {
         //outputDriver->CalculatePower();
         leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() *4;

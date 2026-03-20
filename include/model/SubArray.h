@@ -29,9 +29,6 @@ class SubArray: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         SubArray & operator=(const SubArray &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<SubArray>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

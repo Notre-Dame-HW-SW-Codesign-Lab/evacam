@@ -250,7 +250,7 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                         ValidateCapacityOrThrow(dataBank);
                                                         numSolutions++;
 
-                                                        const auto tempResult = MakeResult(dataBank, localWire, globalWire, false);
+                                                        const auto tempResult = MakeResult(dataBank, localWire, globalWire);
                                                         UpdateBestResults(bestResults, tempResult);
                                                         if (csvStream) {
                                                             MaybeWriteExplorationCsv(tempResult, *csvStream);
@@ -373,7 +373,7 @@ std::shared_ptr<Result> EvaCamExplorer::ReevaluateBestResultWithWires(int optimi
             camOpt_);
 
     bestResults_[optimizationIndex]->bank = trialBank;
-    const auto tempResult = MakeResult(trialBank, localWire, globalWire, false);
+    const auto tempResult = MakeResult(trialBank, localWire, globalWire);
     bestResults_[optimizationIndex]->compareAndUpdate(tempResult);
     return tempResult;
 }
@@ -512,7 +512,7 @@ void EvaCamExplorer::EvaluateConstrainedGeometry(int numRowMat, int numColumnMat
                                                     && dataBank->writeLatency * dataBank->writeDynamicEnergy <= constraintLimits_.writeEdp) {
                                                 ValidateCapacityOrThrow(dataBank);
                                                 numSolution_++;
-                                                const auto tempResult = MakeResult(dataBank, localWire_, globalWire_, true);
+                                                const auto tempResult = MakeResult(dataBank, localWire_, globalWire_);
                                                 UpdateBestResults(tempResult);
                                             }
                                         }
@@ -535,11 +535,10 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
 
 std::shared_ptr<Result> EvaCamExplorer::MakeResult(const std::shared_ptr<Bank> &bank,
         const std::shared_ptr<Wire> &localWire,
-        const std::shared_ptr<Wire> &globalWire,
-        bool cloneBank) const {
+        const std::shared_ptr<Wire> &globalWire) const {
     auto result = std::make_shared<Result>();
     result->Initialize(config_);
-    result->bank = cloneBank ? bank->clone_bank() : bank;
+    result->bank = bank;
     result->localWire = localWire;
     result->globalWire = globalWire;
     return result;

@@ -27,7 +27,7 @@ void Comparator::Initialize(int _numTagBits, double _capLoad, std::shared_ptr<Ev
 
 void Comparator::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Comparator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Comparator]");
     } else {
         double totalHeight = 0;
         double totalWidth = 0;
@@ -50,7 +50,7 @@ void Comparator::CalculateArea() {
 
 void Comparator::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Comparator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Comparator]");
     } else {
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
             CalculateGateCapacitance(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->technology.tech, &(capInput[i]), &(capOutput[i]));
@@ -66,7 +66,7 @@ void Comparator::CalculateRC() {
 
 void Comparator::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[Comparator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Comparator]");
     } else {
         rampInput = _rampInput;
         double resPullDown;
@@ -94,7 +94,7 @@ void Comparator::CalculateLatency(double _rampInput) {
 
 void Comparator::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Comparator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Comparator]");
     } else {
         /* Leakage power */
         leakage = 0;

@@ -23,9 +23,6 @@ class Comparator: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         Comparator & operator=(const Comparator &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<Comparator>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

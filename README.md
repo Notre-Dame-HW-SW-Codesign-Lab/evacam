@@ -57,11 +57,13 @@ make run CONFIG_FILE=yaml/config/2FeFET_TCAM_config.yaml
 ```
 
 By default, EvaCAM writes YAML results to `results/<config-name>_results.yaml`.
+The `make run` wrapper also saves the console output to `results/<config-name>_run.log`.
 
 For example:
 
 - `yaml/config/2FeFET_TCAM_config.yaml`
 - `results/2FeFET_TCAM_results.yaml`
+- `results/2FeFET_TCAM_run.log`
 
 ## CLI
 

@@ -65,7 +65,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
 
 void RowDecoder::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Row Decoder Area] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Row Decoder]");
     } else {
         //outputDriver->CalculateArea();
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
@@ -85,7 +85,7 @@ void RowDecoder::CalculateArea() {
 
 void RowDecoder::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Row Decoder RC] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Row Decoder]");
     } else {
         //outputDriver->CalculateRC();
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
@@ -99,7 +99,7 @@ void RowDecoder::CalculateRC() {
 
 void RowDecoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[Row Decoder Latency] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Row Decoder]");
     } else {
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
             outputDriver->CalculateLatency(_rampInput);
@@ -140,7 +140,7 @@ void RowDecoder::CalculateLatency(double _rampInput) {
 
 void RowDecoder::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Row Decoder Power] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Row Decoder]");
     } else {
         //outputDriver->CalculatePower();
         leakage = outputDriver->leakage;

@@ -9,8 +9,7 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
     config = _config;
     numAddressBit =_numAddressBit;
     if (numAddressBit > 27 ) {
-        std::cout << "[Predecoder Block] Error: Invalid number of address bits" << std::endl;
-        throw std::runtime_error("Error");
+        throw std::runtime_error("[Predecoder Block] Error: invalid number of address bits.");
     } else if (numAddressBit == 0) {
         height = width = area = 0;
         readLatency = writeLatency = 0;
@@ -187,7 +186,7 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
 
 void PredecodeBlock::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Predecoder Block] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Predecoder Block]");
     } else if (numAddressBit == 0) {
         height = width = area = 0;
     } else {
@@ -244,7 +243,7 @@ void PredecodeBlock::CalculateArea() {
 
 void PredecodeBlock::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Predecoder Block] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Predecoder Block]");
     } else if (numAddressBit > 0) {
         if (basicDecoderA1 != NULL) {
             //basicDecoderA1->CalculateRC();
@@ -263,7 +262,7 @@ void PredecodeBlock::CalculateRC() {
 
 void PredecodeBlock::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[Predecoder Block] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Predecoder Block]");
     } else if (numAddressBit == 0) {
         readLatency = writeLatency = 0;
         rampOutput = _rampInput;
@@ -337,7 +336,7 @@ void PredecodeBlock::CalculateLatency(double _rampInput) {
 
 void PredecodeBlock::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Predecoder Block] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Predecoder Block]");
     } else if (numAddressBit == 0) {
         leakage = readDynamicEnergy = writeDynamicEnergy = 0;
     } else {

@@ -33,9 +33,6 @@ class Mat: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         Mat & operator=(const Mat &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<Mat>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

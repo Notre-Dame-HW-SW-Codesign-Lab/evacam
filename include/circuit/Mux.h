@@ -18,9 +18,6 @@ class Mux: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         Mux & operator=(const Mux &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<Mux>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

@@ -51,7 +51,7 @@ void BasicDecoder::Initialize(int _numAddressBit, double _capLoad, double _resLo
 
 void BasicDecoder::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Basic Decoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Basic Decoder]");
     } else {
         //outputDriver->CalculateArea();
         if (numNandInput == 0){
@@ -71,7 +71,7 @@ void BasicDecoder::CalculateArea() {
 
 void BasicDecoder::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Basic Decoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Basic Decoder]");
     } else {
         //outputDriver->CalculateRC();
         if (numNandInput > 0) {
@@ -82,7 +82,7 @@ void BasicDecoder::CalculateRC() {
 
 void BasicDecoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[Basic Decoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Basic Decoder]");
     } else {
         rampInput = _rampInput;
         if (numNandInput == 0) {
@@ -114,7 +114,7 @@ void BasicDecoder::CalculateLatency(double _rampInput) {
 
 void BasicDecoder::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Basic Decoder] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Basic Decoder]");
     } else {
         //outputDriver->CalculatePower();
         double capLoad;

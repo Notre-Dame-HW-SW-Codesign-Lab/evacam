@@ -24,9 +24,6 @@ class Precharger: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         Precharger & operator=(const Precharger &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<Precharger>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

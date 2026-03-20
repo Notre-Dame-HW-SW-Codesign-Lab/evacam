@@ -47,7 +47,7 @@ void CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimization
 
 void CAM_MMR::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_MMR]");
     } else {
         area = 0;
         BasicMMR.CalculateArea();
@@ -61,7 +61,7 @@ void CAM_MMR::CalculateArea(){
 
 void CAM_MMR::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_MMR]");
     } else {
         BasicMMR.CalculateRC();
         outputDriver.CalculateRC();
@@ -70,7 +70,7 @@ void CAM_MMR::CalculateRC() {
 
 void CAM_MMR::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_MMR]");
     } else {
         rampInput = _rampInput;
         BasicMMR.CalculateLatency(rampInput);
@@ -92,7 +92,7 @@ void CAM_MMR::CalculateLatency(double _rampInput) {
 
 void CAM_MMR::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_MMR]");
     } else {
         readDynamicEnergy = 0;
         BasicMMR.CalculatePower();

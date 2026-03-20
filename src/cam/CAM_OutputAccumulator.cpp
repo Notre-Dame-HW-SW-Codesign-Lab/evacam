@@ -40,7 +40,7 @@ void CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::sh
 
 void CAM_OutputAccumulator::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_OutputAccumulator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_OutputAccumulator]");
     } else {
         // TODO: The exactly layout of accumulator is not described, just for magic folding
         outputDriver.CalculateArea();
@@ -55,7 +55,7 @@ void CAM_OutputAccumulator::CalculateArea(){
 
 void CAM_OutputAccumulator::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_OutputAccumulator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_OutputAccumulator]");
     } else {
         outputDriver.CalculateRC();
         CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
@@ -64,7 +64,7 @@ void CAM_OutputAccumulator::CalculateRC() {
 
 void CAM_OutputAccumulator::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_OutputAccumulator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_OutputAccumulator]");
     } else {
         rampInput = _rampInput;
         double resPullDown;
@@ -104,7 +104,7 @@ void CAM_OutputAccumulator::CalculateLatency(double _rampInput) {
 
 void CAM_OutputAccumulator::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_OutputAccumulator] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_OutputAccumulator]");
     } else {
         outputDriver.CalculatePower();
         leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() * (1+1+6);
@@ -146,4 +146,3 @@ CAM_OutputAccumulator & CAM_OutputAccumulator::operator=(const CAM_OutputAccumul
     rampOutput = rhs.rampOutput;
     return *this;
 }
-

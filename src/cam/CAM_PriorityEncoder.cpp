@@ -39,7 +39,7 @@ void CAM_PriorityEncoder::Initialize(int _numInputBits, BufferDesignTarget _area
 
 void CAM_PriorityEncoder::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_PriorityEncoder]");
     } else {
         area = 0;
         Encoder.CalculateArea();
@@ -53,7 +53,7 @@ void CAM_PriorityEncoder::CalculateArea(){
 
 void CAM_PriorityEncoder::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_PriorityEncoder]");
     } else {
         MMR.CalculateRC();
         Encoder.CalculateRC();
@@ -62,7 +62,7 @@ void CAM_PriorityEncoder::CalculateRC() {
 
 void CAM_PriorityEncoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_PriorityEncoder]");
     } else {
         rampInput = _rampInput;
         MMR.CalculateLatency(rampInput);
@@ -75,7 +75,7 @@ void CAM_PriorityEncoder::CalculateLatency(double _rampInput) {
 
 void CAM_PriorityEncoder::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_PriorityEncoder]");
     } else {
         readDynamicEnergy = 0;
         MMR.CalculatePower();
@@ -113,7 +113,6 @@ CAM_PriorityEncoder & CAM_PriorityEncoder::operator=(const CAM_PriorityEncoder &
     capNorOutput = rhs.capNorOutput;
     return *this;
 }
-
 
 
 

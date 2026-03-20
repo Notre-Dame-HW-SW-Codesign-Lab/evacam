@@ -25,7 +25,7 @@ void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _sens
 
 void SenseAmp::CalculateArea() {
     if (!initialized) {
-        std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Sense Amp]");
     } else if (invalid) {
         height = width = area = 1e41;
     } else {
@@ -75,7 +75,7 @@ void SenseAmp::CalculateArea() {
 
 void SenseAmp::CalculateRC() {
     if (!initialized) {
-        std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Sense Amp]");
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
     } else {
@@ -90,7 +90,7 @@ void SenseAmp::CalculateRC() {
 void SenseAmp::CalculateLatency(double _rampInput) {	/* TODO: _rampInput is actually no use in SenseAmp */
     (void)_rampInput;
     if (!initialized) {
-        std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Sense Amp]");
     } else {
         readLatency = writeLatency = 0;
         if (currentSense) {	/* current-sensing needs IV converter */
@@ -119,7 +119,7 @@ void SenseAmp::CalculateLatency(double _rampInput) {	/* TODO: _rampInput is actu
 
 void SenseAmp::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[Sense Amp]");
     } else if (invalid) {
         readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
     } else {

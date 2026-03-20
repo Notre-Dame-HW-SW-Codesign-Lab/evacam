@@ -55,8 +55,7 @@ class EvaCamExplorer {
                 const std::shared_ptr<Wire> &globalWire, const std::shared_ptr<CAM_Opt> &camOpt) const;
         std::shared_ptr<Result> MakeResult(const std::shared_ptr<Bank> &bank,
                 const std::shared_ptr<Wire> &localWire,
-                const std::shared_ptr<Wire> &globalWire,
-                bool cloneBank) const;
+                const std::shared_ptr<Wire> &globalWire) const;
         bool IsValidCandidate(const std::shared_ptr<Bank> &bank) const;
         void ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const;
         void UpdateBestResults(const std::shared_ptr<Result> &result);

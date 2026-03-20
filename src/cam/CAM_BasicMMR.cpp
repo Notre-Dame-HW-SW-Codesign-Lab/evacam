@@ -48,8 +48,7 @@ void CAM_BasicMMR::Initialize(int _numInputBits, double _capLoad, double _resLoa
         capIn = tmp1 + tmp2 + tmp3 + capInvIn;
     } else {
         // TODO 4-input and 2-input MMR
-        std::cout << "[CAM_MMR] Error: Only support 8-input MMR block by now!" << std::endl;
-        return;
+        throw std::runtime_error("[CAM_BasicMMR] Error: only 8-input MMR blocks are supported.");
     }
     initialized = true;
     CalculateArea();
@@ -59,7 +58,7 @@ void CAM_BasicMMR::Initialize(int _numInputBits, double _capLoad, double _resLoa
 
 void CAM_BasicMMR::CalculateArea(){
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicMMR]");
     } else {
         area = 0;
         if(numInputBits == 8) {
@@ -95,15 +94,14 @@ void CAM_BasicMMR::CalculateArea(){
             width = area / height;
         } else {
             // TODO 4-input and 2-input MMR
-            std::cout << "[CAM_MMR] Error: Only support 8-input MMR block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicMMR] Error: only 8-input MMR blocks are supported.");
         }
     }
 }
 
 void CAM_BasicMMR::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicMMR]");
     } else {
         if(numInputBits == 8) {
             LookAheadDriver.CalculateRC();
@@ -118,15 +116,14 @@ void CAM_BasicMMR::CalculateRC() {
             CalculateGateCapacitance(INV, 1, widthN, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capInvIn, &capInvOut);
         } else {
             // TODO 4-input and 2-input MMR
-            std::cout << "[CAM_MMR] Error: Only support 8-input MMR block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicMMR] Error: only 8-input MMR blocks are supported.");
         }
     }
 }
 
 void CAM_BasicMMR::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicMMR]");
     } else {
         LookAheadLatency = 0;
         if(numInputBits == 8) {
@@ -177,15 +174,14 @@ void CAM_BasicMMR::CalculateLatency(double _rampInput) {
             writeLatency = readLatency;
         } else {
             // TODO 4-input and 2-input MMR
-            std::cout << "[CAM_MMR] Error: Only support 8-input MMR block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicMMR] Error: only 8-input MMR blocks are supported.");
         }
     }
 }
 
 void CAM_BasicMMR::CalculatePower() {
     if (!initialized) {
-        std::cout << "[CAM_MMR] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_BasicMMR]");
     } else {
         readDynamicEnergy = 0;
         leakage = 0;
@@ -221,8 +217,7 @@ void CAM_BasicMMR::CalculatePower() {
             writeDynamicEnergy = readDynamicEnergy;
         } else {
             // TODO 4-input and 2-input MMR
-            std::cout << "[CAM_MMR] Error: Only support 8-input MMR block by now!" << std::endl;
-            return;
+            throw std::runtime_error("[CAM_BasicMMR] Error: only 8-input MMR blocks are supported.");
         }
     }
 }

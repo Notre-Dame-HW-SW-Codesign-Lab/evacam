@@ -26,9 +26,6 @@ class CAM_SenseAmp: public FunctionUnit {
         void CalculatePower();
         /* Note that this is a single SA, not yet multiplied by number of columns */
         CAM_SenseAmp & operator=(const CAM_SenseAmp &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_SenseAmp>(*this);
-        }
         std::shared_ptr<SenseAmp> customSA;
 
         std::string fileCustomSA;

@@ -21,9 +21,6 @@ class SenseAmp: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         SenseAmp & operator=(const SenseAmp &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<SenseAmp>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

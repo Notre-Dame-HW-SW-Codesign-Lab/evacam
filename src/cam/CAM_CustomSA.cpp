@@ -1,6 +1,7 @@
 #include "formula.h"
 
 #include <iostream>
+#include <stdexcept>
 
 void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::shared_ptr<Technology> tech, 
         double *_width, double *_height, bool UseUpdatedLib) {
@@ -41,7 +42,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempParallelWidth);
         height += tempParallelHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
 
         // Mrefpre (30<47)
@@ -64,7 +65,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempParallelWidth);
         height += tempParallelHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
 
         height += MIN_GAP_BET_SAME_TYPE_DIFFS * tech->featureSize();
@@ -84,7 +85,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempParallelWidth);
         height += tempParallelHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
 
         // W_amppre_p (40<47)
@@ -123,7 +124,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
 
         tempHeight = Cs / CalculateGateCap(widthTransistorRegion, tech) * tech->featureSize();
@@ -137,7 +138,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
 
         // switches, 4 in one line
@@ -148,7 +149,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
 
         // 2-stage amplify, in one line
@@ -159,7 +160,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, std::share
         width = MAX(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
-            std::cout << "[Custom SA Area Calculation Error]: Exceed the width constraint, needs fold!" << std::endl;
+            throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
         }
     }
 

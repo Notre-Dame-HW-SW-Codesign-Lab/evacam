@@ -24,9 +24,6 @@ class CAM_LevelShifter: public FunctionUnit {
         void CalculatePower();
         /* Note that this is a single latch, not yet multiplied by number of inputs */
         CAM_LevelShifter & operator=(const CAM_LevelShifter &);
-        std::unique_ptr<FunctionUnit> clone() const override {
-            return std::make_unique<CAM_LevelShifter>(*this);
-        }
 
         /* Properties */
         bool initialized;	/* Initialization flag */

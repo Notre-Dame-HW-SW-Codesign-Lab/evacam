@@ -111,11 +111,9 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
             / config->exploration.geometry.numActiveMatPerColumn.Min() / numColumn;
     }
 
-    // std::cout << __FILE__ << ": " << __LINE__ << " row: " << numRow << " col: " << numColumn << std::endl;
-
     if (config->technology.cell->camNumRow < 1 || config->technology.cell->camNumCol < 1) {
         invalid = true;
-        std::cout <<"[CAM_SubArray] [Error]: array configuration error" <<std::endl;
+        config->logger.Verbose() << "[CAM_SubArray] Array configuration error.";
         return;
     }
 
@@ -147,7 +145,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 
     if (!internalSenseAmp && config->technology.cell->memCellType != SRAM) {
         invalid = true;
-        std::cout << "[CAM_SubArray] Error: nvTCAM does not support external sense amplifiers!" << std::endl;
+        config->logger.Verbose() << "[CAM_SubArray] nvTCAM does not support external sense amplifiers.";
         return;
     }
     for(int i=0;i<config->technology.cell->camNumCol;i++) {
@@ -157,14 +155,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 
 
     // Variation generation model
-
-    // std::mt19937 rngResistanceOff(std::random_device{}());
-    // std::mt19937 rngResistanceOn(std::random_device{}());
-    // // std::normal_distribution<double> distResistanceOff(config->technology.cell->resistanceOff, config->technology.cell->resistanceOff*config->technology.cell->resistanceOffVariation);
-    // std::normal_distribution<double> distResistanceOff(6.67e3,148.8);
-    // std::normal_distribution<double> distResistanceOn(config->technology.cell->resistanceOn, config->technology.cell->resistanceOff*config->technology.cell->resistanceOnVariation);
     // for (int i = 0; i < 100; i++) {
-    //     std::cout << distResistanceOff(rngResistanceOff) << std::endl;
     // }
 
 
@@ -188,20 +179,16 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
                         // Update for HV
                         capCellAccess = (CalculateDrainCap(Col[i]->CellPort.widthCmos*config->technology.tech->featureSize()*3 /* Update for HV */, NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize()*3 /* Update for HV */, config->technology.tech)+config->technology.cell->capacitanceOff)*Col[i]->CellPort.numCmos;
                     }else{
-                        // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
                         resMemCellOff = config->technology.tech->vdd() / config->technology.tech->currentOffNmos()[config->input.temperature - 300] / config->technology.tech->featureSize() / Col[i]->CellPort.numCmos;
                         resMemCellOn  = CalculateOnResistance(Col[i]->CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech);
                         capCellAccess = CalculateDrainCap(Col[i]->CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i]->CellPort.numCmos;
-                        // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
                     }
                 }else{
                     if(config->technology.cell->isNVMdischarge){
-                        // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
                         resMemCellOff = (config->technology.tech->vdd() / config->technology.tech->currentOffPmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i]->CellPort.numCmos
                                 + config->technology.cell->resistanceOff)/2;
                         resMemCellOn  = CalculateOnResistance(Col[i]->CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, config->technology.tech) + config->technology.cell->resistanceOn;
                         capCellAccess = CalculateDrainCap(Col[i]->CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i]->CellPort.numCmos;
-                        // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
                     }else{
                         resMemCellOff = config->technology.tech->vdd() / config->technology.tech->currentOffPmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i]->CellPort.numCmos;
                         resMemCellOn  = CalculateOnResistance(Col[i]->CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, config->technology.tech)*Col[i]->CellPort.numCmos;
@@ -243,40 +230,29 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
                 }
                 resMemCellOff = config->technology.cell->resistanceOff/Col[i]->CellPort.numCmos;
                 resMemCellOn = config->technology.cell->resistanceOn;
-                //std::cout << "OnOffRes " << resMemCellOff << " : " << resMemCellOn << std::endl; 
             }else{
-                std::cout << "[CAM_SubArray] Error: Unsupported access type." <<std::endl;
+                invalid = true;
+                config->logger.Verbose() << "[CAM_SubArray] Unsupported access type.";
+                return;
             }
             break;
             /* need to account for other cases for some variables to be initialized */ 
         } else if (Col[i]->CellPort.Type == Bitline) {
-            //TODO: Actually calculate this correctly, put a placeholder for uninitialized value errors
-            config->logger.Log() << "[CAM_SubArray] Warning: Placeholders used for calculations.";
-            resMemCellOn = 0.001;
-            resMemCellOff = 0.001;
-            capCellAccess = 0.001;
+            invalid = true;
+            config->logger.Verbose() << "[CAM_SubArray] Unsupported column bitline topology before matchline modeling is established.";
+            return;
         }
     }
-    // std::cout << "res&cap: " << resMemCellOff << std::endl;
-    // 	std::cout << "indexML: " << indexMatchline << std::endl;
     /* Terminate if CAM device type is not supported. */
     if(config->technology.cell->memCellType != SRAM && config->technology.cell->memCellType != FEFETRAM && config->technology.cell->memCellType != memristor && config->technology.cell->memCellType != PCRAM && config->technology.cell->memCellType != MRAM) {
         invalid = true;
-        std::cout <<"[CAM_SubArray] Error: NVM device type is not supported." <<std::endl;
+        config->logger.Verbose() << "[CAM_SubArray] NVM device type is not supported.";
         return;
     }	
-    // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-    // double check = 0;
-    // /* Terminate if CAM cell resistance or capacitance calcualtion is wrong */
-    // 	if(resMemCellOff = check||resMemCellOn = check||capCellAccess =0) {
-    // 	invalid = true;
-    // 	std::cout <<"[CAM_SubArray] Error: Invalid CAM cell structure, no cap/res on ML found." <<std::endl;
-    // 	return;
-    // }
 
     if(indexMatchline < 0) {
         invalid = true;
-        std::cout <<"[CAM_SubArray] Error: no matchline found." <<std::endl;
+        config->logger.Verbose() << "[CAM_SubArray] No matchline found.";
         return;
     }
 
@@ -305,61 +281,20 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
         Col[i]->Initialize(false, i, lenCol, numRow, config, localWire);
         if (Col[i]->minMuxWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
             invalid = true;
-            std::cout <<"[CAM_SubArray] Error: Column mux width too large" <<std::endl;
+            config->logger.Verbose() << "[CAM_SubArray] Column mux width exceeds the supported maximum.";
             return;
         }
     }
 
-    // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
     //////////////////////////////////////////////////////////////////////////////////
     //		   					 validation check: 									//
     //////////////////////////////////////////////////////////////////////////////////
-
-    // 2. ML length: match (all-Ih) v.s. 1-miss (Il+all-Ih) for search
-
-    // if (config->technology.cell->accessType == CMOS_access || config->technology.cell->accessType == diode_access){
-    // ML is connected with the drain of NMOS, like ISSCC15-3t1r
-    // ML is connected with the diode (both gate and drain of nmos), like VSLIT12-4t2r
-    // the leakage cannot be too large
-    // 	if(numRow * config->technology.tech->currentOffNmos()[config->input.temperature - 300] / BITLINE_LEAKAGE_TOLERANCE >
-    // 		config->technology.tech->currentOnNmos()[config->input.temperature - 300]) {
-    // 		invalid = true;
-    // 		std::cout <<"[CAM_SubArray] Error: too large ML leakage" <<std::endl;
-    // 		return;
-    // 	}
-    // } else if (config->technology.cell->accessType == none_access) {
-    // 				if(config->technology.cell->resistanceOff/numRow < config->technology.cell->resistanceOn) {
-    // 		invalid = true;
-    // 		std::cout <<"[CAM_SubArray] Error: too large ML leakage" <<std::endl;
-    // 		return;
-    // 	}
-    // ML is connected with cell, like JSSC11-2t2r and also for 2FEFET TCAM design
-    // TODO sth for 2FEFET TCAM
-    // std::cout << "numRow: " << numRow;
-    // 	if( config->peripherals.withOutputAcc == false ) {
-    // 		double Rh = numRow * resMemCellOff;
-    // 		double Rl = resMemCellOn;
-    // 		senseMargin = 2 * senseVoltage * (Rh - Rl) / (Rh + Rl);
-    // 		if ( senseMargin < MIN_SENSE_MARGIN ) {
-    // 			// TODO: the minimal sense margin is defined in the constant
-    // 			invalid = true;
-    // 			std::cout <<"[CAM_SubArray] Error: too many rows for sense" <<std::endl;
-    // 			return;
-    // 		}
-    // 	}
-    // } else {
-    // 	invalid = true;
-    // 	std::cout <<"[CAM_SubArray] Error: access type input error" <<std::endl;
-    // 	return;
-    // }
 
     //////////////////////////////////////////////////////////////////////////////////
     //		   						 Peripherals initialization									//
     //////////////////////////////////////////////////////////////////////////////////
 
     double capNandInput, tmp;
-
-    // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
     if(withInputBuf) {
         CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
                 config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, config->technology.tech, &capNandInput, &tmp);
@@ -378,8 +313,6 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
         inputEnc->Initialize(encoding_two_bit, false, capNandInput, 0, config/* TODO*/);
         inputEnc->CalculateRC();
     }
-
-    // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
     // this NAND merges pre-decoder's result, output the WL activation signal
     CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
             config->technology.tech->featureSize()* MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */ , config->technology.tech, &capNandInput, &tmp);
@@ -408,8 +341,6 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     precharger->Initialize(voltagePrecharge, numColumn, Col[indexMatchline]->cap, Col[indexMatchline]->res, 
             config, localWire);
     //precharger->CalculateRC();
-
-    // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
     // colmn decoder signal merge
     // TODO: I am too lazy to calculate very one, just use the index zero
     Row[config->technology.cell->camNumRow] = std::make_shared<CAM_Line>();
@@ -484,9 +415,8 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 
 void CAM_SubArray::CalculateArea() {
     if (!initialized) {
-        std::cout << "[CAM_SubArray] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_SubArray]");
     } else if (invalid) {
-        std::cout << "[CAM_SubArray] Error: invalid!" << std::endl;
         height = width = area = 1e41;
     } else {
         double addWidthArea = 0, addHeightArea = 0;
@@ -494,7 +424,6 @@ void CAM_SubArray::CalculateArea() {
 
         width = lenRow;
         height = lenCol;
-        //	std::cout << "width: height: " << width * 1e6 << ": " << height*1e6 << std::endl;
         area = height * width;
 
         if (withInputBuf) {
@@ -601,7 +530,6 @@ void CAM_SubArray::CalculateArea() {
         // TODO: a prefect layout
         width = addWidthArea / lenCol + lenCol;
         height = area / width;
-        //		std::cout << "width: height: 22 " << width * 1e6 << ": " << height*1e6 << std::endl;
     }
 }
 
@@ -609,7 +537,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
     if (!initialized) {
         throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
     } else if (invalid) {
-        std::cout << "[CAM_SubArray] Error: invalid!" << std::endl;
         searchLatency = readLatency = writeLatency = 1e41;
     } else {
 
@@ -637,12 +564,9 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         for(int i=0;i<config->technology.cell->camNumRow;i++){
             RowDriver[i]->CalculateLatency(MAX(inputEnc->rampOutput, RowDecMergeNand->rampOutput));
 
-            //std::cout << "i = " << i << std::endl;
-
             if (RowDriver[i]->readLatency > maxRowDriver) {
                 maxRowDriver = RowDriver[i]->readLatency;
                 indexMaxRowDriver = i;
-                //std::cout << "indexMaxRowDriver = " << indexMaxRowDriver << std::endl;
             }
         }
 
@@ -666,21 +590,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             double tau, gm, beta;
             // Estimate the ML latency for 1-miss case
 
-            //std::cout << resMemCellOn << std::endl;
-            //std::cout << resMemCellOff << std::endl;
-
             resTotalCell = (resMemCellOn * resMemCellOff) / ((CAM_opt->BitSerialWidth-1)*resMemCellOn + resMemCellOff);
             capTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
-
-            //std::cout << "[CAM_SubArray] Why nan prints" << std::endl;
-            //std::cout << resTotalCell << std::endl;
-            //std::cout << capTotalCell << std::endl;
-            //std::cout << ColMux[indexMatchline]->capForPreviousDelayCalculation << std::endl;
-            //std::cout << config->peripherals.addCapOnML << std::endl;
-            //std::cout << precharger->capOutputBitlinePrecharger << std::endl;
-            //std::cout << senseAmp->capLoad << std::endl;
-            //std::cout << Col[indexMatchline]->res << std::endl;
-            //std::cout << Col[indexMatchline]->cap << std::endl;
 
             tau = resTotalCell 
                 * (capTotalCell 
@@ -694,8 +605,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                         + precharger->capOutputBitlinePrecharger 
                         + senseAmp->capLoad 
                         + Col[indexMatchline]->cap / 2);
-
-            //std::cout << "[CAM_SubArray] tau: " << tau << std::endl;
 
             // tau = resTotalCell * capTotalCell + Col[indexMatchline]->res * (ColMux[indexMatchline]->capForPreviousDelayCalculation);
             // referDelay = tau * log((voltagePrecharge) / (config->technology.cell->readVoltage)); // Too hard for user to provide read voltage
@@ -717,8 +626,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             // Primary sense margin check
             senseMargin = voltagePrecharge/2 - volMatchDrop;	
             if (senseMargin < senseVoltage) {
-                std::cout << "[CAM_Subarray] Error: matchline too long to be sensed!" << std::endl;
                 invalid = true;
+                config->logger.Verbose() << "[CAM_SubArray] Matchline is too long to be sensed.";
                 searchLatency = readLatency = writeLatency = 1e41;
                 return;
             }
@@ -761,19 +670,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             // 		+ ColMux[indexMatchline]->readLatency + senseAmp->readLatency + outputAcc->readLatency + priorityEnc->readLatency
             // 		+ outputBuf->readLatency;
 
-
-            //std::cout << std::endl << inputBuf->readLatency << std::endl; 
-            //std::cout << MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency)  << std::endl;
-            //std::cout << matchlineDelay << std::endl;
-            //std::cout << ColMux[indexMatchline]->readLatency  << std::endl;
-            //std::cout << senseAmp->readLatency  << std::endl;
-            //std::cout << senseAmpMuxLev1->readLatency  << std::endl;
-            //std::cout << senseAmpMuxLev2->readLatency << std::endl;
-            //std::cout << outputAcc->readLatency << std::endl;
-            //std::cout << priorityEnc->readLatency  << std::endl;
-            //std::cout << outputBuf->readLatency  << std::endl;
-            //std::cout << outputLS->readLatency << std::endl;
-
             searchLatency = inputBuf->readLatency 
                 + MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
                 + matchlineDelay
@@ -787,21 +683,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 + inputLS->readLatency 
                 + outputLS->readLatency;
 
-            //std::cout << "[CAM_SubArray] searchLatency: " << searchLatency << std::endl;
-
             senseAmpLatency = senseAmp->readLatency;
-
-            //std::cout << std::endl << inputBuf->readLatency << std::endl; 
-            //std::cout << MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency)  << std::endl;
-            //std::cout << matchlineDelay << std::endl;
-            //std::cout << ColMux[indexMatchline]->readLatency  << std::endl;
-            //std::cout << senseAmp->readLatency  << std::endl;
-            //std::cout << senseAmpMuxLev1->readLatency  << std::endl;
-            //std::cout << senseAmpMuxLev2->readLatency << std::endl;
-            //std::cout << outputAcc->readLatency << std::endl;
-            //std::cout << priorityEnc->readLatency  << std::endl;
-            //std::cout << outputBuf->readLatency  << std::endl;
-            //std::cout << outputLS->readLatency << std::endl;
 
             readLatency = inputBuf->readLatency 
                 + MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
@@ -825,8 +707,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                     double resTemp1 = (resMemCellOn * resMemCellOff) / ((CAM_opt->BitSerialWidth-k-1)*resMemCellOn + resMemCellOff*(k+1));
 
                     capTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
-
-                    //std::cout << "capTotalCell " << capTotalCell << std::endl;
 
                     double tauTemp0 = resTemp0 * (capTotalCell + ColMux[indexMatchline]->capForPreviousDelayCalculation + config->peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad)
                         + Col[indexMatchline]->res * (ColMux[indexMatchline]->capForPreviousDelayCalculation + config->peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad + Col[indexMatchline]->cap / 2);
@@ -957,9 +837,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
     void CAM_SubArray::CalculatePower() {
         if (!initialized) {
-            std::cout << "[CAM_SubArray] Error: Require initialization first!" << std::endl;
+            ThrowInitializationError("[CAM_SubArray]");
         } else if (invalid) {
-            std::cout << "[CAM_SubArray] Error: invalid!" << std::endl;
             readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
         } else {
 
@@ -1028,19 +907,11 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 searchDynamicEnergy = (Col[indexMatchline]->cap 
                         + ColMux[indexMatchline]->capForPreviousPowerCalculation + capTotalCell)
                     * (voltagePrecharge * voltagePrecharge - config->technology.cell->readVoltage * config->technology.cell->readVoltage) * numColumn / muxSenseAmp;
-                //std::cout << "[CAM_Subarray] searchDynamicEnergy " << searchDynamicEnergy << std::endl;
             } else {
                 if (config->technology.cell->memCellType == SRAM || config->technology.cell->memCellType == FEFETRAM) {
                     /* Codes below calculate the SRAM matchline power */
-                    //std::cout << "Col[indexMatchline]->cap: " << Col[indexMatchline]->cap << std::endl;
-                    //std::cout << "Col[indexMatchline]->capForPreviousPowerCalculation: " << ColMux[indexMatchline]->capForPreviousPowerCalculation << std::endl;
-                    //std::cout << "capTotalCell: " << capTotalCell << std::endl;
-                    //std::cout << "voltagePrecharge: " << voltagePrecharge << std::endl;
-                    //std::cout << "numColumn: " << numColumn << std::endl;
-                    //std::cout << "muxSenseAmp: " << muxSenseAmp << std::endl;
                     searchDynamicEnergy = (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousPowerCalculation + capTotalCell)
                         * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp;
-                    //std::cout << "[CAM_Subarray] searchDynamicEnergy " << searchDynamicEnergy << std::endl;
                 } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor) {
                     if (config->technology.cell->readMode == false) {	/* current-sensing */
                         /* Use ICCAD 2009 model */
@@ -1050,9 +921,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                             (resMatchlineMux + Col[indexMatchline]->res + resMemCellOn);
                         searchDynamicEnergy = capTotalCell * vpreMax * vpreMax + ColMux[indexMatchline]->capForPreviousPowerCalculation
                             * vpreMin * vpreMin + Col[indexMatchline]->cap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
-                        //std::cout << "[CAM_Subarray] searchDynamicEnergy " << searchDynamicEnergy << std::endl;
                         searchDynamicEnergy *= numColumn / muxSenseAmp;
-                        //std::cout << "[CAM_Subarray] searchDynamicEnergy " << searchDynamicEnergy << std::endl;
 
                     } else {				/* voltage-sensing */
                         /*std::cout << "[CAM_Subarray]" << capTotalCell << std::endl;
@@ -1067,26 +936,18 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                                 + ColMux[indexMatchline]->capForPreviousPowerCalculation) 
                             * (voltagePrecharge * voltagePrecharge - voltageMemCellOn 
                                     * voltageMemCellOn ) * numColumn / muxSenseAmp;
-                        //std::cout << "[CAM_Subarray] searchDynamicEnergy " << searchDynamicEnergy << std::endl;
                     }
                     // } else if (config->technology.cell->memCellType ==FEFETRAM){
                     // 	double FEFETCap = CalculateDrainCap(config->technology.cell->widthAccessCMOS * config->technology.fefetTech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.fefetTech->featureSize(), config->technology.fefetTech);
-                    // 	searchDynamicEnergy = (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousPowerCalculation + FEFETCap) *
                     // 			(voltagePrecharge * voltagePrecharge) * numColumn / muxSenseAmp;
             }// }
         }
         if (config->technology.cell->readEnergy != 0) {
             cellReadEnergy = config->technology.cell->readEnergy * CAM_opt->BitSerialWidth;
-            // std::cout << "error out plz" << cellReadEnergy << std::endl;
         } else if (config->technology.cell->readPower != 0) {
-            //  std::cout << "error out" << config->technology.cell->readPower << std::endl;
-            //  std::cout << "error out" << CAM_opt->BitSerialWidth << std::endl;
-            //   std::cout << "error out" << senseAmp->readLatency << std::endl;
-            //   std::cout << "error out" << matchlineDelay << std::endl;
             cellReadEnergy = config->technology.cell->readPower 
                 * CAM_opt->BitSerialWidth 
                 * (senseAmp->readLatency + matchlineDelay);
-            // std::cout << "error out plz" << cellReadEnergy << std::endl;
         } else if (config->technology.cell->memCellType == SRAM) {
             cellReadEnergy = capCellAccess * voltagePrecharge * voltagePrecharge * CAM_opt->BitSerialWidth;
         } else if (config->technology.cell->readMode) {	/* voltage-sensing */
@@ -1098,15 +959,12 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 resInSerialForSenseAmp = sqrt(config->technology.cell->resistanceOn * config->technology.cell->resistanceOff);
                 maxMatchlineCurrent = (config->technology.cell->readVoltage - config->technology.cell->voltageDropAccessDevice) / (config->technology.cell->resistanceOn + resInSerialForSenseAmp);
                 cellReadEnergy = config->technology.tech->vdd() * maxMatchlineCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt->BitSerialWidth;
-                //std::cout << "error out plz" << cellReadEnergy << std::endl;
             }
         } else { /* current-sensing */
             double maxMatchlineCurrent = (config->technology.cell->readVoltage - config->technology.cell->voltageDropAccessDevice) / config->technology.cell->resistanceOn;
             cellReadEnergy = config->technology.tech->vdd() * maxMatchlineCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt->BitSerialWidth;
-            //std::cout << "error out plz" << cellReadEnergy << std::endl;
         }
         cellReadEnergy *= numColumn / muxSenseAmp;
-        //std::cout << "error out plz" << cellReadEnergy << std::endl;
 
         energyDriveSearch0 = 0;
         energyDriveSearch1 = 0;
@@ -1121,7 +979,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         }
 
         searchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1)/2;
-        //std::cout << "[CAM_Subarray] searchDynamicEnergy " << searchDynamicEnergy << std::endl;
 
         readDynamicEnergy = searchDynamicEnergy + inputBuf->readDynamicEnergy * numRow 
             + inputEnc->readDynamicEnergy * numRow
@@ -1130,10 +987,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             + ColMux[indexMatchline]->readDynamicEnergy + senseAmp->readDynamicEnergy 
             + senseAmpMuxLev1->readDynamicEnergy + senseAmpMuxLev2->readDynamicEnergy
             + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
-            + outputBuf->readDynamicEnergy * numColumn //removed ; here to include the following line as code that actually does things, unsure if that's completely expected
+            + outputBuf->readDynamicEnergy * numColumn
             + inputLS->readDynamicEnergy * numRow + outputLS->readDynamicEnergy * numColumn;
-
-        // std::cout << __FILE__ << ": " << __LINE__ << "read eng" << inputBuf->readDynamicEnergy << ": " << inputEnc->readDynamicEnergy << ": " << cellReadEnergy  << ": " << ColDecMergeNand->readDynamicEnergy << ": " << precharger->readDynamicEnergy << ": " << senseAmpMuxLev1Nand->readDynamicEnergy + senseAmpMuxLev2Nand->readDynamicEnergy+ ColMux[indexMatchline]->readDynamicEnergy+ senseAmp->readDynamicEnergy + senseAmpMuxLev1->readDynamicEnergy + senseAmpMuxLev2->readDynamicEnergy << std::endl;	
 
         searchDynamicEnergy +=  inputBuf->readDynamicEnergy * numRow + inputEnc->readDynamicEnergy * numRow
             + cellReadEnergy + ColDecMergeNand->readDynamicEnergy + precharger->readDynamicEnergy
@@ -1141,8 +996,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             + senseAmp->readDynamicEnergy
             + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
             + outputBuf->readDynamicEnergy * numColumn;
-
-        //std::cout << readDynamicEnergy << std::endl;
         //////////////////////////////////////////////////////////////////////////////////
         //		   							calc write									//
         //////////////////////////////////////////////////////////////////////////////////
@@ -1159,14 +1012,12 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             // since the SRAM cell is not flexible, we can make the coding simpler
             double capSRAMin;
             double capSRAMout;
-            // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
             CalculateGateCapacitance(INV, 1, config->technology.cell->widthSRAMCellNMOS, config->technology.cell->widthSRAMCellPMOS,
                     config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capSRAMin, &capSRAMout);
             cellResetEnergy = (capSRAMin + capSRAMout) * config->technology.tech->vdd() * config->technology.tech->vdd();
             cellResetEnergy += (Col[indexBitline]->cap + ColMux[indexBitline]->capForPreviousPowerCalculation)
                 * config->technology.tech->vdd()  * config->technology.tech->vdd();
             cellSetEnergy = cellResetEnergy;
-            // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
         } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FEFETRAM) {
             /* Ignore the dynamic transition during the SET/RESET operation */
             /* Assume that the cell resistance keeps high for worst-case power estimation */
@@ -1248,7 +1099,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             + senseAmpMuxLev1Nand->writeDynamicEnergy + senseAmpMuxLev2Nand->writeDynamicEnergy
             + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy
             + inputLS->writeDynamicEnergy * numRow ;
-        // std::cout << "Write Dynamic Energy in Subarray: " << writeDynamicEnergy << std::endl;
         /* for assymetric RESET and SET latency calculation only */
         setDynamicEnergy += cellSetEnergy + ColDecMergeNand->writeDynamicEnergy
             + senseAmpMuxLev1Nand->writeDynamicEnergy + senseAmpMuxLev2Nand->writeDynamicEnergy
@@ -1256,8 +1106,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         resetDynamicEnergy += setDynamicEnergy + ColDecMergeNand->writeDynamicEnergy
             + senseAmpMuxLev1Nand->writeDynamicEnergy + senseAmpMuxLev2Nand->writeDynamicEnergy
             + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy;
-
-        // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
         //////////////////////////////////////////////////////////////////////////////////
         //		   							calc leakage								//
         //////////////////////////////////////////////////////////////////////////////////
@@ -1280,9 +1128,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             // the exception is the matchline transistor in cmos-access, like ISSCC'15 3t1r
             leakage = 0;
             for(int i=0;i<config->technology.cell->camNumRow;i++) {
-                //TODO: for some reason leak wasn't defined, setting it to true on a whim
-                //TODO: Row[i]->CellPort.ConnectedRegion also not defined...
-                Row[i]->CellPort.leak = false;
                 if (Row[i]->CellPort.ConnectedRegion == gate && Row[i]->CellPort.leak) {
                     if (Row[i]->CellPort.isNMOS)
                         leakage += CalculateGateLeakage(INV, 1, 
@@ -1298,8 +1143,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 }
             }
             for (int i=0; i<config->technology.cell->camNumCol; i++) {
-                //TODO: for some reason leak wasn't defined, setting it to true on a whim
-                Col[i]->CellPort.leak = false;
                 if (Col[i]->CellPort.ConnectedRegion == gate && Col[i]->CellPort.leak) {
                     if (Col[i]->CellPort.isNMOS)
                         leakage += CalculateGateLeakage(INV, 1, Col[i]->CellPort.widthCmos * config->technology.tech->featureSize(), 0,
@@ -1339,8 +1182,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             + senseAmpMuxLev2Nand->leakage + ColDecMergeNand->leakage + WriteDriverLeakage + senseAmp->leakage
             + senseAmpMuxLev1->leakage + senseAmpMuxLev2->leakage + outputAcc->leakage + priorityEnc->leakage
             + outputBuf->leakage * numColumn;
-        //std::cout << "leakage energy of peripherals: " << leak * 1e9 << std::endl;
-        // std::cout << __FILE__ << ": " << __LINE__ << std::endl;
     }
 
 }

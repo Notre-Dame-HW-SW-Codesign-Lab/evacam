@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
 CAM_SenseAmp::CAM_SenseAmp() {
     initialized = false;
     invalid = false;
@@ -14,10 +15,7 @@ CAM_SenseAmp::CAM_SenseAmp() {
     capLoad = 0;
     pitchSenseAmp = 0;
 }
-/*
-   CAM_SenseAmp::~CAM_SenseAmp() {
-}
- */
+
 void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool _isCustom, double _senseVoltage, double _pitchSenseAmp, std::string _fileCustomSA, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
         _config->logger.Verbose() << "[CAM_SenseAmp] Warning: Already initialized!";
@@ -39,8 +37,7 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
     normalSenseAmp->Initialize(numColumn, typeSA == nvsim_current_sense, senseVoltage, pitchSenseAmp, config);
     if(isCustom == false && (typeSA != nvsim_voltage_sense && typeSA != nvsim_current_sense && typeSA != discharge ) ){
         normalSenseAmp->invalid = true;
-        std::cout << "[CAM_Sense Amp] Error: input type not supported yet!" << std::endl;
-        exit(-1);
+        throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
     }
     if(isCustom) {
         customSA = std::make_shared<SenseAmp>();
@@ -48,8 +45,7 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
         char line[5000];
 
         if (!fp) {
-            std::cout << fileCustomSA << " custom SA file cannot be found!\n";
-            exit(-1);
+            throw std::runtime_error("[CAM_SenseAmp] Error: custom SA file cannot be found: " + fileCustomSA);
         }
 
         while (fscanf(fp, "%[^\n]\n", line) != EOF) {
@@ -90,6 +86,7 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
                 continue;
             }
         }
+        fclose(fp);
         if (customSA->area == 0) {
             customSA->area = customSA->height * customSA->width;
         }
@@ -103,7 +100,7 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
 
 void CAM_SenseAmp::CalculateArea() {
     if (!initialized) {
-        std::cout << "[CAM_SenseAmp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_SenseAmp]");
     } else if (invalid) {
         height = width = area = 1e41;
     } else {
@@ -142,7 +139,7 @@ void CAM_SenseAmp::CalculateArea() {
 
 void CAM_SenseAmp::CalculateRC() {
     if (!initialized) {
-        std::cout << "[CAM_SenseAmp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_SenseAmp]");
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
     } else {
@@ -166,15 +163,14 @@ void CAM_SenseAmp::CalculateRC() {
         }
         else {
             capLoad = 1e41;
-            std::cout << "[CAM_SenseAmp] Error: Sensing type entered is not supported yet!" << std::endl;
-            exit(1);
+            throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
         }
     }
 }
 
 void CAM_SenseAmp::CalculateLatency(double _rampInput) {	/* _rampInput is actually no use in SenseAmp */
     if (!initialized) {
-        std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_SenseAmp]");
     } else {
         readLatency = writeLatency = 0;
         if (isCustom && customSA->readLatency > 0) {
@@ -198,15 +194,14 @@ void CAM_SenseAmp::CalculateLatency(double _rampInput) {	/* _rampInput is actual
         }
         else {
             readLatency = writeLatency = 0;
-            std::cout << "[CAM_SenseAmp] Error: Sensing type entered is not supported yet!" << std::endl;
-            exit(1);
+            throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
         }
     }
 }
 
 void CAM_SenseAmp::CalculatePower() {
     if (!initialized) {
-        std::cout << "[Sense Amp] Error: Require initialization first!" << std::endl;
+        ThrowInitializationError("[CAM_SenseAmp]");
     } else if (invalid) {
         readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
     } else {
@@ -241,8 +236,7 @@ void CAM_SenseAmp::CalculatePower() {
         }
         else {
             readDynamicEnergy = writeDynamicEnergy = leakage = 0;
-            std::cout << "[CAM_SenseAmp] Error: Sensing type entered is not supported yet!" << std::endl;
-            exit(1);
+            throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
         }
     }
 }
