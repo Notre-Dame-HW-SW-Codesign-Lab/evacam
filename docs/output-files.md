@@ -38,6 +38,8 @@ For full-exploration runs:
 
 The YAML results file contains a summary of the chosen design point and a breakdown of area, latency, energy, and leakage components.
 
+See [results-reference.md](/home/jbech002/Research/evacam/docs/results-reference.md) for the current output shapes and no-solution case.
+
 Representative sections include:
 
 - `summary`

@@ -44,6 +44,8 @@ Representative fields:
 
 Use the examples in `yaml/config/` as the source of truth for current syntax.
 
+For a fuller list of implemented sections and fields, see [schema.md](/home/jbech002/Research/evacam/docs/schema.md).
+
 ## Cell File Structure
 
 The shipped cell files use these top-level sections:
@@ -102,6 +104,8 @@ The files below are not intended for real runs:
 - `docs/cell_full_example.yaml`
 
 See [FULL_INPUT_EXAMPLES_WARNING.md](/home/jbech002/Research/evacam/docs/FULL_INPUT_EXAMPLES_WARNING.md).
+
+For current runtime restrictions, see [limitations.md](/home/jbech002/Research/evacam/docs/limitations.md).
 
 ## Practical Advice
 

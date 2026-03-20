@@ -90,6 +90,8 @@ Start with the shipped examples in `yaml/config/` and `yaml/cell/`.
 More detail:
 
 - [Input Files](/home/jbech002/Research/evacam/docs/input-files.md)
+- [Schema Reference](/home/jbech002/Research/evacam/docs/schema.md)
+- [Supported Modes And Limits](/home/jbech002/Research/evacam/docs/limitations.md)
 - [Full Example Warning](/home/jbech002/Research/evacam/docs/FULL_INPUT_EXAMPLES_WARNING.md)
 
 ## Outputs
@@ -101,6 +103,7 @@ When the optimization target is `Exploration`, EvaCAM may also write a CSV of ex
 More detail:
 
 - [Output Files](/home/jbech002/Research/evacam/docs/output-files.md)
+- [Results Reference](/home/jbech002/Research/evacam/docs/results-reference.md)
 
 ## Validation
 
@@ -130,3 +133,4 @@ More detail:
 Common issues and their likely causes are documented here:
 
 - [Troubleshooting](/home/jbech002/Research/evacam/docs/troubleshooting.md)
+- [Development Workflow](/home/jbech002/Research/evacam/docs/development.md)
