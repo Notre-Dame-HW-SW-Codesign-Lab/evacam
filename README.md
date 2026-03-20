@@ -6,7 +6,15 @@ It reads a top-level YAML configuration, loads a YAML cell description, explores
 
 ## Repository Layout
 
-- `src/`, `include/`: simulator implementation
+- `src/app/`, `include/app/`: application flow and exploration orchestration
+- `src/io/`, `include/io/`: CLI parsing and YAML/result I/O helpers
+- `src/config/`, `include/config/`: configuration parsing, validation, and derived settings
+- `src/technology/`, `include/technology/`: technology models, cell models, and built-in tables
+- `src/circuit/`, `include/circuit/`: reusable circuit primitives and equations
+- `src/model/`, `include/model/`: array/bank/result hierarchy
+- `src/cam/`, `include/cam/`: CAM-specific blocks built on the circuit/model layers
+- `src/factories/`, `include/factories/`: factory helpers for assembling model objects
+- `src/main.cpp`: program entry point
 - `yaml/config/`: example top-level configurations
 - `yaml/cell/`: example cell descriptions
 - `docs/`: usage notes and reference docs

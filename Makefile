@@ -1,5 +1,15 @@
 CC=g++
-CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -MMD -MP -I$(ROOT_DIR)/include -I/usr/include/yaml-cpp
+CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -MMD -MP \
+	-I$(ROOT_DIR)/include \
+	-I$(ROOT_DIR)/include/app \
+	-I$(ROOT_DIR)/include/cam \
+	-I$(ROOT_DIR)/include/circuit \
+	-I$(ROOT_DIR)/include/config \
+	-I$(ROOT_DIR)/include/factories \
+	-I$(ROOT_DIR)/include/io \
+	-I$(ROOT_DIR)/include/model \
+	-I$(ROOT_DIR)/include/technology \
+	-I/usr/include/yaml-cpp
 LD_LIBS= -lyaml-cpp 
 
 VALGRIND_FLAGS=--leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=.valgrind.supp
@@ -15,8 +25,8 @@ TEST_EXPLORATION_BIN=ExplorationDomainTest
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
 
-# Automatically find all CPP files in the source directory
-SOURCES=$(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/config/*.cpp) $(wildcard $(SRC_DIR)/factories/*.cpp)
+# Automatically find all CPP files in the source tree
+SOURCES=$(shell find $(SRC_DIR) -type f -name '*.cpp' | sort)
 # Create corresponding OBJ file paths in the object directory
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 DEPS=$(OBJECTS:.o=.d)
@@ -39,7 +49,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 .PHONY: test-yaml test-exploration uml open-uml
 test-yaml:
-	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/YamlHelpers.cpp src/MemCell.cpp $(LD_LIBS)
+	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/io/YamlHelpers.cpp src/technology/MemCell.cpp $(LD_LIBS)
 	./$(TEST_YAML_BIN)
 
 test-exploration:
