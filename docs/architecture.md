@@ -75,11 +75,11 @@ The CLI flag `--deep-exploration` expands the search space used during optimizat
 - Change result serialization in `src/output/ResultsYaml.cpp`
 - Change exploration logic in `src/app/EvaCamExplorer.cpp`
 
-## Documentation Priority
+## Documentation
 
-When documenting future changes, keep these stable surfaces up to date first:
+When documenting future changes, keep these up to date:
 
-1. CLI usage
-2. YAML schema and examples
-3. Output file behavior
-4. Supported and unsupported modeling modes
+- CLI usage
+- YAML schema and examples
+- Output file behavior
+- Supported and unsupported modeling modes
