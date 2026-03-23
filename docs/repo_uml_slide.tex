@@ -4,13 +4,13 @@
 \usepackage{tikz}
 \usepackage[margin=0.45in,landscape]{geometry}
 \usepackage{graphicx}
-\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
 \pagestyle{empty}
 \renewcommand{\familydefault}{\sfdefault}
 
 \begin{document}
 \centering
-\resizebox{\textwidth}{0.80\textheight}{%
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   font=\Large,
   >=Latex,
@@ -42,8 +42,14 @@
     rounded corners=8pt,
     inner sep=12pt
   },
-  flow/.style={-Latex, ultra thick},
-  link/.style={-Latex, ultra thick, dashed}
+  container/.style={
+    draw,
+    rounded corners=10pt,
+    very thick,
+    inner sep=14pt,
+    fill=gray!4
+  },
+  flow/.style={-Latex, ultra thick}
 ]
 
 % Main flow
@@ -117,26 +123,30 @@
 \draw[flow] (config) -- (explore);
 \draw[flow] (explore) -- (output);
 
-% Support links
-\draw[link] (context) -- (app);
-\draw[link] (config) -- (loaders);
-\draw[link] (explore) -- (model);
-\draw[link] (explore.south east) -- ++(0.8,-0.6) -- (hardware.north west);
-
-% Extra narrative links
-\draw[link] (loaders.north) -- (config.south);
-\draw[link] (model.north) -- (explore.south);
+% Containment groupings
+\begin{scope}[on background layer]
+\node[container, fit=(context)(app), fill=orange!6] (contextContain) {};
+\node[container, fit=(config)(loaders), fill=blue!6] (configContain) {};
+\coordinate (exploreContainNW) at ($(explore.north west)+(-0.45,0.45)$);
+\coordinate (exploreContainNE) at ($(explore.north east)+(0.45,0.45)$);
+\coordinate (exploreContainDrop) at ($(model.north east)+(0.45,0.45)$);
+\coordinate (exploreContainShelfEnd) at ($(hardware.north east)+(0.45,0.45)$);
+\coordinate (exploreContainSE) at ($(hardware.south east)+(0.45,-0.45)$);
+\coordinate (exploreContainSW) at ($(model.south west)+(-0.45,-0.45)$);
+\filldraw[rounded corners=10pt, very thick, draw=green!50!black, fill=green!6]
+  (exploreContainNW) --
+  (exploreContainNE) --
+  (exploreContainDrop) --
+  (exploreContainShelfEnd) --
+  (exploreContainSE) --
+  (exploreContainSW) --
+  cycle;
+\end{scope}
 
 % Group boxes
 \node[group, fit=(input)(context)(config)(explore)(output), label=above:{\textbf{EvaCAM Runtime Flow}}] {};
 \node[group, fit=(app)(loaders)(model)(hardware)] (supportGroup) {};
 \node[fill=white, inner sep=4pt, anchor=west] at (-16.0, -3.35) {\textbf{Supporting Modules}};
-
-% Footer note
-\node[draw, rounded corners=6pt, fill=gray!8, align=left, anchor=north west, text width=16.0cm] at (-17.6, -10.1) {%
-  \textbf{Slide view}\\
-  High-level runtime flow only.
-};
 
 \end{tikzpicture}
 }

@@ -44,3 +44,6 @@ YamlHelpersTest
 
 # Generated results
 results/
+
+# Local editor/tooling metadata
+compile_commands.json

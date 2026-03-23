@@ -45,6 +45,18 @@ Run the broader config sweep:
 make test-all-valgrind
 ```
 
+## Editor Tooling
+
+This repository depends on multiple include directories from the `Makefile`. Editors and linters such as ALE or `clangd` may show false include errors unless they can read a local `compile_commands.json`.
+
+Generate it locally from the current build commands:
+
+```bash
+./scripts/generate_compile_commands.sh
+```
+
+The generated file is local editor metadata and is ignored by git.
+
 ## Test Style
 
 The current tests are small assert-based executables under `tests/`; there is no external unit-test framework. Add focused regression tests close to the parser or exploration logic you changed.

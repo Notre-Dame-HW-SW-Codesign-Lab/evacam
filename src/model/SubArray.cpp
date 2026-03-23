@@ -241,7 +241,9 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             capWordline += CalculateGateCap(config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), config->technology.tech) * numColumn;
             capBitline  += capCellAccess * numRow / 2;	/* Due to shared contact */
         } else if (config->technology.cell->accessType == BJT_access) {
-            // TODO
+            invalid = true;
+            config->logger.Verbose() << "[Subarray] BJT access is not implemented for MRAM, PCRAM, or memristor cells.";
+            return;
             /*	} else if (config->technology.cell->accessType == diode_access){
                 if (config->technology.cell->readVoltage == 0) {
                 resCellAccess = config->technology.cell->voltageDropAccessDevice / config->technology.cell->readCurrent;
@@ -608,7 +610,9 @@ void SubArray::CalculateLatency(double _rampInput) {
             /* use the programming latency as the write latency for SLC NAND*/
             writeLatency = setLatency;
         } else {	/* MLC NAND */
-            /* TODO */
+            invalid = true;
+            config->logger.Verbose() << "[Subarray] MLC NAND latency modeling is not implemented.";
+            return;
         }
     }
 }
@@ -790,7 +794,9 @@ void SubArray::CalculatePower() {
             /* Assume NAND flash cell does not consume any leakage */
             leakage = 0;
         } else {	/* MLC NAND */
-            /* TODO */
+            invalid = true;
+            config->logger.Verbose() << "[Subarray] MLC NAND power modeling is not implemented.";
+            return;
         }
 
         readDynamicEnergy += cellReadEnergy + rowDecoder->readDynamicEnergy + bitlineMuxDecoder->readDynamicEnergy + senseAmpMuxLev1Decoder->readDynamicEnergy
