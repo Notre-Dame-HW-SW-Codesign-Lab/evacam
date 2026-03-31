@@ -35,7 +35,7 @@ Known unsupported or incomplete modes:
 
 ## Practical Guidance
 
-- Start from a known-good file in `yaml/config/`
+- Start from a known-good file under `config/`
 - Change one axis at a time: technology, array geometry, or peripheral options
 - Use `./EvaCAM -v <config>` when testing new combinations
 - If a run ends with `No valid solutions.`, the YAML may be valid but the design point is illegal or unsupported

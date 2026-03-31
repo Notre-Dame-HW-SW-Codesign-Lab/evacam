@@ -1,0 +1,62 @@
+# MRAM-4T2R-VLSIC12 System Configuration
+# CAM array and peripheral circuit settings
+
+design:
+  target: CAM
+  search_function: EX
+  process_node: 90nm
+  device_roadmap: HP
+  temperature: 350K
+
+memory:
+  cell_file: ./config/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12_cell.yaml
+  capacity: 8KB
+  word_width: 256bits
+
+routing:
+  type: H-tree
+
+peripherals:
+  input:
+    buffer: false
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+  write_driver: true
+
+sensing:
+  internal: true
+  amplifier_type: nvsim_vol  # options: nvsim_vol, nvsim_cur, self_clock, dual_the
+  custom_sense_amp: false
+
+optimization:
+  target: ReadLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  buffer_design: latency    # options: latency, area, balance
+  row_driver: latency
+  priority_encoder: latency
+
+wires:
+  local:
+    type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
+                          #          SemiConservative, GlobalAggressive, GlobalConservative
+    repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+
+array:
+  banks:
+    total: [1, 1]    # AxB
+    active: [1, 1]   # CxD
+  mats:
+    total: [1, 1]
+    active: [1, 1]
+  mux:
+    sense_amp: 1
+    output_level1: 1  # for write only
+    output_level2: 64  # for write only

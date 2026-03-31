@@ -13,13 +13,13 @@ If the input file ends with `_config.yaml` or `-config.yaml`, that suffix is rem
 
 Examples:
 
-- `yaml/config/2FeFET_TCAM_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
-- `yaml/config/ReRAM-2T2R_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
+- `config/ReRAM-2T2R/ReRAM-2T2R_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
 
 You can override the YAML output path with:
 
 ```bash
-./EvaCAM -o path/to/output.yaml yaml/config/2FeFET_TCAM_config.yaml
+./EvaCAM -o path/to/output.yaml config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
 ```
 
 ## Console Summary

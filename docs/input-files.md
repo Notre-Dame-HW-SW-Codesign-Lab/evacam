@@ -4,14 +4,14 @@ EvaCAM expects one top-level YAML config file. That config file must reference a
 
 ## File Roles
 
-- `yaml/config/*.yaml`: system-level configuration
-- `yaml/cell/*.yaml`: cell/device-level description
+- `config/<cell-group>/*_config.yaml`: system-level configurations grouped by the cell they use
+- `config/<cell-group>/*_cell.yaml`: the corresponding cell/device description
 
 Example:
 
 ```yaml
 memory:
-  cell_file: ./yaml/cell/2FeFET_TCAM_cell.yaml
+  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell.yaml
 ```
 
 ## Top-Level Config Structure
@@ -42,7 +42,7 @@ Representative fields:
 - `array.banks.total` and `array.banks.active`: bank organization
 - `array.mats.total` and `array.mats.active`: mat organization
 
-Use the examples in `yaml/config/` as the source of truth for current syntax.
+Use the grouped examples under `config/` as the source of truth for current syntax.
 
 For a fuller list of implemented sections and fields, see [schema.md](/home/jbech002/Research/evacam/docs/schema.md).
 
@@ -90,7 +90,7 @@ Keep units explicit and consistent with the shipped examples.
 
 ## Minimal Workflow
 
-1. Copy a known-good config from `yaml/config/`.
+1. Copy a known-good config from `config/<cell-group>/`.
 2. Keep its referenced cell file unchanged at first.
 3. Change one parameter at a time.
 4. Run EvaCAM after each change.
@@ -109,7 +109,7 @@ For current runtime restrictions, see [limitations.md](/home/jbech002/Research/e
 
 ## Practical Advice
 
-- Prefer starting from a real config in `yaml/config/`, not the full reference examples.
-- Keep `memory.cell_file` consistent with the working directory you use to launch EvaCAM, or use a stable repo-root-relative path such as `./yaml/cell/...`.
+- Prefer starting from a real config under `config/`, not the full reference examples.
+- Keep `memory.cell_file` consistent with the working directory you use to launch EvaCAM, or use a stable repo-root-relative path such as `./config/<cell-group>/...`.
 - If a run fails while parsing YAML, check indentation first.
 - If a run parses but reports no valid solutions, the issue is usually an unsupported parameter combination rather than YAML syntax.

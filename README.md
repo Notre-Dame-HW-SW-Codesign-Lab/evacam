@@ -16,8 +16,7 @@ It reads a top-level YAML configuration, loads a YAML cell description, explores
 - `src/cam/`, `include/cam/`: CAM-specific blocks built on the circuit/model layers
 - `src/factories/`, `include/factories/`: factory helpers for assembling model objects
 - `src/app/main.cpp`: program entry point
-- `yaml/config/`: example top-level configurations
-- `yaml/cell/`: example cell descriptions
+- `config/`: shipped example groups, with one subdirectory per cell and the configs that use it
 - `docs/`: usage notes and reference docs
 - `old_style_config/`: legacy configuration files kept for reference
 - `tests/`: small focused tests
@@ -47,13 +46,13 @@ This builds the `EvaCAM` binary in the repository root.
 Run one of the shipped example configurations:
 
 ```bash
-./EvaCAM yaml/config/2FeFET_TCAM_config.yaml
+./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
 ```
 
 Or use the `make` wrapper:
 
 ```bash
-make run CONFIG_FILE=yaml/config/2FeFET_TCAM_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
 ```
 
 By default, EvaCAM writes YAML results to `results/<config-name>_results.yaml`.
@@ -61,7 +60,7 @@ The `make run` wrapper also saves the console output to `results/<config-name>_r
 
 For example:
 
-- `yaml/config/2FeFET_TCAM_config.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM_config.yaml`
 - `results/2FeFET_TCAM_results.yaml`
 - `results/2FeFET_TCAM_run.log`
 
@@ -84,9 +83,9 @@ Options:
 Examples:
 
 ```bash
-./EvaCAM -v yaml/config/8T-BCAM_65nm_config.yaml
-./EvaCAM -t 8 -o results/custom.yaml yaml/config/ReRAM-2T2R_config.yaml
-./EvaCAM -d yaml/config/2FeFET_TCAM_DSE_config.yaml
+./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_config.yaml
+./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_config.yaml
+./EvaCAM -d config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_config.yaml
 ```
 
 ## Input Files
@@ -96,7 +95,7 @@ EvaCAM consumes a top-level config file and a separate cell file.
 - The top-level config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell file.
 - The cell file describes the device, ports, voltages, currents, and related physical parameters.
 
-Start with the shipped examples in `yaml/config/` and `yaml/cell/`.
+Start with the shipped examples under `config/`, where each subdirectory contains a cell YAML plus the configs that use it.
 
 More detail:
 

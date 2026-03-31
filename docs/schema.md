@@ -1,6 +1,6 @@
 # Schema Reference
 
-This document covers the YAML fields currently parsed by EvaCAM. Treat this file and the shipped examples in `yaml/config/` and `yaml/cell/` as the source of truth for real runs.
+This document covers the YAML fields currently parsed by EvaCAM. Treat this file and the shipped examples under `config/` as the source of truth for real runs.
 
 ## Top-Level Config
 

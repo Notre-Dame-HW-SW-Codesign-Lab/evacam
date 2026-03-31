@@ -106,26 +106,26 @@ run: $(BIN)
 	fi
 
 test: $(BIN)
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_TCAM_config.yaml
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
 
 test-all-valgrind: $(BIN)
 # pass valgrind
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_TCAM_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/10T-BCAM_28nm_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/SRAM_16T_28nm_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/SRAM-16T-ESSCIRC15_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/8T-BCAM_65nm_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/MRAM-4T2R-VLSIC12_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/PCM-2T2R-JSSC11_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-2.5T1R-ISSCC16_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-2T2R_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-3T1R-ISSCC15_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/FeFET-2Fe1T-DATE-2021_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-4T2R-VLSIC14_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/MRAM-2T2R-ASPDAC12_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/MRAM-6T2R-VLSIC11_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/ReRAM-2T2R-VLSI21_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_MCAM_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/10T-BCAM_28nm/10T-BCAM_28nm_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/SRAM_16T_28nm/SRAM_16T_28nm_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/SRAM-16T-ESSCIRC15/SRAM-16T-ESSCIRC15_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/8T-BCAM_65nm/8T-BCAM_65nm_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R/ReRAM-2T2R_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-3T1R-ISSCC15/ReRAM-3T1R-ISSCC15_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/FeFET-2Fe1T-DATE-2021/FeFET-2Fe1T-DATE-2021_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-2T2R-ASPDAC12/MRAM-2T2R-ASPDAC12_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-6T2R-VLSIC11/MRAM-6T2R-VLSIC11_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R-VLSI21/ReRAM-2T2R-VLSI21_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_MCAM/2FeFET_MCAM_config.yaml > /dev/null
 
 # the following takes 15 mins to pass valgrind, runs much faster without valgrind turned on
-#valgrind $(VALGRIND_FLAGS) ./EvaCAM yaml/config/2FeFET_TCAM_DSE_config.yaml > /dev/null
+#valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_config.yaml > /dev/null

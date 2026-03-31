@@ -23,7 +23,7 @@ make
 Run a known-good example:
 
 ```bash
-make run CONFIG_FILE=yaml/config/2FeFET_TCAM_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
 ```
 
 Run focused tests:
@@ -72,7 +72,7 @@ The current tests are small assert-based executables under `tests/`; there is no
   - `model`: bank/mat/subarray/result hierarchy
   - `cam`: CAM-specific implementations
   - `factories`: object construction helpers
-- Keep new YAML examples under `yaml/config/` or `yaml/cell/`
+- Keep new YAML examples under the grouped `config/` tree
 - Update the matching docs when you add or remove parsed keys
 - Prefer `README.md`, `docs/input-files.md`, `docs/schema.md`, and `docs/results-reference.md` for user-facing changes
 - `docs/config_full_example.yaml` and `docs/cell_full_example.yaml` are schema references, not physically valid experiments
