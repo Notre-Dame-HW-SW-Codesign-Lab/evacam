@@ -11,11 +11,13 @@
 #include "Logger.h"
 #include "config/ConstraintConfig.h"
 #include "config/ExplorationSpec.h"
+#include "config/ExplorationSpaceResolver.h"
 #include "config/InputConfig.h"
 #include "config/PeripheralConfig.h"
 #include "config/ResolvedExplorationSpace.h"
 #include "config/RuntimeSizingConfig.h"
 #include "config/TechnologyContext.h"
+#include "config/VariationConfig.h"
 #include "typedef.h"
 #include "Technology.h"
 #include "MemCell.h"
@@ -38,7 +40,9 @@ struct ResultLimits {
 
 class EvaCamConfig {
     public:
-        EvaCamConfig();
+        EvaCamConfig()
+            : exploration(ExplorationSpec::Default()),
+              resolvedExploration(ExplorationSpaceResolver::Resolve(exploration)) {}
         EvaCamConfig(const EvaCamConfig&) = delete;
         virtual ~EvaCamConfig() {}
 
@@ -52,6 +56,7 @@ class EvaCamConfig {
         Logger logger;
         InputConfig input;
         PeripheralConfig peripherals;
+        VariationConfig variation;
         TechnologyContext technology;
         ConstraintConfig constraints;
         bool useCactiAssumption;		/* Use the CACTI assumptions on the array organization */

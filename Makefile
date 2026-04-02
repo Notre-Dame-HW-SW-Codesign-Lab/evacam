@@ -23,6 +23,8 @@ RES_DIR=$(ROOT_DIR)/results
 BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
+TEST_VARIATION_BIN=VariationSamplerTest
+TEST_MONTECARLO_BIN=MonteCarloRegressionTest
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
 UML_SLIDE_TEX=docs/repo_uml_slide.tex
@@ -32,6 +34,7 @@ UML_SLIDE_PDF=repo_uml_slide.pdf
 SOURCES=$(shell find $(SRC_DIR) -type f -name '*.cpp' | sort)
 # Create corresponding OBJ file paths in the object directory
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
+OBJECTS_NO_MAIN=$(filter-out $(OBJ_DIR)/app/main.o, $(OBJECTS))
 DEPS=$(OBJECTS:.o=.d)
 
 
@@ -52,15 +55,29 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(DEPS)
 
-.PHONY: test-yaml test-exploration uml uml-slide open-uml
+.PHONY: test-yaml test-exploration test-variation test-montecarlo uml uml-slide open-uml
 test-yaml:
-	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp src/input/YamlHelpers.cpp src/technology/MemCell.cpp $(LD_LIBS)
+	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp \
+		src/input/YamlHelpers.cpp src/technology/MemCell.cpp \
+		src/config/EvaCamYamlLoader.cpp src/config/TechnologyLoader.cpp \
+		src/config/IntValueDomain.cpp src/config/ExplorationSpec.cpp src/config/ExplorationSpaceResolver.cpp \
+		src/technology/Technology.cpp src/technology/TechnologyTables.cpp \
+		$(LD_LIBS)
 	./$(TEST_YAML_BIN)
 
 test-exploration:
 	$(CC) $(CPP_FLAGS) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
 		src/config/IntValueDomain.cpp src/config/ExplorationSpec.cpp src/config/ExplorationSpaceResolver.cpp $(LD_LIBS)
 	./$(TEST_EXPLORATION_BIN)
+
+test-variation:
+	$(CC) $(CPP_FLAGS) -o $(TEST_VARIATION_BIN) tests/VariationSamplerTest.cpp \
+		src/model/VariationSampler.cpp $(LD_LIBS)
+	./$(TEST_VARIATION_BIN)
+
+test-montecarlo: $(BIN) $(OBJECTS_NO_MAIN)
+	$(CC) $(CPP_FLAGS) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_MONTECARLO_BIN)
 
 uml:
 	@if ! command -v pdflatex >/dev/null 2>&1; then \
@@ -86,7 +103,9 @@ open-uml: uml
 .PHONY: clean
 clean:
 	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
-		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(UML_PDF) $(UML_SLIDE_PDF) \
+		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
+		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
+		$(UML_PDF) $(UML_SLIDE_PDF) \
 		repo_uml.aux repo_uml.log repo_uml_slide.aux repo_uml_slide.log
 
 run: $(BIN)

@@ -71,6 +71,9 @@ MemCell::MemCell() {
     withVariation = false;
     resistanceOnVariation = 0;
     resistanceOffVariation = 0;
+    matchlineWireResistanceVariation = 0;
+    deviceAccessResistanceVariation = 0;
+    deviceMatchResistanceVariation = 0;
 
     /* For NAND flash */
     flashEraseVoltage = 0;

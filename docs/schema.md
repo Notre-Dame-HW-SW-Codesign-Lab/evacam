@@ -67,6 +67,8 @@ Common implemented optional sections:
 
 Important notes:
 
-- `cell.cam_type` is optional; EvaCAM infers it from the file name if omitted.
+- `cell.cam_type` should be set explicitly in real inputs.
+- Accepted values are `TCAM`, `BCAM`, `MCAM`, and `ACAM`.
+- `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
 - `ports.row` and `ports.column` are maps keyed by integer index.
 - `docs/config_full_example.yaml` and `docs/cell_full_example.yaml` include reference-only or proposed fields. Do not assume every commented field in those files is implemented.

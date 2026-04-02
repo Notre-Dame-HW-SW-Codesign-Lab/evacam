@@ -1,5 +1,6 @@
 #include "output/ResultsYaml.h"
 
+#include <functional>
 #include <iomanip>
 #include <string>
 
@@ -58,6 +59,12 @@ namespace {
     std::string fmt_watt(double x) {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(3) << TO_WATT(x);
+        return oss.str();
+    }
+
+    std::string fmt_voltage(double x) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(3) << x << "V";
         return oss.str();
     }
 
@@ -125,6 +132,23 @@ namespace {
             default:
                 return "Unknown";
         }
+    }
+
+    void write_metric_stats(
+            YamlWriter& y,
+            const std::string& key,
+            const CAMMetricStats& stats,
+            const std::function<std::string(double)>& formatter) {
+        if (!stats.available)
+            return;
+        y.begin_map(key);
+        y.line("nominal", formatter(stats.nominal));
+        y.line("mean", formatter(stats.mean));
+        y.line("stddev", formatter(stats.stddev));
+        y.line("min", formatter(stats.min));
+        y.line("max", formatter(stats.max));
+        y.line("p95", formatter(stats.p95));
+        y.end_map();
     }
 
     void write_breakdown(YamlWriter& y, const Result& result) {
@@ -341,6 +365,16 @@ namespace {
         y.line("read_bandwidth", fmt_bps(read_bandwidth));
         double write_bandwidth = (double)bank->blockSize / (bank->mat->subarray->writeLatency) / 8;
         y.line("write_bandwidth", fmt_bps(write_bandwidth));
+        if (bank->mat->subarray->monteCarloSummary.enabled) {
+            y.begin_map("variation");
+            y.line("mode", "monte_carlo");
+            y.line("samples", std::to_string(bank->mat->subarray->monteCarloSummary.samples));
+            write_metric_stats(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
+            write_metric_stats(y, "search_latency", bank->mat->subarray->monteCarloSummary.searchLatency, fmt_second);
+            write_metric_stats(y, "search_dynamic_energy", bank->mat->subarray->monteCarloSummary.searchDynamicEnergy, fmt_joule);
+            write_metric_stats(y, "sense_margin", bank->mat->subarray->monteCarloSummary.senseMargin, fmt_voltage);
+            y.end_map();
+        }
         y.end_map();
 
         y.begin_map("power");

@@ -3,6 +3,7 @@
 
 cell:
   name: MRAM-4T2R-VLSIC12
+  cam_type: TCAM
   type: MRAM
   process_node: 90nm
   area: 387.85F^2

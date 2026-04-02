@@ -3,6 +3,7 @@
 
 cell:
   name: ReRAM-2.5T1R-ISSCC16
+  cam_type: TCAM
   type: memristor
   process_node: 65nm
   area: 138.46F^2

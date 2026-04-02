@@ -26,8 +26,38 @@
 #include "MemCell.h"
 #include "EvaCamConfig.h"
 #include "EvaCAMMatchResult.h"
+#include "model/VariationSampler.h"
 #include <random>
 #include <vector>
+
+struct CAMResistanceSample {
+    double mlWireRes = 0;
+    double cellResOn = 0;
+    double cellResOff = 0;
+    double accessRes = 0;
+    double matchRes = 0;
+    double accessResOff = 0;
+    double matchResOff = 0;
+};
+
+struct CAMMetricStats {
+    bool available = false;
+    double nominal = 0;
+    double mean = 0;
+    double stddev = 0;
+    double min = 0;
+    double max = 0;
+    double p95 = 0;
+};
+
+struct CAMMonteCarloSummary {
+    bool enabled = false;
+    int samples = 0;
+    CAMMetricStats matchlineDelay;
+    CAMMetricStats searchLatency;
+    CAMMetricStats searchDynamicEnergy;
+    CAMMetricStats senseMargin;
+};
 
 class CAM_SubArray: public FunctionUnit {
     public:
@@ -36,6 +66,14 @@ class CAM_SubArray: public FunctionUnit {
             invalid = false;
             // TODO: Figure out how to calculate this if it doesn't go in the correct if statement
             matchlineDelay = 0;
+            matchlineWireRes = 0;
+            nominalMatchlineWireRes = 0;
+            nominalResCellAccess = 0;
+            nominalResMatchTran = 0;
+            nominalResMemCellOn = 0;
+            nominalResCellAccessOff = 0;
+            nominalResMatchTranOff = 0;
+            nominalResMemCellOff = 0;
             voltageMemCellOn = 0;    // TODO: Actually calculate this somewhere
             WriteDriverArea = 0;     // TODO: This is calculate but says unitialized sometimes
         }
@@ -61,6 +99,11 @@ class CAM_SubArray: public FunctionUnit {
         void CalculatePower();
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         CAM_SubArray & operator=(const CAM_SubArray &);
+        CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
+        double SampleVariationResistance(double nominal, double sigmaFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
+        double EffectiveDeviceResistanceSigma() const;
+        void UpdateMonteCarloTimingSummary();
+        void UpdateMonteCarloPowerSummary();
         /* Properties */
         std::shared_ptr<CAM_DataBuffer> inputBuf;
         std::shared_ptr<CAM_DataBuffer> outputBuf;
@@ -187,6 +230,16 @@ class CAM_SubArray: public FunctionUnit {
         double capCellAccess; /* Capacitance of access device, Unit: ohm */
         double resMatchTran;
         double capMatchTran;
+        double nominalResCellAccess;
+        double nominalResMatchTran;
+        double nominalResMemCellOff;
+        double nominalResMemCellOn;
+        double nominalResCellAccessOff;
+        double nominalResMatchTranOff;
+        double nominalMatchlineWireRes;
+        double matchlineWireRes;
+        CAMResistanceSample sampledResistance;
+        CAMMonteCarloSummary monteCarloSummary;
 
         double decoderLatency;
         double bitlineRamp;

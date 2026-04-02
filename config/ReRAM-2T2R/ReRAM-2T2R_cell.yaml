@@ -3,6 +3,7 @@
 
 cell:
   name: ReRAM-2T2R
+  cam_type: TCAM
   type: ReRAM
   process_node: 40nm
   area: 150F^2

@@ -3,6 +3,7 @@
 
 cell:
   name: 2FeFET-MCAM
+  cam_type: MCAM
   type: FEFETRAM
   process_node: 22nm
   area: 300F^2

@@ -3,6 +3,7 @@
 
 cell:
   name: FeFET-2Fe1T-DATE-2021
+  cam_type: TCAM
   type: FEFETRAM
   process_node: 45nm
   area: 350F^2

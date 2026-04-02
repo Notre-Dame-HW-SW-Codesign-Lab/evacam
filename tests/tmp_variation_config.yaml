@@ -1,0 +1,46 @@
+design:
+  target: CAM
+  search_function: EX
+  process_node: 45nm
+  device_roadmap: HP
+  temperature: 300K
+memory:
+  cell_file: tests/tmp_variation_cell.yaml
+  capacity: 1KB
+  word_width: 8bit
+routing:
+  type: H-tree
+peripherals:
+  write_driver: false
+  input:
+    buffer: false
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+sensing:
+  internal: true
+  custom_sense_amp: false
+  amplifier_type: nvsim_vol
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency
+wires:
+  local:
+    type: LocalAggressive
+    repeater: RepeatedOpt
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedOpt
+    low_swing: false
+variation:
+  enabled: true
+  seed: 12345
+  mode: monte_carlo
+  samples: 17
+  distribution: lognormal

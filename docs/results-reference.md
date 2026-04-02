@@ -15,6 +15,16 @@ summary:
       area: ...
   timing:
     search_latency: ...
+    variation:
+      mode: monte_carlo
+      samples: 9
+      matchline_delay:
+        nominal: ...
+        mean: ...
+        stddev: ...
+        min: ...
+        max: ...
+        p95: ...
   power:
     read_dynamic_energy: ...
     leakage_power: ...
@@ -48,6 +58,23 @@ Write-related keys vary by cell type:
 - `write_latency` and `write_dynamic_energy` for most technologies
 - `reset_*` and `set_*` for some NVM types
 - `erase_*` and `program_*` for `SLCNAND`
+
+Monte Carlo variation keys:
+
+- `summary.timing.variation` is emitted only when Monte Carlo variation is enabled with more than one sample
+- `mode` and `samples` describe the aggregation run
+- metric blocks currently include:
+  - `matchline_delay`
+  - `search_latency`
+  - `search_dynamic_energy`
+  - `sense_margin`
+- each metric block contains:
+  - `nominal`
+  - `mean`
+  - `stddev`
+  - `min`
+  - `max`
+  - `p95`
 
 ## Breakdown Section
 

@@ -1,4 +1,7 @@
 #include "input/YamlHelpers.h"
+#include "config/EvaCamConfig.h"
+#include "config/EvaCamYamlLoader.h"
+#include "config/TechnologyLoader.h"
 #include "MemCell.h"
 
 #include <cassert>
@@ -89,6 +92,15 @@ static void test_enum_read() {
     assert(sense == nvsim_voltage_sense);
     assert(port == Matchline);
     assert(region == drain);
+}
+
+static void test_bcam_alias() {
+    const YAML::Node n = YAML::Load(
+        "root:\n"
+        "  cam: BCAM\n");
+    auto root = YamlHelpers::child_required(n, "root");
+    auto cam = YamlHelpers::read_enum_required<CAMType>(root, "cam");
+    assert(cam == TCAM);
 }
 
 static void test_units() {
@@ -259,12 +271,259 @@ static void test_memcell_yaml() {
     assert(near(cell.camPort[1][0].volSearch1, 1.0));
 }
 
+static void test_memcell_variation_yaml() {
+    const char* path = "tests/tmp_cell_variation.yaml";
+    {
+        std::ofstream out(path);
+        out <<
+            "cell:\n"
+            "  name: TestCell\n"
+            "  type: SRAM\n"
+            "  process_node: 45nm\n"
+            "  area: 300F^2\n"
+            "  aspect_ratio: 2.0\n"
+            "access_device:\n"
+            "  type: CMOS\n"
+            "  cmos_width: 2F\n"
+            "resistance:\n"
+            "  'on': 1kohm\n"
+            "  'off': 1Mohm\n"
+            "read:\n"
+            "  mode: voltage\n"
+            "  voltage: 1V\n"
+            "  current: 5uA\n"
+            "  power: 2uW\n"
+            "  energy: 10fJ\n"
+            "  min_sense_voltage: 70mV\n"
+            "write:\n"
+            "  set:\n"
+            "    mode: voltage\n"
+            "    voltage: 4V\n"
+            "    current: 1uA\n"
+            "    pulse: 10ns\n"
+            "    energy: 2pJ\n"
+            "  reset:\n"
+            "    mode: current\n"
+            "    voltage: 3V\n"
+            "    current: 2uA\n"
+            "    pulse: 20ns\n"
+            "    energy: 3pJ\n"
+            "variation:\n"
+            "  with_variation: true\n"
+            "  cell_resistance_on_sigma: 5%\n"
+            "  resistance_off_variation: 7%\n"
+            "  matchline_wire_resistance_sigma: 3%\n"
+            "  device_access_resistance_sigma: 2%\n"
+            "  device_match_resistance_sigma: 4%\n"
+            "match:\n"
+            "  cmos_width: 3F\n"
+            "ports:\n"
+            "  row:\n"
+            "    0:\n"
+            "      type: searchline\n"
+            "      cmos_region: gate\n"
+            "      num_cmos: 1\n"
+            "      cmos_width: 1F\n"
+            "      is_nmos: true\n"
+            "      wire_width: 1F\n"
+            "      voltages:\n"
+            "        set_lrs: 4V\n"
+            "        set_mrs: 4V\n"
+            "        reset: 4V\n"
+            "        search0: 1V\n"
+            "        search1: 1V\n"
+            "  column:\n"
+            "    0:\n"
+            "      type: matchline\n"
+            "      cmos_region: drain\n"
+            "      num_cmos: 1\n"
+            "      cmos_width: 1F\n"
+            "      is_nmos: true\n"
+            "      wire_width: 1F\n"
+            "      voltages:\n"
+            "        set_lrs: 1V\n"
+            "        set_mrs: 1V\n"
+            "        reset: 1V\n"
+            "        search0: 0V\n"
+            "        search1: 1V\n";
+    }
+
+    MemCell cell;
+    cell.ReadCellFromFile(path, CAM_chip, 1.0);
+
+    auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
+
+    assert(cell.withVariation == true);
+    assert(near(cell.resistanceOnVariation, 0.05));
+    assert(near(cell.resistanceOffVariation, 0.07));
+    assert(near(cell.matchlineWireResistanceVariation, 0.03));
+    assert(near(cell.deviceAccessResistanceVariation, 0.02));
+    assert(near(cell.deviceMatchResistanceVariation, 0.04));
+}
+
+static void test_top_level_variation_config() {
+    const char* cellPath = "tests/tmp_variation_cell.yaml";
+    const char* cfgPath = "tests/tmp_variation_config.yaml";
+
+    {
+        std::ofstream out(cellPath);
+        out <<
+            "cell:\n"
+            "  name: TestCell\n"
+            "  type: SRAM\n"
+            "  process_node: 45nm\n"
+            "  area: 300F^2\n"
+            "  aspect_ratio: 2.0\n"
+            "access_device:\n"
+            "  type: CMOS\n"
+            "  cmos_width: 2F\n"
+            "resistance:\n"
+            "  'on': 1kohm\n"
+            "  'off': 1Mohm\n"
+            "read:\n"
+            "  mode: voltage\n"
+            "  voltage: 1V\n"
+            "  current: 5uA\n"
+            "  power: 2uW\n"
+            "  energy: 10fJ\n"
+            "  min_sense_voltage: 70mV\n"
+            "write:\n"
+            "  set:\n"
+            "    mode: voltage\n"
+            "    voltage: 4V\n"
+            "    current: 1uA\n"
+            "    pulse: 10ns\n"
+            "    energy: 2pJ\n"
+            "  reset:\n"
+            "    mode: current\n"
+            "    voltage: 3V\n"
+            "    current: 2uA\n"
+            "    pulse: 20ns\n"
+            "    energy: 3pJ\n"
+            "variation:\n"
+            "  with_variation: true\n"
+            "  cell_resistance_on_sigma: 5%\n"
+            "  cell_resistance_off_sigma: 8%\n"
+            "  matchline_wire_resistance_sigma: 6%\n"
+            "  device_access_resistance_sigma: 4%\n"
+            "  device_match_resistance_sigma: 3%\n"
+            "match:\n"
+            "  cmos_width: 3F\n"
+            "ports:\n"
+            "  row:\n"
+            "    0:\n"
+            "      type: searchline\n"
+            "      cmos_region: gate\n"
+            "      num_cmos: 1\n"
+            "      cmos_width: 1F\n"
+            "      is_nmos: true\n"
+            "      wire_width: 1F\n"
+            "      voltages:\n"
+            "        set_lrs: 4V\n"
+            "        set_mrs: 4V\n"
+            "        reset: 4V\n"
+            "        search0: 1V\n"
+            "        search1: 1V\n"
+            "  column:\n"
+            "    0:\n"
+            "      type: matchline\n"
+            "      cmos_region: drain\n"
+            "      num_cmos: 1\n"
+            "      cmos_width: 1F\n"
+            "      is_nmos: true\n"
+            "      wire_width: 1F\n"
+            "      voltages:\n"
+            "        set_lrs: 1V\n"
+            "        set_mrs: 1V\n"
+            "        reset: 1V\n"
+            "        search0: 0V\n"
+            "        search1: 1V\n";
+    }
+
+    {
+        std::ofstream out(cfgPath);
+        out <<
+            "design:\n"
+            "  target: CAM\n"
+            "  search_function: EX\n"
+            "  process_node: 45nm\n"
+            "  device_roadmap: HP\n"
+            "  temperature: 300K\n"
+            "memory:\n"
+            "  cell_file: tests/tmp_variation_cell.yaml\n"
+            "  capacity: 1KB\n"
+            "  word_width: 8bit\n"
+            "routing:\n"
+            "  type: H-tree\n"
+            "peripherals:\n"
+            "  write_driver: false\n"
+            "  input:\n"
+            "    buffer: false\n"
+            "    encoder: false\n"
+            "    custom_encoder: false\n"
+            "  output:\n"
+            "    buffer: false\n"
+            "    priority_encoder: false\n"
+            "    accumulator: false\n"
+            "sensing:\n"
+            "  internal: true\n"
+            "  custom_sense_amp: false\n"
+            "  amplifier_type: nvsim_vol\n"
+            "optimization:\n"
+            "  target: ReadLatency\n"
+            "  buffer_design: latency\n"
+            "  row_driver: latency\n"
+            "  priority_encoder: latency\n"
+            "wires:\n"
+            "  local:\n"
+            "    type: LocalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n"
+            "variation:\n"
+            "  enabled: true\n"
+            "  seed: 12345\n"
+            "  mode: monte_carlo\n"
+            "  samples: 17\n"
+            "  distribution: lognormal\n";
+    }
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(cfgPath, config);
+
+    assert(config.variation.enabled == true);
+    assert(config.variation.seed == 12345u);
+    assert(config.variation.mode == "monte_carlo");
+    assert(config.variation.samples == 17);
+    assert(config.variation.distribution == "lognormal");
+
+    InputConfig input = config.input;
+    PeripheralConfig peripherals = config.peripherals;
+    VariationConfig variation = config.variation;
+    TechnologyContext technology = TechnologyLoader::Load(input, peripherals, &variation);
+
+    auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
+    assert(technology.cell != nullptr);
+    assert(variation.enabled == true);
+    assert(near(variation.cellResOnSigma, 0.05));
+    assert(near(variation.cellResOffSigma, 0.08));
+    assert(near(variation.mlWireResSigma, 0.06));
+    assert(near(variation.deviceAccessResSigma, 0.04));
+    assert(near(variation.deviceMatchResSigma, 0.03));
+}
+
 int main() {
     test_basic_read();
     test_enum_read();
+    test_bcam_alias();
     test_units();
     test_invalid_inputs();
     test_memcell_yaml();
+    test_memcell_variation_yaml();
+    test_top_level_variation_config();
     std::cout << "YamlHelpers tests passed" << std::endl;
     return 0;
 }

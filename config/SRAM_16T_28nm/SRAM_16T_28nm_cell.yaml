@@ -3,6 +3,7 @@
 
 cell:
   name: SRAM-16T-28nm
+  cam_type: TCAM
   type: SRAM
   process_node: 28nm
   area: 832.73F^2

@@ -84,10 +84,21 @@ std::shared_ptr<Technology> LoadFefetTech(const InputConfig &input, const Periph
 
 }  // namespace
 
-TechnologyContext TechnologyLoader::Load(const InputConfig &input, const PeripheralConfig &peripherals) {
+TechnologyContext TechnologyLoader::Load(
+        const InputConfig &input,
+        const PeripheralConfig &peripherals,
+        VariationConfig *variation) {
     TechnologyContext technology;
     technology.tech = LoadTech(input, peripherals);
     technology.cell = LoadCell(input, technology.tech);
     technology.fefetTech = LoadFefetTech(input, peripherals);
+    if (variation) {
+        variation->enabled = variation->enabled || technology.cell->withVariation;
+        variation->cellResOnSigma = technology.cell->resistanceOnVariation;
+        variation->cellResOffSigma = technology.cell->resistanceOffVariation;
+        variation->mlWireResSigma = technology.cell->matchlineWireResistanceVariation;
+        variation->deviceAccessResSigma = technology.cell->deviceAccessResistanceVariation;
+        variation->deviceMatchResSigma = technology.cell->deviceMatchResistanceVariation;
+    }
     return technology;
 }

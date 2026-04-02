@@ -8,14 +8,6 @@
 namespace {
 }
 
-EvaCamConfig::EvaCamConfig() {
-    exploration = ExplorationSpec::Default();
-
-    useCactiAssumption = false;
-
-    resolvedExploration = ExplorationSpaceResolver::Resolve(exploration);
-}
-
 void EvaCamConfig::SetDeepExploration(bool enabled) {
     exploration = ExplorationSpec::Default();
     if (enabled) {
@@ -74,5 +66,5 @@ void EvaCamConfig::ApplyResultLimits(const ResultLimits &limits,
 void EvaCamConfig::ReadConfigFromFile(const std::string &inputFile) {
     EvaCamYamlLoader::Load(inputFile, *this);
     resolvedExploration = ExplorationSpaceResolver::Resolve(exploration);
-    technology = TechnologyLoader::Load(input, peripherals);
+    technology = TechnologyLoader::Load(input, peripherals, &variation);
 }

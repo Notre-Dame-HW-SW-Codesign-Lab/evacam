@@ -69,6 +69,9 @@ class MemCell {
         bool withVariation;
         double resistanceOnVariation;
         double resistanceOffVariation;
+        double matchlineWireResistanceVariation;
+        double deviceAccessResistanceVariation;
+        double deviceMatchResistanceVariation;
         double resStateVariation[64];
 
         /* Optional properties */

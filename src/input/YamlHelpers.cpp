@@ -648,11 +648,38 @@ namespace YamlHelpers {
         auto variation = child_optional(root, "variation");
         if (variation) {
             cell.withVariation = read_optional<bool>(variation, "with_variation", cell.withVariation);
-            if (child_optional(variation, "resistance_on_variation")) {
-                cell.resistanceOnVariation = parse_fraction_or_percent_node(child_optional(variation, "resistance_on_variation"), "variation.resistance_on_variation");
+            if (child_optional(variation, "cell_resistance_on_sigma")) {
+                cell.resistanceOnVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "cell_resistance_on_sigma"),
+                        "variation.cell_resistance_on_sigma");
+            } else if (child_optional(variation, "resistance_on_variation")) {
+                cell.resistanceOnVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "resistance_on_variation"),
+                        "variation.resistance_on_variation");
             }
-            if (child_optional(variation, "resistance_off_variation")) {
-                cell.resistanceOffVariation = parse_fraction_or_percent_node(child_optional(variation, "resistance_off_variation"), "variation.resistance_off_variation");
+            if (child_optional(variation, "cell_resistance_off_sigma")) {
+                cell.resistanceOffVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "cell_resistance_off_sigma"),
+                        "variation.cell_resistance_off_sigma");
+            } else if (child_optional(variation, "resistance_off_variation")) {
+                cell.resistanceOffVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "resistance_off_variation"),
+                        "variation.resistance_off_variation");
+            }
+            if (child_optional(variation, "matchline_wire_resistance_sigma")) {
+                cell.matchlineWireResistanceVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "matchline_wire_resistance_sigma"),
+                        "variation.matchline_wire_resistance_sigma");
+            }
+            if (child_optional(variation, "device_access_resistance_sigma")) {
+                cell.deviceAccessResistanceVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "device_access_resistance_sigma"),
+                        "variation.device_access_resistance_sigma");
+            }
+            if (child_optional(variation, "device_match_resistance_sigma")) {
+                cell.deviceMatchResistanceVariation = parse_fraction_or_percent_node(
+                        child_optional(variation, "device_match_resistance_sigma"),
+                        "variation.device_match_resistance_sigma");
             }
         }
 
@@ -792,6 +819,7 @@ namespace YamlHelpers {
     const std::vector<std::pair<const char*, CAMType>>& EnumTraits<CAMType>::mapping() {
         static const std::vector<std::pair<const char*, CAMType>> k = {
             {"TCAM", TCAM},
+            {"BCAM", TCAM},
             {"MCAM", MCAM},
             {"ACAM", ACAM},
         };

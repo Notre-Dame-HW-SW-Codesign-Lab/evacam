@@ -3,6 +3,7 @@
 
 cell:
   name: ReRAM-4T2R-VLSIC14
+  cam_type: TCAM
   type: memristor
   process_node: 40nm
   area: 299F^2

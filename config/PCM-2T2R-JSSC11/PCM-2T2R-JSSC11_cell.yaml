@@ -3,6 +3,7 @@
 
 cell:
   name: PCM-2T2R-JSSC11
+  cam_type: TCAM
   type: PCRAM
   process_node: 45nm
   area: 50F^2

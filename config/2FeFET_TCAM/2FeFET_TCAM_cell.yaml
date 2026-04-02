@@ -3,6 +3,7 @@
 
 cell:
   name: 2FeFET-TCAM
+  cam_type: TCAM
   type: FEFETRAM
   process_node: 45nm
   area: 300F^2
