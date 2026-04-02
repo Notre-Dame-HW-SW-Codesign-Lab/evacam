@@ -16,9 +16,9 @@ It reads a top-level YAML configuration, loads a YAML cell description, explores
 - `src/cam/`, `include/cam/`: CAM-specific blocks built on the circuit/model layers
 - `src/factories/`, `include/factories/`: factory helpers for assembling model objects
 - `src/app/main.cpp`: program entry point
-- `config/`: shipped example groups, with one subdirectory per cell and the configs that use it
+- `config/`: canonical shipped example tree, with one subdirectory per cell and the configs that use it
 - `docs/`: usage notes and reference docs
-- `old_style_config/`: legacy configuration files kept for reference
+- `old_style_config/`: legacy configuration files kept for reference only
 - `tests/`: small focused tests
 
 ## Requirements
@@ -95,7 +95,7 @@ EvaCAM consumes a top-level config file and a separate cell file.
 - The top-level config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell file.
 - The cell file describes the device, ports, voltages, currents, and related physical parameters.
 
-Start with the shipped examples under `config/`, where each subdirectory contains a cell YAML plus the configs that use it.
+Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell YAML plus the configs that use it. `old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 

@@ -13,7 +13,7 @@ This file summarizes current runtime restrictions enforced by the code.
 - Process nodes below `7nm` are rejected
 - Process nodes above `200nm` are rejected
 - Intermediate nodes are interpolated between built-in technology tables
-- The supported anchor nodes are `7`, `10`, `14`, `22`, `32`, `45`, `90`, `120`, and `200` nm
+- The supported anchor nodes are `7`, `10`, `14`, `22`, `32`, `45`, `65`, `90`, `120`, and `200` nm
 
 ## Memory Technologies
 
