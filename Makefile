@@ -105,6 +105,7 @@ clean:
 	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
+		tests/tmp_cell.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell.yaml tests/tmp_variation_config.yaml \
 		$(UML_PDF) $(UML_SLIDE_PDF) \
 		repo_uml.aux repo_uml.log repo_uml_slide.aux repo_uml_slide.log
 
