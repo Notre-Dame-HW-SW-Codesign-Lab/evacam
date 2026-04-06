@@ -30,13 +30,12 @@ EvaCamContext EvaCamContextBuilder::Build(const CliOptions &options) {
     config->logger.Verbose() << "User-defined configuration file (" << options.inputFileName << ") is loaded";
     config->logger.Verbose();
 
-    config->SetDeepExploration(options.deepExploration);
     config->ReadConfigFromFile(options.inputFileName);
 
     EvaCamContext context;
     context.config = config;
     context.inputFileName = options.inputFileName;
-    context.outputYamlFileName = options.outputYamlFileName;
+    context.outputYamlFileName = config->input.outputYamlFileName;
     if (context.outputYamlFileName.empty()) {
         context.outputYamlFileName = OutputPathBuilder::DefaultResultsYamlPath(context.inputFileName);
     }

@@ -39,8 +39,10 @@ Representative fields:
 - `memory.capacity`: capacity with units, for example `512B`
 - `memory.word_width`: width with units, for example `64bits`
 - `optimization.target`: objective such as `LeakagePower` or `Exploration`
+- `optimization.deep_exploration`: expands the default exploration search space when array geometry is not pinned
 - `array.banks.total` and `array.banks.active`: bank organization
 - `array.mats.total` and `array.mats.active`: mat organization
+- `extra.output_yaml_file`: optional override for the results YAML path
 
 Use the grouped examples under `config/` as the source of truth for current syntax.
 

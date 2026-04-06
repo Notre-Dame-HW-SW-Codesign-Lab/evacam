@@ -26,6 +26,7 @@ struct InputConfig {
     RoutingMode routingMode = h_tree;
     bool internalSensing = true;
     double maxNmosSize = MAX_NMOS_SIZE;
+    std::string outputYamlFileName;
     std::string outputFilePrefix = "results/output";
 };
 

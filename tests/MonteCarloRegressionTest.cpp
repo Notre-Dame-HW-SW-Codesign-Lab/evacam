@@ -92,6 +92,12 @@ MonteCarloFixture WriteMonteCarloConfig(
     ReplaceAll(configText,
             "cell_file: ./config/ReRAM-2T2R/ReRAM-2T2R_cell.yaml",
             "cell_file: " + testCell.string());
+    configText +=
+        "\nadvanced:\n"
+        "  bit_serial_width: 32bits\n"
+        "\n"
+        "\nextra:\n"
+        "  output_yaml_file: " + testOutput.string() + "\n";
     WriteFile(testConfig, configText);
 
     return {testConfig, testOutput};
@@ -136,8 +142,7 @@ void test_monte_carlo_changes_with_variation_toggle() {
 void test_monte_carlo_output_summary_is_emitted() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("yaml", true, 33333u);
 
-    const std::string command = "./EvaCAM -o " + fixture.outputPath.string()
-        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const std::string command = "./EvaCAM " + fixture.configPath.string() + " >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));
@@ -177,8 +182,7 @@ void test_monte_carlo_output_summary_is_emitted() {
 void test_single_point_output_summary_is_emitted() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("single_point", true, 55555u, "single_point");
 
-    const std::string command = "./EvaCAM -o " + fixture.outputPath.string()
-        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const std::string command = "./EvaCAM " + fixture.configPath.string() + " >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));
@@ -212,8 +216,7 @@ void test_single_point_output_summary_is_emitted() {
 void test_variation_output_summary_is_absent_when_disabled() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("yaml_off", false, 44444u);
 
-    const std::string command = "./EvaCAM -o " + fixture.outputPath.string()
-        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const std::string command = "./EvaCAM " + fixture.configPath.string() + " >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));

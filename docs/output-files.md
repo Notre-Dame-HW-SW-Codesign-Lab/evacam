@@ -16,10 +16,11 @@ Examples:
 - `config/2FeFET_TCAM/2FeFET_TCAM_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
 - `config/ReRAM-2T2R/ReRAM-2T2R_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
 
-You can override the YAML output path with:
+You can override the YAML output path with `extra.output_yaml_file` in the config:
 
-```bash
-./EvaCAM -o path/to/output.yaml config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
+```yaml
+extra:
+  output_yaml_file: path/to/output.yaml
 ```
 
 ## Console Summary

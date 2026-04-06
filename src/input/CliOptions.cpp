@@ -40,19 +40,6 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
             continue;
         }
 
-        if (arg == "-d" || arg == "--deep-exploration") {
-            options.deepExploration = true;
-            continue;
-        }
-
-        if (arg == "-o" || arg == "--output") {
-            if (i + 1 >= argc) {
-                throw std::invalid_argument("Missing output file after " + std::string(arg));
-            }
-            options.outputYamlFileName = argv[++i];
-            continue;
-        }
-
         if (!arg.empty() && arg.front() == '-') {
             throw std::invalid_argument("Unknown option: " + std::string(arg));
         }
@@ -76,7 +63,5 @@ void CliOptionsParser::PrintUsage(std::ostream &os) {
     os << "Options:" << std::endl;
     os << "  -t, --threads N           Number of parallel threads (default: all cores)" << std::endl;
     os << "  -v, --verbose             Enable verbose output" << std::endl;
-    os << "  -d, --deep-exploration    Test more options when performing optimization" << std::endl;
-    os << "  -o, --output FILE         YAML output file (default: results/<cfg>_results.yaml)" << std::endl;
     os << "  -h, --help                Show this help and exit" << std::endl;
 }

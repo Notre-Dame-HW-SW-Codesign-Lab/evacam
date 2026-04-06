@@ -88,6 +88,9 @@ void ReadOptimizationSection(const YAML::Node &root, EvaCamConfig &config) {
     auto optimization = YamlHelpers::child_required(root, "optimization");
     config.input.optimizationTarget =
         YamlHelpers::read_enum_required<OptimizationTarget>(optimization, "target");
+    const bool deepExploration = YamlHelpers::read_optional<bool>(
+            optimization, "deep_exploration", false);
+    config.SetDeepExploration(deepExploration);
 
     auto bufferDesign = YamlHelpers::read_enum_required<BufferDesignTarget>(optimization, "buffer_design");
     config.exploration.cam.areaOptimizationLevel =
@@ -322,6 +325,8 @@ void ReadExtraSection(const YAML::Node &root, EvaCamConfig &config) {
     }
     config.input.outputFilePrefix = YamlHelpers::read_optional<std::string>(
             extra, "output_file_prefix", config.input.outputFilePrefix);
+    config.input.outputYamlFileName = YamlHelpers::read_optional<std::string>(
+            extra, "output_yaml_file", config.input.outputYamlFileName);
     if (YamlHelpers::child_optional(extra, "worst_case_sense_margin")) {
         config.peripherals.matchlineSenseMargin = YamlHelpers::read_quantity_required(
                 extra, "worst_case_sense_margin", YamlHelpers::VoltageUnits(), 1.0, "extra.worst_case_sense_margin");

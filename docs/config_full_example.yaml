@@ -36,6 +36,7 @@ sensing: # map
 
 optimization: # map
   target: ReadLatency # enum: ReadLatency | WriteLatency | ReadDynamicEnergy | WriteDynamicEnergy | ReadEDP | WriteEDP | LeakagePower | Area | SearchLatency | SearchEnergy | SearchEDP | Exploration
+  deep_exploration: false # bool
   buffer_design: latency # enum: latency | area | balance
   row_driver: latency # enum: latency | area | balance
   priority_encoder: latency # enum: latency | area | balance
@@ -51,8 +52,8 @@ wires: # map
     low_swing: false # bool
 
 array: # optional map
-  # If omitted, EvaCAM uses exploration ranges from SetDeepExploration()
-  # instead of fixed bank/mat/mux values.
+  # If omitted, EvaCAM uses default exploration ranges.
+  # optimization.deep_exploration widens those defaults.
   banks: # map
     total: [1, 1] # [int, int]
     active: [1, 1] # [int, int]
@@ -101,6 +102,7 @@ flash: # optional map (proposed)
 
 extra: # optional map
   real_capacity: 9KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb)
+  output_yaml_file: results/example_results.yaml # string path
   output_file_prefix: output # string
   worst_case_sense_margin: 30mV # units: V | mV
   max_driver_current: 0uA # units: A | mA | uA | nA | pA

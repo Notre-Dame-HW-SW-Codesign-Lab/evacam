@@ -65,7 +65,7 @@ There are two broad run shapes:
 - Single-objective optimization: returns the best point for the selected target
 - Full exploration: returns best points across multiple objectives and may emit a CSV
 
-The CLI flag `--deep-exploration` expands the search space used during optimization.
+The config key `optimization.deep_exploration` expands the search space used during optimization.
 
 ## Where To Extend
 
