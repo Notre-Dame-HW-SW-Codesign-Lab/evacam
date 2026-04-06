@@ -648,6 +648,16 @@ namespace YamlHelpers {
         auto variation = child_optional(root, "variation");
         if (variation) {
             cell.withVariation = read_optional<bool>(variation, "with_variation", cell.withVariation);
+            if (child_optional(variation, "seed")) {
+                cell.variationSeed = read_required<uint32_t>(variation, "seed");
+                cell.hasVariationSeed = true;
+            }
+            if (child_optional(variation, "mode")) {
+                cell.variationMode = read_required<std::string>(variation, "mode");
+            }
+            if (child_optional(variation, "samples")) {
+                cell.variationSamples = read_required<int>(variation, "samples");
+            }
             if (child_optional(variation, "cell_resistance_on_sigma")) {
                 cell.resistanceOnVariation = parse_fraction_or_percent_node(
                         child_optional(variation, "cell_resistance_on_sigma"),

@@ -151,6 +151,19 @@ namespace {
         y.end_map();
     }
 
+    void write_metric_sample(
+            YamlWriter& y,
+            const std::string& key,
+            const CAMMetricStats& stats,
+            const std::function<std::string(double)>& formatter) {
+        if (!stats.available)
+            return;
+        y.begin_map(key);
+        y.line("nominal", formatter(stats.nominal));
+        y.line("sample", formatter(stats.sample));
+        y.end_map();
+    }
+
     void write_breakdown(YamlWriter& y, const Result& result) {
         const auto& input = result.config;
         const auto& bank = result.bank;
@@ -367,12 +380,19 @@ namespace {
         y.line("write_bandwidth", fmt_bps(write_bandwidth));
         if (bank->mat->subarray->monteCarloSummary.enabled) {
             y.begin_map("variation");
-            y.line("mode", "monte_carlo");
+            y.line("mode", bank->mat->subarray->monteCarloSummary.mode);
             y.line("samples", std::to_string(bank->mat->subarray->monteCarloSummary.samples));
-            write_metric_stats(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
-            write_metric_stats(y, "search_latency", bank->mat->subarray->monteCarloSummary.searchLatency, fmt_second);
-            write_metric_stats(y, "search_dynamic_energy", bank->mat->subarray->monteCarloSummary.searchDynamicEnergy, fmt_joule);
-            write_metric_stats(y, "sense_margin", bank->mat->subarray->monteCarloSummary.senseMargin, fmt_voltage);
+            if (bank->mat->subarray->monteCarloSummary.mode == "single_point") {
+                write_metric_sample(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
+                write_metric_sample(y, "search_latency", bank->mat->subarray->monteCarloSummary.searchLatency, fmt_second);
+                write_metric_sample(y, "search_dynamic_energy", bank->mat->subarray->monteCarloSummary.searchDynamicEnergy, fmt_joule);
+                write_metric_sample(y, "sense_margin", bank->mat->subarray->monteCarloSummary.senseMargin, fmt_voltage);
+            } else {
+                write_metric_stats(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
+                write_metric_stats(y, "search_latency", bank->mat->subarray->monteCarloSummary.searchLatency, fmt_second);
+                write_metric_stats(y, "search_dynamic_energy", bank->mat->subarray->monteCarloSummary.searchDynamicEnergy, fmt_joule);
+                write_metric_stats(y, "sense_margin", bank->mat->subarray->monteCarloSummary.senseMargin, fmt_voltage);
+            }
             y.end_map();
         }
         y.end_map();

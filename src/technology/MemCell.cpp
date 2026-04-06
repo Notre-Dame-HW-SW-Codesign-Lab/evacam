@@ -69,6 +69,10 @@ MemCell::MemCell() {
     }
 
     withVariation = false;
+    hasVariationSeed = false;
+    variationSeed = 0;
+    variationMode = "nominal";
+    variationSamples = 1;
     resistanceOnVariation = 0;
     resistanceOffVariation = 0;
     matchlineWireResistanceVariation = 0;

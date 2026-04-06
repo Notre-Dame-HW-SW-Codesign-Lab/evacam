@@ -239,6 +239,17 @@ void CAM_Result::print() {
         default:	/* balance */
             std::cout << "Balanced" << std::endl;
     }
+    if (bank->mat->subarray->monteCarloSummary.enabled) {
+        std::cout << "Variation:" << std::endl;
+        std::cout << " - Mode                         : " << config->variation.mode << std::endl;
+        std::cout << " - Base Seed                    : " << config->variation.seed << std::endl;
+        std::cout << " - Samples                      : " << config->variation.samples << std::endl;
+        std::cout << " - Cell Resistance On Sigma     : " << config->variation.cellResOnSigma * 100 << "%" << std::endl;
+        std::cout << " - Cell Resistance Off Sigma    : " << config->variation.cellResOffSigma * 100 << "%" << std::endl;
+        std::cout << " - Matchline Wire Sigma         : " << config->variation.mlWireResSigma * 100 << "%" << std::endl;
+        std::cout << " - Device Access Sigma          : " << config->variation.deviceAccessResSigma * 100 << "%" << std::endl;
+        std::cout << " - Device Match Sigma           : " << config->variation.deviceMatchResSigma * 100 << "%" << std::endl;
+    }
 
     std::cout << std::endl;
 

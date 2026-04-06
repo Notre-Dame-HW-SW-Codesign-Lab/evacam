@@ -56,7 +56,7 @@ Validation and pretty-printing are intentionally split out of the class into `Ev
 
 ## Input Boundary
 
-The main user-facing interface is the YAML config and the referenced cell YAML. Most documentation should stay centered on those files and the CLI, because that is where users interact with the tool.
+The main user-facing interface is the YAML config, the referenced cell YAML, and the CLI.
 
 ## Exploration Modes
 

@@ -88,6 +88,10 @@ multilevel: # map
 
 variation: # optional map
   with_variation: false # bool
+  # Variation sampling uses a fixed bounded-Gaussian model; there is no distribution selector.
+  mode: single_point # enum: single_point | monte_carlo
+  samples: 9 # int, required for monte_carlo and must be > 1
+  seed: 12345 # optional uint32, mainly for reproducible testing
   resistance_on_variation: 0% # units: percent (legacy alias)
   resistance_off_variation: 0% # units: percent (legacy alias)
   cell_resistance_on_sigma: 0% # units: percent

@@ -31,6 +31,21 @@ static void test_positive_samples() {
     }
 }
 
+static void test_samples_stay_within_bounds() {
+    VariationSampler sampler(31415);
+    const double nominal = 1000.0;
+    const double sigmaFrac = 0.2;
+    const double sigma = nominal * sigmaFrac;
+    const double lowerBound = nominal - 3.0 * sigma;
+    const double upperBound = nominal + 3.0 * sigma;
+
+    for (int i = 0; i < 2048; i++) {
+        const double sampled = sampler.SampleResistance(nominal, sigmaFrac);
+        assert(sampled >= lowerBound);
+        assert(sampled <= upperBound);
+    }
+}
+
 static void test_mean_preserved_approximately() {
     VariationSampler sampler(123);
     const double nominal = 5000.0;
@@ -51,6 +66,7 @@ int main() {
     test_zero_sigma_returns_nominal();
     test_same_seed_same_sequence();
     test_positive_samples();
+    test_samples_stay_within_bounds();
     test_mean_preserved_approximately();
     std::cout << "VariationSampler tests passed" << std::endl;
     return 0;

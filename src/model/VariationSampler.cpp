@@ -17,12 +17,23 @@ double VariationSampler::SamplePositive(double nominal, double sigmaFrac) {
         return nominal;
     }
 
-    const double sigma2 = std::log(1.0 + sigmaFrac * sigmaFrac);
-    const double sigma = std::sqrt(sigma2);
-    const double mu = std::log(nominal) - 0.5 * sigma2;
+    const double sigma = nominal * sigmaFrac;
+    const double lowerBound = std::max(nominal * 1e-12, nominal - 3.0 * sigma);
+    const double upperBound = nominal + 3.0 * sigma;
+    std::normal_distribution<double> dist(nominal, sigma);
 
-    std::lognormal_distribution<double> dist(mu, sigma);
-    return dist(rng_);
+    // Use rejection sampling so the bounded distribution remains Gaussian
+    // inside the admissible interval instead of accumulating clipped mass
+    // at the edges.
+    for (int attempt = 0; attempt < 256; ++attempt) {
+        const double sample = dist(rng_);
+        if (sample >= lowerBound && sample <= upperBound) {
+            return sample;
+        }
+    }
+
+    // Deterministic fallback if repeated draws fail.
+    return std::min(std::max(dist(rng_), lowerBound), upperBound);
 }
 
 double VariationSampler::SampleResistance(double nominal, double sigmaFrac) {

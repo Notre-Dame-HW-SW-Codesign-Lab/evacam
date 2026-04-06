@@ -44,7 +44,9 @@ Representative fields:
 
 Use the grouped examples under `config/` as the source of truth for current syntax.
 
-For a fuller list of implemented sections and fields, see [schema.md](/home/jbech002/Research/evacam/docs/schema.md).
+Variation is not configured in the top-level YAML. Variation enablement and sigma values are defined in the cell YAML under `variation`.
+
+For a fuller list of implemented sections and fields, see [schema.md](schema.md).
 
 ## Cell File Structure
 
@@ -56,6 +58,7 @@ The shipped cell files use these top-level sections:
 - `read`
 - `write`
 - `multilevel`
+- `variation`
 - `match`
 - `ports`
 
@@ -68,8 +71,21 @@ Representative fields:
 - `read.voltage`
 - `write.set.pulse`
 - `write.reset.energy`
+- `variation.with_variation`
+- `variation.mode`
+- `variation.samples`
+- `variation.seed`
+- `variation.cell_resistance_on_sigma`
 - `ports.row`
 - `ports.column`
+
+If `variation.with_variation` is enabled in the cell file, EvaCAM uses its built-in bounded-Gaussian variation model. There is no top-level variation block and no user-selectable distribution.
+
+Supported cell-level variation controls:
+
+- `variation.mode: single_point` for one sampled run
+- `variation.mode: monte_carlo` with `variation.samples: <N>` for Monte Carlo analysis
+- `variation.seed` as an optional reproducibility/testing override; if omitted, EvaCAM derives the base seed from the current time
 
 ## Units and Formatting
 
@@ -103,9 +119,9 @@ The files below are not intended for real runs:
 - `docs/config_full_example.yaml`
 - `docs/cell_full_example.yaml`
 
-See [FULL_INPUT_EXAMPLES_WARNING.md](/home/jbech002/Research/evacam/docs/FULL_INPUT_EXAMPLES_WARNING.md).
+See [FULL_INPUT_EXAMPLES_WARNING.md](FULL_INPUT_EXAMPLES_WARNING.md).
 
-For current runtime restrictions, see [limitations.md](/home/jbech002/Research/evacam/docs/limitations.md).
+For current runtime restrictions, see [limitations.md](limitations.md).
 
 ## Practical Advice
 

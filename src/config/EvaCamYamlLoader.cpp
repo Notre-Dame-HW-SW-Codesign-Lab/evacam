@@ -193,27 +193,6 @@ void ReadMatchlineSection(const YAML::Node &root, EvaCamConfig &config) {
             matchline, "additional_cap", YamlHelpers::CapacitanceUnits(), 1e-15, "matchline.additional_cap");
 }
 
-void ReadVariationSection(const YAML::Node &root, EvaCamConfig &config) {
-    auto variation = YamlHelpers::child_optional(root, "variation");
-    if (!variation) {
-        return;
-    }
-    config.variation.enabled = YamlHelpers::read_optional<bool>(
-            variation, "enabled", config.variation.enabled);
-    config.variation.seed = YamlHelpers::read_optional<uint32_t>(
-            variation, "seed", config.variation.seed);
-    config.variation.mode = YamlHelpers::read_optional<std::string>(
-            variation, "mode", config.variation.mode);
-    config.variation.samples = YamlHelpers::read_optional<int>(
-            variation, "samples", config.variation.samples);
-    config.variation.distribution = YamlHelpers::read_optional<std::string>(
-            variation, "distribution", config.variation.distribution);
-
-    if (config.variation.samples <= 0) {
-        throw std::runtime_error("[Input] Error: variation.samples must be > 0.");
-    }
-}
-
 void ReadConstraintSection(const YAML::Node &root, EvaCamConfig &config) {
     auto constraintsNode = YamlHelpers::child_optional(root, "constraints");
     if (!constraintsNode) {
@@ -420,7 +399,6 @@ void EvaCamYamlLoader::Load(const std::string &inputFile, EvaCamConfig &config) 
     ReadWireSection(root, config);
     ReadArraySection(root, config);
     ReadMatchlineSection(root, config);
-    ReadVariationSection(root, config);
     ReadConstraintSection(root, config);
     ReadAdvancedSection(root, config);
     ReadCacheSection(root, config);

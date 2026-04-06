@@ -23,6 +23,32 @@ std::vector<std::shared_ptr<Result>> AsResults(
     return results;
 }
 
+void PrintVariationMetric(const char *name, double scale, const char *unit, const CAMMetricStats &stats) {
+    if (!stats.available) {
+        return;
+    }
+
+    std::cout << " - " << name
+              << ": mean=" << stats.mean * scale
+              << " " << unit
+              << ", stddev=" << stats.stddev * scale
+              << " " << unit
+              << std::endl;
+}
+
+void PrintVariationSampleMetric(const char *name, double scale, const char *unit, const CAMMetricStats &stats) {
+    if (!stats.available) {
+        return;
+    }
+
+    std::cout << " - " << name
+              << ": nominal=" << stats.nominal * scale
+              << " " << unit
+              << ", sample=" << stats.sample * scale
+              << " " << unit
+              << std::endl;
+}
+
 }  // namespace
 
 void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
@@ -32,6 +58,30 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
     if (!DerivedValueHelpers::IsFullExploration(config.input)) {
         if (numSolution > 0) {
             bestResults[config.input.optimizationTarget]->print();
+            const CAMMonteCarloSummary &variation =
+                    bestResults[config.input.optimizationTarget]->bank->mat->subarray->monteCarloSummary;
+            if (variation.enabled) {
+                std::cout << std::endl
+                          << "========="
+                          << std::endl
+                          << "VARIATION"
+                          << std::endl
+                          << "========="
+                          << std::endl;
+                std::cout << "Mode   : " << variation.mode << std::endl;
+                std::cout << "Samples: " << variation.samples << std::endl;
+                if (variation.mode == "single_point") {
+                    PrintVariationSampleMetric("Matchline Delay", 1e12, "ps", variation.matchlineDelay);
+                    PrintVariationSampleMetric("Search Latency", 1e12, "ps", variation.searchLatency);
+                    PrintVariationSampleMetric("Search Energy", 1e12, "pJ", variation.searchDynamicEnergy);
+                    PrintVariationSampleMetric("Sense Margin", 1e3, "mV", variation.senseMargin);
+                } else {
+                    PrintVariationMetric("Matchline Delay", 1e12, "ps", variation.matchlineDelay);
+                    PrintVariationMetric("Search Latency", 1e12, "ps", variation.searchLatency);
+                    PrintVariationMetric("Search Energy", 1e12, "pJ", variation.searchDynamicEnergy);
+                    PrintVariationMetric("Sense Margin", 1e3, "mV", variation.senseMargin);
+                }
+            }
         } else {
             std::cout << "No valid solutions." << std::endl;
         }

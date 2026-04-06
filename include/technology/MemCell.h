@@ -1,6 +1,7 @@
 #ifndef MEMCELL_H_
 #define MEMCELL_H_
 
+#include <stdint.h>
 #include <string>
 
 #include "typedef.h"
@@ -67,6 +68,10 @@ class MemCell {
         double ResistanceState[64];
 
         bool withVariation;
+        bool hasVariationSeed;
+        uint32_t variationSeed;
+        std::string variationMode;
+        int variationSamples;
         double resistanceOnVariation;
         double resistanceOffVariation;
         double matchlineWireResistanceVariation;

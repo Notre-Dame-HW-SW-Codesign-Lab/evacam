@@ -24,6 +24,15 @@ double CombineSigma(double a, double b) {
     return std::sqrt(a * a + b * b);
 }
 
+uint32_t MixVariationSeed(uint32_t baseSeed, uint32_t sampleIndex, uint32_t streamOffset) {
+    // Deterministically derive a per-sample, per-stream seed without relying on
+    // ad hoc stride constants.
+    uint32_t z = baseSeed;
+    z ^= sampleIndex + 0x9e3779b9u + (z << 6) + (z >> 2);
+    z ^= streamOffset + 0x85ebca6bu + (z << 6) + (z >> 2);
+    return z;
+}
+
 CAMMetricStats BuildMetricStats(const std::vector<double> &samples, double nominal) {
     CAMMetricStats stats;
     if (samples.empty()) {
@@ -32,6 +41,7 @@ CAMMetricStats BuildMetricStats(const std::vector<double> &samples, double nomin
 
     stats.available = true;
     stats.nominal = nominal;
+    stats.sample = samples.front();
     stats.min = *std::min_element(samples.begin(), samples.end());
     stats.max = *std::max_element(samples.begin(), samples.end());
 
@@ -54,17 +64,17 @@ CAMMetricStats BuildMetricStats(const std::vector<double> &samples, double nomin
     return stats;
 }
 
+CAMMetricStats BuildSinglePointMetric(double sample, double nominal) {
+    CAMMetricStats stats;
+    stats.available = true;
+    stats.nominal = nominal;
+    stats.sample = sample;
+    return stats;
+}
+
 }  // namespace
 
-/*
-   CAM_SubArray::CAM_SubArray() {
-initialized = false;
-invalid = false;
-}
 
-CAM_SubArray::~CAM_SubArray() {
-}
- */
 void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,
         int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2,
         BufferDesignTarget _DecMergeOptLevel, BufferDesignTarget _DriverOptLevel,
@@ -1501,6 +1511,7 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
 
 CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex) const {
     CAMResistanceSample sample;
+    // Stream offsets give each resistance category a stable deterministic RNG stream.
     sample.mlWireRes = SampleVariationResistance(
             nominalMatchlineWireRes,
             config->variation.mlWireResSigma,
@@ -1542,9 +1553,10 @@ double CAM_SubArray::SampleVariationResistance(
         return nominal;
     }
 
-    const unsigned int sampleStride = 1009;
-    const unsigned int streamStride = 9176;
-    VariationSampler sampler(config->variation.seed + sampleIndex * sampleStride + streamOffset * streamStride);
+    VariationSampler sampler(MixVariationSeed(
+            config->variation.seed,
+            sampleIndex,
+            streamOffset));
     return sampler.SampleResistance(nominal, sigmaFrac);
 }
 
@@ -1554,6 +1566,77 @@ double CAM_SubArray::EffectiveDeviceResistanceSigma() const {
 
 void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     monteCarloSummary = CAMMonteCarloSummary{};
+    if (!config->variation.enabled) {
+        return;
+    }
+    if (config->variation.mode == "single_point") {
+        const CAMResistanceSample sample = BuildResistanceSample(0);
+        const double searchBase = searchLatency - matchlineDelay;
+        const double readBase = readLatency - matchlineDelay;
+        int indexMaxRowDriver = 0;
+        double maxRowDriverLatency = 0;
+        for (int i = 0; i < config->technology.cell->camNumRow; i++) {
+            if (RowDriver[i]->readLatency > maxRowDriverLatency) {
+                maxRowDriverLatency = RowDriver[i]->readLatency;
+                indexMaxRowDriver = i;
+            }
+        }
+
+        const double sampleCapTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+        const double sampleResTotalCell =
+                (sample.cellResOn * sample.cellResOff)
+                / ((CAM_opt->BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
+        const double sampleTau =
+                sampleResTotalCell * (sampleCapTotalCell
+                        + ColMux[indexMatchline]->capForPreviousDelayCalculation
+                        + config->peripherals.addCapOnML
+                        + precharger->capOutputBitlinePrecharger
+                        + senseAmp->capLoad)
+                + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                        + config->peripherals.addCapOnML
+                        + precharger->capOutputBitlinePrecharger
+                        + senseAmp->capLoad
+                        + Col[indexMatchline]->cap / 2);
+        const double gm = CalculateTransconductance(
+                Col[indexMatchline]->CellPort.widthCmos * config->technology.tech->featureSize(),
+                NMOS,
+                config->technology.tech);
+        const double beta = 1 / gm / sampleResTotalCell;
+        double sampleRamp = 0;
+        double sampleMatchlineDelay = horowitz(
+                sampleTau,
+                beta,
+                RowDriver[indexMaxRowDriver]->rampOutput,
+                &sampleRamp);
+
+        const double sampleAllMatchRes = sample.cellResOff / CAM_opt->BitSerialWidth;
+        const double sampleAllMatchTau =
+                sampleAllMatchRes * (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
+                + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline]->cap / 2);
+        const double sampleReferDelay = sampleAllMatchTau * log(2);
+        const double sampleVolMatchDrop = voltagePrecharge - voltagePrecharge * exp(-sampleReferDelay * sampleAllMatchTau);
+        const double sampleSenseMargin = voltagePrecharge / 2 - sampleVolMatchDrop;
+
+        double sampleSearchLatency = searchBase + sampleMatchlineDelay;
+        if (sampleSenseMargin < senseVoltage) {
+            sampleMatchlineDelay = 1e41;
+            sampleSearchLatency = 1e41;
+        }
+
+        monteCarloSummary.enabled = true;
+        monteCarloSummary.mode = "single_point";
+        monteCarloSummary.samples = 1;
+        monteCarloSummary.matchlineDelay = BuildSinglePointMetric(sampleMatchlineDelay, matchlineDelay);
+        monteCarloSummary.searchLatency = BuildSinglePointMetric(sampleSearchLatency, searchLatency);
+        monteCarloSummary.senseMargin = BuildSinglePointMetric(sampleSenseMargin, senseMargin);
+
+        matchlineDelay = sampleMatchlineDelay;
+        searchLatency = sampleSearchLatency;
+        readLatency = readBase + matchlineDelay;
+        senseMargin = sampleSenseMargin;
+        referDelay = sampleReferDelay;
+        return;
+    }
     if (config->variation.mode != "monte_carlo" || config->variation.samples <= 1) {
         return;
     }
@@ -1628,6 +1711,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     }
 
     monteCarloSummary.enabled = true;
+    monteCarloSummary.mode = "monte_carlo";
     monteCarloSummary.samples = config->variation.samples;
     monteCarloSummary.matchlineDelay = BuildMetricStats(matchlineDelays, matchlineDelay);
     monteCarloSummary.searchLatency = BuildMetricStats(searchLatencies, searchLatency);
@@ -1647,6 +1731,46 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
 
 void CAM_SubArray::UpdateMonteCarloPowerSummary() {
     if (!monteCarloSummary.enabled) {
+        return;
+    }
+
+    if (monteCarloSummary.mode == "single_point") {
+        const CAMResistanceSample sample = BuildResistanceSample(0);
+        const double sampleCapTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+        double sampleSearchDynamicEnergy = 0;
+
+        if (typeSenseAmp == discharge) {
+            sampleSearchDynamicEnergy = (Col[indexMatchline]->cap
+                    + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
+                * (voltagePrecharge * voltagePrecharge - config->technology.cell->readVoltage * config->technology.cell->readVoltage)
+                * numColumn / muxSenseAmp;
+        } else {
+            if (config->technology.cell->memCellType == SRAM || config->technology.cell->memCellType == FEFETRAM) {
+                sampleSearchDynamicEnergy = (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
+                    * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp;
+            } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor) {
+                if (config->technology.cell->readMode == false) {
+                    const double resMatchlineMux = ColMux[indexMatchline]->resNMOSPassTransistor;
+                    const double vpreMin = config->technology.cell->readVoltage * resMatchlineMux / (resMatchlineMux + sample.mlWireRes + sample.cellResOn);
+                    const double vpreMax = config->technology.cell->readVoltage * (resMatchlineMux + sample.mlWireRes)
+                        / (resMatchlineMux + sample.mlWireRes + sample.cellResOn);
+                    sampleSearchDynamicEnergy = sampleCapTotalCell * vpreMax * vpreMax
+                        + ColMux[indexMatchline]->capForPreviousPowerCalculation * vpreMin * vpreMin
+                        + Col[indexMatchline]->cap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
+                    sampleSearchDynamicEnergy *= numColumn / muxSenseAmp;
+                } else {
+                    sampleSearchDynamicEnergy = (sampleCapTotalCell
+                            + Col[indexMatchline]->cap
+                            + ColMux[indexMatchline]->capForPreviousPowerCalculation)
+                        * (voltagePrecharge * voltagePrecharge - voltageMemCellOn * voltageMemCellOn)
+                        * numColumn / muxSenseAmp;
+                }
+            }
+        }
+
+        sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
+        monteCarloSummary.searchDynamicEnergy = BuildSinglePointMetric(sampleSearchDynamicEnergy, searchDynamicEnergy);
+        searchDynamicEnergy = sampleSearchDynamicEnergy;
         return;
     }
 

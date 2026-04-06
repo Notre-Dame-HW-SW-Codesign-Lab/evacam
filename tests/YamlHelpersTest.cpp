@@ -310,6 +310,9 @@ static void test_memcell_variation_yaml() {
             "    energy: 3pJ\n"
             "variation:\n"
             "  with_variation: true\n"
+            "  seed: 12345\n"
+            "  mode: monte_carlo\n"
+            "  samples: 7\n"
             "  cell_resistance_on_sigma: 5%\n"
             "  resistance_off_variation: 7%\n"
             "  matchline_wire_resistance_sigma: 3%\n"
@@ -354,6 +357,10 @@ static void test_memcell_variation_yaml() {
     auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
 
     assert(cell.withVariation == true);
+    assert(cell.hasVariationSeed == true);
+    assert(cell.variationSeed == 12345u);
+    assert(cell.variationMode == "monte_carlo");
+    assert(cell.variationSamples == 7);
     assert(near(cell.resistanceOnVariation, 0.05));
     assert(near(cell.resistanceOffVariation, 0.07));
     assert(near(cell.matchlineWireResistanceVariation, 0.03));
@@ -361,7 +368,7 @@ static void test_memcell_variation_yaml() {
     assert(near(cell.deviceMatchResistanceVariation, 0.04));
 }
 
-static void test_top_level_variation_config() {
+static void test_cell_variation_drives_runtime_config() {
     const char* cellPath = "tests/tmp_variation_cell.yaml";
     const char* cfgPath = "tests/tmp_variation_config.yaml";
 
@@ -402,6 +409,8 @@ static void test_top_level_variation_config() {
             "    energy: 3pJ\n"
             "variation:\n"
             "  with_variation: true\n"
+            "  mode: monte_carlo\n"
+            "  samples: 17\n"
             "  cell_resistance_on_sigma: 5%\n"
             "  cell_resistance_off_sigma: 8%\n"
             "  matchline_wire_resistance_sigma: 6%\n"
@@ -482,23 +491,16 @@ static void test_top_level_variation_config() {
             "  global:\n"
             "    type: GlobalAggressive\n"
             "    repeater: RepeatedOpt\n"
-            "    low_swing: false\n"
-            "variation:\n"
-            "  enabled: true\n"
-            "  seed: 12345\n"
-            "  mode: monte_carlo\n"
-            "  samples: 17\n"
-            "  distribution: lognormal\n";
+            "    low_swing: false\n";
     }
 
     EvaCamConfig config;
     EvaCamYamlLoader::Load(cfgPath, config);
 
-    assert(config.variation.enabled == true);
-    assert(config.variation.seed == 12345u);
-    assert(config.variation.mode == "monte_carlo");
-    assert(config.variation.samples == 17);
-    assert(config.variation.distribution == "lognormal");
+    assert(config.variation.enabled == false);
+    assert(config.variation.seed == 0u);
+    assert(config.variation.mode == "nominal");
+    assert(config.variation.samples == 1);
 
     InputConfig input = config.input;
     PeripheralConfig peripherals = config.peripherals;
@@ -508,6 +510,9 @@ static void test_top_level_variation_config() {
     auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
     assert(technology.cell != nullptr);
     assert(variation.enabled == true);
+    assert(variation.seed != 0u);
+    assert(variation.mode == "monte_carlo");
+    assert(variation.samples == 17);
     assert(near(variation.cellResOnSigma, 0.05));
     assert(near(variation.cellResOffSigma, 0.08));
     assert(near(variation.mlWireResSigma, 0.06));
@@ -523,7 +528,7 @@ int main() {
     test_invalid_inputs();
     test_memcell_yaml();
     test_memcell_variation_yaml();
-    test_top_level_variation_config();
+    test_cell_variation_drives_runtime_config();
     std::cout << "YamlHelpers tests passed" << std::endl;
     return 0;
 }

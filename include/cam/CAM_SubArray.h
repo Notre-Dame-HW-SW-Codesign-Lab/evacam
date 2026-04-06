@@ -43,6 +43,7 @@ struct CAMResistanceSample {
 struct CAMMetricStats {
     bool available = false;
     double nominal = 0;
+    double sample = 0;
     double mean = 0;
     double stddev = 0;
     double min = 0;
@@ -52,6 +53,7 @@ struct CAMMetricStats {
 
 struct CAMMonteCarloSummary {
     bool enabled = false;
+    std::string mode = "nominal";
     int samples = 0;
     CAMMetricStats matchlineDelay;
     CAMMetricStats searchLatency;

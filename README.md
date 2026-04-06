@@ -93,16 +93,16 @@ Examples:
 EvaCAM consumes a top-level config file and a separate cell file.
 
 - The top-level config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell file.
-- The cell file describes the device, ports, voltages, currents, and related physical parameters.
+- The cell file describes the device, ports, voltages, currents, related physical parameters, and any variation settings.
 
 Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell YAML plus the configs that use it. `old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 
-- [Input Files](/home/jbech002/Research/evacam/docs/input-files.md)
-- [Schema Reference](/home/jbech002/Research/evacam/docs/schema.md)
-- [Supported Modes And Limits](/home/jbech002/Research/evacam/docs/limitations.md)
-- [Full Example Warning](/home/jbech002/Research/evacam/docs/FULL_INPUT_EXAMPLES_WARNING.md)
+- [Input Files](docs/input-files.md)
+- [Schema Reference](docs/schema.md)
+- [Supported Modes And Limits](docs/limitations.md)
+- [Full Example Warning](docs/FULL_INPUT_EXAMPLES_WARNING.md)
 
 ## Outputs
 
@@ -112,8 +112,8 @@ When the optimization target is `Exploration`, EvaCAM may also write a CSV of ex
 
 More detail:
 
-- [Output Files](/home/jbech002/Research/evacam/docs/output-files.md)
-- [Results Reference](/home/jbech002/Research/evacam/docs/results-reference.md)
+- [Output Files](docs/output-files.md)
+- [Results Reference](docs/results-reference.md)
 
 ## Validation
 
@@ -136,11 +136,11 @@ High-level flow:
 
 More detail:
 
-- [Architecture Notes](/home/jbech002/Research/evacam/docs/architecture.md)
+- [Architecture Notes](docs/architecture.md)
 
 ## Troubleshooting
 
 Common issues and their likely causes are documented here:
 
-- [Troubleshooting](/home/jbech002/Research/evacam/docs/troubleshooting.md)
-- [Development Workflow](/home/jbech002/Research/evacam/docs/development.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Development Workflow](docs/development.md)

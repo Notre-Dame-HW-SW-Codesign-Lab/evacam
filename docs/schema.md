@@ -70,5 +70,11 @@ Important notes:
 - `cell.cam_type` should be set explicitly in real inputs.
 - Accepted values are `TCAM`, `BCAM`, `MCAM`, and `ACAM`.
 - `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
+- Variation is cell-driven. The top-level config does not have a supported `variation` section.
+- Variation sampling uses a fixed bounded-Gaussian model; `variation.distribution` is not a supported input.
+- Supported user-facing variation modes are `single_point` and `monte_carlo`.
+- `variation.mode: nominal` is not a supported input; disable variation instead.
+- `variation.samples` is required for `monte_carlo` and must be greater than 1.
+- `variation.seed` is an optional cell-level override intended for reproducible testing; otherwise the variation seed is derived from the current time.
 - `ports.row` and `ports.column` are maps keyed by integer index.
-- `docs/config_full_example.yaml` and `docs/cell_full_example.yaml` include reference-only or proposed fields. Do not assume every commented field in those files is implemented.
+- `docs/config_full_example.yaml` and `docs/cell_full_example.yaml` include reference-only non-sensical numbers. They also may contain conflicting fields.

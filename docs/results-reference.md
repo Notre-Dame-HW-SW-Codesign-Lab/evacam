@@ -59,16 +59,19 @@ Write-related keys vary by cell type:
 - `reset_*` and `set_*` for some NVM types
 - `erase_*` and `program_*` for `SLCNAND`
 
-Monte Carlo variation keys:
+Variation summary keys:
 
-- `summary.timing.variation` is emitted only when Monte Carlo variation is enabled with more than one sample
+- `summary.timing.variation` is emitted only when variation is enabled
 - `mode` and `samples` describe the aggregation run
 - metric blocks currently include:
   - `matchline_delay`
   - `search_latency`
   - `search_dynamic_energy`
   - `sense_margin`
-- each metric block contains:
+- for `mode: single_point`, each metric block contains:
+  - `nominal`
+  - `sample`
+- for `mode: monte_carlo`, each metric block contains:
   - `nominal`
   - `mean`
   - `stddev`
@@ -96,4 +99,4 @@ The exploration CSV is only emitted for full exploration without pruning. Its na
 <prefix>_<capacity_kib>K_<word_width>_<associativity>_<IN|EX>_<VOL|CUR>.csv
 ```
 
-`<prefix>` comes from `extra.output_file_prefix`. If you need a stable YAML path, use `-o`.
+`<prefix>` comes from `extra.output_file_prefix`. If you need a non-default YAML path, use `-o`.

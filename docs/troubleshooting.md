@@ -70,4 +70,4 @@ Use:
 
 Verbose mode is the fastest way to see where startup or config loading stops.
 
-For unsupported configurations and hard runtime limits, see [limitations.md](/home/jbech002/Research/evacam/docs/limitations.md).
+For unsupported configurations and hard runtime limits, see [limitations.md](limitations.md).

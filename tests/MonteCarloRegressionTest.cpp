@@ -50,7 +50,12 @@ bool Near(double a, double b, double relTol = 1e-12, double absTol = 1e-18) {
     return diff <= relTol * std::max(std::fabs(a), std::fabs(b));
 }
 
-MonteCarloFixture WriteMonteCarloConfig(uint32_t seed, const std::string &tag, bool variationEnabled = true, int samples = 9) {
+MonteCarloFixture WriteMonteCarloConfig(
+        const std::string &tag,
+        bool variationEnabled = true,
+        uint32_t seed = 0,
+        const std::string &mode = "monte_carlo",
+        int samples = 9) {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
     const std::filesystem::path sourceConfig = repoRoot / "config/ReRAM-2T2R/ReRAM-2T2R_config.yaml";
     const std::filesystem::path sourceCell = repoRoot / "config/ReRAM-2T2R/ReRAM-2T2R_cell.yaml";
@@ -65,7 +70,17 @@ MonteCarloFixture WriteMonteCarloConfig(uint32_t seed, const std::string &tag, b
     std::string cellText = ReadFile(sourceCell);
     cellText +=
         "\nvariation:\n"
-        "  with_variation: true\n"
+        "  with_variation: " + std::string(variationEnabled ? "true" : "false") + "\n";
+    if (seed != 0) {
+        cellText += "  seed: " + std::to_string(seed) + "\n";
+    }
+    if (variationEnabled) {
+        cellText += "  mode: " + mode + "\n";
+        if (mode == "monte_carlo") {
+            cellText += "  samples: " + std::to_string(samples) + "\n";
+        }
+    }
+    cellText +=
         "  cell_resistance_on_sigma: 15%\n"
         "  cell_resistance_off_sigma: 20%\n"
         "  matchline_wire_resistance_sigma: 10%\n"
@@ -77,20 +92,13 @@ MonteCarloFixture WriteMonteCarloConfig(uint32_t seed, const std::string &tag, b
     ReplaceAll(configText,
             "cell_file: ./config/ReRAM-2T2R/ReRAM-2T2R_cell.yaml",
             "cell_file: " + testCell.string());
-    configText +=
-        "\nvariation:\n"
-        "  enabled: " + std::string(variationEnabled ? "true" : "false") + "\n"
-        "  mode: monte_carlo\n"
-        "  seed: " + std::to_string(seed) + "\n"
-        "  samples: " + std::to_string(samples) + "\n"
-        "  distribution: lognormal\n";
     WriteFile(testConfig, configText);
 
     return {testConfig, testOutput};
 }
 
 void test_monte_carlo_deterministic_for_fixed_seed() {
-    const MonteCarloFixture fixture = WriteMonteCarloConfig(12345, "seed_a");
+    const MonteCarloFixture fixture = WriteMonteCarloConfig("seed_a", true, 12345u);
     EvaCAM_Match matcherA(fixture.configPath.string());
     EvaCAM_Match matcherB(fixture.configPath.string());
 
@@ -106,9 +114,9 @@ void test_monte_carlo_deterministic_for_fixed_seed() {
     assert(Near(resultA.senseMargin, resultB.senseMargin));
 }
 
-void test_monte_carlo_changes_with_seed() {
-    const MonteCarloFixture fixtureA = WriteMonteCarloConfig(11111, "seed_b");
-    const MonteCarloFixture fixtureB = WriteMonteCarloConfig(22222, "seed_c");
+void test_monte_carlo_changes_with_variation_toggle() {
+    const MonteCarloFixture fixtureA = WriteMonteCarloConfig("var_on", true, 12345u);
+    const MonteCarloFixture fixtureB = WriteMonteCarloConfig("var_off", false, 12345u);
     EvaCAM_Match matcherA(fixtureA.configPath.string());
     EvaCAM_Match matcherB(fixtureB.configPath.string());
 
@@ -126,7 +134,7 @@ void test_monte_carlo_changes_with_seed() {
 }
 
 void test_monte_carlo_output_summary_is_emitted() {
-    const MonteCarloFixture fixture = WriteMonteCarloConfig(33333, "yaml");
+    const MonteCarloFixture fixture = WriteMonteCarloConfig("yaml", true, 33333u);
 
     const std::string command = "./EvaCAM -o " + fixture.outputPath.string()
         + " " + fixture.configPath.string() + " >/dev/null 2>&1";
@@ -166,8 +174,43 @@ void test_monte_carlo_output_summary_is_emitted() {
     }
 }
 
+void test_single_point_output_summary_is_emitted() {
+    const MonteCarloFixture fixture = WriteMonteCarloConfig("single_point", true, 55555u, "single_point");
+
+    const std::string command = "./EvaCAM -o " + fixture.outputPath.string()
+        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const int rc = std::system(command.c_str());
+    assert(rc == 0);
+    assert(std::filesystem::exists(fixture.outputPath));
+
+    const YAML::Node root = YAML::LoadFile(fixture.outputPath.string());
+    const YAML::Node variation = root["summary"]["timing"]["variation"];
+    assert(variation);
+    assert(variation["mode"].as<std::string>() == "single_point");
+    assert(variation["samples"].as<int>() == 1);
+
+    const std::vector<std::string> metricNames = {
+        "matchline_delay",
+        "search_latency",
+        "search_dynamic_energy",
+        "sense_margin",
+    };
+
+    for (const auto &metricName : metricNames) {
+        const YAML::Node metric = variation[metricName];
+        assert(metric);
+        assert(metric["nominal"]);
+        assert(metric["sample"]);
+        assert(!metric["mean"]);
+        assert(!metric["stddev"]);
+        assert(!metric["min"]);
+        assert(!metric["max"]);
+        assert(!metric["p95"]);
+    }
+}
+
 void test_variation_output_summary_is_absent_when_disabled() {
-    const MonteCarloFixture fixture = WriteMonteCarloConfig(44444, "yaml_off", false, 1);
+    const MonteCarloFixture fixture = WriteMonteCarloConfig("yaml_off", false, 44444u);
 
     const std::string command = "./EvaCAM -o " + fixture.outputPath.string()
         + " " + fixture.configPath.string() + " >/dev/null 2>&1";
@@ -185,8 +228,9 @@ void test_variation_output_summary_is_absent_when_disabled() {
 
 int main() {
     test_monte_carlo_deterministic_for_fixed_seed();
-    test_monte_carlo_changes_with_seed();
+    test_monte_carlo_changes_with_variation_toggle();
     test_monte_carlo_output_summary_is_emitted();
+    test_single_point_output_summary_is_emitted();
     test_variation_output_summary_is_absent_when_disabled();
     std::cout << "Monte Carlo regression tests passed" << std::endl;
     return 0;
