@@ -8,6 +8,7 @@
 
 #include "CAM_Result.h"
 #include "EvaCamConfig.h"
+#include "Logger.h"
 #include "output/ResultsYaml.h"
 #include "config/DerivedValueHelpers.h"
 
@@ -55,6 +56,8 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
         long long numSolution,
         const std::vector<std::shared_ptr<CAM_Result>> &bestResults,
         const std::string &explorationOutputFileName) {
+    std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+
     if (!DerivedValueHelpers::IsFullExploration(config.input)) {
         if (numSolution > 0) {
             bestResults[config.input.optimizationTarget]->print();

@@ -8,6 +8,11 @@
 
 class Logger {
     public:
+        static std::mutex& OutputMutex() {
+            static std::mutex mutex;
+            return mutex;
+        }
+
         class Line {
             public:
                 explicit Line(std::ostream *stream) : stream_(stream) {}
@@ -24,7 +29,7 @@ class Logger {
                     if (!stream_)
                         return;
 
-                    std::lock_guard<std::mutex> lock(OutputMutex());
+                    std::lock_guard<std::mutex> lock(Logger::OutputMutex());
                     *stream_ << buffer_.str() << std::endl;
                 }
 
@@ -48,11 +53,6 @@ class Logger {
                 }
 
             private:
-                static std::mutex& OutputMutex() {
-                    static std::mutex mutex;
-                    return mutex;
-                }
-
                 std::ostream *stream_;
                 std::ostringstream buffer_;
         };

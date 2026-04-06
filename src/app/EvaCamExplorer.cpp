@@ -17,6 +17,7 @@
 #include "Bank.h"
 #include "CAM_Result.h"
 #include "EvaCamConfig.h"
+#include "Logger.h"
 #include "Result.h"
 #include "Wire.h"
 #include "config/EvaCamConfigPrinter.h"
@@ -41,12 +42,16 @@ std::vector<std::shared_ptr<Result>> AsResults(
 
 }  // namespace
 
-EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config)
-    : config_(std::move(config)) {
+EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config, int numThreads)
+    : config_(std::move(config)),
+      numThreads_(numThreads > 0 ? numThreads : 1) {
 }
 
 EvaCamExplorationResult EvaCamExplorer::Run() {
-    config_->technology.cell->PrintCell();
+    {
+        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+        config_->technology.cell->PrintCell();
+    }
     InitializeExploration();
     RunPrimaryExploration();
     RefineWires();
@@ -73,7 +78,10 @@ void EvaCamExplorer::InitializeExploration() {
     globalWire_ = WireFactory::CreateDefaultGlobalWire(config_);
     camOpt_ = std::make_shared<CAM_Opt>();
 
-    EvaCamConfigPrinter::Print(*config_);
+    {
+        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+        EvaCamConfigPrinter::Print(*config_);
+    }
 
     capacityBits_ = DerivedValueHelpers::EffectiveCapacityBits(config_->input);
     blockSizeBits_ = DerivedValueHelpers::EffectiveBlockSizeBits(config_->input);
@@ -108,6 +116,7 @@ void EvaCamExplorer::OpenExplorationCsv() {
     }
 
     explorationCsvPath_ = OutputPathBuilder::ExplorationCsvPath(config_->input, config_->technology);
+    explorationCsvLock_.emplace(OutputFileLock::Acquire(explorationCsvPath_));
     std::filesystem::path csvPath(explorationCsvPath_);
     if (!csvPath.parent_path().empty()) {
         std::filesystem::create_directories(csvPath.parent_path());
@@ -142,6 +151,7 @@ void EvaCamExplorer::RunPrimaryExploration() {
                 const long long percentage = loopsComplete.load(std::memory_order_relaxed) * 100 / total;
                 if (percentage > lastReportedPercentage) {
                     std::lock_guard<std::mutex> progressLock(progressMutex_);
+                    std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
                     std::cout << "\rProgress: " << percentage << "%" << std::flush;
                     lastReportedPercentage = percentage;
                 }
@@ -150,7 +160,7 @@ void EvaCamExplorer::RunPrimaryExploration() {
         });
     }
 
-#pragma omp parallel
+#pragma omp parallel num_threads(numThreads_)
     {
         auto threadLocalWire = WireFactory::CreateDefaultLocalWire(config_);
         auto threadGlobalWire = WireFactory::CreateDefaultGlobalWire(config_);
@@ -186,6 +196,7 @@ void EvaCamExplorer::RunPrimaryExploration() {
     if (progressThread.joinable()) {
         progressThread.join();
         std::lock_guard<std::mutex> progressLock(progressMutex_);
+        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
         std::cout << "\rProgress: 100%" << std::endl;
     }
 }
@@ -265,8 +276,11 @@ void EvaCamExplorer::RefineWires() {
         return;
     }
 
-    std::cout << std::endl;
-    std::cout << "*** There are " << numSolution_ << " Solutions. ***" << std::endl;
+    {
+        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+        std::cout << std::endl;
+        std::cout << "*** There are " << numSolution_ << " Solutions. ***" << std::endl;
+    }
 
     RefineLocalWires();
     RefineGlobalWires();
@@ -555,20 +569,23 @@ void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) 
         return;
     }
 
-    std::cout << "numcolumn x numrow x numcolumnmat x numrowmat x numcolumnsubarry x numrowsubarray"
-        << bank->mat->subarray->numColumn << ": " << bank->mat->subarray->numRow
-        << ": " << bank->numColumnMat << ": " << bank->numRowMat << ": "
-        << bank->numColumnSubarray << ": " << bank->numRowSubarray << std::endl;
-    std::cout << "1 Bank = " << bank->numRowMat << "x"
-        << bank->numColumnMat << " Mats" << std::endl;
-    std::cout << "Activation - " << bank->numActiveMatPerColumn
-        << "x" << bank->numActiveMatPerRow << " Mats" << std::endl;
-    std::cout << "1 Mat  = " << bank->numRowSubarray
-        << "x" << bank->numColumnSubarray << " Subarrays" << std::endl;
-    std::cout << "Activation - " << bank->numActiveSubarrayPerColumn
-        << "x" << bank->numActiveSubarrayPerRow << " Subarrays" << std::endl;
-    std::cout << "Mux Degree - " << bank->muxSenseAmp << " x "
-        << bank->muxOutputLev1 << " x " << bank->muxOutputLev2 << std::endl;
+    {
+        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+        std::cout << "numcolumn x numrow x numcolumnmat x numrowmat x numcolumnsubarry x numrowsubarray"
+            << bank->mat->subarray->numColumn << ": " << bank->mat->subarray->numRow
+            << ": " << bank->numColumnMat << ": " << bank->numRowMat << ": "
+            << bank->numColumnSubarray << ": " << bank->numRowSubarray << std::endl;
+        std::cout << "1 Bank = " << bank->numRowMat << "x"
+            << bank->numColumnMat << " Mats" << std::endl;
+        std::cout << "Activation - " << bank->numActiveMatPerColumn
+            << "x" << bank->numActiveMatPerRow << " Mats" << std::endl;
+        std::cout << "1 Mat  = " << bank->numRowSubarray
+            << "x" << bank->numColumnSubarray << " Subarrays" << std::endl;
+        std::cout << "Activation - " << bank->numActiveSubarrayPerColumn
+            << "x" << bank->numActiveSubarrayPerRow << " Subarrays" << std::endl;
+        std::cout << "Mux Degree - " << bank->muxSenseAmp << " x "
+            << bank->muxOutputLev1 << " x " << bank->muxOutputLev2 << std::endl;
+    }
     throw std::runtime_error("ERROR: DATA capacity violation. Shouldn't happen");
 }
 

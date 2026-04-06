@@ -56,13 +56,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 -include $(DEPS)
 
 .PHONY: test-yaml test-exploration test-variation test-montecarlo uml uml-slide open-uml
-test-yaml:
-	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp \
-		src/input/YamlHelpers.cpp src/technology/MemCell.cpp \
-		src/config/EvaCamYamlLoader.cpp src/config/TechnologyLoader.cpp \
-		src/config/IntValueDomain.cpp src/config/ExplorationSpec.cpp src/config/ExplorationSpaceResolver.cpp \
-		src/technology/Technology.cpp src/technology/TechnologyTables.cpp \
-		$(LD_LIBS)
+test-yaml: $(OBJECTS_NO_MAIN)
+	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_YAML_BIN)
 
 test-exploration:

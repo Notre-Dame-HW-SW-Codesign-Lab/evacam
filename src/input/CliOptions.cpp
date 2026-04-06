@@ -32,6 +32,9 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
             } catch (const std::exception &) {
                 throw std::invalid_argument("Number of threads must be an integer.");
             }
+            if (options.threads <= 0) {
+                throw std::invalid_argument("Number of threads must be positive.");
+            }
             continue;
         }
 

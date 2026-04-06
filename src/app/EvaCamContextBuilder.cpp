@@ -1,7 +1,5 @@
 #include "EvaCamContextBuilder.h"
 
-#include <omp.h>
-
 #include <filesystem>
 
 #include "EvaCamConfig.h"
@@ -19,7 +17,6 @@ void ValidateInputFile(const std::string &inputFileName) {
 
 EvaCamContext EvaCamContextBuilder::Build(const CliOptions &options) {
     ValidateInputFile(options.inputFileName);
-    omp_set_num_threads(options.threads);
 
     auto config = std::make_shared<EvaCamConfig>();
     if (options.verbose) {

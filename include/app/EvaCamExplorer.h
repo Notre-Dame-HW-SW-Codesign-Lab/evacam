@@ -4,10 +4,12 @@
 #include <iosfwd>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "EvaCamConfig.h"
+#include "config/OutputFileLock.h"
 
 class CAM_Result;
 class Result;
@@ -23,7 +25,7 @@ struct EvaCamExplorationResult {
 
 class EvaCamExplorer {
     public:
-        explicit EvaCamExplorer(std::shared_ptr<EvaCamConfig> config);
+        EvaCamExplorer(std::shared_ptr<EvaCamConfig> config, int numThreads);
         EvaCamExplorationResult Run();
 
     private:
@@ -67,10 +69,12 @@ class EvaCamExplorer {
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const;
 
         std::shared_ptr<EvaCamConfig> config_;
+        int numThreads_ = 1;
         std::vector<std::shared_ptr<CAM_Result>> bestResults_;
         std::shared_ptr<Wire> localWire_;
         std::shared_ptr<Wire> globalWire_;
         std::shared_ptr<CAM_Opt> camOpt_;
+        std::optional<OutputFileLock> explorationCsvLock_;
         std::string explorationCsvPath_;
         long long numSolution_ = 0;
         long long capacityBits_ = 0;
