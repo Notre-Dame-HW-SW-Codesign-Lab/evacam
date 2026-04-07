@@ -2,12 +2,28 @@
 
 #include <array>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
+#include <string>
 
 #include "EvaCamConfig.h"
 #include "input/YamlHelpers.h"
 
 namespace {
+
+bool TryReadOptionalChild(const YAML::Node &parent, const char *key, YAML::Node &child) {
+    if (!parent || !parent.IsMap()) {
+        return false;
+    }
+
+    for (auto it = parent.begin(); it != parent.end(); ++it) {
+        if (it->first.IsScalar() && it->first.as<std::string>() == key) {
+            child = it->second;
+            return true;
+        }
+    }
+    return false;
+}
 
 void ReadDesignSection(const YAML::Node &root, EvaCamConfig &config) {
     auto design = YamlHelpers::child_required(root, "design");
@@ -41,8 +57,20 @@ void ReadDesignSection(const YAML::Node &root, EvaCamConfig &config) {
 void ReadMemorySection(const YAML::Node &root, EvaCamConfig &config) {
     auto memory = YamlHelpers::child_required(root, "memory");
     config.input.fileMemCell = YamlHelpers::read_required<std::string>(memory, "cell_file");
-    config.input.capacity = (int64_t)std::llround(YamlHelpers::read_quantity_required(
-            memory, "capacity", YamlHelpers::DataSizeUnits(), 1.0, "capacity"));
+    auto capacityNode = YamlHelpers::child_optional(memory, "capacity");
+    config.runtimeSizing.hasExplicitCapacity = static_cast<bool>(capacityNode);
+    config.runtimeSizing.capacityIsAuto = false;
+    if (capacityNode) {
+        if (capacityNode.IsScalar() && capacityNode.as<std::string>() == "auto") {
+            config.runtimeSizing.capacityIsAuto = true;
+            config.input.capacity = 0;
+        } else {
+            config.input.capacity = (int64_t)std::llround(YamlHelpers::parse_quantity_node(
+                    capacityNode, YamlHelpers::DataSizeUnits(), 1.0, "capacity"));
+        }
+    } else {
+        config.input.capacity = 0;
+    }
     config.input.wordWidth = (long)std::lround(YamlHelpers::read_quantity_required(
             memory, "word_width", YamlHelpers::BitUnits(), 1.0, "word_width"));
     config.exploration.cam.bitSerialWidth =
@@ -126,22 +154,29 @@ void ReadWireSection(const YAML::Node &root, EvaCamConfig &config) {
         IntValueDomain::Sequential(isGlobalWireLowSwing, isGlobalWireLowSwing);
 }
 
-void ReadArraySection(const YAML::Node &root, EvaCamConfig &config) {
-    auto array = YamlHelpers::child_optional(root, "array");
-    if (!array) {
+void ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config) {
+    YAML::Node organization;
+    if (!TryReadOptionalChild(root, "organization", organization)
+            && !TryReadOptionalChild(root, "array", organization)) {
         return;
     }
 
-    auto banks = YamlHelpers::child_optional(array, "banks");
+    auto subarray = YamlHelpers::child_optional(organization, "subarray");
+    const bool hasSubarrayDimensions = subarray
+        && static_cast<bool>(YamlHelpers::child_optional(subarray, "dimensions"));
+
+    auto banks = hasSubarrayDimensions
+        ? YamlHelpers::child_required(organization, "banks")
+        : YamlHelpers::child_optional(organization, "banks");
     if (banks) {
         auto banksTotal = YamlHelpers::child_required(banks, "total");
         auto banksActive = YamlHelpers::child_required(banks, "active");
-        const int numRowMat = YamlHelpers::read_required_index<int>(banksTotal, 0, "array.banks.total[0]");
-        const int numColumnMat = YamlHelpers::read_required_index<int>(banksTotal, 1, "array.banks.total[1]");
+        const int numRowMat = YamlHelpers::read_required_index<int>(banksTotal, 0, "organization.banks.total[0]");
+        const int numColumnMat = YamlHelpers::read_required_index<int>(banksTotal, 1, "organization.banks.total[1]");
         const int numActiveMatPerColumn =
-            YamlHelpers::read_required_index<int>(banksActive, 0, "array.banks.active[0]");
+            YamlHelpers::read_required_index<int>(banksActive, 0, "organization.banks.active[0]");
         const int numActiveMatPerRow =
-            YamlHelpers::read_required_index<int>(banksActive, 1, "array.banks.active[1]");
+            YamlHelpers::read_required_index<int>(banksActive, 1, "organization.banks.active[1]");
         config.exploration.geometry.numRowMat = IntValueDomain::PowersOfTwo(numRowMat, numRowMat);
         config.exploration.geometry.numColumnMat = IntValueDomain::PowersOfTwo(numColumnMat, numColumnMat);
         config.exploration.geometry.numActiveMatPerColumn =
@@ -150,16 +185,18 @@ void ReadArraySection(const YAML::Node &root, EvaCamConfig &config) {
             IntValueDomain::PowersOfTwo(numActiveMatPerRow, numActiveMatPerRow);
     }
 
-    auto mats = YamlHelpers::child_optional(array, "mats");
+    auto mats = hasSubarrayDimensions
+        ? YamlHelpers::child_required(organization, "mats")
+        : YamlHelpers::child_optional(organization, "mats");
     if (mats) {
         auto matsTotal = YamlHelpers::child_required(mats, "total");
         auto matsActive = YamlHelpers::child_required(mats, "active");
-        const int numRowSubarray = YamlHelpers::read_required_index<int>(matsTotal, 0, "array.mats.total[0]");
-        const int numColumnSubarray = YamlHelpers::read_required_index<int>(matsTotal, 1, "array.mats.total[1]");
+        const int numRowSubarray = YamlHelpers::read_required_index<int>(matsTotal, 0, "organization.mats.total[0]");
+        const int numColumnSubarray = YamlHelpers::read_required_index<int>(matsTotal, 1, "organization.mats.total[1]");
         const int numActiveSubarrayPerColumn =
-            YamlHelpers::read_required_index<int>(matsActive, 0, "array.mats.active[0]");
+            YamlHelpers::read_required_index<int>(matsActive, 0, "organization.mats.active[0]");
         const int numActiveSubarrayPerRow =
-            YamlHelpers::read_required_index<int>(matsActive, 1, "array.mats.active[1]");
+            YamlHelpers::read_required_index<int>(matsActive, 1, "organization.mats.active[1]");
         config.exploration.geometry.numRowSubarray = IntValueDomain::PowersOfTwo(numRowSubarray, numRowSubarray);
         config.exploration.geometry.numColumnSubarray =
             IntValueDomain::PowersOfTwo(numColumnSubarray, numColumnSubarray);
@@ -169,7 +206,24 @@ void ReadArraySection(const YAML::Node &root, EvaCamConfig &config) {
             IntValueDomain::PowersOfTwo(numActiveSubarrayPerRow, numActiveSubarrayPerRow);
     }
 
-    auto mux = YamlHelpers::child_optional(array, "mux");
+    if (hasSubarrayDimensions) {
+        auto dimensions = YamlHelpers::child_required(subarray, "dimensions");
+        const int numRow = YamlHelpers::read_required_index<int>(
+                dimensions, 0, "organization.subarray.dimensions[0]");
+        const int numColumn = YamlHelpers::read_required_index<int>(
+                dimensions, 1, "organization.subarray.dimensions[1]");
+        if (numRow <= 0 || numColumn <= 0) {
+            throw std::runtime_error(
+                    "[Input] Error: organization.subarray.dimensions values must be positive.");
+        }
+        config.exploration.geometry.numRow = IntValueDomain::FixedSet({numRow});
+        config.exploration.geometry.numColumn = IntValueDomain::FixedSet({numColumn});
+        config.runtimeSizing.hasFixedSubarrayDimensions = true;
+        config.runtimeSizing.fixedSubarrayRows = numRow;
+        config.runtimeSizing.fixedSubarrayColumns = numColumn;
+    }
+
+    auto mux = YamlHelpers::child_optional(organization, "mux");
     if (!mux) {
         return;
     }
@@ -360,6 +414,10 @@ void ValidateDerivedInputs(const EvaCamConfig &config) {
     if (config.input.wordWidth <= 0) {
         throw std::runtime_error("[Input] Error: word_width must be > 0.");
     }
+    if (config.input.capacity <= 0) {
+        throw std::runtime_error(
+                "[Input] Error: memory.capacity must be > 0 unless organization.subarray.dimensions derives it.");
+    }
     const bool isWordWidthPow2 = (config.input.wordWidth & (config.input.wordWidth - 1)) == 0;
     if (!isWordWidthPow2 && config.runtimeSizing.realCapacity == 0) {
         throw std::runtime_error(
@@ -376,16 +434,110 @@ void ValidateDerivedInputs(const EvaCamConfig &config) {
             * config.exploration.geometry.numActiveMatPerColumn.Min();
         if (denom <= 0) {
             throw std::runtime_error(
-                    "[Input] Error: invalid array geometry while validating extra.real_capacity.");
+                    "[Input] Error: invalid organization geometry while validating extra.real_capacity.");
         }
         if ((config.runtimeSizing.realCapacity % denom) != 0) {
             throw std::runtime_error(
-                    "[Input] Error: extra.real_capacity is incompatible with array geometry.");
+                    "[Input] Error: extra.real_capacity is incompatible with organization geometry.");
         }
         if (((config.runtimeSizing.realCapacity / denom) % config.input.wordWidth) != 0) {
             throw std::runtime_error(
                     "[Input] Error: extra.real_capacity is incompatible with word_width.");
         }
+    }
+}
+
+long long CheckedMultiply(long long lhs, long long rhs, const char *what) {
+    if (lhs <= 0 || rhs <= 0) {
+        throw std::runtime_error(std::string("[Input] Error: ") + what + " factors must be positive.");
+    }
+    if (lhs > std::numeric_limits<long long>::max() / rhs) {
+        throw std::runtime_error(std::string("[Input] Error: ") + what + " exceeds int64_t range.");
+    }
+    return lhs * rhs;
+}
+
+long long CheckedTotalProduct(const IntValueDomain &first, const IntValueDomain &second,
+        const char *what) {
+    return CheckedMultiply(first.Min(), second.Min(), what);
+}
+
+void ResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
+    if (!config.runtimeSizing.hasFixedSubarrayDimensions) {
+        if (!config.runtimeSizing.hasExplicitCapacity || config.runtimeSizing.capacityIsAuto) {
+            throw std::runtime_error(
+                    "[Input] Error: memory.capacity is required unless organization.subarray.dimensions is supplied.");
+        }
+        return;
+    }
+
+    if (config.input.optimizationTarget == full_exploration || config.exploration.deepExploration) {
+        throw std::runtime_error(
+                "[Input] Error: organization.subarray.dimensions is only supported for fixed non-DSE configs.");
+    }
+
+    const int subarrayRows = config.runtimeSizing.fixedSubarrayRows;
+    const int subarrayColumns = config.runtimeSizing.fixedSubarrayColumns;
+    if (subarrayRows < 16 || subarrayRows > 512) {
+        throw std::runtime_error(
+                "[Input] Error: organization.subarray.dimensions row count must be between 16 and 512.");
+    }
+    if (subarrayColumns < 8 || subarrayColumns > 512) {
+        throw std::runtime_error(
+                "[Input] Error: organization.subarray.dimensions column count must be between 8 and 512.");
+    }
+
+    const long long banksTotal = CheckedTotalProduct(config.exploration.geometry.numRowMat,
+            config.exploration.geometry.numColumnMat, "organization.banks.total");
+    const long long banksActive = CheckedTotalProduct(config.exploration.geometry.numActiveMatPerColumn,
+            config.exploration.geometry.numActiveMatPerRow, "organization.banks.active");
+    const long long matsTotal = CheckedTotalProduct(config.exploration.geometry.numRowSubarray,
+            config.exploration.geometry.numColumnSubarray, "organization.mats.total");
+    const long long matsActive = CheckedTotalProduct(config.exploration.geometry.numActiveSubarrayPerColumn,
+            config.exploration.geometry.numActiveSubarrayPerRow, "organization.mats.active");
+
+    if (banksTotal % banksActive != 0 || matsTotal % matsActive != 0) {
+        throw std::runtime_error(
+                "[Input] Error: active bank/mat partitioning must divide total bank/mat geometry.");
+    }
+
+    const long long partitionFactor = CheckedMultiply(banksTotal / banksActive,
+            matsTotal / matsActive, "active partitioning");
+    if (config.input.wordWidth % partitionFactor != 0) {
+        throw std::runtime_error(
+                "[Input] Error: word_width is incompatible with active bank/mat partitioning.");
+    }
+    const long long effectiveSubarrayRows = config.input.wordWidth / partitionFactor;
+    if (effectiveSubarrayRows != subarrayRows) {
+        throw std::runtime_error(
+                "[Input] Error: organization.subarray.dimensions row count is incompatible with word_width.");
+    }
+    if ((effectiveSubarrayRows & (effectiveSubarrayRows - 1)) != 0) {
+        throw std::runtime_error(
+                "[Input] Error: organization.subarray.dimensions row count must match a power-of-two effective row count.");
+    }
+
+    long long capacityBits = subarrayRows;
+    capacityBits = CheckedMultiply(capacityBits, subarrayColumns, "derived capacity");
+    capacityBits = CheckedMultiply(capacityBits, banksTotal, "derived capacity");
+    capacityBits = CheckedMultiply(capacityBits, matsTotal, "derived capacity");
+    if (capacityBits % 8 != 0) {
+        throw std::runtime_error(
+                "[Input] Error: derived capacity from organization.subarray.dimensions is not byte-addressable.");
+    }
+    const int64_t derivedCapacityBytes = capacityBits / 8;
+
+    if (!config.runtimeSizing.hasExplicitCapacity || config.runtimeSizing.capacityIsAuto) {
+        config.input.capacity = derivedCapacityBytes;
+    } else if (config.input.capacity != derivedCapacityBytes) {
+        throw std::runtime_error(
+                "[Input] Error: memory.capacity does not match organization.subarray.dimensions.");
+    }
+
+    if (config.runtimeSizing.realCapacity > 0
+            && config.runtimeSizing.realCapacity != derivedCapacityBytes) {
+        throw std::runtime_error(
+                "[Input] Error: extra.real_capacity must match capacity derived from organization.subarray.dimensions.");
     }
 }
 
@@ -402,12 +554,13 @@ void EvaCamYamlLoader::Load(const std::string &inputFile, EvaCamConfig &config) 
     ReadSensingSection(root, config);
     ReadOptimizationSection(root, config);
     ReadWireSection(root, config);
-    ReadArraySection(root, config);
+    ReadOrganizationSection(root, config);
     ReadMatchlineSection(root, config);
     ReadConstraintSection(root, config);
     ReadAdvancedSection(root, config);
     ReadCacheSection(root, config);
     ReadFlashSection(root, config);
     ReadExtraSection(root, config);
+    ResolveExplicitSubarrayDimensions(config);
     ValidateDerivedInputs(config);
 }

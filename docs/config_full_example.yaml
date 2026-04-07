@@ -12,7 +12,7 @@ design: # map
 
 memory: # map
   cell_file: ./config/example/example_full_cell.yaml # string path
-  capacity: 8KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb)
+  capacity: 8KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb); may be exact scalar auto only with organization.subarray.dimensions
   word_width: 256bits # units: bit | bits
 
 routing: # map
@@ -51,7 +51,7 @@ wires: # map
     repeater: RepeatedNone # enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
     low_swing: false # bool
 
-array: # optional map
+organization: # optional map
   # If omitted, EvaCAM uses default exploration ranges.
   # optimization.deep_exploration widens those defaults.
   banks: # map
@@ -60,6 +60,8 @@ array: # optional map
   mats: # map
     total: [1, 8] # [int, int]
     active: [1, 8] # [int, int]
+  subarray: # optional map; fixed physical subarray dimensions, non-DSE only
+    dimensions: [32, 256] # [rows, columns]; requires banks/mats and derives or validates memory.capacity
   mux: # map
     sense_amp: 1 # int
     output_level1: 8 # int

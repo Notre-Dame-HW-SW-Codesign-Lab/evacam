@@ -151,7 +151,8 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     //		   						 input check: 									//
     //////////////////////////////////////////////////////////////////////////////////
 
-    if (config->runtimeSizing.realCapacity != config->input.capacity
+    if (!config->runtimeSizing.hasFixedSubarrayDimensions
+            && config->runtimeSizing.realCapacity != config->input.capacity
             && config->runtimeSizing.realCapacity != 0) {
         // deal with the ASP-DAC12 72-bit word
         numRow = config->runtimeSizing.realCapacity / config->exploration.geometry.numRowSubarray.Min()

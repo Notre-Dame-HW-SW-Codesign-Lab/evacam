@@ -49,7 +49,7 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 
-array:
+organization:
   banks:
     total: [1, 1]    # AxB
     active: [1, 1]   # CxD

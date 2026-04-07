@@ -60,9 +60,14 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         return;
     }
 
-    /* Determine the number of rows in a subarray */
-    // modified for EvaCAM
-    numRow = 1 << _numAddressBit;
+    if (config->runtimeSizing.hasFixedSubarrayDimensions) {
+        numRow = config->runtimeSizing.fixedSubarrayRows;
+        numColumn = config->runtimeSizing.fixedSubarrayColumns;
+    } else {
+        /* Determine the number of rows in a subarray */
+        // modified for EvaCAM
+        numRow = 1 << _numAddressBit;
+    }
     if (numRow < 16) {
         invalid = true;
         config->logger.Verbose() << "[Mat]: Word width is impractically small.";
@@ -77,8 +82,10 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     // TODO
     //numRow /= (muxSenseAmp);	/* Distribute to column decoding */
 
-    // modified for EvaCAM
-    numColumn = (long long)numDataBit / (numActiveSubarrayPerRow * numActiveSubarrayPerColumn);	/* Adjust the number of columns depending on the access types */
+    if (!config->runtimeSizing.hasFixedSubarrayDimensions) {
+        // modified for EvaCAM
+        numColumn = (long long)numDataBit / (numActiveSubarrayPerRow * numActiveSubarrayPerColumn);	/* Adjust the number of columns depending on the access types */
+    }
 
 
 

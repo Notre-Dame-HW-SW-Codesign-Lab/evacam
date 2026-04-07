@@ -16,7 +16,7 @@ Required sections:
 
 Optional sections:
 
-- `array`
+- `organization`
 - `matchline`
 - `constraints`
 - `advanced`
@@ -30,15 +30,17 @@ Common required keys:
 - `design.search_function`: `EX`, `BE`, or `TH`
 - `design.process_node`: for example `45nm`
 - `design.device_roadmap`: `HP`, `LSTP`, `LOP`, `FEFET`, or `LP`
-- `memory.cell_file`, `memory.capacity`, `memory.word_width`
+- `memory.cell_file`, `memory.word_width`
+- `memory.capacity`: required unless fixed `organization.subarray.dimensions` is supplied; may be exact scalar `auto` only with fixed subarray dimensions
 - `routing.type`: currently only `H-tree`
 - `optimization.target`: `ReadLatency`, `WriteLatency`, `ReadDynamicEnergy`, `WriteDynamicEnergy`, `ReadEDP`, `WriteEDP`, `LeakagePower`, `Area`, `SearchLatency`, `SearchEnergy`, `SearchEDP`, or `Exploration`
 
 Useful optional keys:
 
-- `array.banks.*`, `array.mats.*`, `array.mux.*`: pin exploration to fixed powers-of-two values
+- `organization.banks.*`, `organization.mats.*`, `organization.mux.*`: pin exploration to fixed powers-of-two values
+- `organization.subarray.dimensions`: fixed physical subarray `[rows, columns]`; requires explicit `organization.banks` and `organization.mats`, derives or validates `memory.capacity`, and is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
 - `constraints.*`: result limits; setting any value enables constraints
-- `optimization.deep_exploration`: expands the default exploration search space when explicit `array.*` pinning is omitted
+- `optimization.deep_exploration`: expands the default exploration search space when explicit `organization.*` pinning is omitted
 - `advanced.enable_pruning`, `advanced.bit_serial_width`, `advanced.use_cacti_assumption`
 - `cache.associativity`, `cache.access_mode`, `cache.write_scheme`
 - `extra.real_capacity`: required when `memory.word_width` is not a power of two

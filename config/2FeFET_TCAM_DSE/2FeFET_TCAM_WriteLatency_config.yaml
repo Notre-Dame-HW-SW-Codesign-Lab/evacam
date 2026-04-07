@@ -49,7 +49,7 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 
-array:
+organization:
   mux:
     sense_amp: 1
 

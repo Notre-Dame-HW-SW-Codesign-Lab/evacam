@@ -137,6 +137,238 @@ static void test_units() {
     assert(near(bits, 128.0));
 }
 
+static void test_organization_section() {
+    const char *cfgPath = "tests/tmp_organization_config.yaml";
+
+    {
+        std::ofstream out(cfgPath);
+        out <<
+            "design:\n"
+            "  target: CAM\n"
+            "  search_function: EX\n"
+            "  process_node: 45nm\n"
+            "  device_roadmap: HP\n"
+            "  temperature: 300K\n"
+            "memory:\n"
+            "  cell_file: tests/tmp_cell.yaml\n"
+            "  capacity: 1KB\n"
+            "  word_width: 64bits\n"
+            "routing:\n"
+            "  type: H-tree\n"
+            "peripherals:\n"
+            "  write_driver: false\n"
+            "  input:\n"
+            "    buffer: false\n"
+            "    encoder: false\n"
+            "    custom_encoder: false\n"
+            "  output:\n"
+            "    buffer: false\n"
+            "    priority_encoder: false\n"
+            "    accumulator: false\n"
+            "sensing:\n"
+            "  internal: true\n"
+            "  custom_sense_amp: false\n"
+            "  amplifier_type: nvsim_vol\n"
+            "optimization:\n"
+            "  target: ReadLatency\n"
+            "  buffer_design: latency\n"
+            "  row_driver: latency\n"
+            "  priority_encoder: latency\n"
+            "wires:\n"
+            "  local:\n"
+            "    type: LocalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n"
+            "organization:\n"
+            "  banks:\n"
+            "    total: [2, 4]\n"
+            "    active: [1, 2]\n"
+            "  mats:\n"
+            "    total: [4, 8]\n"
+            "    active: [2, 4]\n"
+            "  mux:\n"
+            "    sense_amp: 2\n"
+            "    output_level1: 4\n"
+            "    output_level2: 8\n";
+    }
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(cfgPath, config);
+
+    assert(config.exploration.geometry.numRowMat.Min() == 2);
+    assert(config.exploration.geometry.numColumnMat.Min() == 4);
+    assert(config.exploration.geometry.numActiveMatPerColumn.Min() == 1);
+    assert(config.exploration.geometry.numActiveMatPerRow.Min() == 2);
+    assert(config.exploration.geometry.numRowSubarray.Min() == 4);
+    assert(config.exploration.geometry.numColumnSubarray.Min() == 8);
+    assert(config.exploration.geometry.numActiveSubarrayPerColumn.Min() == 2);
+    assert(config.exploration.geometry.numActiveSubarrayPerRow.Min() == 4);
+    assert(config.exploration.geometry.muxSenseAmp.Min() == 2);
+    assert(config.exploration.geometry.muxOutputLev1.Min() == 4);
+    assert(config.exploration.geometry.muxOutputLev2.Min() == 8);
+}
+
+static void write_explicit_subarray_config(const char *cfgPath,
+        const std::string &memoryCapacity,
+        const std::string &subarrayDimensions,
+        const std::string &organizationPrefix = "",
+        const std::string &optimizationExtra = "",
+        const std::string &extraSection = "") {
+    std::ofstream out(cfgPath);
+    out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  cell_file: tests/tmp_cell.yaml\n";
+    if (!memoryCapacity.empty()) {
+        out << "  capacity: " << memoryCapacity << "\n";
+    }
+    out <<
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: false\n"
+        "    custom_encoder: false\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  custom_sense_amp: false\n"
+        "  amplifier_type: nvsim_vol\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n";
+    if (!optimizationExtra.empty()) {
+        out << optimizationExtra;
+    }
+    out <<
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+        "  global:\n"
+        "    type: GlobalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+        "organization:\n";
+    if (!organizationPrefix.empty()) {
+        out << organizationPrefix;
+    } else {
+        out <<
+            "  banks:\n"
+            "    total: [1, 1]\n"
+            "    active: [1, 1]\n"
+            "  mats:\n"
+            "    total: [1, 1]\n"
+            "    active: [1, 1]\n";
+    }
+    out <<
+        "  subarray:\n"
+        "    dimensions: " << subarrayDimensions << "\n"
+        "  mux:\n"
+        "    sense_amp: 1\n"
+        "    output_level1: 1\n"
+        "    output_level2: 1\n";
+    if (!extraSection.empty()) {
+        out << extraSection;
+    }
+}
+
+static bool load_config_throws(const char *cfgPath) {
+    try {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(cfgPath, config);
+        return false;
+    } catch (const std::runtime_error&) {
+        return true;
+    }
+}
+
+static void test_explicit_subarray_dimensions() {
+    const char *cfgPath = "tests/tmp_explicit_subarray_config.yaml";
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 64]");
+    {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(cfgPath, config);
+        assert(config.input.capacity == 512);
+        assert(config.runtimeSizing.hasFixedSubarrayDimensions == true);
+        assert(config.runtimeSizing.fixedSubarrayRows == 64);
+        assert(config.runtimeSizing.fixedSubarrayColumns == 64);
+        assert(config.exploration.geometry.numRow.Values() == std::vector<int>({64}));
+        assert(config.exploration.geometry.numColumn.Values() == std::vector<int>({64}));
+    }
+
+    write_explicit_subarray_config(cfgPath, "auto", "[64, 64]");
+    {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(cfgPath, config);
+        assert(config.input.capacity == 512);
+        assert(config.runtimeSizing.capacityIsAuto == true);
+    }
+
+    write_explicit_subarray_config(cfgPath, "512B", "[64, 64]");
+    {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(cfgPath, config);
+        assert(config.input.capacity == 512);
+    }
+
+    write_explicit_subarray_config(cfgPath, "1KB", "[64, 64]");
+    assert(load_config_throws(cfgPath));
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 72]");
+    {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(cfgPath, config);
+        assert(config.input.capacity == 576);
+        assert(config.runtimeSizing.fixedSubarrayColumns == 72);
+        assert(config.exploration.geometry.numColumn.Values() == std::vector<int>({72}));
+    }
+
+    write_explicit_subarray_config(cfgPath, "", "[8, 64]");
+    assert(load_config_throws(cfgPath));
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 64]", "", "  deep_exploration: true\n");
+    assert(load_config_throws(cfgPath));
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 64]", "", "", "extra:\n  real_capacity: 1KB\n");
+    assert(load_config_throws(cfgPath));
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 64]", "", "", "extra:\n  real_capacity: 512B\n");
+    {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(cfgPath, config);
+        assert(config.runtimeSizing.realCapacity == 512);
+    }
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 64]",
+            "  banks:\n"
+            "    total: [1, 1]\n"
+            "    active: [1, 1]\n");
+    assert(load_config_throws(cfgPath));
+
+    write_explicit_subarray_config(cfgPath, "autoB", "[64, 64]");
+    assert(load_config_throws(cfgPath));
+}
+
 static void test_invalid_inputs() {
     // Invalid unit should throw
     const YAML::Node bad_unit = YAML::Load("root:\n  voltage: 1XB\n");
@@ -525,6 +757,8 @@ int main() {
     test_enum_read();
     test_bcam_alias();
     test_units();
+    test_organization_section();
+    test_explicit_subarray_dimensions();
     test_invalid_inputs();
     test_memcell_yaml();
     test_memcell_variation_yaml();

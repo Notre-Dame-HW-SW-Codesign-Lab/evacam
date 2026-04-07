@@ -25,7 +25,7 @@ The shipped configs use these top-level sections:
 - `sensing`
 - `optimization`
 - `wires`
-- `array`
+- `organization`
 - `matchline`
 
 Representative fields:
@@ -36,12 +36,13 @@ Representative fields:
 - `design.device_roadmap`: roadmap such as `HP`
 - `design.temperature`: temperature with units, for example `350K`
 - `memory.cell_file`: path to the cell YAML
-- `memory.capacity`: capacity with units, for example `512B`
+- `memory.capacity`: capacity with units, for example `512B`; optional or exact scalar `auto` only when fixed `organization.subarray.dimensions` derives capacity
 - `memory.word_width`: width with units, for example `64bits`
 - `optimization.target`: objective such as `LeakagePower` or `Exploration`
-- `optimization.deep_exploration`: expands the default exploration search space when array geometry is not pinned
-- `array.banks.total` and `array.banks.active`: bank organization
-- `array.mats.total` and `array.mats.active`: mat organization
+- `optimization.deep_exploration`: expands the default exploration search space when organization geometry is not pinned
+- `organization.banks.total` and `organization.banks.active`: bank organization
+- `organization.mats.total` and `organization.mats.active`: mat organization
+- `organization.subarray.dimensions`: optional fixed physical subarray `[rows, columns]`; requires explicit bank and mat organization and is not supported with DSE/deep exploration
 - `extra.output_yaml_file`: optional override for the results YAML path
 
 Use the grouped examples under `config/` as the source of truth for current syntax.

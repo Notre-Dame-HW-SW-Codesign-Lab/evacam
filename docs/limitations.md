@@ -27,15 +27,20 @@ Known unsupported or incomplete modes:
 
 ## Geometry And Sizing Rules
 
-- Fixed geometry values in `array.*` are interpreted as powers-of-two domains
+- Fixed geometry values in `organization.*` are interpreted as powers-of-two domains
+- Fixed physical subarray dimensions in `organization.subarray.dimensions` are exact values and may be non-powers-of-two, subject to the supported row/column limits
+- `organization.subarray.dimensions` requires explicit `organization.banks` and `organization.mats` totals and active values
+- `organization.subarray.dimensions` is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
+- `memory.capacity` may be omitted or set to exact scalar `auto` only when `organization.subarray.dimensions` is supplied
 - `cache.associativity` must be a power of two
 - Non-power-of-two `memory.word_width` requires `extra.real_capacity`
 - `extra.real_capacity` must be at least `memory.capacity`
-- `extra.real_capacity` must be compatible with the selected array geometry
+- `extra.real_capacity` must be compatible with the selected organization geometry
+- With `organization.subarray.dimensions`, `extra.real_capacity` must exactly match the derived capacity if it is supplied
 
 ## Practical Guidance
 
 - Start from a known-good file under `config/`
-- Change one axis at a time: technology, array geometry, or peripheral options
+- Change one axis at a time: technology, organization geometry, or peripheral options
 - Use `./EvaCAM -v <config>` when testing new combinations
 - If a run ends with `No valid solutions.`, the YAML may be valid but the design point is illegal or unsupported
