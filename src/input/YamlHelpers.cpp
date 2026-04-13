@@ -658,38 +658,30 @@ namespace YamlHelpers {
             if (child_optional(variation, "samples")) {
                 cell.variationSamples = read_required<int>(variation, "samples");
             }
-            if (child_optional(variation, "cell_resistance_on_sigma")) {
+            if (child_optional(variation, "memory_device_resistance_on_stdev")) {
                 cell.resistanceOnVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "cell_resistance_on_sigma"),
-                        "variation.cell_resistance_on_sigma");
-            } else if (child_optional(variation, "resistance_on_variation")) {
-                cell.resistanceOnVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "resistance_on_variation"),
-                        "variation.resistance_on_variation");
+                        child_optional(variation, "memory_device_resistance_on_stdev"),
+                        "variation.memory_device_resistance_on_stdev");
             }
-            if (child_optional(variation, "cell_resistance_off_sigma")) {
+            if (child_optional(variation, "memory_device_resistance_off_stdev")) {
                 cell.resistanceOffVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "cell_resistance_off_sigma"),
-                        "variation.cell_resistance_off_sigma");
-            } else if (child_optional(variation, "resistance_off_variation")) {
-                cell.resistanceOffVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "resistance_off_variation"),
-                        "variation.resistance_off_variation");
+                        child_optional(variation, "memory_device_resistance_off_stdev"),
+                        "variation.memory_device_resistance_off_stdev");
             }
-            if (child_optional(variation, "matchline_wire_resistance_sigma")) {
+            if (child_optional(variation, "matchline_wire_resistance_stdev")) {
                 cell.matchlineWireResistanceVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "matchline_wire_resistance_sigma"),
-                        "variation.matchline_wire_resistance_sigma");
+                        child_optional(variation, "matchline_wire_resistance_stdev"),
+                        "variation.matchline_wire_resistance_stdev");
             }
-            if (child_optional(variation, "device_access_resistance_sigma")) {
+            if (child_optional(variation, "device_access_resistance_stdev")) {
                 cell.deviceAccessResistanceVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "device_access_resistance_sigma"),
-                        "variation.device_access_resistance_sigma");
+                        child_optional(variation, "device_access_resistance_stdev"),
+                        "variation.device_access_resistance_stdev");
             }
-            if (child_optional(variation, "device_match_resistance_sigma")) {
+            if (child_optional(variation, "device_match_resistance_stdev")) {
                 cell.deviceMatchResistanceVariation = parse_fraction_or_percent_node(
-                        child_optional(variation, "device_match_resistance_sigma"),
-                        "variation.device_match_resistance_sigma");
+                        child_optional(variation, "device_match_resistance_stdev"),
+                        "variation.device_match_resistance_stdev");
             }
         }
 

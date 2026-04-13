@@ -92,13 +92,11 @@ variation: # optional map
   mode: single_point # enum: single_point | monte_carlo
   samples: 9 # int, required for monte_carlo and must be > 1
   seed: 12345 # optional uint32, mainly for reproducible testing
-  resistance_on_variation: 0% # units: percent (legacy alias)
-  resistance_off_variation: 0% # units: percent (legacy alias)
-  cell_resistance_on_sigma: 0% # units: percent
-  cell_resistance_off_sigma: 0% # units: percent
-  matchline_wire_resistance_sigma: 0% # units: percent
-  device_access_resistance_sigma: 0% # units: percent
-  device_match_resistance_sigma: 0% # units: percent
+  memory_device_resistance_on_stdev: 0% # units: percent
+  memory_device_resistance_off_stdev: 0% # units: percent
+  matchline_wire_resistance_stdev: 0% # units: percent
+  device_access_resistance_stdev: 0% # units: percent
+  device_match_resistance_stdev: 0% # units: percent
 
 mcam: # optional proposed map
   num_resistance_state: 0 # int

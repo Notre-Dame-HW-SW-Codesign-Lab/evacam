@@ -244,11 +244,11 @@ void CAM_Result::print() {
         std::cout << " - Mode                         : " << config->variation.mode << std::endl;
         std::cout << " - Base Seed                    : " << config->variation.seed << std::endl;
         std::cout << " - Samples                      : " << config->variation.samples << std::endl;
-        std::cout << " - Cell Resistance On Sigma     : " << config->variation.cellResOnSigma * 100 << "%" << std::endl;
-        std::cout << " - Cell Resistance Off Sigma    : " << config->variation.cellResOffSigma * 100 << "%" << std::endl;
-        std::cout << " - Matchline Wire Sigma         : " << config->variation.mlWireResSigma * 100 << "%" << std::endl;
-        std::cout << " - Device Access Sigma          : " << config->variation.deviceAccessResSigma * 100 << "%" << std::endl;
-        std::cout << " - Device Match Sigma           : " << config->variation.deviceMatchResSigma * 100 << "%" << std::endl;
+        std::cout << " - Memory Device On Stddev      : " << config->variation.memoryDeviceResOnStdev * 100 << "%" << std::endl;
+        std::cout << " - Memory Device Off Stddev     : " << config->variation.memoryDeviceResOffStdev * 100 << "%" << std::endl;
+        std::cout << " - Matchline Wire Stddev        : " << config->variation.mlWireResStdev * 100 << "%" << std::endl;
+        std::cout << " - Device Access Stddev         : " << config->variation.deviceAccessResStdev * 100 << "%" << std::endl;
+        std::cout << " - Device Match Stddev          : " << config->variation.deviceMatchResStdev * 100 << "%" << std::endl;
     }
 
     std::cout << std::endl;

@@ -9,11 +9,11 @@ struct VariationConfig {
     uint32_t seed = 0;
     std::string mode = "nominal";
     int samples = 1;
-    double mlWireResSigma = 0.0;
-    double cellResOnSigma = 0.0;
-    double cellResOffSigma = 0.0;
-    double deviceAccessResSigma = 0.0;
-    double deviceMatchResSigma = 0.0;
+    double mlWireResStdev = 0.0;
+    double memoryDeviceResOnStdev = 0.0;
+    double memoryDeviceResOffStdev = 0.0;
+    double deviceAccessResStdev = 0.0;
+    double deviceMatchResStdev = 0.0;
 };
 
 #endif /* CONFIG_VARIATIONCONFIG_H_ */

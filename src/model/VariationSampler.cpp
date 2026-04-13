@@ -6,21 +6,21 @@
 VariationSampler::VariationSampler(unsigned int seed)
     : rng_(seed) {}
 
-double VariationSampler::SamplePositive(double nominal, double sigmaFrac) {
+double VariationSampler::SamplePositive(double nominal, double stdevFrac) {
     if (nominal < 0) {
         throw std::invalid_argument("[VariationSampler] nominal must be non-negative.");
     }
-    if (sigmaFrac < 0) {
-        throw std::invalid_argument("[VariationSampler] sigmaFrac must be non-negative.");
+    if (stdevFrac < 0) {
+        throw std::invalid_argument("[VariationSampler] stdevFrac must be non-negative.");
     }
-    if (nominal == 0 || sigmaFrac == 0) {
+    if (nominal == 0 || stdevFrac == 0) {
         return nominal;
     }
 
-    const double sigma = nominal * sigmaFrac;
-    const double lowerBound = std::max(nominal * 1e-12, nominal - 3.0 * sigma);
-    const double upperBound = nominal + 3.0 * sigma;
-    std::normal_distribution<double> dist(nominal, sigma);
+    const double stdev = nominal * stdevFrac;
+    const double lowerBound = std::max(nominal * 1e-12, nominal - 3.0 * stdev);
+    const double upperBound = nominal + 3.0 * stdev;
+    std::normal_distribution<double> dist(nominal, stdev);
 
     // Use rejection sampling so the bounded distribution remains Gaussian
     // inside the admissible interval instead of accumulating clipped mass
@@ -36,6 +36,6 @@ double VariationSampler::SamplePositive(double nominal, double sigmaFrac) {
     return std::min(std::max(dist(rng_), lowerBound), upperBound);
 }
 
-double VariationSampler::SampleResistance(double nominal, double sigmaFrac) {
-    return SamplePositive(nominal, sigmaFrac);
+double VariationSampler::SampleResistance(double nominal, double stdevFrac) {
+    return SamplePositive(nominal, stdevFrac);
 }

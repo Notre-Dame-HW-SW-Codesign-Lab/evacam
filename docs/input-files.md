@@ -78,7 +78,7 @@ Representative fields:
 - `variation.mode`
 - `variation.samples`
 - `variation.seed`
-- `variation.cell_resistance_on_sigma`
+- `variation.memory_device_resistance_on_stdev`
 - `ports.row`
 - `ports.column`
 

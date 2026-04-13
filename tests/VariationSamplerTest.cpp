@@ -34,13 +34,13 @@ static void test_positive_samples() {
 static void test_samples_stay_within_bounds() {
     VariationSampler sampler(31415);
     const double nominal = 1000.0;
-    const double sigmaFrac = 0.2;
-    const double sigma = nominal * sigmaFrac;
-    const double lowerBound = nominal - 3.0 * sigma;
-    const double upperBound = nominal + 3.0 * sigma;
+    const double stdevFrac = 0.2;
+    const double stdev = nominal * stdevFrac;
+    const double lowerBound = nominal - 3.0 * stdev;
+    const double upperBound = nominal + 3.0 * stdev;
 
     for (int i = 0; i < 2048; i++) {
-        const double sampled = sampler.SampleResistance(nominal, sigmaFrac);
+        const double sampled = sampler.SampleResistance(nominal, stdevFrac);
         assert(sampled >= lowerBound);
         assert(sampled <= upperBound);
     }
@@ -49,12 +49,12 @@ static void test_samples_stay_within_bounds() {
 static void test_mean_preserved_approximately() {
     VariationSampler sampler(123);
     const double nominal = 5000.0;
-    const double sigmaFrac = 0.2;
+    const double stdevFrac = 0.2;
     const int samples = 20000;
     double sum = 0.0;
 
     for (int i = 0; i < samples; i++) {
-        sum += sampler.SampleResistance(nominal, sigmaFrac);
+        sum += sampler.SampleResistance(nominal, stdevFrac);
     }
 
     const double mean = sum / samples;

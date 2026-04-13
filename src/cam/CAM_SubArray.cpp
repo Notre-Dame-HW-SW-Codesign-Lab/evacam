@@ -20,7 +20,7 @@
 
 namespace {
 
-double CombineSigma(double a, double b) {
+double CombineStdev(double a, double b) {
     return std::sqrt(a * a + b * b);
 }
 
@@ -1515,30 +1515,30 @@ CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex
     // Stream offsets give each resistance category a stable deterministic RNG stream.
     sample.mlWireRes = SampleVariationResistance(
             nominalMatchlineWireRes,
-            config->variation.mlWireResSigma,
+            config->variation.mlWireResStdev,
             3,
             sampleIndex);
 
     sample.accessRes = SampleVariationResistance(
             nominalResCellAccess,
-            config->variation.deviceAccessResSigma,
+            config->variation.deviceAccessResStdev,
             1,
             sampleIndex);
     sample.matchRes = SampleVariationResistance(
             nominalResMatchTran,
-            CombineSigma(config->variation.cellResOnSigma, config->variation.deviceMatchResSigma),
+            CombineStdev(config->variation.memoryDeviceResOnStdev, config->variation.deviceMatchResStdev),
             2,
             sampleIndex);
     sample.cellResOn = sample.accessRes + sample.matchRes;
 
     sample.accessResOff = SampleVariationResistance(
             nominalResCellAccessOff,
-            config->variation.deviceAccessResSigma,
+            config->variation.deviceAccessResStdev,
             4,
             sampleIndex);
     sample.matchResOff = SampleVariationResistance(
             nominalResMatchTranOff,
-            CombineSigma(config->variation.cellResOffSigma, config->variation.deviceMatchResSigma),
+            CombineStdev(config->variation.memoryDeviceResOffStdev, config->variation.deviceMatchResStdev),
             5,
             sampleIndex);
     sample.cellResOff = sample.accessResOff + sample.matchResOff;
@@ -1547,10 +1547,10 @@ CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex
 
 double CAM_SubArray::SampleVariationResistance(
         double nominal,
-        double sigmaFrac,
+        double stdevFrac,
         unsigned int streamOffset,
         unsigned int sampleIndex) const {
-    if (!(withVariation || config->variation.enabled) || sigmaFrac <= 0.0) {
+    if (!(withVariation || config->variation.enabled) || stdevFrac <= 0.0) {
         return nominal;
     }
 
@@ -1558,11 +1558,11 @@ double CAM_SubArray::SampleVariationResistance(
             config->variation.seed,
             sampleIndex,
             streamOffset));
-    return sampler.SampleResistance(nominal, sigmaFrac);
+    return sampler.SampleResistance(nominal, stdevFrac);
 }
 
-double CAM_SubArray::EffectiveDeviceResistanceSigma() const {
-    return CombineSigma(config->variation.deviceAccessResSigma, config->variation.deviceMatchResSigma);
+double CAM_SubArray::EffectiveDeviceResistanceStdev() const {
+    return CombineStdev(config->variation.deviceAccessResStdev, config->variation.deviceMatchResStdev);
 }
 
 void CAM_SubArray::UpdateMonteCarloTimingSummary() {

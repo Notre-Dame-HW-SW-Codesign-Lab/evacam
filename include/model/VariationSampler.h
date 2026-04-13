@@ -7,8 +7,8 @@ class VariationSampler {
     public:
         explicit VariationSampler(unsigned int seed);
 
-        double SamplePositive(double nominal, double sigmaFrac);
-        double SampleResistance(double nominal, double sigmaFrac);
+        double SamplePositive(double nominal, double stdevFrac);
+        double SampleResistance(double nominal, double stdevFrac);
 
     private:
         std::mt19937 rng_;

@@ -102,8 +102,8 @@ class CAM_SubArray: public FunctionUnit {
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         CAM_SubArray & operator=(const CAM_SubArray &);
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
-        double SampleVariationResistance(double nominal, double sigmaFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
-        double EffectiveDeviceResistanceSigma() const;
+        double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
+        double EffectiveDeviceResistanceStdev() const;
         void UpdateMonteCarloTimingSummary();
         void UpdateMonteCarloPowerSummary();
         /* Properties */

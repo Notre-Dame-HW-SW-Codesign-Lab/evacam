@@ -105,11 +105,11 @@ TechnologyContext TechnologyLoader::Load(
                 : DefaultVariationSeed();
         variation->mode = technology.cell->variationMode;
         variation->samples = technology.cell->variationSamples;
-        variation->cellResOnSigma = technology.cell->resistanceOnVariation;
-        variation->cellResOffSigma = technology.cell->resistanceOffVariation;
-        variation->mlWireResSigma = technology.cell->matchlineWireResistanceVariation;
-        variation->deviceAccessResSigma = technology.cell->deviceAccessResistanceVariation;
-        variation->deviceMatchResSigma = technology.cell->deviceMatchResistanceVariation;
+        variation->memoryDeviceResOnStdev = technology.cell->resistanceOnVariation;
+        variation->memoryDeviceResOffStdev = technology.cell->resistanceOffVariation;
+        variation->mlWireResStdev = technology.cell->matchlineWireResistanceVariation;
+        variation->deviceAccessResStdev = technology.cell->deviceAccessResistanceVariation;
+        variation->deviceMatchResStdev = technology.cell->deviceMatchResistanceVariation;
 
         if (!variation->enabled) {
             variation->mode = "nominal";

@@ -545,11 +545,11 @@ static void test_memcell_variation_yaml() {
             "  seed: 12345\n"
             "  mode: monte_carlo\n"
             "  samples: 7\n"
-            "  cell_resistance_on_sigma: 5%\n"
-            "  resistance_off_variation: 7%\n"
-            "  matchline_wire_resistance_sigma: 3%\n"
-            "  device_access_resistance_sigma: 2%\n"
-            "  device_match_resistance_sigma: 4%\n"
+            "  memory_device_resistance_on_stdev: 5%\n"
+            "  memory_device_resistance_off_stdev: 7%\n"
+            "  matchline_wire_resistance_stdev: 3%\n"
+            "  device_access_resistance_stdev: 2%\n"
+            "  device_match_resistance_stdev: 4%\n"
             "match:\n"
             "  cmos_width: 3F\n"
             "ports:\n"
@@ -643,11 +643,11 @@ static void test_cell_variation_drives_runtime_config() {
             "  with_variation: true\n"
             "  mode: monte_carlo\n"
             "  samples: 17\n"
-            "  cell_resistance_on_sigma: 5%\n"
-            "  cell_resistance_off_sigma: 8%\n"
-            "  matchline_wire_resistance_sigma: 6%\n"
-            "  device_access_resistance_sigma: 4%\n"
-            "  device_match_resistance_sigma: 3%\n"
+            "  memory_device_resistance_on_stdev: 5%\n"
+            "  memory_device_resistance_off_stdev: 8%\n"
+            "  matchline_wire_resistance_stdev: 6%\n"
+            "  device_access_resistance_stdev: 4%\n"
+            "  device_match_resistance_stdev: 3%\n"
             "match:\n"
             "  cmos_width: 3F\n"
             "ports:\n"
@@ -745,11 +745,11 @@ static void test_cell_variation_drives_runtime_config() {
     assert(variation.seed != 0u);
     assert(variation.mode == "monte_carlo");
     assert(variation.samples == 17);
-    assert(near(variation.cellResOnSigma, 0.05));
-    assert(near(variation.cellResOffSigma, 0.08));
-    assert(near(variation.mlWireResSigma, 0.06));
-    assert(near(variation.deviceAccessResSigma, 0.04));
-    assert(near(variation.deviceMatchResSigma, 0.03));
+    assert(near(variation.memoryDeviceResOnStdev, 0.05));
+    assert(near(variation.memoryDeviceResOffStdev, 0.08));
+    assert(near(variation.mlWireResStdev, 0.06));
+    assert(near(variation.deviceAccessResStdev, 0.04));
+    assert(near(variation.deviceMatchResStdev, 0.03));
 }
 
 int main() {

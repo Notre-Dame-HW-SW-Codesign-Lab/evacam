@@ -81,11 +81,11 @@ MonteCarloFixture WriteMonteCarloConfig(
         }
     }
     cellText +=
-        "  cell_resistance_on_sigma: 15%\n"
-        "  cell_resistance_off_sigma: 20%\n"
-        "  matchline_wire_resistance_sigma: 10%\n"
-        "  device_access_resistance_sigma: 12%\n"
-        "  device_match_resistance_sigma: 8%\n";
+        "  memory_device_resistance_on_stdev: 15%\n"
+        "  memory_device_resistance_off_stdev: 20%\n"
+        "  matchline_wire_resistance_stdev: 10%\n"
+        "  device_access_resistance_stdev: 12%\n"
+        "  device_match_resistance_stdev: 8%\n";
     WriteFile(testCell, cellText);
 
     std::string configText = ReadFile(sourceConfig);
