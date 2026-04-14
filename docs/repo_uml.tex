@@ -94,9 +94,9 @@
 
 \node[class, fill=blue!10] (yamlLoader) at (-12.1, 6.2) {%
   \textbf{EvaCamYamlLoader}\\
-  input helper client\\
-  parse top-level YAML\\
-  build typed config sections
+  load top-level YAML\\
+  coordinate parse, normalize,\\
+  and input validation
 };
 
 \node[class, fill=blue!10] (techCtx) at (-6.2, 2.3) {%
@@ -109,7 +109,8 @@
 \node[class, fill=blue!10] (techLoader) at (-12.1, 2.9) {%
   \textbf{TechnologyLoader}\\
   + Load(input, peripherals)\\
-  returns TechnologyContext
+  loads runtime objects\\
+  uses VariationConfigBuilder
 };
 
 \node[class, fill=blue!10] (tech) at (-0.1, 2.3) {%
@@ -280,7 +281,8 @@
 \node[draw, rounded corners=2pt, fill=yellow!10, align=left, anchor=south east] at (current bounding box.south east) {%
   \textbf{Scope note}\\
   Diagram reflects the current top-level structure used by the codebase.\\
-  Helper structs, validators, and many leaf components are grouped to keep\\
+  Parser helpers such as ConfigSectionReaders, ConfigNormalizer,\\
+  InputRuleValidator, and VariationConfigBuilder are grouped to keep\\
   the figure readable for architecture review and presentation slides.
 };
 

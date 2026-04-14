@@ -1,7 +1,9 @@
-#include "input/YamlHelpers.h"
+#include "input/YamlNodeHelpers.h"
+#include "input/YamlUnitParsers.h"
 #include "config/EvaCamConfig.h"
 #include "config/EvaCamYamlLoader.h"
 #include "config/TechnologyLoader.h"
+#include "config/VariationConfigBuilder.h"
 #include "MemCell.h"
 
 #include <cassert>
@@ -752,6 +754,42 @@ static void test_cell_variation_drives_runtime_config() {
     assert(near(variation.deviceMatchResStdev, 0.03));
 }
 
+static void test_variation_builder_rejects_invalid_mode_and_samples() {
+    MemCell cell;
+    cell.withVariation = true;
+
+    cell.variationMode = "nominal";
+    try {
+        (void)VariationConfigBuilder::FromCell(cell);
+        assert(false && "Expected nominal variation mode to throw");
+    } catch (const std::runtime_error&) {
+    }
+
+    cell.variationMode = "monte_carlo";
+    cell.variationSamples = 1;
+    try {
+        (void)VariationConfigBuilder::FromCell(cell);
+        assert(false && "Expected monte_carlo samples <= 1 to throw");
+    } catch (const std::runtime_error&) {
+    }
+
+    cell.variationMode = "invalid_mode";
+    cell.variationSamples = 9;
+    try {
+        (void)VariationConfigBuilder::FromCell(cell);
+        assert(false && "Expected invalid variation mode to throw");
+    } catch (const std::runtime_error&) {
+    }
+
+    cell.withVariation = false;
+    cell.variationMode = "monte_carlo";
+    cell.variationSamples = 99;
+    VariationConfig disabled = VariationConfigBuilder::FromCell(cell);
+    assert(disabled.enabled == false);
+    assert(disabled.mode == "nominal");
+    assert(disabled.samples == 1);
+}
+
 int main() {
     test_basic_read();
     test_enum_read();
@@ -763,6 +801,7 @@ int main() {
     test_memcell_yaml();
     test_memcell_variation_yaml();
     test_cell_variation_drives_runtime_config();
+    test_variation_builder_rejects_invalid_mode_and_samples();
     std::cout << "YamlHelpers tests passed" << std::endl;
     return 0;
 }

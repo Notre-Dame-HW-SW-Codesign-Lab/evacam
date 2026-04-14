@@ -1,7 +1,6 @@
 #include "EvaCamConfig.h"
 #include "Result.h"
 #include "config/EvaCamYamlLoader.h"
-#include "config/ExplorationSpaceResolver.h"
 #include "config/TechnologyLoader.h"
 //#include <magic_enum.hpp>
 
@@ -65,6 +64,5 @@ void EvaCamConfig::ApplyResultLimits(const ResultLimits &limits,
 
 void EvaCamConfig::ReadConfigFromFile(const std::string &inputFile) {
     EvaCamYamlLoader::Load(inputFile, *this);
-    resolvedExploration = ExplorationSpaceResolver::Resolve(exploration);
     technology = TechnologyLoader::Load(input, peripherals, &variation);
 }

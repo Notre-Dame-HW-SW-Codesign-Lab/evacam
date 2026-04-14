@@ -1,7 +1,8 @@
 #include "MemCell.h"
 #include "formula.h"
 #include "macros.h"
-#include "input/YamlHelpers.h"
+#include "input/CellYamlLoader.h"
+#include "input/YamlNodeHelpers.h"
 #include <math.h>
 #include <bits/stdc++.h>
 

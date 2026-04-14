@@ -22,6 +22,9 @@ RES_DIR=$(ROOT_DIR)/results
 
 BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
+TEST_TOP_LEVEL_BIN=TopLevelConfigParserTest
+TEST_CELL_LOADER_BIN=CellYamlLoaderTest
+TEST_INPUT_VALIDATION_BIN=InputValidationTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
@@ -55,10 +58,22 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(DEPS)
 
-.PHONY: test-yaml test-exploration test-variation test-montecarlo uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_YAML_BIN)
+
+test-top-level-parser: $(OBJECTS_NO_MAIN)
+	$(CC) $(CPP_FLAGS) -o $(TEST_TOP_LEVEL_BIN) tests/TopLevelConfigParserTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_TOP_LEVEL_BIN)
+
+test-cell-loader: $(OBJECTS_NO_MAIN)
+	$(CC) $(CPP_FLAGS) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_CELL_LOADER_BIN)
+
+test-input-validation: $(OBJECTS_NO_MAIN)
+	$(CC) $(CPP_FLAGS) -o $(TEST_INPUT_VALIDATION_BIN) tests/InputValidationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_INPUT_VALIDATION_BIN)
 
 test-exploration:
 	$(CC) $(CPP_FLAGS) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
@@ -98,9 +113,15 @@ open-uml: uml
 .PHONY: clean
 clean:
 	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
+		$(TEST_TOP_LEVEL_BIN) $(TEST_TOP_LEVEL_BIN).d \
+		$(TEST_CELL_LOADER_BIN) $(TEST_CELL_LOADER_BIN).d \
+		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
 		tests/tmp_cell.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell.yaml tests/tmp_variation_config.yaml \
+		tests/tmp_top_level_cell.yaml tests/tmp_top_level_config.yaml \
+		tests/tmp_cell_loader_cell.yaml tests/tmp_cell_loader_missing.yaml \
+		tests/tmp_input_validation_cell.yaml tests/tmp_input_validation_config.yaml \
 		tests/tmp_explicit_subarray_config.yaml tests/tmp_organization_config.yaml \
 		$(UML_PDF) $(UML_SLIDE_PDF) \
 		repo_uml.aux repo_uml.log repo_uml_slide.aux repo_uml_slide.log

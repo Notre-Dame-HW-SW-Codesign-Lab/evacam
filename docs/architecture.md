@@ -20,9 +20,9 @@ This is the high-level execution flow for the current codebase.
 ## Module Layout
 
 - `src/app`, `include/app`: exploration orchestration and top-level runtime flow
-- `src/input`, `include/input`: CLI parsing and YAML input helpers
+- `src/input`, `include/input`: CLI parsing, cell YAML loading, YAML node helpers, and unit parsing helpers
 - `src/output`, `include/output`: result serialization
-- `src/config`, `include/config`: config loading, validation, and derived exploration settings
+- `src/config`, `include/config`: top-level config loading, section readers, normalization, validation, and derived exploration settings
 - `src/technology`, `include/technology`: technology models, memory-cell models, and built-in technology tables
 - `src/circuit`, `include/circuit`: reusable circuit blocks and shared equations
 - `src/model`, `include/model`: bank, mat, subarray, and result abstractions
@@ -33,7 +33,7 @@ This is the high-level execution flow for the current codebase.
 
 `EvaCamConfig` is the central in-memory configuration object shared across exploration and hardware blocks.
 
-- `ReadConfigFromFile()` delegates YAML parsing to `EvaCamYamlLoader`, resolves the exploration domains, and loads technology/cell objects through `TechnologyLoader`
+- `ReadConfigFromFile()` delegates top-level YAML loading to `EvaCamYamlLoader` and then loads technology/cell objects through `TechnologyLoader`
 - Parsed settings are grouped into typed sections such as `InputConfig`, `PeripheralConfig`, `ConstraintConfig`, and `RuntimeSizingConfig`
 - Loaded modeling state lives under `technology`, which is a `TechnologyContext` containing:
   - `tech`: the main CMOS/peripheral technology model
@@ -42,6 +42,26 @@ This is the high-level execution flow for the current codebase.
 - Exploration helpers such as `SetDeepExploration()`, `BuildResultLimits()`, and `ApplyResultLimits()` operate on this aggregate state
 
 Validation and pretty-printing are intentionally split out of the class into `EvaCamConfigValidator` and `EvaCamConfigPrinter`.
+
+## Config Loading Pipeline
+
+Top-level config loading is now an explicit four-step pipeline:
+
+1. `EvaCamYamlLoader` loads the root YAML and coordinates the flow.
+2. `ConfigSectionReaders` parse each top-level section into typed config state.
+3. `ConfigNormalizer` applies derived exploration/default shaping.
+4. `InputRuleValidator` enforces conditional input rules before runtime objects are loaded.
+
+The referenced cell YAML follows a similar split:
+
+- `CellYamlLoader` parses the cell file by section
+- `YamlNodeHelpers` owns generic YAML node access, scalar conversion, and enum helpers
+- `YamlUnitParsers` owns quantity parsing and unit tables
+
+Variation policy is also separated from runtime object loading:
+
+- `TechnologyLoader` loads technology and cell runtime objects
+- `VariationConfigBuilder` derives the runtime variation configuration from the parsed `MemCell`
 
 ## Technology
 
@@ -52,7 +72,7 @@ Validation and pretty-printing are intentionally split out of the class into `Ev
 - `ExpandTemperatureTables()` expands the compact 11-point current tables in `TechnologySpec` into the 101-entry runtime tables used by the formulas
 - `InterpolateWith()` blends between adjacent supported process nodes so EvaCAM can model intermediate nodes between the tabulated anchor points
 
-`TechnologyLoader` builds the `TechnologyContext` used by `EvaCamConfig`. It loads the primary technology model, interpolates to the requested node when needed, loads the `MemCell`, and chooses a compatible FeFET technology model.
+`TechnologyLoader` builds the `TechnologyContext` used by `EvaCamConfig`. It loads the primary technology model, interpolates to the requested node when needed, loads the `MemCell`, chooses a compatible FeFET technology model, and delegates runtime variation assembly to `VariationConfigBuilder` when needed.
 
 ## Input Boundary
 
@@ -70,7 +90,8 @@ The config key `optimization.deep_exploration` expands the search space used dur
 ## Where To Extend
 
 - Add or adjust CLI behavior in `src/input/CliOptions.cpp`
-- Add new YAML fields in the YAML parsing helpers and the typed config structs owned by `EvaCamConfig`
+- Add new top-level YAML fields in `ConfigSectionReaders` and the typed config structs owned by `EvaCamConfig`
+- Add new cell-YAML fields in `CellYamlLoader`
 - Add technology-table entries in `src/technology/TechnologyTables.cpp` and update `TechnologyLoader` if new loading rules are required
 - Change result serialization in `src/output/ResultsYaml.cpp`
 - Change exploration logic in `src/app/EvaCamExplorer.cpp`

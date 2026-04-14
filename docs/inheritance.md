@@ -99,8 +99,15 @@ These classes do not have a base class or derived class within EvaCAM's own clas
 - `EvaCamConfigValidator`
 - `EvaCamConfigPrinter`
 - `EvaCamYamlLoader`
+- `ConfigSectionReaders`
+- `ConfigNormalizer`
+- `InputRuleValidator`
 - `OutputPathBuilder`
 - `TechnologyLoader`
+- `VariationConfigBuilder`
+- `CellYamlLoader`
+- `YamlNodeHelpers`
+- `YamlUnitParsers`
 - `ExplorationSpaceResolver`
 - `IntValueDomain`
 - `BankFactory`
