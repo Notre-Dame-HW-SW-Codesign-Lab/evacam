@@ -109,30 +109,30 @@ class CAM_SubArray: public FunctionUnit {
         void UpdateMonteCarloTimingSummary();
         void UpdateMonteCarloPowerSummary();
         /* Properties */
-        std::shared_ptr<CAM_DataBuffer> inputBuf;
-        std::shared_ptr<CAM_DataBuffer> outputBuf;
-        std::shared_ptr<CAM_LevelShifter> inputLS;
-        std::shared_ptr<CAM_LevelShifter> outputLS;
-        std::shared_ptr<CAM_InputEncoder> inputEnc;
-        std::shared_ptr<CAM_RowNand>	RowDecMergeNand;	/* Last level nand & driver for wordline predecoder */
+        std::unique_ptr<CAM_DataBuffer> inputBuf;
+        std::unique_ptr<CAM_DataBuffer> outputBuf;
+        std::unique_ptr<CAM_LevelShifter> inputLS;
+        std::unique_ptr<CAM_LevelShifter> outputLS;
+        std::unique_ptr<CAM_InputEncoder> inputEnc;
+        std::unique_ptr<CAM_RowNand>	RowDecMergeNand;	/* Last level nand & driver for wordline predecoder */
 
-        std::vector<std::shared_ptr<CAM_RowNand>> RowDriver; /* nand & driver for wl/sl/etc, there could be multiple, e.g., ISSCC15 3T1R */
+        std::vector<std::unique_ptr<CAM_RowNand>> RowDriver; /* nand & driver for wl/sl/etc, there could be multiple, e.g., ISSCC15 3T1R */
 
-        std::shared_ptr<CAM_Precharger>	precharger;
+        std::unique_ptr<CAM_Precharger>	precharger;
 
-        std::shared_ptr<RowDecoder> ColDecMergeNand;
-        std::vector<std::shared_ptr<RowDecoder>> WriteDriver;
-        std::vector<std::shared_ptr<Mux>> ColMux;	/*  mux for ml/bl, there are could be multiple or single, e.g., JSSC 2T2R */
+        std::unique_ptr<RowDecoder> ColDecMergeNand;
+        std::vector<std::unique_ptr<RowDecoder>> WriteDriver;
+        std::vector<std::unique_ptr<Mux>> ColMux;	/*  mux for ml/bl, there are could be multiple or single, e.g., JSSC 2T2R */
 
-        std::shared_ptr<CAM_SenseAmp>	senseAmp;
+        std::unique_ptr<CAM_SenseAmp>	senseAmp;
 
-        std::shared_ptr<RowDecoder>	senseAmpMuxLev1Nand;
-        std::shared_ptr<Mux>			senseAmpMuxLev1;
-        std::shared_ptr<RowDecoder>	senseAmpMuxLev2Nand;
-        std::shared_ptr<Mux>			senseAmpMuxLev2;
+        std::unique_ptr<RowDecoder>	senseAmpMuxLev1Nand;
+        std::unique_ptr<Mux>			senseAmpMuxLev1;
+        std::unique_ptr<RowDecoder>	senseAmpMuxLev2Nand;
+        std::unique_ptr<Mux>			senseAmpMuxLev2;
 
-        std::shared_ptr<CAM_OutputAccumulator> outputAcc;
-        std::shared_ptr<CAM_PriorityEncoder> priorityEnc;
+        std::unique_ptr<CAM_OutputAccumulator> outputAcc;
+        std::unique_ptr<CAM_PriorityEncoder> priorityEnc;
 
         CAMType camType; /* For CAM type specification */
         SearchFunction searchFunction; /* For search function specifcation */
@@ -278,11 +278,11 @@ class CAM_SubArray: public FunctionUnit {
         double resWordline;	/* Wordline resistance, Unit: ohm */
         double resBitline;	/* Bitline resistance, Unit: ohm */
         double maxCurrentBL;
-        std::shared_ptr<RowDecoder>	rowDecoder;
-        std::shared_ptr<RowDecoder>	bitlineMuxDecoder;
-        std::shared_ptr<RowDecoder>	senseAmpMuxLev1Decoder;
-        std::shared_ptr<RowDecoder>	senseAmpMuxLev2Decoder;
-        std::shared_ptr<Mux>		bitlineMux;
+        std::unique_ptr<RowDecoder>	rowDecoder;
+        std::unique_ptr<RowDecoder>	bitlineMuxDecoder;
+        std::unique_ptr<RowDecoder>	senseAmpMuxLev1Decoder;
+        std::unique_ptr<RowDecoder>	senseAmpMuxLev2Decoder;
+        std::unique_ptr<Mux>		bitlineMux;
 
         std::shared_ptr<Wire> localWire;
         CAM_Opt CAM_opt;

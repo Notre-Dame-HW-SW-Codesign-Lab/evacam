@@ -55,9 +55,9 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     numAddressBit = (int)(log2((double)capacity / blockSize / associativity) + 0.1);
     /* use double during the calculation to avoid overflow */
 
-    globalBitlineMux = std::make_shared<Mux>();
-    globalSenseAmp = std::make_shared<SenseAmp>();
-    globalComparator = std::make_shared<Comparator>();
+    globalBitlineMux = std::make_unique<Mux>();
+    globalSenseAmp = std::make_unique<SenseAmp>();
+    globalComparator = std::make_unique<Comparator>();
 
 
     if (_numActiveMatPerRow > numColumnMat) {
@@ -136,7 +136,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         numWay = 1;
     }
 
-    mat = std::make_shared<Mat>();
+    mat = std::make_unique<Mat>();
 
     mat->Initialize(numRowSubarray, numColumnSubarray, numAddressBitRouteToMat, numDataBitRouteToMat,
             numWay, numRowPerSet, false, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,

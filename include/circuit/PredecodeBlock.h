@@ -30,14 +30,14 @@ class PredecodeBlock: public FunctionUnit {
         /* Properties */
         bool initialized;	/* Initialization flag */
 
-        std::shared_ptr<RowDecoder> rowDecoderStage1A;
-        std::shared_ptr<RowDecoder> rowDecoderStage1B;
-        std::shared_ptr<RowDecoder> rowDecoderStage1C;
-        std::shared_ptr<RowDecoder> rowDecoderStage2;
-        std::shared_ptr<BasicDecoder> basicDecoderA1;
-        std::shared_ptr<BasicDecoder> basicDecoderA2;
-        std::shared_ptr<BasicDecoder> basicDecoderB;
-        std::shared_ptr<BasicDecoder> basicDecoderC;
+        std::unique_ptr<RowDecoder> rowDecoderStage1A;
+        std::unique_ptr<RowDecoder> rowDecoderStage1B;
+        std::unique_ptr<RowDecoder> rowDecoderStage1C;
+        std::unique_ptr<RowDecoder> rowDecoderStage2;
+        std::unique_ptr<BasicDecoder> basicDecoderA1;
+        std::unique_ptr<BasicDecoder> basicDecoderA2;
+        std::unique_ptr<BasicDecoder> basicDecoderB;
+        std::unique_ptr<BasicDecoder> basicDecoderC;
 
         int numNandInputStage1A, numNandInputStage1B, numNandInputStage1C;
         int numAddressBitStage1A, numAddressBitStage1B, numAddressBitStage1C;

@@ -107,7 +107,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         return;
     }
 
-    subarray = std::make_shared<CAM_SubArray>();
+    subarray = std::make_unique<CAM_SubArray>();
     subarray->Initialize(
             numRow, 
             numColumn, 
@@ -165,8 +165,8 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     }
     double capLoadRowPredecoder = subarray->height * localWire->capWirePerUnit * numRowSubarray / 2
         + subarray->width * localWire->capWirePerUnit * numColumnSubarray / 2;	/* Assume the predecoder is at the center */
-    rowPredecoderBlock1 = std::make_shared<PredecodeBlock>();
-    rowPredecoderBlock2 = std::make_shared<PredecodeBlock>();
+    rowPredecoderBlock1 = std::make_unique<PredecodeBlock>();
+    rowPredecoderBlock2 = std::make_unique<PredecodeBlock>();
     rowPredecoderBlock1->Initialize(numAddressRowPredecoderBlock1, capLoadRowPredecoder, 0 /* TODO */, config);
     rowPredecoderBlock2->Initialize(numAddressRowPredecoderBlock2, capLoadRowPredecoder, 0 /* TODO */, config);
 
@@ -178,8 +178,8 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         numAddressBitlineMuxPredecoderBlock2 = numAddressBitlineMuxPredecoderBlock1 / 2;
         numAddressBitlineMuxPredecoderBlock1 = numAddressBitlineMuxPredecoderBlock1 - numAddressBitlineMuxPredecoderBlock2;
     }
-    bitlineMuxPredecoderBlock1 = std::make_shared<PredecodeBlock>();
-    bitlineMuxPredecoderBlock2 = std::make_shared<PredecodeBlock>();
+    bitlineMuxPredecoderBlock1 = std::make_unique<PredecodeBlock>();
+    bitlineMuxPredecoderBlock2 = std::make_unique<PredecodeBlock>();
     bitlineMuxPredecoderBlock1->Initialize(numAddressBitlineMuxPredecoderBlock1, capLoadMuxPredecoder, 0 /* TODO */, config);
     bitlineMuxPredecoderBlock2->Initialize(numAddressBitlineMuxPredecoderBlock2, capLoadMuxPredecoder, 0 /* TODO */, config);
 
@@ -189,8 +189,8 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         numAddressSenseAmpMuxLev1PredecoderBlock2 = numAddressSenseAmpMuxLev1PredecoderBlock1 / 2;
         numAddressSenseAmpMuxLev1PredecoderBlock1 = numAddressSenseAmpMuxLev1PredecoderBlock1 - numAddressSenseAmpMuxLev1PredecoderBlock2;
     }
-    senseAmpMuxLev1PredecoderBlock1 = std::make_shared<PredecodeBlock>();
-    senseAmpMuxLev1PredecoderBlock2 = std::make_shared<PredecodeBlock>();
+    senseAmpMuxLev1PredecoderBlock1 = std::make_unique<PredecodeBlock>();
+    senseAmpMuxLev1PredecoderBlock2 = std::make_unique<PredecodeBlock>();
     senseAmpMuxLev1PredecoderBlock1->Initialize(numAddressSenseAmpMuxLev1PredecoderBlock1, capLoadMuxPredecoder, 0 /* TODO */, config);
     senseAmpMuxLev1PredecoderBlock2->Initialize(numAddressSenseAmpMuxLev1PredecoderBlock2, capLoadMuxPredecoder, 0 /* TODO */, config);
 
@@ -200,8 +200,8 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         numAddressSenseAmpMuxLev2PredecoderBlock2 = numAddressSenseAmpMuxLev2PredecoderBlock1 / 2;
         numAddressSenseAmpMuxLev2PredecoderBlock1 = numAddressSenseAmpMuxLev2PredecoderBlock1 - numAddressSenseAmpMuxLev2PredecoderBlock2;
     }
-    senseAmpMuxLev2PredecoderBlock1 = std::make_shared<PredecodeBlock>();
-    senseAmpMuxLev2PredecoderBlock2 = std::make_shared<PredecodeBlock>();
+    senseAmpMuxLev2PredecoderBlock1 = std::make_unique<PredecodeBlock>();
+    senseAmpMuxLev2PredecoderBlock2 = std::make_unique<PredecodeBlock>();
     senseAmpMuxLev2PredecoderBlock1->Initialize(numAddressSenseAmpMuxLev2PredecoderBlock1, capLoadMuxPredecoder, 0 /* TODO */, config);
     senseAmpMuxLev2PredecoderBlock2->Initialize(numAddressSenseAmpMuxLev2PredecoderBlock2, capLoadMuxPredecoder, 0 /* TODO */, config);
 
@@ -375,4 +375,3 @@ void Mat::PrintProperty() {
     std::cout << "Mat Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-

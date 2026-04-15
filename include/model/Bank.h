@@ -74,7 +74,7 @@ class Bank: public FunctionUnit {
         double searchDynamicEnergy;
 
         int numBitSerial;
-        std::shared_ptr<Mat> mat;
+        std::unique_ptr<Mat> mat;
         std::shared_ptr<Wire> localWire;
         std::shared_ptr<Wire> globalWire;
         CAM_Opt CAM_opt;

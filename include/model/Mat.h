@@ -62,15 +62,15 @@ class Mat: public FunctionUnit {
         double predecoderLatency;	/* The maximum latency of all the predecoder blocks, Unit: s */
         double areaAllPredecoderBlocks;
 
-        std::shared_ptr<CAM_SubArray> subarray;
-        std::shared_ptr<PredecodeBlock> rowPredecoderBlock1;
-        std::shared_ptr<PredecodeBlock> rowPredecoderBlock2;
-        std::shared_ptr<PredecodeBlock> bitlineMuxPredecoderBlock1;
-        std::shared_ptr<PredecodeBlock> bitlineMuxPredecoderBlock2;
-        std::shared_ptr<PredecodeBlock> senseAmpMuxLev1PredecoderBlock1;
-        std::shared_ptr<PredecodeBlock> senseAmpMuxLev1PredecoderBlock2;
-        std::shared_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock1;
-        std::shared_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock2;
+        std::unique_ptr<CAM_SubArray> subarray;
+        std::unique_ptr<PredecodeBlock> rowPredecoderBlock1;
+        std::unique_ptr<PredecodeBlock> rowPredecoderBlock2;
+        std::unique_ptr<PredecodeBlock> bitlineMuxPredecoderBlock1;
+        std::unique_ptr<PredecodeBlock> bitlineMuxPredecoderBlock2;
+        std::unique_ptr<PredecodeBlock> senseAmpMuxLev1PredecoderBlock1;
+        std::unique_ptr<PredecodeBlock> senseAmpMuxLev1PredecoderBlock2;
+        std::unique_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock1;
+        std::unique_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock2;
 
         std::shared_ptr<Wire> localWire;
         CAM_Opt CAM_opt;

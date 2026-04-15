@@ -114,32 +114,32 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     localWire = _localWire;
     CAM_opt = _CAM_opt;
 
-    rowDecoder = std::make_shared<RowDecoder>();
-    bitlineMuxDecoder = std::make_shared<RowDecoder>();
-    senseAmpMuxLev1Decoder = std::make_shared<RowDecoder>();
-    senseAmpMuxLev2Decoder = std::make_shared<RowDecoder>();
-    bitlineMux = std::make_shared<Mux>();
+    rowDecoder = std::make_unique<RowDecoder>();
+    bitlineMuxDecoder = std::make_unique<RowDecoder>();
+    senseAmpMuxLev1Decoder = std::make_unique<RowDecoder>();
+    senseAmpMuxLev2Decoder = std::make_unique<RowDecoder>();
+    bitlineMux = std::make_unique<Mux>();
 
-    inputBuf = std::make_shared<CAM_DataBuffer>();
-    outputBuf = std::make_shared<CAM_DataBuffer>();
-    inputLS = std::make_shared<CAM_LevelShifter>();
-    outputLS = std::make_shared<CAM_LevelShifter>();
-    inputEnc = std::make_shared<CAM_InputEncoder>();
-    RowDecMergeNand = std::make_shared<CAM_RowNand>();
+    inputBuf = std::make_unique<CAM_DataBuffer>();
+    outputBuf = std::make_unique<CAM_DataBuffer>();
+    inputLS = std::make_unique<CAM_LevelShifter>();
+    outputLS = std::make_unique<CAM_LevelShifter>();
+    inputEnc = std::make_unique<CAM_InputEncoder>();
+    RowDecMergeNand = std::make_unique<CAM_RowNand>();
 
-    precharger = std::make_shared<CAM_Precharger>();
+    precharger = std::make_unique<CAM_Precharger>();
 
-    senseAmp = std::make_shared<CAM_SenseAmp>();
+    senseAmp = std::make_unique<CAM_SenseAmp>();
 
-    ColDecMergeNand = std::make_shared<RowDecoder>();
+    ColDecMergeNand = std::make_unique<RowDecoder>();
 
-    senseAmpMuxLev1Nand = std::make_shared<RowDecoder>();
-    senseAmpMuxLev2Nand = std::make_shared<RowDecoder>();
-    senseAmpMuxLev1 = std::make_shared<Mux>();
-    senseAmpMuxLev2 = std::make_shared<Mux>();
+    senseAmpMuxLev1Nand = std::make_unique<RowDecoder>();
+    senseAmpMuxLev2Nand = std::make_unique<RowDecoder>();
+    senseAmpMuxLev1 = std::make_unique<Mux>();
+    senseAmpMuxLev2 = std::make_unique<Mux>();
 
-    outputAcc = std::make_shared<CAM_OutputAccumulator>();
-    priorityEnc = std::make_shared<CAM_PriorityEncoder>();
+    outputAcc = std::make_unique<CAM_OutputAccumulator>();
+    priorityEnc = std::make_unique<CAM_PriorityEncoder>();
 
     RowDriver.resize(MAX_PORT);
     WriteDriver.resize(MAX_PORT);
@@ -422,7 +422,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     // those NAND merges the WL and SL signal
     //COMMENT RowDriver = new CAM_RowNand [config->technology.cell->camNumRow];
     for(int i=0;i<config->technology.cell->camNumRow;i++){
-        RowDriver[i] = std::make_shared<CAM_RowNand>();
+        RowDriver[i] = std::make_unique<CAM_RowNand>();
         RowDriver[i]->Initialize(numRow, Row[i]->cap*1.6, Row[i]->res, false/*TODO*/, false, DriverOptLevel, Row[i]->maxCurrent, config);
         //RowDriver[i]->CalculateRC();
     }
@@ -433,7 +433,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     // 	}
     // }
 
-    precharger = std::make_shared<CAM_Precharger>();
+    precharger = std::make_unique<CAM_Precharger>();
     precharger->Initialize(voltagePrecharge, numColumn, Col[indexMatchline]->cap, matchlineWireRes,
             config, localWire);
     //precharger->CalculateRC();
@@ -462,7 +462,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
         senseAmp->Initialize(numColumn / muxSenseAmp, typeSenseAmp, customSenseAmp, senseVoltage, lenRow / numColumn * muxSenseAmp, config->peripherals.fileCustomSA, config);
         //senseAmp->CalculateRC();
         for(int i=0;i<config->technology.cell->camNumCol;i++){
-            ColMux[i] = std::make_shared<Mux>();
+            ColMux[i] = std::make_unique<Mux>();
             ColMux[i]->Initialize(muxSenseAmp, numColumn / muxSenseAmp, senseAmp->capLoad, senseAmp->capLoad, Col[i]->maxCurrent, config);
             //ColMux[i]->CalculateRC();
         }
@@ -478,9 +478,9 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     if (withWriteDriver) {
         for(int i=0;i<config->technology.cell->camNumCol;i++) {
             if(config->technology.cell->camPort[1][i].Type == Matchline) {
-                WriteDriver[i] = std::make_shared<RowDecoder>();
+                WriteDriver[i] = std::make_unique<RowDecoder>();
             } else {
-                WriteDriver[i] = std::make_shared<RowDecoder>();
+                WriteDriver[i] = std::make_unique<RowDecoder>();
                 WriteDriver[i]->Initialize(numColumn / muxSenseAmp, Col[i]->cap, Col[i]->res, false, DriverOptLevel, Col[i]->maxCurrent, config);
                 //WriteDriver[i]->CalculateRC();
             }

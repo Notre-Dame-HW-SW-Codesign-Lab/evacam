@@ -388,7 +388,7 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         numWay = 1;
     }
 
-    mat = std::make_shared<Mat>();
+    mat = std::make_unique<Mat>();
     mat->Initialize(numRowSubarray, numColumnSubarray, numAddressBitToRoute, matBlockSize,
             numWay, numRowPerSet, false, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
             muxSenseAmp, internalSenseAmp, muxOutputLev1, muxOutputLev2, areaOptimizationLevel, 

@@ -44,11 +44,11 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
             rowDecoderStage2 = NULL;
             rowDecoderStage1B = NULL;
             rowDecoderStage1C = NULL;
-            rowDecoderStage1A = std::make_shared<RowDecoder>();
+            rowDecoderStage1A = std::make_unique<RowDecoder>();
             rowDecoderStage1A->Initialize(numOutputAddressBit, capLoad, resLoad, numNandInputStage1A == 3, latency_first, 0, config);
             //rowDecoderStage1A->CalculateRC();
         } else {
-            rowDecoderStage2 = std::make_shared<RowDecoder>();
+            rowDecoderStage2 = std::make_unique<RowDecoder>();
             double capLoadStage1A, capLoadStage1B, capLoadStage1C;
             if (numBasicDecoder <= 6) {
                 rowDecoderStage2->Initialize(numOutputAddressBit, capLoad, resLoad, false, latency_first, 0, config);
@@ -62,10 +62,10 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
                 capLoadStage1A = numAddressBitStage1B * rowDecoderStage2->capNandInput;
                 capLoadStage1B = numAddressBitStage1A * rowDecoderStage2->capNandInput;
                 rowDecoderStage1C = NULL;
-                rowDecoderStage1A = std::make_shared<RowDecoder>();
+                rowDecoderStage1A = std::make_unique<RowDecoder>();
                 rowDecoderStage1A->Initialize(numAddressBitStage1A, capLoadStage1A, 0 /* TODO */, numNandInputStage1A == 3, latency_first, 0, config);
                 //rowDecoderStage1A->CalculateRC();
-                rowDecoderStage1B = std::make_shared<RowDecoder>();
+                rowDecoderStage1B = std::make_unique<RowDecoder>();
                 rowDecoderStage1B->Initialize(numAddressBitStage1B, capLoadStage1B, 0 /* TODO */, numNandInputStage1B == 3, latency_first, 0, config);
                 //rowDecoderStage1B->CalculateRC();
             } else if (numBasicDecoder <= 9){
@@ -95,13 +95,13 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
                 capLoadStage1A = numAddressBitStage1B * numAddressBitStage1C * rowDecoderStage2->capNandInput;
                 capLoadStage1B = numAddressBitStage1A * numAddressBitStage1C * rowDecoderStage2->capNandInput;
                 capLoadStage1C = numAddressBitStage1A * numAddressBitStage1B * rowDecoderStage2->capNandInput;
-                rowDecoderStage1A = std::make_shared<RowDecoder>();
+                rowDecoderStage1A = std::make_unique<RowDecoder>();
                 rowDecoderStage1A->Initialize(numAddressBitStage1A, capLoadStage1A, 0 /* TODO */, numNandInputStage1A == 3, latency_first, 0, config);
                 //rowDecoderStage1A->CalculateRC();
-                rowDecoderStage1B = std::make_shared<RowDecoder>();
+                rowDecoderStage1B = std::make_unique<RowDecoder>();
                 rowDecoderStage1B->Initialize(numAddressBitStage1B, capLoadStage1B, 0 /* TODO */, numNandInputStage1B == 3, latency_first, 0, config);
                 //rowDecoderStage1B->CalculateRC();
-                rowDecoderStage1C = std::make_shared<RowDecoder>();
+                rowDecoderStage1C = std::make_unique<RowDecoder>();
                 rowDecoderStage1C->Initialize(numAddressBitStage1C, capLoadStage1C, 0 /* TODO */, numNandInputStage1C == 3, latency_first, 0, config);
                 //rowDecoderStage1C->CalculateRC();
             }
@@ -112,7 +112,7 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
             } else {
                 capLoadBasicDecoderC = 64 * rowDecoderStage1C->capNandInput;
             }
-            basicDecoderC = std::make_shared<BasicDecoder>();
+            basicDecoderC = std::make_unique<BasicDecoder>();
             basicDecoderC->Initialize(3, capLoadBasicDecoderC, 0, config /* TODO */);
         } else {
             basicDecoderC = NULL;
@@ -123,7 +123,7 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
             } else {
                 capLoadBasicDecoderB = 64 * rowDecoderStage1B->capNandInput;
             }
-            basicDecoderB = std::make_shared<BasicDecoder>();
+            basicDecoderB = std::make_unique<BasicDecoder>();
             basicDecoderB->Initialize(3, capLoadBasicDecoderB, 0, config /* TODO */);
         } else {
             basicDecoderB = NULL;
@@ -135,7 +135,7 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
                 numBasicDecoderA2 = 0;
                 numCapNandA1 = 1 << ( 3* (numNandInputStage1A - 1));
                 capLoadBasicDecoderA1 = numCapNandA1 * rowDecoderStage1A->capNandInput;
-                basicDecoderA1 = std::make_shared<BasicDecoder>();
+                basicDecoderA1 = std::make_unique<BasicDecoder>();
                 basicDecoderA1->Initialize(3, capLoadBasicDecoderA1, 0, config /* TODO */);
                 basicDecoderA2 = NULL;
             } else if (numDecoder24 == 1) {
@@ -145,30 +145,30 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
                 numCapNandA2 = 1 << (2 + 3 * (numBasicDecoderA2 - 1));
                 capLoadBasicDecoderA1 = numCapNandA1 * rowDecoderStage1A->capNandInput;
                 capLoadBasicDecoderA2 = numCapNandA2 * rowDecoderStage1A->capNandInput;
-                basicDecoderA1 = std::make_shared<BasicDecoder>();
+                basicDecoderA1 = std::make_unique<BasicDecoder>();
                 basicDecoderA1->Initialize(2, capLoadBasicDecoderA1, 0, config /* TODO */);
-                basicDecoderA2 = std::make_shared<BasicDecoder>();
+                basicDecoderA2 = std::make_unique<BasicDecoder>();
                 basicDecoderA2->Initialize(3, capLoadBasicDecoderA2, 0, config /* TODO */);
             } else if (numDecoder24 == 2) {
                 if (numNandInputStage1A == 2) {
                     numBasicDecoderA1 = 2;
                     numBasicDecoderA2 = 0;
-                    basicDecoderA1 = std::make_shared<BasicDecoder>();
+                    basicDecoderA1 = std::make_unique<BasicDecoder>();
                     basicDecoderA1->Initialize(2, 4 * rowDecoderStage1A->capNandInput, 0, config /* TODO */);
                     basicDecoderA2 = NULL;
                 } else {
                     numBasicDecoderA1 = 2;
                     numBasicDecoderA2 = 1;
-                    basicDecoderA1 = std::make_shared<BasicDecoder>();
+                    basicDecoderA1 = std::make_unique<BasicDecoder>();
                     basicDecoderA1->Initialize(2, 32 * rowDecoderStage1A->capNandInput, 0, config /* TODO */);
-                    basicDecoderA2 = std::make_shared<BasicDecoder>();
+                    basicDecoderA2 = std::make_unique<BasicDecoder>();
                     basicDecoderA2->Initialize(3, 16 * rowDecoderStage1A->capNandInput, 0, config /* TODO */);
                 }
             }
         } else {
             numBasicDecoderA1 = 1;
             numBasicDecoderA2 = 0;
-            basicDecoderA1 = std::make_shared<BasicDecoder>();
+            basicDecoderA1 = std::make_unique<BasicDecoder>();
             basicDecoderA2 = NULL;
             if (numDecoder12 == 1) {
                 basicDecoderA1->Initialize(1, capLoad, resLoad, config);
