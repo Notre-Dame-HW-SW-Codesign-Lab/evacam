@@ -9,7 +9,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
         std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, 
-        std::shared_ptr<CAM_Opt> _CAM_opt) {
+        const CAM_Opt &_CAM_opt) {
     (void)_searchFunction;
 
     if (!_localWire || !_globalWire)

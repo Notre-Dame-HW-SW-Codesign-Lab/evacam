@@ -76,7 +76,7 @@ void EvaCamExplorer::InitializeExploration() {
     InitializeBestResults();
     localWire_ = WireFactory::CreateDefaultLocalWire(config_);
     globalWire_ = WireFactory::CreateDefaultGlobalWire(config_);
-    camOpt_ = std::make_shared<CAM_Opt>();
+    camOpt_ = {};
 
     {
         std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
@@ -241,10 +241,10 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                             continue;
                                                         }
 
-                                                        auto iterCamOpt = std::make_shared<CAM_Opt>();
-                                                        iterCamOpt->RowDriver = rowDriverOptLevel;
-                                                        iterCamOpt->Proirity = priorityOptLevel;
-                                                        iterCamOpt->BitSerialWidth = bitSerialWidth;
+                                                        CAM_Opt iterCamOpt{};
+                                                        iterCamOpt.RowDriver = rowDriverOptLevel;
+                                                        iterCamOpt.Proirity = priorityOptLevel;
+                                                        iterCamOpt.BitSerialWidth = bitSerialWidth;
 
                                                         const auto dataBank = BuildBank(numRowMat, numColumnMat, numRowSubarray,
                                                                 numColumnSubarray, numActiveMatPerRow,
@@ -365,9 +365,9 @@ void EvaCamExplorer::RefineGlobalWires() {
 std::shared_ptr<Result> EvaCamExplorer::ReevaluateBestResultWithWires(int optimizationIndex,
         const std::shared_ptr<Wire> &localWire,
         const std::shared_ptr<Wire> &globalWire) {
-    camOpt_->BitSerialWidth = bestResults_[optimizationIndex]->bank->numBitSerial;
-    camOpt_->Proirity = bestResults_[optimizationIndex]->bank->mat->subarray->PriorityOptLevel;
-    camOpt_->RowDriver = bestResults_[optimizationIndex]->bank->mat->subarray->DriverOptLevel;
+    camOpt_.BitSerialWidth = bestResults_[optimizationIndex]->bank->numBitSerial;
+    camOpt_.Proirity = bestResults_[optimizationIndex]->bank->mat->subarray->PriorityOptLevel;
+    camOpt_.RowDriver = bestResults_[optimizationIndex]->bank->mat->subarray->DriverOptLevel;
 
     const auto trialBank = BuildBank(bestResults_[optimizationIndex]->bank->numRowMat,
             bestResults_[optimizationIndex]->bank->numColumnMat,
@@ -537,7 +537,7 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
         int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
         int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
         BufferDesignTarget areaOptimizationLevel, const std::shared_ptr<Wire> &localWire,
-        const std::shared_ptr<Wire> &globalWire, const std::shared_ptr<CAM_Opt> &camOpt) const {
+        const std::shared_ptr<Wire> &globalWire, const CAM_Opt &camOpt) const {
     const auto bank = BankFactory::CreateBank(config_);
     BankFactory::InitializeBank(config_, bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
             associativity_, numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,

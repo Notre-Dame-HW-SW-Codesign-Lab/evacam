@@ -30,7 +30,7 @@ class EvaCAM_Match::Impl {
         std::shared_ptr<Bank> bank;
         std::shared_ptr<Wire> localWire;
         std::shared_ptr<Wire> globalWire;
-        std::shared_ptr<CAM_Opt> camOpt;
+        CAM_Opt camOpt{};
 };
 
 EvaCAM_Match::Impl::Impl(const std::string &configPath) {
@@ -86,10 +86,9 @@ void EvaCAM_Match::Impl::InitializeConfiguredBank() {
     localWire = CreateLocalWire();
     globalWire = CreateGlobalWire();
 
-    camOpt = std::make_shared<CAM_Opt>();
-    camOpt->RowDriver = rowDriverOpt;
-    camOpt->Proirity = priorityOpt;
-    camOpt->BitSerialWidth = bitSerialWidth;
+    camOpt.RowDriver = rowDriverOpt;
+    camOpt.Proirity = priorityOpt;
+    camOpt.BitSerialWidth = bitSerialWidth;
 
     if (config->input.routingMode == h_tree) {
         bank = std::make_shared<BankWithHtree>();

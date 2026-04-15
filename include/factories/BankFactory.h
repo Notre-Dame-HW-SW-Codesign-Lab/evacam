@@ -8,7 +8,6 @@
 class EvaCamConfig;
 class Bank;
 class Wire;
-struct CAM_Opt;
 
 class BankFactory {
     public:
@@ -21,7 +20,7 @@ class BankFactory {
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn,
                 BufferDesignTarget areaOptimizationLevel, MemoryType memoryType,
                 const std::shared_ptr<Wire> &localWire, const std::shared_ptr<Wire> &globalWire,
-                const std::shared_ptr<CAM_Opt> &camOpt);
+                const CAM_Opt &camOpt);
 };
 
 #endif /* FACTORIES_BANKFACTORY_H_ */

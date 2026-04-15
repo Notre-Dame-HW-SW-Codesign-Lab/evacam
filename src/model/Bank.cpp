@@ -255,6 +255,7 @@ Bank & Bank::operator=(const Bank &rhs) {
     numActiveSubarrayPerRow = rhs.numActiveSubarrayPerRow;
     numActiveSubarrayPerColumn = rhs.numActiveSubarrayPerColumn;
     mat = rhs.mat;
+    CAM_opt = rhs.CAM_opt;
     searchLatency = rhs.searchLatency;
     searchDynamicEnergy = rhs.searchDynamicEnergy;
     numBitSerial = rhs.numBitSerial;

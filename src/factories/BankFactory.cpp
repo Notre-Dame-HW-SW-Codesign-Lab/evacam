@@ -19,7 +19,7 @@ void BankFactory::InitializeBank(const std::shared_ptr<EvaCamConfig> &config,
         int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn,
         BufferDesignTarget areaOptimizationLevel, MemoryType memoryType,
         const std::shared_ptr<Wire> &localWire, const std::shared_ptr<Wire> &globalWire,
-        const std::shared_ptr<CAM_Opt> &camOpt) {
+        const CAM_Opt &camOpt) {
     bank->Initialize(numRowMat, numColumnMat, capacityBits, blockSizeBits, associativityValue, numRowPerSet,
             numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp, config->input.internalSensing,
             muxOutputLev1, muxOutputLev2, numRowSubarray, numColumnSubarray,

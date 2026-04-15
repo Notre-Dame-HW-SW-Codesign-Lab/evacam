@@ -7,7 +7,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
         MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
         std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire, 
-        std::shared_ptr<CAM_Opt> _CAM_opt) {
+        const CAM_Opt &_CAM_opt) {
     if (initialized)
         config->logger.Verbose() << "[Mat] Warning: Already initialized!";
 
@@ -118,7 +118,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
             muxOutputLev1, 
             muxOutputLev2,			
             areaOptimizationLevel, 
-            (BufferDesignTarget)CAM_opt->RowDriver,		
+            (BufferDesignTarget)CAM_opt.RowDriver,		
             config->peripherals.withInputEnc, 
             config->peripherals.typeInputEnc,  
             config->peripherals.customInputEnc,
@@ -127,7 +127,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
             config->peripherals.withWriteDriver,
             config->peripherals.withOutputAcc, 
             config->peripherals.withPriorityEnc,  
-            (BufferDesignTarget)CAM_opt->Proirity,
+            (BufferDesignTarget)CAM_opt.Proirity,
             config->peripherals.withInputBuffer, 
             config->peripherals.withOutputBuffer, 
             config->technology.cell->camType, 
@@ -421,6 +421,7 @@ Mat & Mat::operator=(const Mat &rhs) {
     senseAmpMuxLev1PredecoderBlock2 = rhs.senseAmpMuxLev1PredecoderBlock2;
     senseAmpMuxLev2PredecoderBlock1 = rhs.senseAmpMuxLev2PredecoderBlock1;
     senseAmpMuxLev2PredecoderBlock2 = rhs.senseAmpMuxLev2PredecoderBlock2;
+    CAM_opt = rhs.CAM_opt;
 
     return *this;
 }

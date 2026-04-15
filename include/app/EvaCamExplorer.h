@@ -15,7 +15,6 @@ class CAM_Result;
 class Result;
 class Bank;
 class Wire;
-struct CAM_Opt;
 
 struct EvaCamExplorationResult {
     long long numSolution = 0;
@@ -54,7 +53,7 @@ class EvaCamExplorer {
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
                 int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
                 BufferDesignTarget areaOptimizationLevel, const std::shared_ptr<Wire> &localWire,
-                const std::shared_ptr<Wire> &globalWire, const std::shared_ptr<CAM_Opt> &camOpt) const;
+                const std::shared_ptr<Wire> &globalWire, const CAM_Opt &camOpt) const;
         std::shared_ptr<Result> MakeResult(const std::shared_ptr<Bank> &bank,
                 const std::shared_ptr<Wire> &localWire,
                 const std::shared_ptr<Wire> &globalWire) const;
@@ -73,7 +72,7 @@ class EvaCamExplorer {
         std::vector<std::shared_ptr<CAM_Result>> bestResults_;
         std::shared_ptr<Wire> localWire_;
         std::shared_ptr<Wire> globalWire_;
-        std::shared_ptr<CAM_Opt> camOpt_;
+        CAM_Opt camOpt_{};
         std::optional<OutputFileLock> explorationCsvLock_;
         std::string explorationCsvPath_;
         long long numSolution_ = 0;

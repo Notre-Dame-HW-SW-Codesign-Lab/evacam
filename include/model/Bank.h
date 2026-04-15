@@ -37,7 +37,7 @@ class Bank: public FunctionUnit {
                 BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
                 SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
                 std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, 
-                std::shared_ptr<CAM_Opt> _CAM_opt) = 0;
+                const CAM_Opt &_CAM_opt) = 0;
 
         virtual void CalculateArea() = 0;
         virtual void CalculateRC() = 0;
@@ -75,7 +75,7 @@ class Bank: public FunctionUnit {
         std::shared_ptr<Mat> mat;
         std::shared_ptr<Wire> localWire;
         std::shared_ptr<Wire> globalWire;
-        std::shared_ptr<CAM_Opt> CAM_opt;
+        CAM_Opt CAM_opt;
 };
 
 #endif /* BANK_H_ */

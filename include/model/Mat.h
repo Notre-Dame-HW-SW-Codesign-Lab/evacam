@@ -27,7 +27,7 @@ class Mat: public FunctionUnit {
                 int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
                 MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
                 std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire,
-                std::shared_ptr<CAM_Opt> _CAM_opt);
+                const CAM_Opt &_CAM_opt);
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
@@ -71,7 +71,7 @@ class Mat: public FunctionUnit {
         std::shared_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock2;
 
         std::shared_ptr<Wire> localWire;
-        std::shared_ptr<CAM_Opt> CAM_opt;
+        CAM_Opt CAM_opt;
 
         Comparator comparator;
 };

@@ -21,7 +21,7 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
         BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
-        std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, std::shared_ptr<CAM_Opt> _CAM_opt) {
+        std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, const CAM_Opt &_CAM_opt) {
 
     if (!_localWire || !_globalWire)
         throw std::runtime_error("[BankWithHtree] Error: wires not delcared.");
@@ -579,16 +579,16 @@ void BankWithHtree::CalculateLatencyAndPower() {
                     - (mat->subarray->inputBuf->readLatency) * (mat->muxSenseAmp - 1);
                 //std::cout << "[BankWithHtree] searchLatency: " << searchLatency << std::endl;
                 if (config->peripherals.withOutputAcc) {
-                    searchLatency *= config->input.wordWidth / CAM_opt->BitSerialWidth;
+                    searchLatency *= config->input.wordWidth / CAM_opt.BitSerialWidth;
                 }
             }
 
             searchDynamicEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
                 - (mat->subarray->inputBuf->readDynamicEnergy + mat->subarray->inputEnc->readDynamicEnergy) * (mat->muxSenseAmp - 1);
             if (config->peripherals.withOutputAcc) {
-                searchDynamicEnergy *= config->input.wordWidth / CAM_opt->BitSerialWidth;
+                searchDynamicEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
             }
-            numBitSerial = CAM_opt->BitSerialWidth;
+            numBitSerial = CAM_opt.BitSerialWidth;
         }
 
         for (int i = 0; i < levelHorizontal; i++) {

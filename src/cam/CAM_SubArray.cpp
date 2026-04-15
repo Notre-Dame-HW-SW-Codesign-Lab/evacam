@@ -83,7 +83,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
         bool _withOutputAcc, bool _withPriorityEnc, BufferDesignTarget _PriorityOptLevel,
         bool _withInputBuf, bool _withOutputBuf, CAMType _camType, SearchFunction _searchFunction, 
         bool _withVariation, std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire,
-        std::shared_ptr<CAM_Opt> _CAM_opt) {
+        const CAM_Opt &_CAM_opt) {
     if (initialized)
         _config->logger.Verbose() << "[CAM_SubArray] Warning: Already initialized!";
     numRow = _numRow;
@@ -686,8 +686,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             double tau, gm, beta;
             // Estimate the ML latency for 1-miss case
 
-            resTotalCell = (resMemCellOn * resMemCellOff) / ((CAM_opt->BitSerialWidth-1)*resMemCellOn + resMemCellOff);
-            capTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+            resTotalCell = (resMemCellOn * resMemCellOff) / ((CAM_opt.BitSerialWidth-1)*resMemCellOn + resMemCellOff);
+            capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
             tau = resTotalCell 
                 * (capTotalCell 
@@ -712,7 +712,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             config->logger.Verbose() << "matchlineDelay = " << matchlineDelay * 1e12 << " ps";
 
             // Estimate the ML latency for all-match case
-            resTotalCell = resMemCellOff / CAM_opt->BitSerialWidth;//  
+            resTotalCell = resMemCellOff / CAM_opt.BitSerialWidth;//  
             tau = resTotalCell * (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
                 + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline]->cap / 2);
             //TODO: Need to get referDelay to be an expected value, took the following line from a commented out line above
@@ -799,12 +799,12 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
             // Hamming distance-based approximate match
             if(config->input.searchFunction == BE || config->input.searchFunction == TH){
-                for(int k = 1; k<CAM_opt->BitSerialWidth; k++){
+                for(int k = 1; k<CAM_opt.BitSerialWidth; k++){
 
-                    double resTemp0 = (resMemCellOn * resMemCellOff) / ((CAM_opt->BitSerialWidth-k)*resMemCellOn + resMemCellOff*k);
-                    double resTemp1 = (resMemCellOn * resMemCellOff) / ((CAM_opt->BitSerialWidth-k-1)*resMemCellOn + resMemCellOff*(k+1));
+                    double resTemp0 = (resMemCellOn * resMemCellOff) / ((CAM_opt.BitSerialWidth-k)*resMemCellOn + resMemCellOff*k);
+                    double resTemp1 = (resMemCellOn * resMemCellOff) / ((CAM_opt.BitSerialWidth-k-1)*resMemCellOn + resMemCellOff*(k+1));
 
-                    capTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+                    capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
                     double tauTemp0 = resTemp0 * (capTotalCell + ColMux[indexMatchline]->capForPreviousDelayCalculation + config->peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad)
                         + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + config->peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad + Col[indexMatchline]->cap / 2);
@@ -1041,26 +1041,26 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             }// }
         }
         if (config->technology.cell->readEnergy != 0) {
-            cellReadEnergy = config->technology.cell->readEnergy * CAM_opt->BitSerialWidth;
+            cellReadEnergy = config->technology.cell->readEnergy * CAM_opt.BitSerialWidth;
         } else if (config->technology.cell->readPower != 0) {
             cellReadEnergy = config->technology.cell->readPower 
-                * CAM_opt->BitSerialWidth 
+                * CAM_opt.BitSerialWidth 
                 * (senseAmp->readLatency + matchlineDelay);
         } else if (config->technology.cell->memCellType == SRAM) {
-            cellReadEnergy = capCellAccess * voltagePrecharge * voltagePrecharge * CAM_opt->BitSerialWidth;
+            cellReadEnergy = capCellAccess * voltagePrecharge * voltagePrecharge * CAM_opt.BitSerialWidth;
         } else if (config->technology.cell->readMode) {	/* voltage-sensing */
             if (config->technology.cell->readVoltage == 0) { /* Current-in voltage sensing */
-                cellReadEnergy = config->technology.tech->vdd() * config->technology.cell->readCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt->BitSerialWidth;
+                cellReadEnergy = config->technology.tech->vdd() * config->technology.cell->readCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt.BitSerialWidth;
             }
             if (config->technology.cell->readCurrent == 0) { /*Voltage-divider sensing */
                 double resInSerialForSenseAmp, maxMatchlineCurrent;
                 resInSerialForSenseAmp = sqrt(config->technology.cell->resistanceOn * config->technology.cell->resistanceOff);
                 maxMatchlineCurrent = (config->technology.cell->readVoltage - config->technology.cell->voltageDropAccessDevice) / (config->technology.cell->resistanceOn + resInSerialForSenseAmp);
-                cellReadEnergy = config->technology.tech->vdd() * maxMatchlineCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt->BitSerialWidth;
+                cellReadEnergy = config->technology.tech->vdd() * maxMatchlineCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt.BitSerialWidth;
             }
         } else { /* current-sensing */
             double maxMatchlineCurrent = (config->technology.cell->readVoltage - config->technology.cell->voltageDropAccessDevice) / config->technology.cell->resistanceOn;
-            cellReadEnergy = config->technology.tech->vdd() * maxMatchlineCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt->BitSerialWidth;
+            cellReadEnergy = config->technology.tech->vdd() * maxMatchlineCurrent * (senseAmp->readLatency + matchlineDelay) * CAM_opt.BitSerialWidth;
         }
         cellReadEnergy *= numColumn / muxSenseAmp;
 
@@ -1397,6 +1397,7 @@ CAM_SubArray & CAM_SubArray::operator=(const CAM_SubArray &rhs) {
     withInputEnc = rhs.withInputEnc;
     typeInputEnc = rhs.typeInputEnc;
     customInputEnc = rhs.customInputEnc;
+    CAM_opt = rhs.CAM_opt;
     DecMergeOptLevel = rhs.DecMergeOptLevel;
     RowDecMergeInv = rhs.RowDecMergeInv;
     DriverOptLevel = rhs.DriverOptLevel;
@@ -1451,10 +1452,10 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
         throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports exact search only.");
     if (config->technology.cell->camType != TCAM)
         throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports TCAM only.");
-    if (!CAM_opt)
+    if (CAM_opt.BitSerialWidth <= 0)
         throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
-    if (stored.size() != static_cast<size_t>(CAM_opt->BitSerialWidth)
-            || query.size() != static_cast<size_t>(CAM_opt->BitSerialWidth)) {
+    if (stored.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)
+            || query.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)) {
         throw std::invalid_argument("[CAM_SubArray] Error: binary match vectors must match BitSerialWidth.");
     }
 
@@ -1470,9 +1471,9 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
     double effectiveSearchEnergy = searchDynamicEnergy;
 
     if (mismatchCount > 0) {
-        double capTotalCellTemp = capCellAccess * CAM_opt->BitSerialWidth;
+        double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
         double resTemp = (resMemCellOn * resMemCellOff)
-            / ((CAM_opt->BitSerialWidth - mismatchCount) * resMemCellOn + resMemCellOff * mismatchCount);
+            / ((CAM_opt.BitSerialWidth - mismatchCount) * resMemCellOn + resMemCellOff * mismatchCount);
         double tauTemp = resTemp * (capTotalCellTemp
                 + ColMux[indexMatchline]->capForPreviousDelayCalculation
                 + config->peripherals.addCapOnML
@@ -1497,7 +1498,7 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
         effectiveSenseMargin = voltagePrecharge / 2 - actualMatchlineVoltage;
 
         // Approximate extra discharge energy from deeper ML discharge as mismatches increase.
-        double missRatio = static_cast<double>(mismatchCount) / static_cast<double>(CAM_opt->BitSerialWidth);
+        double missRatio = static_cast<double>(mismatchCount) / static_cast<double>(CAM_opt.BitSerialWidth);
         effectiveSearchEnergy = searchDynamicEnergy * (1.0 + missRatio);
     }
 
@@ -1583,10 +1584,10 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
             }
         }
 
-        const double sampleCapTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         const double sampleResTotalCell =
                 (sample.cellResOn * sample.cellResOff)
-                / ((CAM_opt->BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
+                / ((CAM_opt.BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
         const double sampleTau =
                 sampleResTotalCell * (sampleCapTotalCell
                         + ColMux[indexMatchline]->capForPreviousDelayCalculation
@@ -1610,7 +1611,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
                 RowDriver[indexMaxRowDriver]->rampOutput,
                 &sampleRamp);
 
-        const double sampleAllMatchRes = sample.cellResOff / CAM_opt->BitSerialWidth;
+        const double sampleAllMatchRes = sample.cellResOff / CAM_opt.BitSerialWidth;
         const double sampleAllMatchTau =
                 sampleAllMatchRes * (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
                 + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline]->cap / 2);
@@ -1664,10 +1665,10 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
 
     for (int sampleIndex = 0; sampleIndex < config->variation.samples; sampleIndex++) {
         const CAMResistanceSample sample = BuildResistanceSample(sampleIndex);
-        const double sampleCapTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         const double sampleResTotalCell =
                 (sample.cellResOn * sample.cellResOff)
-                / ((CAM_opt->BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
+                / ((CAM_opt.BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
         const double sampleTau =
                 sampleResTotalCell * (sampleCapTotalCell
                         + ColMux[indexMatchline]->capForPreviousDelayCalculation
@@ -1691,7 +1692,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
                 RowDriver[indexMaxRowDriver]->rampOutput,
                 &sampleRamp);
 
-        const double sampleAllMatchRes = sample.cellResOff / CAM_opt->BitSerialWidth;
+        const double sampleAllMatchRes = sample.cellResOff / CAM_opt.BitSerialWidth;
         const double sampleAllMatchTau =
                 sampleAllMatchRes * (Col[indexMatchline]->cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
                 + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline]->cap / 2);
@@ -1737,7 +1738,7 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
 
     if (monteCarloSummary.mode == "single_point") {
         const CAMResistanceSample sample = BuildResistanceSample(0);
-        const double sampleCapTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         double sampleSearchDynamicEnergy = 0;
 
         if (typeSenseAmp == discharge) {
@@ -1780,7 +1781,7 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
 
     for (int sampleIndex = 0; sampleIndex < monteCarloSummary.samples; sampleIndex++) {
         const CAMResistanceSample sample = BuildResistanceSample(sampleIndex);
-        const double sampleCapTotalCell = capCellAccess * CAM_opt->BitSerialWidth;
+        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         double sampleSearchDynamicEnergy = 0;
 
         if (typeSenseAmp == discharge) {
