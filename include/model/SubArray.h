@@ -1,3 +1,5 @@
+// Fully legacy file, no current instantiation of this object
+
 #ifndef SUBARRAY_H_
 #define SUBARRAY_H_
 

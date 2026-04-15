@@ -16,15 +16,16 @@ class CAM_RowNand: public RowDecoder {
             invalid = false;
             driverInv = true;
         }
-
-        //CAM_RowNand(const CAM_RowNand&) {}
-        virtual ~CAM_RowNand() {}
+        CAM_RowNand(const CAM_RowNand&) = delete;
+        CAM_RowNand& operator=(const CAM_RowNand&) = delete;
+        CAM_RowNand(CAM_RowNand&&) noexcept = default;
+        CAM_RowNand& operator=(CAM_RowNand&&) noexcept = default;
+        virtual ~CAM_RowNand() = default;
 
         /* Functions */
         void Initialize(int _numRow, double _capLoad, double _resLoad,
                 bool _multipleRowPerSet, bool _inv, BufferDesignTarget _areaOptimizationLevel, 
                 double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config);
-        CAM_RowNand & operator=(const CAM_RowNand &);
 
         /* Properties */
         bool driverInv;

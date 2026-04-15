@@ -11,8 +11,11 @@ class RowDecoder: public FunctionUnit {
             initialized = false;
             invalid = false;
         }
-        RowDecoder(const RowDecoder&) {}
-        virtual ~RowDecoder() {}
+        RowDecoder(const RowDecoder&) = delete;
+        RowDecoder& operator=(const RowDecoder&) = delete;
+        RowDecoder(RowDecoder&&) noexcept = default;
+        RowDecoder& operator=(RowDecoder&&) noexcept = default;
+        virtual ~RowDecoder() = default;
 
         /* Functions */
         void PrintProperty();
@@ -23,12 +26,11 @@ class RowDecoder: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        RowDecoder & operator=(const RowDecoder &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */
         bool invalid;      /*Invalidatio flag */
-        std::shared_ptr<OutputDriver> outputDriver;
+        std::unique_ptr<OutputDriver> outputDriver;
         int numRow;			/* Number of rows */
         bool multipleRowPerSet;		/* For cache design, whether a set is partitioned into multiple wordlines */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */

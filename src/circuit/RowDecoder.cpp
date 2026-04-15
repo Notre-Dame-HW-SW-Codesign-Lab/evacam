@@ -6,7 +6,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
     if (initialized)
         _config->logger.Verbose() << "[Row Decoder] Warning: Already initialized!";
 
-    outputDriver = std::make_shared<OutputDriver>();
+    outputDriver = std::make_unique<OutputDriver>();
     numRow = _numRow;
     capLoad = _capLoad;
     resLoad = _resLoad;
@@ -164,41 +164,4 @@ void RowDecoder::CalculatePower() {
 void RowDecoder::PrintProperty() {
     std::cout << "Row Decoder Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-RowDecoder & RowDecoder::operator=(const RowDecoder &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    resetLatency = rhs.resetLatency;
-    setLatency = rhs.setLatency;
-    resetDynamicEnergy = rhs.resetDynamicEnergy;
-    setDynamicEnergy = rhs.setDynamicEnergy;
-    cellReadEnergy = rhs.cellReadEnergy;
-    cellSetEnergy = rhs.cellSetEnergy;
-    cellResetEnergy = rhs.cellResetEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    invalid = rhs.invalid;
-    outputDriver = rhs.outputDriver;
-    numRow = rhs.numRow;
-    multipleRowPerSet = rhs.multipleRowPerSet;
-    numNandInput = rhs.numNandInput;
-    capLoad = rhs.capLoad;
-    resLoad = rhs.resLoad;
-    areaOptimizationLevel = rhs.areaOptimizationLevel;
-    minDriverCurrent = rhs.minDriverCurrent;
-
-    widthNandN = rhs.widthNandN;
-    widthNandP = rhs.widthNandP;
-    capNandInput = rhs.capNandInput;
-    capNandOutput = rhs.capNandOutput;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-
-    return *this;
 }

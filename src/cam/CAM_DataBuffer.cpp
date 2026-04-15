@@ -32,7 +32,7 @@ void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _res
     double logicEffort = (2+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
     logicEffort *= logicEffort;
 
-    outputDriver = std::make_shared<OutputDriver>();
+    outputDriver = std::make_unique<OutputDriver>();
 
     /* driver's cap-in: both the input and output of nand */
     CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
@@ -121,27 +121,4 @@ void CAM_DataBuffer::CalculatePower() {
 void CAM_DataBuffer::PrintProperty() {
     std::cout << "CAM_DataBuffer Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-CAM_DataBuffer & CAM_DataBuffer::operator=(const CAM_DataBuffer &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    resLoad = rhs.resLoad;
-    capNandIn = rhs.capNandIn;
-    capNandOut = rhs.capNandOut;
-    widthNandN = rhs.widthNandN;
-    widthNandP = rhs.widthNandP;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    return *this;
 }

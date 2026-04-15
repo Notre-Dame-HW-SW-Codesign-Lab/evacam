@@ -24,7 +24,7 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
     if (initialized)
         _config->logger.Verbose() << "[CAM_InputEncoder] Warning: Already initialized!";
 
-    outputDriver = std::make_shared<OutputDriver>();
+    outputDriver = std::make_unique<OutputDriver>();
 
     capLoad = _capLoad;
     resLoad = _resLoad;
@@ -172,30 +172,4 @@ void CAM_InputEncoder::CalculatePower() {
 void CAM_InputEncoder::PrintProperty() {
     std::cout << "CAM_InputEncoder Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-CAM_InputEncoder & CAM_InputEncoder::operator=(const CAM_InputEncoder &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    resLoad = rhs.resLoad;
-    capNandIn = rhs.capNandIn;
-    capNandOut = rhs.capNandOut;
-    widthNandN = rhs.widthNandN;
-    widthNandP = rhs.widthNandP;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    isCustom = rhs.isCustom;
-    typeEncoder = rhs.typeEncoder;
-    numInputBits = rhs.numInputBits;
-    return *this;
 }

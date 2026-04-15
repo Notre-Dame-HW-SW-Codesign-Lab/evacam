@@ -13,8 +13,11 @@
 class CAM_SenseAmp: public FunctionUnit {
     public:
         CAM_SenseAmp();
-        CAM_SenseAmp(const CAM_SenseAmp&) {}
-        virtual ~CAM_SenseAmp() {}
+        CAM_SenseAmp(const CAM_SenseAmp&) = delete;
+        CAM_SenseAmp& operator=(const CAM_SenseAmp&) = delete;
+        CAM_SenseAmp(CAM_SenseAmp&&) noexcept = default;
+        CAM_SenseAmp& operator=(CAM_SenseAmp&&) noexcept = default;
+        virtual ~CAM_SenseAmp() = default;
 
         /* Functions */
         void PrintProperty();
@@ -25,8 +28,7 @@ class CAM_SenseAmp: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         /* Note that this is a single SA, not yet multiplied by number of columns */
-        CAM_SenseAmp & operator=(const CAM_SenseAmp &);
-        std::shared_ptr<SenseAmp> customSA;
+        std::unique_ptr<SenseAmp> customSA;
 
         std::string fileCustomSA;
 
@@ -36,7 +38,7 @@ class CAM_SenseAmp: public FunctionUnit {
         long long numColumn;
         TypeOfSenseAmp typeSA;			/* SA type loop up table index */
         bool isCustom;		/* Indicate whether the design is customized or not */
-        std::shared_ptr<SenseAmp> normalSenseAmp;
+        std::unique_ptr<SenseAmp> normalSenseAmp;
         double senseVoltage;	/* Minimum sensible voltage */
         double capLoad;			/* Load capacitance of sense amplifier */
         double pitchSenseAmp;	/* The maximum width allowed for one sense amplifier layout */

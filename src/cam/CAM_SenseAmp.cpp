@@ -33,14 +33,14 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
         invalid = true;
     }
 
-    normalSenseAmp = std::make_shared<SenseAmp>();
+    normalSenseAmp = std::make_unique<SenseAmp>();
     normalSenseAmp->Initialize(numColumn, typeSA == nvsim_current_sense, senseVoltage, pitchSenseAmp, config);
     if(isCustom == false && (typeSA != nvsim_voltage_sense && typeSA != nvsim_current_sense && typeSA != discharge ) ){
         normalSenseAmp->invalid = true;
         throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
     }
     if(isCustom) {
-        customSA = std::make_shared<SenseAmp>();
+        customSA = std::make_unique<SenseAmp>();
         FILE *fp = fopen(fileCustomSA.c_str(), "r");
         char line[5000];
 
@@ -244,31 +244,4 @@ void CAM_SenseAmp::CalculatePower() {
 void CAM_SenseAmp::PrintProperty() {
     std::cout << "Sense Amplifier Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-CAM_SenseAmp & CAM_SenseAmp::operator=(const CAM_SenseAmp &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    resetLatency = rhs.resetLatency;
-    setLatency = rhs.setLatency;
-    resetDynamicEnergy = rhs.resetDynamicEnergy;
-    setDynamicEnergy = rhs.setDynamicEnergy;
-    cellReadEnergy = rhs.cellReadEnergy;
-    cellSetEnergy = rhs.cellSetEnergy;
-    cellResetEnergy = rhs.cellResetEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    invalid = rhs.invalid;
-    senseVoltage = rhs.senseVoltage;
-    capLoad = rhs.capLoad;
-    pitchSenseAmp = rhs.pitchSenseAmp;
-    typeSA = rhs.typeSA;
-    isCustom = rhs.isCustom;
-
-    return *this;
 }

@@ -12,8 +12,11 @@ class Precharger: public FunctionUnit {
             initialized = false;
             enableLatency = 0;
         }
-        Precharger(const Precharger&) {}
-        virtual ~Precharger() {}
+        Precharger(const Precharger&) = delete;
+        Precharger& operator=(const Precharger&) = delete;
+        Precharger(Precharger&&) noexcept = default;
+        Precharger& operator=(Precharger&&) noexcept = default;
+        virtual ~Precharger() = default;
 
         /* Functions */
         void PrintProperty();
@@ -23,11 +26,10 @@ class Precharger: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        Precharger & operator=(const Precharger &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */
-        std::shared_ptr<OutputDriver> outputDriver;
+        std::unique_ptr<OutputDriver> outputDriver;
         double voltagePrecharge;  /* Precharge Voltage */
         double capBitline, resBitline;
         double capLoadInv;

@@ -2,7 +2,6 @@
 #define MAT_H_
 
 #include "FunctionUnit.h"
-#include "SubArray.h"
 #include "PredecodeBlock.h"
 #include "typedef.h"
 #include "Comparator.h"

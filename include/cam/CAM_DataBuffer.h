@@ -12,8 +12,11 @@
 class CAM_DataBuffer: public FunctionUnit {
     public:
         CAM_DataBuffer();
-        CAM_DataBuffer(const CAM_DataBuffer&) {}
-        virtual ~CAM_DataBuffer() {}
+        CAM_DataBuffer(const CAM_DataBuffer&) = delete;
+        CAM_DataBuffer& operator=(const CAM_DataBuffer&) = delete;
+        CAM_DataBuffer(CAM_DataBuffer&&) noexcept = default;
+        CAM_DataBuffer& operator=(CAM_DataBuffer&&) noexcept = default;
+        virtual ~CAM_DataBuffer() = default;
 
         /* Functions */
         void PrintProperty();
@@ -23,7 +26,6 @@ class CAM_DataBuffer: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         /* Note that this is a single latch, not yet multiplied by number of inputs */
-        CAM_DataBuffer & operator=(const CAM_DataBuffer &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */
@@ -32,7 +34,7 @@ class CAM_DataBuffer: public FunctionUnit {
         double resLoad;		/* Load resistance, Unit: ohm */
         double capNandIn, capNandOut;
         double widthNandN, widthNandP;
-        std::shared_ptr<OutputDriver> outputDriver;
+        std::unique_ptr<OutputDriver> outputDriver;
         double rampInput, rampOutput;
 };
 

@@ -24,7 +24,7 @@ void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double
     double capInputInv         = CalculateGateCap(widthInvNmos, config->technology.tech) + CalculateGateCap(widthInvPmos, config->technology.tech);
     capLoadPerColumn           = capInputInv + capWireLoadPerColumn;
     double capLoadOutputDriver = numColumn * capLoadPerColumn;
-    outputDriver = std::make_shared<OutputDriver>();
+    outputDriver = std::make_unique<OutputDriver>();
     outputDriver->Initialize(1, capInputInv, capLoadOutputDriver, 0 /* TODO */, true, latency_first, 0, config);  /* Always Latency First */
 
     initialized = true;
@@ -59,39 +59,4 @@ void CAM_Precharger::CalculateArea() {
         height += outputDriver->height;
         area = height * width;
     }
-}
-
-CAM_Precharger & CAM_Precharger::operator=(const CAM_Precharger &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    resetLatency = rhs.resetLatency;
-    setLatency = rhs.setLatency;
-    resetDynamicEnergy = rhs.resetDynamicEnergy;
-    setDynamicEnergy = rhs.setDynamicEnergy;
-    cellReadEnergy = rhs.cellReadEnergy;
-    cellSetEnergy = rhs.cellSetEnergy;
-    cellResetEnergy = rhs.cellResetEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    outputDriver = rhs.outputDriver;
-    capBitline = rhs.capBitline;
-    resBitline = rhs.resBitline;
-    capLoadInv = rhs.capLoadInv;
-    capOutputBitlinePrecharger = rhs.capOutputBitlinePrecharger;
-    capWireLoadPerColumn = rhs.capWireLoadPerColumn;
-    resWireLoadPerColumn = rhs.resWireLoadPerColumn;
-    enableLatency = rhs.enableLatency;
-    numColumn = rhs.numColumn;
-    widthPMOSBitlinePrecharger = rhs.widthPMOSBitlinePrecharger;
-    widthPMOSBitlineEqual = rhs.widthPMOSBitlineEqual;
-    capLoadPerColumn = rhs.capLoadPerColumn;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-
-    return *this;
 }

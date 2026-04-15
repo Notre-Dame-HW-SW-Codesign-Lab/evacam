@@ -1,3 +1,5 @@
+// Fully legacy file, no current instantiation of this object
+
 #include "SubArray.h"
 #include "formula.h"
 void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,

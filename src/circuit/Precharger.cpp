@@ -13,7 +13,7 @@ void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _ca
     if (initialized)
         _config->logger.Verbose() << "[Precharger] Warning: Already initialized!";
 
-    outputDriver = std::make_shared<OutputDriver>();
+    outputDriver = std::make_unique<OutputDriver>();
     voltagePrecharge = _voltagePrecharge;
     numColumn  = _numColumn;
     capBitline = _capBitline;
@@ -124,39 +124,4 @@ void Precharger::CalculatePower() {
 void Precharger::PrintProperty() {
     std::cout << "Precharger Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-Precharger & Precharger::operator=(const Precharger &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    resetLatency = rhs.resetLatency;
-    setLatency = rhs.setLatency;
-    resetDynamicEnergy = rhs.resetDynamicEnergy;
-    setDynamicEnergy = rhs.setDynamicEnergy;
-    cellReadEnergy = rhs.cellReadEnergy;
-    cellSetEnergy = rhs.cellSetEnergy;
-    cellResetEnergy = rhs.cellResetEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    outputDriver = rhs.outputDriver;
-    capBitline = rhs.capBitline;
-    resBitline = rhs.resBitline;
-    capLoadInv = rhs.capLoadInv;
-    capOutputBitlinePrecharger = rhs.capOutputBitlinePrecharger;
-    capWireLoadPerColumn = rhs.capWireLoadPerColumn;
-    resWireLoadPerColumn = rhs.resWireLoadPerColumn;
-    enableLatency = rhs.enableLatency;
-    numColumn = rhs.numColumn;
-    widthPMOSBitlinePrecharger = rhs.widthPMOSBitlinePrecharger;
-    widthPMOSBitlineEqual = rhs.widthPMOSBitlineEqual;
-    capLoadPerColumn = rhs.capLoadPerColumn;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-
-    return *this;
 }

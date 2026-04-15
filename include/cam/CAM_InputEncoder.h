@@ -13,8 +13,11 @@
 class CAM_InputEncoder: public FunctionUnit {
     public:
         CAM_InputEncoder();
-        CAM_InputEncoder(const CAM_InputEncoder&) {}
-        virtual ~CAM_InputEncoder() {}
+        CAM_InputEncoder(const CAM_InputEncoder&) = delete;
+        CAM_InputEncoder& operator=(const CAM_InputEncoder&) = delete;
+        CAM_InputEncoder(CAM_InputEncoder&&) noexcept = default;
+        CAM_InputEncoder& operator=(CAM_InputEncoder&&) noexcept = default;
+        virtual ~CAM_InputEncoder() = default;
 
         /* Functions */
         void PrintProperty();
@@ -26,7 +29,6 @@ class CAM_InputEncoder: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         /* Note that this is a single encoder, not yet multiplied by number of inputs */
-        CAM_InputEncoder & operator=(const CAM_InputEncoder &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */
@@ -37,7 +39,7 @@ class CAM_InputEncoder: public FunctionUnit {
         double widthNandN, widthNandP;
         double capLoad;		/* Load capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */
-        std::shared_ptr<OutputDriver> outputDriver;
+        std::unique_ptr<OutputDriver> outputDriver;
         double rampInput, rampOutput;
 };
 
