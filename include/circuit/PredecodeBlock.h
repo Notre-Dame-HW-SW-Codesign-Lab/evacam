@@ -12,8 +12,11 @@ class PredecodeBlock: public FunctionUnit {
         PredecodeBlock() {
             initialized = false;
         }
-        PredecodeBlock(const PredecodeBlock&) {}
-        virtual ~PredecodeBlock() {}
+        PredecodeBlock(const PredecodeBlock&) = delete;
+        PredecodeBlock& operator=(const PredecodeBlock&) = delete;
+        PredecodeBlock(PredecodeBlock&&) noexcept = default;
+        PredecodeBlock& operator=(PredecodeBlock&&) noexcept = default;
+        virtual ~PredecodeBlock() = default;
 
         /* Functions */
         void PrintProperty();
@@ -23,7 +26,6 @@ class PredecodeBlock: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        PredecodeBlock & operator=(const PredecodeBlock &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */

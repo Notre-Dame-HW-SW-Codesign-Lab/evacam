@@ -6,14 +6,6 @@ BankWithHtree::BankWithHtree() {
     invalid = false;
 }
 
-BankWithHtree::BankWithHtree(const BankWithHtree& old_bank) {
-    initialized = old_bank.initialized;
-    invalid = old_bank.invalid;
-}
-
-BankWithHtree::~BankWithHtree() {
-}
-
 void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
         long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1,
@@ -645,11 +637,4 @@ void BankWithHtree::CalculateLatencyAndPower() {
         }
     }
     //std::cout << searchLatency << std::endl;
-}
-
-BankWithHtree & BankWithHtree::operator=(const BankWithHtree &rhs) {
-    Bank::operator=(rhs);
-    levelHorizontal = rhs.levelHorizontal;
-    levelVertical = rhs.levelVertical;
-    return *this;
 }

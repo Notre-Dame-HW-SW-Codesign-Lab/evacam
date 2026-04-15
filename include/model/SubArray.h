@@ -15,8 +15,11 @@ class SubArray: public FunctionUnit {
             initialized = false;
             invalid = false;
         }
-        SubArray(const SubArray&) {}
-        virtual ~SubArray() {}
+        SubArray(const SubArray&) = delete;
+        SubArray& operator=(const SubArray&) = delete;
+        SubArray(SubArray&&) noexcept = default;
+        SubArray& operator=(SubArray&&) noexcept = default;
+        virtual ~SubArray() = default;
 
         /* Functions */
         void PrintProperty();
@@ -28,7 +31,6 @@ class SubArray: public FunctionUnit {
         //void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        SubArray & operator=(const SubArray &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */

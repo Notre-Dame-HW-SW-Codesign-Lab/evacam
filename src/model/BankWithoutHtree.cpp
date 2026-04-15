@@ -394,11 +394,3 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
     writeDynamicEnergy += mat->writeDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
     leakage += mat->leakage * numRowMat * numColumnMat;
 }
-
-BankWithoutHtree & BankWithoutHtree::operator=(const BankWithoutHtree &rhs) {
-    Bank::operator=(rhs);
-    numAddressBit = rhs.numAddressBit;
-    numAddressBitRouteToMat = rhs.numAddressBitRouteToMat;
-    numDataBitRouteToMat = rhs.numDataBitRouteToMat;
-    return *this;
-}

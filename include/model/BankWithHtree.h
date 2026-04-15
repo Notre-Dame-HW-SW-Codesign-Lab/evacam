@@ -6,8 +6,11 @@
 class BankWithHtree: public Bank {
     public:
         BankWithHtree();
-        BankWithHtree(const BankWithHtree&);
-        ~BankWithHtree();
+        BankWithHtree(const BankWithHtree&) = delete;
+        BankWithHtree& operator=(const BankWithHtree&) = delete;
+        BankWithHtree(BankWithHtree&&) noexcept = default;
+        BankWithHtree& operator=(BankWithHtree&&) noexcept = default;
+        ~BankWithHtree() override = default;
         void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
                 long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
                 int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
@@ -21,8 +24,6 @@ class BankWithHtree: public Bank {
         void CalculateArea();
         void CalculateRC();
         void CalculateLatencyAndPower();
-        using Bank::operator=;
-        BankWithHtree & operator=(const BankWithHtree &);
 
         int numAddressBit;		/* Number of bank address bits */
         int numDataDistributeBit;	/* Number of bank mem_data bits (these bits will be distributed along with the address) */

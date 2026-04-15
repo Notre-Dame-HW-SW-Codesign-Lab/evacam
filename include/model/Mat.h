@@ -16,8 +16,11 @@ class Mat: public FunctionUnit {
             initialized = false;
             invalid = false;
         }
-        Mat(const Mat&) {}
-        virtual ~Mat() {}
+        Mat(const Mat&) = delete;
+        Mat& operator=(const Mat&) = delete;
+        Mat(Mat&&) noexcept = default;
+        Mat& operator=(Mat&&) noexcept = default;
+        virtual ~Mat() = default;
 
         /* Functions */
         void PrintProperty();
@@ -32,7 +35,6 @@ class Mat: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        Mat & operator=(const Mat &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */

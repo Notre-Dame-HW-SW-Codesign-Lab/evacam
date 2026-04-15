@@ -79,8 +79,11 @@ class CAM_SubArray: public FunctionUnit {
             voltageMemCellOn = 0;    // TODO: Actually calculate this somewhere
             WriteDriverArea = 0;     // TODO: This is calculate but says unitialized sometimes
         }
-        //CAM_SubArray(const CAM_SubArray&) {}
-        virtual ~CAM_SubArray() {}
+        CAM_SubArray(const CAM_SubArray&) = delete;
+        CAM_SubArray& operator=(const CAM_SubArray&) = delete;
+        CAM_SubArray(CAM_SubArray&&) noexcept = default;
+        CAM_SubArray& operator=(CAM_SubArray&&) noexcept = default;
+        virtual ~CAM_SubArray() = default;
 
         /* Functions */
         void PrintProperty();
@@ -100,7 +103,6 @@ class CAM_SubArray: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
-        CAM_SubArray & operator=(const CAM_SubArray &);
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
         double EffectiveDeviceResistanceStdev() const;

@@ -18,8 +18,11 @@ class Bank: public FunctionUnit {
             invalid = false;
         }
 
-        Bank(const Bank&) = default;
-        virtual ~Bank() {}
+        Bank(const Bank&) = delete;
+        Bank& operator=(const Bank&) = delete;
+        Bank(Bank&&) noexcept = default;
+        Bank& operator=(Bank&&) noexcept = default;
+        virtual ~Bank() = default;
 
         /* Functions */
         void printbreakdown();
@@ -42,7 +45,6 @@ class Bank: public FunctionUnit {
         virtual void CalculateArea() = 0;
         virtual void CalculateRC() = 0;
         virtual void CalculateLatencyAndPower() = 0;
-        virtual Bank & operator=(const Bank &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */

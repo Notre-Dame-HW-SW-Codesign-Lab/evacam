@@ -100,7 +100,7 @@ void Result::compareAndUpdate(std::shared_ptr<Result> newResult) {
                 ;
         }
         if (toUpdate) {
-            *bank = *(newResult->bank);
+            bank = newResult->bank;
             localWire = newResult->localWire;
             globalWire = newResult->globalWire;
         }

@@ -12,8 +12,11 @@ class BankWithoutHtree: public Bank {
             initialized = false;
             invalid = false;
         }
-        BankWithoutHtree(const BankWithoutHtree&) {}
-        virtual ~BankWithoutHtree() {}
+        BankWithoutHtree(const BankWithoutHtree&) = delete;
+        BankWithoutHtree& operator=(const BankWithoutHtree&) = delete;
+        BankWithoutHtree(BankWithoutHtree&&) noexcept = default;
+        BankWithoutHtree& operator=(BankWithoutHtree&&) noexcept = default;
+        virtual ~BankWithoutHtree() = default;
 
         /* Functions */
         void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
@@ -30,8 +33,6 @@ class BankWithoutHtree: public Bank {
         void CalculateArea();
         void CalculateRC();
         void CalculateLatencyAndPower();
-        using Bank::operator=;
-        BankWithoutHtree & operator=(const BankWithoutHtree &);
 
         int numAddressBit;		   /* Number of bank address bits */
         int numWay;                  /* Number of way in a mat */
