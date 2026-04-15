@@ -59,7 +59,7 @@ class EvaCamConfig {
         VariationConfig variation;
         TechnologyContext technology;
         ConstraintConfig constraints;
-        bool useCactiAssumption;		/* Use the CACTI assumptions on the array organization */
+        bool useCactiAssumption = false;		/* Use the CACTI assumptions on the array organization */
         bool requestDeepExploration = false;
 
         RuntimeSizingConfig runtimeSizing;

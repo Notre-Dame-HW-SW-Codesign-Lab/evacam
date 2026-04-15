@@ -68,35 +68,3 @@
    fun:GOMP_parallel
    fun:main
 }
-
-{
-   libgomp_helgrind_parallel_race_1
-   Helgrind:Race
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
-   fun:GOMP_parallel
-   fun:_ZN14EvaCamExplorer21RunPrimaryExplorationEv
-   fun:_ZN14EvaCamExplorer3RunEv
-   fun:main
-}
-
-{
-   libgomp_helgrind_parallel_race_2
-   Helgrind:Race
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
-   fun:GOMP_parallel
-   fun:_ZN14EvaCamExplorer21RunPrimaryExplorationEv
-   fun:_ZN14EvaCamExplorer3RunEv
-   fun:main
-}
-
-{
-   libgomp_helgrind_worker_startup_race
-   Helgrind:Race
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
-   obj:/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
-   obj:/usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so
-   fun:start_thread
-   fun:clone
-}
