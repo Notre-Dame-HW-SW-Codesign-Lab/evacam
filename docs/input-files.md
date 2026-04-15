@@ -76,19 +76,21 @@ Representative fields:
 - `write.reset.energy`
 - `variation.with_variation`
 - `variation.mode`
+- `variation.lut_file`
 - `variation.samples`
 - `variation.seed`
 - `variation.memory_device_resistance_on_stdev`
 - `ports.row`
 - `ports.column`
 
-If `variation.with_variation` is enabled in the cell file, EvaCAM uses its built-in bounded-Gaussian variation model. There is no top-level variation block and no user-selectable distribution.
+If `variation.with_variation` is enabled in the cell file, EvaCAM uses its built-in bounded-Gaussian variation model today. There is no top-level variation block. You may also provide `variation.lut_file` as a future-facing hook for an external variation lookup table path; EvaCAM currently accepts and propagates the filename but does not consume the LUT yet.
 
 Supported cell-level variation controls:
 
 - `variation.mode: single_point` for one sampled run
 - `variation.mode: monte_carlo` with `variation.samples: <N>` for Monte Carlo analysis
 - `variation.seed` as an optional reproducibility/testing override; if omitted, EvaCAM derives the base seed from the current time
+- `variation.lut_file` as an optional path to a future external variation LUT file
 
 ## Units and Formatting
 

@@ -19,6 +19,7 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
     variation.enabled = cell.withVariation;
     variation.seed = cell.hasVariationSeed ? cell.variationSeed : DefaultVariationSeed();
     variation.mode = cell.variationMode;
+    variation.lutFile = cell.variationLutFile;
     variation.samples = cell.variationSamples;
     variation.memoryDeviceResOnStdev = cell.resistanceOnVariation;
     variation.memoryDeviceResOffStdev = cell.resistanceOffVariation;

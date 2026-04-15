@@ -128,6 +128,7 @@ void TestVariationDefaultsWhenOmitted() {
     assert(cell.hasVariationSeed == false);
     assert(cell.variationSeed == 0u);
     assert(cell.variationMode == "nominal");
+    assert(cell.variationLutFile.empty());
     assert(cell.variationSamples == 1);
     assert(cell.resistanceOnVariation == 0.0);
     assert(cell.resistanceOffVariation == 0.0);
@@ -143,6 +144,7 @@ void TestVariationSectionParses() {
         "  with_variation: true\n"
         "  seed: 12345\n"
         "  mode: monte_carlo\n"
+        "  lut_file: variation_lut.csv\n"
         "  samples: 7\n"
         "  memory_device_resistance_on_stdev: 5%\n"
         "  memory_device_resistance_off_stdev: 7%\n"
@@ -158,6 +160,7 @@ void TestVariationSectionParses() {
     assert(cell.hasVariationSeed == true);
     assert(cell.variationSeed == 12345u);
     assert(cell.variationMode == "monte_carlo");
+    assert(cell.variationLutFile == "variation_lut.csv");
     assert(cell.variationSamples == 7);
     assert(near(cell.resistanceOnVariation, 0.05));
     assert(near(cell.resistanceOffVariation, 0.07));

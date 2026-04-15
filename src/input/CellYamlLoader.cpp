@@ -445,6 +445,9 @@ void ReadVariationSection(MemCell& cell, const YAML::Node& root) {
     if (YamlHelpers::child_optional(variation, "mode")) {
         cell.variationMode = YamlHelpers::read_required<std::string>(variation, "mode");
     }
+    if (YamlHelpers::child_optional(variation, "lut_file")) {
+        cell.variationLutFile = YamlHelpers::read_required<std::string>(variation, "lut_file");
+    }
     if (YamlHelpers::child_optional(variation, "samples")) {
         cell.variationSamples = YamlHelpers::read_required<int>(variation, "samples");
     }

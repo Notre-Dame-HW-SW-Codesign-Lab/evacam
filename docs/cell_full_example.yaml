@@ -88,8 +88,9 @@ multilevel: # map
 
 variation: # optional map
   with_variation: false # bool
-  # Variation sampling uses a fixed bounded-Gaussian model; there is no distribution selector.
+  # Variation sampling uses a fixed bounded-Gaussian model today.
   mode: single_point # enum: single_point | monte_carlo
+  lut_file: ./variation_lut.csv # optional path, accepted and propagated but not consumed yet
   samples: 9 # int, required for monte_carlo and must be > 1
   seed: 12345 # optional uint32, mainly for reproducible testing
   memory_device_resistance_on_stdev: 0% # units: percent

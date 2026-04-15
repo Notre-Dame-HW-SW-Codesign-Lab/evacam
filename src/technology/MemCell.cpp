@@ -73,6 +73,7 @@ MemCell::MemCell() {
     hasVariationSeed = false;
     variationSeed = 0;
     variationMode = "nominal";
+    variationLutFile = "";
     variationSamples = 1;
     resistanceOnVariation = 0;
     resistanceOffVariation = 0;

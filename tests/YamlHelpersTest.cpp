@@ -546,6 +546,7 @@ static void test_memcell_variation_yaml() {
             "  with_variation: true\n"
             "  seed: 12345\n"
             "  mode: monte_carlo\n"
+            "  lut_file: variation_lut.csv\n"
             "  samples: 7\n"
             "  memory_device_resistance_on_stdev: 5%\n"
             "  memory_device_resistance_off_stdev: 7%\n"
@@ -594,6 +595,7 @@ static void test_memcell_variation_yaml() {
     assert(cell.hasVariationSeed == true);
     assert(cell.variationSeed == 12345u);
     assert(cell.variationMode == "monte_carlo");
+    assert(cell.variationLutFile == "variation_lut.csv");
     assert(cell.variationSamples == 7);
     assert(near(cell.resistanceOnVariation, 0.05));
     assert(near(cell.resistanceOffVariation, 0.07));
@@ -644,6 +646,7 @@ static void test_cell_variation_drives_runtime_config() {
             "variation:\n"
             "  with_variation: true\n"
             "  mode: monte_carlo\n"
+            "  lut_file: tests/tmp_variation_lut.csv\n"
             "  samples: 17\n"
             "  memory_device_resistance_on_stdev: 5%\n"
             "  memory_device_resistance_off_stdev: 8%\n"
@@ -734,6 +737,7 @@ static void test_cell_variation_drives_runtime_config() {
     assert(config.variation.enabled == false);
     assert(config.variation.seed == 0u);
     assert(config.variation.mode == "nominal");
+    assert(config.variation.lutFile.empty());
     assert(config.variation.samples == 1);
 
     InputConfig input = config.input;
@@ -746,6 +750,7 @@ static void test_cell_variation_drives_runtime_config() {
     assert(variation.enabled == true);
     assert(variation.seed != 0u);
     assert(variation.mode == "monte_carlo");
+    assert(variation.lutFile == "tests/tmp_variation_lut.csv");
     assert(variation.samples == 17);
     assert(near(variation.memoryDeviceResOnStdev, 0.05));
     assert(near(variation.memoryDeviceResOffStdev, 0.08));
