@@ -155,8 +155,8 @@ class CAM_SubArray: public FunctionUnit {
         int indexMatchline;
         int indexBitline;
         int numBitline;
-        std::vector<std::shared_ptr<CAM_Line>> Row;
-        std::vector<std::shared_ptr<CAM_Line>> Col;
+        std::vector<CAM_Line> Row;
+        std::vector<CAM_Line> Col;
 
 
         // for input and output buffer

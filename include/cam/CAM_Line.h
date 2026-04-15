@@ -19,8 +19,11 @@ class CAM_Line {
             invalid = false;
         }
 
-        CAM_Line(const CAM_Line&) {}
-        virtual ~CAM_Line() {}
+        CAM_Line(const CAM_Line&) = default;
+        CAM_Line& operator=(const CAM_Line&) = default;
+        CAM_Line(CAM_Line&&) noexcept = default;
+        CAM_Line& operator=(CAM_Line&&) noexcept = default;
+        ~CAM_Line() = default;
 
         /* Functions */
         void Initialize(bool _isRow, int _index, double _len, long long _numCell, 

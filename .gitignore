@@ -47,3 +47,6 @@ results/
 
 # Local editor/tooling metadata
 compile_commands.json
+
+# Local testing log files
+testing_logs/
