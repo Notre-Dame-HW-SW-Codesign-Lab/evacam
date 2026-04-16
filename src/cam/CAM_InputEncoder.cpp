@@ -24,8 +24,6 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
     if (initialized)
         _config->logger.Verbose() << "[CAM_InputEncoder] Warning: Already initialized!";
 
-    outputDriver = std::make_unique<OutputDriver>();
-
     capLoad = _capLoad;
     resLoad = _resLoad;
     typeEncoder = _typeEncoder;
@@ -43,7 +41,7 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         double logicEffort = (2+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
         CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
-        outputDriver->Initialize(logicEffort, capNandOut, capLoad, resLoad, true, latency_first, 0, config);
+        outputDriver.Initialize(logicEffort, capNandOut, capLoad, resLoad, true, latency_first, 0, config);
         initialized = true;
     }
     else {
@@ -63,9 +61,9 @@ void CAM_InputEncoder::CalculateArea(){
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
-            //outputDriver->CalculateArea();
-            height = outputDriver->height * numInputBits * 2;
-            width = outputDriver->width;
+            //outputDriver.CalculateArea();
+            height = outputDriver.height * numInputBits * 2;
+            width = outputDriver.width;
             double hNand, wNand;
             CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &hNand, &wNand, config->peripherals.useUpdatedLib);
             width += wNand;
@@ -90,7 +88,7 @@ void CAM_InputEncoder::CalculateRC() {
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
-            //outputDriver->CalculateRC();
+            //outputDriver.CalculateRC();
             CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
         }
         else {
@@ -124,13 +122,13 @@ void CAM_InputEncoder::CalculateLatency(double _rampInput) {
             resPullDown = CalculateOnResistance(widthNandN, NMOS, config->input.temperature, config->technology.tech);
             gm = CalculateTransconductance(widthNandN, NMOS, config->technology.tech);
             beta = 1 / (resPullDown * gm);
-            cap = capNandOut + outputDriver->capInput[0];
+            cap = capNandOut + outputDriver.capInput[0];
             tr = resPullDown * cap;
             readLatency = horowitz(tr, beta, rampInput, &rampInternal);
-            outputDriver->CalculateLatency(rampInternal);
-            readLatency += outputDriver->readLatency;
+            outputDriver.CalculateLatency(rampInternal);
+            readLatency += outputDriver.readLatency;
             writeLatency = readLatency;
-            rampOutput = outputDriver->rampOutput;
+            rampOutput = outputDriver.rampOutput;
         }
         else {
             // TODO Encoding scheme look up table
@@ -144,7 +142,7 @@ void CAM_InputEncoder::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[CAM_InputEncoder]");
     } else {
-        //outputDriver->CalculatePower();
+        //outputDriver.CalculatePower();
         if(isCustom) {
             // TODO Customizable Input Encoder
             std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
@@ -152,13 +150,13 @@ void CAM_InputEncoder::CalculatePower() {
         }
         else if(typeEncoder == encoding_two_bit) {
             leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() * numInputBits * 2;
-            leakage += outputDriver->leakage * numInputBits * 2;
+            leakage += outputDriver.leakage * numInputBits * 2;
 
             /* nand and the driver */
             double cap;
-            cap = outputDriver->capInput[0] + capNandOut;
+            cap = outputDriver.capInput[0] + capNandOut;
             readDynamicEnergy = numInputBits * 2 * cap * config->technology.tech->vdd() * config->technology.tech->vdd();
-            readDynamicEnergy += (numInputBits * 2 * outputDriver->readDynamicEnergy);
+            readDynamicEnergy += (numInputBits * 2 * outputDriver.readDynamicEnergy);
             writeDynamicEnergy = readDynamicEnergy;
         }
         else {

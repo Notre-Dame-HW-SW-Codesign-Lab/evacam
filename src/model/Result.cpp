@@ -125,7 +125,7 @@ void Result::print() {
         std::cout << " - One set is partitioned into " << bank->numRowPerSet << " rows" << std::endl;
     std::cout << "Local Wire:" << std::endl;
     std::cout << " - Wire Type : ";
-    switch (localWire->wireType) {
+    switch (localWire.wireType) {
         case local_aggressive:
             std::cout << "Local Aggressive" << std::endl;
             break;
@@ -148,7 +148,7 @@ void Result::print() {
             std::cout << "DRAM Wire" << std::endl;
     }
     std::cout << " - Repeater Type: ";
-    switch (localWire->wireRepeaterType) {
+    switch (localWire.wireRepeaterType) {
         case repeated_none:
             std::cout << "No Repeaters" << std::endl;
             break;
@@ -177,13 +177,13 @@ void Result::print() {
             std::cout << "Unknown" << std::endl;
     }
     std::cout << " - Low Swing : ";
-    if (localWire->isLowSwing)
+    if (localWire.isLowSwing)
         std::cout << "Yes" << std::endl;
     else
         std::cout << "No" << std::endl;
     std::cout << "Global Wire:" << std::endl;
     std::cout << " - Wire Type : ";
-    switch (globalWire->wireType) {
+    switch (globalWire.wireType) {
         case local_aggressive:
             std::cout << "Local Aggressive" << std::endl;
             break;
@@ -206,7 +206,7 @@ void Result::print() {
             std::cout << "DRAM Wire" << std::endl;
     }
     std::cout << " - Repeater Type: ";
-    switch (globalWire->wireRepeaterType) {
+    switch (globalWire.wireRepeaterType) {
         case repeated_none:
             std::cout << "No Repeaters" << std::endl;
             break;
@@ -235,7 +235,7 @@ void Result::print() {
             std::cout << "Unknown" << std::endl;
     }
     std::cout << " - Low Swing : ";
-    if (globalWire->isLowSwing)
+    if (globalWire.isLowSwing)
         std::cout << "Yes" << std::endl;
     else
         std::cout << "No" << std::endl;
@@ -599,7 +599,7 @@ void Result::printToCsvFile(std::ostream &outputFile) {
         outputFile << bank->numRowPerSet << ",";
     else
         outputFile << "N/A,";
-    switch (localWire->wireType) {
+    switch (localWire.wireType) {
         case local_aggressive:
             outputFile << "Local Aggressive" << ",";
             break;
@@ -621,7 +621,7 @@ void Result::printToCsvFile(std::ostream &outputFile) {
         default:
             outputFile << "DRAM Wire" << ",";
     }
-    switch (localWire->wireRepeaterType) {
+    switch (localWire.wireRepeaterType) {
         case repeated_none:
             outputFile << "No Repeaters" << ",";
             break;
@@ -649,11 +649,11 @@ void Result::printToCsvFile(std::ostream &outputFile) {
         default:
             outputFile << "N/A" << ",";
     }
-    if (localWire->isLowSwing)
+    if (localWire.isLowSwing)
         outputFile << "Yes" << ",";
     else
         outputFile << "No" << ",";
-    switch (globalWire->wireType) {
+    switch (globalWire.wireType) {
         case local_aggressive:
             outputFile << "Local Aggressive" << ",";
             break;
@@ -675,7 +675,7 @@ void Result::printToCsvFile(std::ostream &outputFile) {
         default:
             outputFile << "DRAM Wire" << ",";
     }
-    switch (globalWire->wireRepeaterType) {
+    switch (globalWire.wireRepeaterType) {
         case repeated_none:
             outputFile << "No Repeaters" << ",";
             break;
@@ -703,7 +703,7 @@ void Result::printToCsvFile(std::ostream &outputFile) {
         default:
             outputFile << "N/A" << ",";
     }
-    if (globalWire->isLowSwing)
+    if (globalWire.isLowSwing)
         outputFile << "Yes" << ",";
     else
         outputFile << "No" << ",";

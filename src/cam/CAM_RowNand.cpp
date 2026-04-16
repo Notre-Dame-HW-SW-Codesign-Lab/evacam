@@ -28,8 +28,6 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
             numNandInput = 2;	/* just NAND two predecoder outputs */
     }
 
-    outputDriver = std::make_unique<OutputDriver>();
-
     if (numNandInput > 0) {
         double logicEffortNand;
         double capNand;
@@ -43,8 +41,8 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         capNand = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
         // begin_change
-        //outputDriver->Initialize(logicEffortNand, capNand, capLoad, resLoad, true, areaOptimizationLevel, minDriverCurrent);
-        outputDriver->Initialize(logicEffortNand, capNand, capLoad, resLoad, driverInv, areaOptimizationLevel, minDriverCurrent, config);
+        //outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, true, areaOptimizationLevel, minDriverCurrent);
+        outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, driverInv, areaOptimizationLevel, minDriverCurrent, config);
         // end_change
     } else {
         /* we only need an 1-level output buffer to driver the wordline */
@@ -53,12 +51,12 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         capInv = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
         // begin_change
-        //outputDriver->Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, minDriverCurrent);
-        outputDriver->Initialize(1, capInv, capLoad, resLoad, driverInv, areaOptimizationLevel, minDriverCurrent, config);
+        //outputDriver.Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, minDriverCurrent);
+        outputDriver.Initialize(1, capInv, capLoad, resLoad, driverInv, areaOptimizationLevel, minDriverCurrent, config);
         // end_change
     }
 
-    if (outputDriver->invalid) {
+    if (outputDriver.invalid) {
         invalid = true;
         std::cout << "invalid output driver" << std::endl;
         return;

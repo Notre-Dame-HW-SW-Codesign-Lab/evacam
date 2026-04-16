@@ -82,7 +82,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
         TypeOfSenseAmp _typeSenseAmp, bool _customSenseAmp, bool _withWriteDriver,
         bool _withOutputAcc, bool _withPriorityEnc, BufferDesignTarget _PriorityOptLevel,
         bool _withInputBuf, bool _withOutputBuf, CAMType _camType, SearchFunction _searchFunction, 
-        bool _withVariation, std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire,
+        bool _withVariation, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire,
         const CAM_Opt &_CAM_opt) {
     if (initialized)
         _config->logger.Verbose() << "[CAM_SubArray] Warning: Already initialized!";
@@ -591,7 +591,7 @@ void CAM_SubArray::CalculateArea() {
                 if (WriteDriver[i]->initialized) {
                     //WriteDriver[i]->CalculateArea();
                     if (i > 0 && Col[i].CellPort.Type == Bitline && Col[i-1].CellPort.Type == Bitline) {
-                        WriteDriverArea += (WriteDriver[i]->outputDriver->area);
+                        WriteDriverArea += (WriteDriver[i]->outputDriver.area);
                         WriteDriverArea += (WriteDriver[i]->area* 4);
                     } else {
                         WriteDriverArea += (WriteDriver[i]->area* 4);

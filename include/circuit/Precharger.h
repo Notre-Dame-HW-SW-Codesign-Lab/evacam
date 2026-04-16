@@ -21,7 +21,7 @@ class Precharger: public FunctionUnit {
         /* Functions */
         void PrintProperty();
         void Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline,
-                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire);
+                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire);
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
@@ -42,7 +42,7 @@ class Precharger: public FunctionUnit {
         double capLoadPerColumn;
         double rampInput, rampOutput;
 
-        std::shared_ptr<Wire> localWire;
+        Wire localWire;
 };
 
 #endif /* PRECHARGER_H_ */

@@ -9,12 +9,12 @@
 #include <vector>
 
 #include "EvaCamConfig.h"
+#include "Wire.h"
 #include "config/OutputFileLock.h"
 
 class CAM_Result;
 class Result;
 class Bank;
-class Wire;
 
 struct EvaCamExplorationResult {
     long long numSolution = 0;
@@ -37,14 +37,14 @@ class EvaCamExplorer {
                 std::vector<std::shared_ptr<CAM_Result>> &bestResults,
                 long long &numSolutions,
                 std::ostream *csvStream,
-                const std::shared_ptr<Wire> &localWire,
-                const std::shared_ptr<Wire> &globalWire);
+                const Wire &localWire,
+                const Wire &globalWire);
         void RefineWires();
         void RefineLocalWires();
         void RefineGlobalWires();
         std::shared_ptr<Result> ReevaluateBestResultWithWires(int optimizationIndex,
-                const std::shared_ptr<Wire> &localWire,
-                const std::shared_ptr<Wire> &globalWire);
+                const Wire &localWire,
+                const Wire &globalWire);
         void BuildPruningResults();
         void RunConstrainedExploration();
         void EvaluateConstrainedGeometry(int numRowMat, int numColumnMat, int numRowSubarray);
@@ -52,11 +52,11 @@ class EvaCamExplorer {
                 int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
                 int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
-                BufferDesignTarget areaOptimizationLevel, const std::shared_ptr<Wire> &localWire,
-                const std::shared_ptr<Wire> &globalWire, const CAM_Opt &camOpt) const;
+                BufferDesignTarget areaOptimizationLevel, const Wire &localWire,
+                const Wire &globalWire, const CAM_Opt &camOpt) const;
         std::shared_ptr<Result> MakeResult(const std::shared_ptr<Bank> &bank,
-                const std::shared_ptr<Wire> &localWire,
-                const std::shared_ptr<Wire> &globalWire) const;
+                const Wire &localWire,
+                const Wire &globalWire) const;
         bool IsValidCandidate(const std::shared_ptr<Bank> &bank) const;
         void ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const;
         void UpdateBestResults(const std::shared_ptr<Result> &result);
@@ -70,8 +70,8 @@ class EvaCamExplorer {
         std::shared_ptr<EvaCamConfig> config_;
         int numThreads_ = 1;
         std::vector<std::shared_ptr<CAM_Result>> bestResults_;
-        std::shared_ptr<Wire> localWire_;
-        std::shared_ptr<Wire> globalWire_;
+        Wire localWire_;
+        Wire globalWire_;
         CAM_Opt camOpt_{};
         std::optional<OutputFileLock> explorationCsvLock_;
         std::string explorationCsvPath_;

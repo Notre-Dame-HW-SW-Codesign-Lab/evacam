@@ -17,16 +17,7 @@ class CAM_Result : public Result{
         //void printAsCacheToCsvFile(Result &tagBank, CacheAccessMode cacheAccessMode, ofstream &outputFile);
         void compareAndUpdate(std::shared_ptr<Result> newResult);
 
-        //std::shared_ptr<Bank> bank;
-        //std::shared_ptr<Wire> localWire;
-        //std::shared_ptr<Wire> globalWire;
-
         //	OptimizationTarget optimizationTarget;	/* Exploration should not be assigned here */
-        //
-        //	Bank * bank;
-        //	Wire * localWire;		
-        //	Wire * globalWire;
-        //
         //	double limitReadLatency;			/* The maximum allowable read latency, Unit: s */
         //	double limitWriteLatency;			/* The maximum allowable write latency, Unit: s */
         //	double limitReadDynamicEnergy;		/* The maximum allowable read dynamic energy, Unit: J */

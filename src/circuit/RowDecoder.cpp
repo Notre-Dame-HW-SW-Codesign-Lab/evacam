@@ -6,7 +6,6 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
     if (initialized)
         _config->logger.Verbose() << "[Row Decoder] Warning: Already initialized!";
 
-    outputDriver = std::make_unique<OutputDriver>();
     numRow = _numRow;
     capLoad = _capLoad;
     resLoad = _resLoad;
@@ -39,7 +38,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         }
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         capNand = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
-        outputDriver->Initialize(logicEffortNand, capNand, capLoad, resLoad, true, 
+        outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, true, 
                 areaOptimizationLevel, minDriverCurrent, config);
     } else {
         /* we only need an 1-level output buffer to driver the wordline */
@@ -47,11 +46,11 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         widthNandN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         capInv = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
-        outputDriver->Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, 
+        outputDriver.Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, 
                 minDriverCurrent, config);
     }
 
-    if (outputDriver->invalid) {
+    if (outputDriver.invalid) {
         invalid = true;
         std::cout << "invalid outputDriver" << std::endl;
         return;
@@ -67,16 +66,16 @@ void RowDecoder::CalculateArea() {
     if (!initialized) {
         ThrowInitializationError("[Row Decoder]");
     } else {
-        //outputDriver->CalculateArea();
+        //outputDriver.CalculateArea();
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
-            height = outputDriver->height;
-            width = outputDriver->width;
+            height = outputDriver.height;
+            width = outputDriver.width;
         } else {
             double hNand, wNand;
             CalculateGateArea(NAND, numNandInput, widthNandN, widthNandP, config->technology.tech->featureSize()*40, config->technology.tech, 
                     &hNand, &wNand, config->peripherals.useUpdatedLib);
-            height = MAX(hNand, outputDriver->height);
-            width = wNand + outputDriver->width;
+            height = MAX(hNand, outputDriver.height);
+            width = wNand + outputDriver.width;
         }
         height *= numRow;
         area = height * width;
@@ -87,7 +86,7 @@ void RowDecoder::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[Row Decoder]");
     } else {
-        //outputDriver->CalculateRC();
+        //outputDriver.CalculateRC();
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
             capNandInput = capNandOutput = 0;
         } else {
@@ -102,9 +101,9 @@ void RowDecoder::CalculateLatency(double _rampInput) {
         ThrowInitializationError("[Row Decoder]");
     } else {
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
-            outputDriver->CalculateLatency(_rampInput);
-            readLatency = writeLatency = outputDriver->readLatency;
-            rampOutput = outputDriver->rampOutput;
+            outputDriver.CalculateLatency(_rampInput);
+            readLatency = writeLatency = outputDriver.readLatency;
+            rampOutput = outputDriver.rampOutput;
         } else {
             rampInput = _rampInput;
 
@@ -116,7 +115,7 @@ void RowDecoder::CalculateLatency(double _rampInput) {
             double rampInputForDriver;
 
             resPullDown = CalculateOnResistance(widthNandN, NMOS, config->input.temperature, config->technology.tech) * numNandInput;
-            capLoad = capNandOutput + outputDriver->capInput[0];
+            capLoad = capNandOutput + outputDriver.capInput[0];
             tr = resPullDown * capLoad;
             gm = CalculateTransconductance(widthNandN, NMOS, config->technology.tech);
             beta = 1 / (resPullDown * gm);
@@ -124,14 +123,14 @@ void RowDecoder::CalculateLatency(double _rampInput) {
 
             //std::cout << "rampInputForDriver = " << rampInputForDriver << std::endl;
 
-            outputDriver->CalculateLatency(rampInputForDriver);
-            readLatency += outputDriver->readLatency;
+            outputDriver.CalculateLatency(rampInputForDriver);
+            readLatency += outputDriver.readLatency;
             writeLatency = readLatency;
 
-            rampOutput = outputDriver->rampOutput;
+            rampOutput = outputDriver.rampOutput;
             //rampOutput = 0;
 
-            //std::cout << "OD RO = " << outputDriver->rampOutput << std::endl;
+            //std::cout << "OD RO = " << outputDriver.rampOutput << std::endl;
 
             //std::cout << "rampOutput = " << rampOutput << std::endl;
         }
@@ -142,18 +141,18 @@ void RowDecoder::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[Row Decoder]");
     } else {
-        //outputDriver->CalculatePower();
-        leakage = outputDriver->leakage;
+        //outputDriver.CalculatePower();
+        leakage = outputDriver.leakage;
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
-            readDynamicEnergy = writeDynamicEnergy = outputDriver->readDynamicEnergy;
+            readDynamicEnergy = writeDynamicEnergy = outputDriver.readDynamicEnergy;
         } else {
             /* Leakage power */
             leakage += CalculateGateLeakage(NAND, numNandInput, widthNandN, widthNandP,
                     config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
             /* Dynamic energy */
-            double capLoad = capNandOutput + outputDriver->capInput[0];
+            double capLoad = capNandOutput + outputDriver.capInput[0];
             readDynamicEnergy = capLoad * config->technology.tech->vdd() * config->technology.tech->vdd();
-            readDynamicEnergy += outputDriver->readDynamicEnergy;
+            readDynamicEnergy += outputDriver.readDynamicEnergy;
             readDynamicEnergy *= 1;	/* only one row is activated each time */
             writeDynamicEnergy = readDynamicEnergy;
         }

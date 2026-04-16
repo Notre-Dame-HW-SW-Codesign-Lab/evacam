@@ -1,7 +1,7 @@
 #include "CAM_Precharger.h"
 #include "formula.h"
 void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, 
-        std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
+        std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire) {
     if (initialized)
         _config->logger.Verbose() << "[Precharger] Warning: Already initialized!";
 
@@ -11,8 +11,8 @@ void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double
     resBitline = _resBitline;
     config = _config;
     localWire = _localWire;
-    capWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire->capWirePerUnit;
-    resWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire->resWirePerUnit;
+    capWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire.capWirePerUnit;
+    resWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire.resWirePerUnit;
     widthInvNmos = MIN_NMOS_SIZE * config->technology.tech->featureSize();
     widthInvPmos = widthInvNmos * config->technology.tech->pnSizeRatio();
     widthPMOSBitlineEqual      = MIN_NMOS_SIZE * config->technology.tech->featureSize();

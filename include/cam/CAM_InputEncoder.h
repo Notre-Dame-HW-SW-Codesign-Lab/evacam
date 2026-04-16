@@ -39,7 +39,7 @@ class CAM_InputEncoder: public FunctionUnit {
         double widthNandN, widthNandP;
         double capLoad;		/* Load capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */
-        std::unique_ptr<OutputDriver> outputDriver;
+        OutputDriver outputDriver;
         double rampInput, rampOutput;
 };
 

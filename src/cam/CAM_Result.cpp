@@ -7,8 +7,6 @@ CAM_Result::CAM_Result() {
 
 CAM_Result::~CAM_Result() {
     //if (bank) delete bank;
-    //if (localWire) delete localWire;
-    //if (globalWire) delete globalWire;
 }
 
 void CAM_Result::reset() {
@@ -114,7 +112,7 @@ void CAM_Result::print() {
     std::cout << " - Output Level-2 Mux: " << bank->muxOutputLev2 << std::endl;
     std::cout << "Local Wire:" << std::endl;
     std::cout << " - Wire Type : ";
-    switch (localWire->wireType) {
+    switch (localWire.wireType) {
         case local_aggressive:
             std::cout << "Local Aggressive" << std::endl;
             break;
@@ -137,7 +135,7 @@ void CAM_Result::print() {
             std::cout << "DRAM Wire" << std::endl;
     }
     std::cout << " - Repeater Type: ";
-    switch (localWire->wireRepeaterType) {
+    switch (localWire.wireRepeaterType) {
         case repeated_none:
             std::cout << "No Repeaters" << std::endl;
             break;
@@ -166,13 +164,13 @@ void CAM_Result::print() {
             std::cout << "Unknown" << std::endl;
     }
     std::cout << " - Low Swing : ";
-    if (localWire->isLowSwing)
+    if (localWire.isLowSwing)
         std::cout << "Yes" << std::endl;
     else
         std::cout << "No" << std::endl;
     std::cout << "Global Wire:" << std::endl;
     std::cout << " - Wire Type : ";
-    switch (globalWire->wireType) {
+    switch (globalWire.wireType) {
         case local_aggressive:
             std::cout << "Local Aggressive" << std::endl;
             break;
@@ -195,7 +193,7 @@ void CAM_Result::print() {
             std::cout << "DRAM Wire" << std::endl;
     }
     std::cout << " - Repeater Type: ";
-    switch (globalWire->wireRepeaterType) {
+    switch (globalWire.wireRepeaterType) {
         case repeated_none:
             std::cout << "No Repeaters" << std::endl;
             break;
@@ -224,7 +222,7 @@ void CAM_Result::print() {
             std::cout << "Unknown" << std::endl;
     }
     std::cout << " - Low Swing : ";
-    if (globalWire->isLowSwing)
+    if (globalWire.isLowSwing)
         std::cout << "Yes" << std::endl;
     else
         std::cout << "No" << std::endl;

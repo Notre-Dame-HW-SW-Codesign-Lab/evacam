@@ -3,9 +3,9 @@
 #include "EvaCamConfig.h"
 #include "Wire.h"
 
-std::shared_ptr<Wire> WireFactory::CreateDefaultLocalWire(
+Wire WireFactory::CreateDefaultLocalWire(
         const std::shared_ptr<EvaCamConfig> &config) {
-    auto wire = std::make_shared<Wire>();
+    Wire wire;
     const WireType wireType = config->exploration.wires.localWireType.IsFixed()
         ? static_cast<WireType>(config->exploration.wires.localWireType.Min())
         : local_aggressive;
@@ -16,14 +16,14 @@ std::shared_ptr<Wire> WireFactory::CreateDefaultLocalWire(
         ? static_cast<bool>(config->exploration.wires.isLocalWireLowSwing.Min())
         : false;
 
-    wire->Initialize(config->input.processNode, wireType, repeaterType,
+    wire.Initialize(config->input.processNode, wireType, repeaterType,
             config->input.temperature, isLowSwing, config);
     return wire;
 }
 
-std::shared_ptr<Wire> WireFactory::CreateDefaultGlobalWire(
+Wire WireFactory::CreateDefaultGlobalWire(
         const std::shared_ptr<EvaCamConfig> &config) {
-    auto wire = std::make_shared<Wire>();
+    Wire wire;
     const WireType wireType = config->exploration.wires.globalWireType.IsFixed()
         ? static_cast<WireType>(config->exploration.wires.globalWireType.Min())
         : global_aggressive;
@@ -34,7 +34,7 @@ std::shared_ptr<Wire> WireFactory::CreateDefaultGlobalWire(
         ? static_cast<bool>(config->exploration.wires.isGlobalWireLowSwing.Min())
         : false;
 
-    wire->Initialize(config->input.processNode, wireType, repeaterType,
+    wire.Initialize(config->input.processNode, wireType, repeaterType,
             config->input.temperature, isLowSwing, config);
     return wire;
 }

@@ -5,7 +5,7 @@
 void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,
         int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2,
         BufferDesignTarget _areaOptimizationLevel, std::shared_ptr<EvaCamConfig> _config,
-        std::shared_ptr<Wire> _localWire) {
+        const Wire &_localWire) {
     if (initialized)
         _config->logger.Verbose() << "[Subarray] Warning: Already initialized!";
 
@@ -13,7 +13,6 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
     numColumn = _numColumn;
     multipleRowPerSet = _multipleRowPerSet;
     split = _split;
-    std::shared_ptr<Wire> localWire;
     muxSenseAmp = _muxSenseAmp;
     muxOutputLev1 = _muxOutputLev1;
     muxOutputLev2 = _muxOutputLev2;
@@ -176,10 +175,10 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
         lenBitline += (numRow / pageCount) * 5 * config->technology.tech->featureSize();
     }
     /* Calculate wire resistance/capacitance */
-    capWordline = lenWordline * localWire->capWirePerUnit;
-    resWordline = lenWordline * localWire->resWirePerUnit;
-    capBitline = lenBitline * localWire->capWirePerUnit;
-    resBitline = lenBitline * localWire->resWirePerUnit;
+    capWordline = lenWordline * localWire.capWirePerUnit;
+    resWordline = lenWordline * localWire.resWirePerUnit;
+    capBitline = lenBitline * localWire.capWirePerUnit;
+    resBitline = lenBitline * localWire.resWirePerUnit;
 
     /* Caclulate the load resistance and capacitance for Mux Decoders */
     double capMuxLoad, resMuxLoad;

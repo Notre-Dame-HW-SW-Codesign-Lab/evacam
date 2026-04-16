@@ -34,7 +34,7 @@ class CAM_DataBuffer: public FunctionUnit {
         double resLoad;		/* Load resistance, Unit: ohm */
         double capNandIn, capNandOut;
         double widthNandN, widthNandP;
-        std::unique_ptr<OutputDriver> outputDriver;
+        OutputDriver outputDriver;
         double rampInput, rampOutput;
 };
 

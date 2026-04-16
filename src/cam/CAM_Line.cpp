@@ -2,7 +2,7 @@
 #include "formula.h"
 
 void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCell, 
-        std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
+        std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire) {
 
     config= _config;
     localWire = _localWire;
@@ -28,16 +28,16 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
         CellPort.widthCmos = config->technology.cell->camPort[!isRow][index].widthCmos;
         CellPort.widthWire = config->technology.cell->camPort[!isRow][index].widthWire;
         numCell = _numCell;
-        cap = len * localWire->capWirePerUnit;
-        res = len * localWire->resWirePerUnit;
+        cap = len * localWire.capWirePerUnit;
+        res = len * localWire.resWirePerUnit;
 
         if (CellPort.widthWire > 1.0) {
-            cap = len * CalculateWireCapacitance(PERMITTIVITY, localWire->wireWidth*CellPort.widthWire,
-                    localWire->wireThickness, localWire->wireSpacing, localWire->ildThickness, 1.5,
-                    localWire->horizontalDielectric, 3.9, 1.15e-10);
-            res = len * CalculateWireResistance(localWire->copper_resistivity, 
-                    localWire->wireWidth*CellPort.widthWire,
-                    localWire->wireThickness, localWire->barrierThickness, 0, 1);
+            cap = len * CalculateWireCapacitance(PERMITTIVITY, localWire.wireWidth*CellPort.widthWire,
+                    localWire.wireThickness, localWire.wireSpacing, localWire.ildThickness, 1.5,
+                    localWire.horizontalDielectric, 3.9, 1.15e-10);
+            res = len * CalculateWireResistance(localWire.copper_resistivity, 
+                    localWire.wireWidth*CellPort.widthWire,
+                    localWire.wireThickness, localWire.barrierThickness, 0, 1);
         }
 
         if (CellPort.ConnectedRegion == gate) {
@@ -189,7 +189,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
 
 
 void CAM_Line::Initialize(double _len, long long _numCell, double _MuxWidth, 
-        std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire) {
+        std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire) {
 
     if (initialized) {
         config->logger.Verbose() << "[CAM_Line 2nd] Warning: Already initialized!";
@@ -199,8 +199,8 @@ void CAM_Line::Initialize(double _len, long long _numCell, double _MuxWidth,
         config = _config;
         isRow = true;
         numCell = _numCell;
-        cap = len * localWire->capWirePerUnit;
-        res = len * localWire->resWirePerUnit;
+        cap = len * localWire.capWirePerUnit;
+        res = len * localWire.resWirePerUnit;
 
         cap += CalculateGateCap(_MuxWidth * config->technology.tech->featureSize(), config->technology.tech) * numCell;
         maxCurrent = 1e11;

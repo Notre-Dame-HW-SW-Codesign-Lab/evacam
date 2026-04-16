@@ -18,7 +18,7 @@ class BankWithHtree: public Bank {
                 int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
                 BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
                 SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
-                std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, 
+                const Wire &_localWire, const Wire &_globalWire,
                 const CAM_Opt &_CAM_opt);
 
         void CalculateArea();

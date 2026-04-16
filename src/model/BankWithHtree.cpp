@@ -13,10 +13,7 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
         BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
-        std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, const CAM_Opt &_CAM_opt) {
-
-    if (!_localWire || !_globalWire)
-        throw std::runtime_error("[BankWithHtree] Error: wires not delcared.");
+        const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt) {
 
     localWire = _localWire;
     globalWire = _globalWire;
@@ -428,13 +425,13 @@ void BankWithHtree::CalculateArea() {
         /* Add wire area */
         int numWireSharingWidth;
         double effectivePitch;
-        if (globalWire->wireRepeaterType == repeated_none) {
+        if (globalWire.wireRepeaterType == repeated_none) {
             numWireSharingWidth = 1;
             effectivePitch = 0;		/* assume that the wire is built on another metal layer, there does not cause silicon area */
-            //effectivePitch = globalWire->wirePitch;
+            //effectivePitch = globalWire.wirePitch;
         } else {
-            numWireSharingWidth = (int)floor(globalWire->repeaterSpacing / globalWire->repeaterHeight);
-            effectivePitch = globalWire->repeatedWirePitch;
+            numWireSharingWidth = (int)floor(globalWire.repeaterSpacing / globalWire.repeaterHeight);
+            effectivePitch = globalWire.repeatedWirePitch;
         }
         for (int i = 0; i < levelHorizontal; i++) {
             height += ceil((double)(numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i] +
@@ -584,7 +581,7 @@ void BankWithHtree::CalculateLatencyAndPower() {
         }
 
         for (int i = 0; i < levelHorizontal; i++) {
-            globalWire->CalculateLatencyAndPower(lengthHorizontalWire[i], &latency, &energy, &leakageWire);
+            globalWire.CalculateLatencyAndPower(lengthHorizontalWire[i], &latency, &energy, &leakageWire);
             readLatency += latency * 2;						/* 2 due to in/out */
             writeLatency += latency;						/* only in */
             resetLatency += latency;
@@ -610,7 +607,7 @@ void BankWithHtree::CalculateLatencyAndPower() {
             }
         }
         for (int i = 0; i < levelVertical; i++) {
-            globalWire->CalculateLatencyAndPower(lengthVerticalWire[i], &latency, &energy, &leakageWire);
+            globalWire.CalculateLatencyAndPower(lengthVerticalWire[i], &latency, &energy, &leakageWire);
             readLatency += latency * 2;						/* 2 due to in/out */
             writeLatency += latency;						/* only in */
             resetLatency += latency;

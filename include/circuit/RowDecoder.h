@@ -30,7 +30,7 @@ class RowDecoder: public FunctionUnit {
         /* Properties */
         bool initialized;	/* Initialization flag */
         bool invalid;      /*Invalidatio flag */
-        std::unique_ptr<OutputDriver> outputDriver;
+        OutputDriver outputDriver;
         int numRow;			/* Number of rows */
         bool multipleRowPerSet;		/* For cache design, whether a set is partitioned into multiple wordlines */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */

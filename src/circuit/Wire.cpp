@@ -748,31 +748,3 @@ void Wire::PrintProperty() {
         std::cout << "Subtheshold Leakage Power: " << getRepeatedWireUnitLeakage() << "mW/mm" << std::endl;
     }
 }
-
-Wire & Wire::operator=(const Wire &rhs) {
-    initialized = rhs.initialized;
-    featureSizeInNano = rhs.featureSizeInNano;
-    featureSize = rhs.featureSize;
-    wireType = rhs.wireType;
-    wireRepeaterType = rhs.wireRepeaterType;
-    temperature = rhs.temperature;
-    isLowSwing = rhs.isLowSwing;
-    barrierThickness = rhs.barrierThickness;
-    horizontalDielectric = rhs.horizontalDielectric;
-    wirePitch = rhs.wirePitch;
-    aspectRatio = rhs.aspectRatio;
-    ildThickness = rhs.ildThickness;
-    wireWidth = rhs.wireWidth;
-    wireThickness = rhs.wireThickness;
-    wireSpacing = rhs.wireSpacing;
-    repeaterSize = rhs.repeaterSize;
-    repeaterSpacing = rhs.repeaterSpacing;
-    repeaterHeight = rhs.repeaterHeight;
-    repeaterWidth = rhs.repeaterWidth;
-    repeatedWirePitch = rhs.repeatedWirePitch;
-    resWirePerUnit = rhs.resWirePerUnit;
-    capWirePerUnit = rhs.capWirePerUnit;
-    copper_resistivity = rhs.copper_resistivity;
-
-    return *this;
-}

@@ -8,12 +8,9 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
         BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
-        std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, 
+        const Wire &_localWire, const Wire &_globalWire,
         const CAM_Opt &_CAM_opt) {
     (void)_searchFunction;
-
-    if (!_localWire || !_globalWire)
-        throw std::runtime_error("[BankWithoutHtree] Error: wires not delcared.");
 
     localWire = _localWire;
     globalWire = _globalWire;
@@ -30,7 +27,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
             invalid = true;
             config->logger.Verbose() << "[BankWithoutHtree] DRAM does not support external sense amplification.";
             return;
-        } else if (globalWire->wireRepeaterType != repeated_none) {
+        } else if (globalWire.wireRepeaterType != repeated_none) {
             invalid = true;
             initialized = true;
             return;
@@ -202,13 +199,13 @@ void BankWithoutHtree::CalculateArea() {
 
         int numWireSharingWidth;
         double effectivePitch;
-        if (globalWire->wireRepeaterType == repeated_none) {
+        if (globalWire.wireRepeaterType == repeated_none) {
             numWireSharingWidth = 1;
             effectivePitch = 0;		/* assume that the wire is built on another metal layer, there does not cause silicon area */
-            //effectivePitch = globalWire->wirePitch;
+            //effectivePitch = globalWire.wirePitch;
         } else {
-            numWireSharingWidth = (int)floor(globalWire->repeaterSpacing / globalWire->repeaterHeight);
-            effectivePitch = globalWire->repeatedWirePitch;
+            numWireSharingWidth = (int)floor(globalWire.repeaterSpacing / globalWire.repeaterHeight);
+            effectivePitch = globalWire.repeatedWirePitch;
         }
 
         width += ceil((double)numRowMat * numColumnMat * numAddressBitRouteToMat / numWireSharingWidth) * effectivePitch;
@@ -270,7 +267,7 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
             lengthWire -= mat->height;
             if (internalSenseAmp) {
                 double numBitRouteToMat = 0;
-                globalWire->CalculateLatencyAndPower(lengthWire, &latency, &energy, &leakageWire);
+                globalWire.CalculateLatencyAndPower(lengthWire, &latency, &energy, &leakageWire);
                 if (i == 0){
                     readLatency += latency;
                     writeLatency += latency;
@@ -289,8 +286,8 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                 resLocalBitline = mat->subarray->resBitline + 3 * resBitlineMux;
                 capLocalBitline = mat->subarray->capBitline + 6 * capBitlineMux;
                 double resGlobalBitline, capGlobalBitline;
-                resGlobalBitline = lengthWire * globalWire->resWirePerUnit;
-                capGlobalBitline = lengthWire * globalWire->capWirePerUnit;
+                resGlobalBitline = lengthWire * globalWire.resWirePerUnit;
+                capGlobalBitline = lengthWire * globalWire.capWirePerUnit;
                 double capGlobalBitlineMux;
                 capGlobalBitlineMux = globalBitlineMux->capForPreviousDelayCalculation;
                 if (config->technology.cell->memCellType == SRAM) {

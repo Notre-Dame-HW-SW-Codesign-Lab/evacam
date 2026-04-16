@@ -28,7 +28,7 @@ class SubArray: public FunctionUnit {
         void Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,
                 int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2,
                 BufferDesignTarget _areaOptimizationLevel, std::shared_ptr<EvaCamConfig> EvaCamConfig,
-                std::shared_ptr<Wire> _localWire);
+                const Wire &_localWire);
         void CalculateArea();
         //void CalculateRC();
         void CalculateLatency(double _rampInput);
@@ -96,7 +96,7 @@ class SubArray: public FunctionUnit {
         std::shared_ptr<Precharger>	precharger;
         std::shared_ptr<SenseAmp>	senseAmp;
 
-        std::shared_ptr<Wire> localWire;
+        Wire localWire;
 };
 
 #endif /* SUBARRAY_H_ */

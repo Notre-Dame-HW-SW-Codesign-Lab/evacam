@@ -28,7 +28,7 @@ class Mat: public FunctionUnit {
                 int _numActiveSubarrayPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
                 int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
                 MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
-                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire,
+                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire,
                 const CAM_Opt &_CAM_opt);
         void CalculateArea();
         void CalculateRC();
@@ -71,7 +71,7 @@ class Mat: public FunctionUnit {
         std::unique_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock1;
         std::unique_ptr<PredecodeBlock> senseAmpMuxLev2PredecoderBlock2;
 
-        std::shared_ptr<Wire> localWire;
+        Wire localWire;
         CAM_Opt CAM_opt;
 
         Comparator comparator;

@@ -23,13 +23,13 @@ class EvaCAM_Match::Impl {
     private:
         void InitializeConfiguredBank();
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
-        std::shared_ptr<Wire> CreateLocalWire() const;
-        std::shared_ptr<Wire> CreateGlobalWire() const;
+        Wire CreateLocalWire() const;
+        Wire CreateGlobalWire() const;
 
         std::shared_ptr<EvaCamConfig> config;
         std::shared_ptr<Bank> bank;
-        std::shared_ptr<Wire> localWire;
-        std::shared_ptr<Wire> globalWire;
+        Wire localWire;
+        Wire globalWire;
         CAM_Opt camOpt{};
 };
 
@@ -123,28 +123,28 @@ void EvaCAM_Match::Impl::ValidateBinaryVector(const std::vector<int> &value, con
     }
 }
 
-std::shared_ptr<Wire> EvaCAM_Match::Impl::CreateLocalWire() const {
-    auto wire = std::make_shared<Wire>();
+Wire EvaCAM_Match::Impl::CreateLocalWire() const {
+    Wire wire;
     const auto &resolved = config->resolvedExploration;
     WireType wireType = static_cast<WireType>(resolved.wires.localWireTypeValues.front());
     WireRepeaterType repeaterType = static_cast<WireRepeaterType>(
             resolved.wires.localWireRepeaterTypeValues.front());
     bool isLowSwing = static_cast<bool>(resolved.wires.isLocalWireLowSwingValues.front());
 
-    wire->Initialize(config->input.processNode, wireType, repeaterType,
+    wire.Initialize(config->input.processNode, wireType, repeaterType,
             config->input.temperature, isLowSwing, config);
     return wire;
 }
 
-std::shared_ptr<Wire> EvaCAM_Match::Impl::CreateGlobalWire() const {
-    auto wire = std::make_shared<Wire>();
+Wire EvaCAM_Match::Impl::CreateGlobalWire() const {
+    Wire wire;
     const auto &resolved = config->resolvedExploration;
     WireType wireType = static_cast<WireType>(resolved.wires.globalWireTypeValues.front());
     WireRepeaterType repeaterType = static_cast<WireRepeaterType>(
             resolved.wires.globalWireRepeaterTypeValues.front());
     bool isLowSwing = static_cast<bool>(resolved.wires.isGlobalWireLowSwingValues.front());
 
-    wire->Initialize(config->input.processNode, wireType, repeaterType,
+    wire.Initialize(config->input.processNode, wireType, repeaterType,
             config->input.temperature, isLowSwing, config);
     return wire;
 }

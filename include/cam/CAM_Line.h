@@ -27,9 +27,9 @@ class CAM_Line {
 
         /* Functions */
         void Initialize(bool _isRow, int _index, double _len, long long _numCell, 
-                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire);
+                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire);
         void Initialize(double _len, long long _numCell, double _MuxWidth, 
-                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire); // for mux signal only
+                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire); // for mux signal only
 
         void CalcMaxCurrent();
         void CalcMuxWidth();
@@ -51,7 +51,7 @@ class CAM_Line {
         double minMuxWidth;
 
         std::shared_ptr<EvaCamConfig> config;
-        std::shared_ptr<Wire> localWire;
+        Wire localWire;
 };
 
 

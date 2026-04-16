@@ -32,11 +32,9 @@ void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _res
     double logicEffort = (2+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
     logicEffort *= logicEffort;
 
-    outputDriver = std::make_unique<OutputDriver>();
-
     /* driver's cap-in: both the input and output of nand */
     CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
-    outputDriver->Initialize(logicEffort, capNandIn+capNandOut, capLoad, resLoad, false, latency_first, 0, config);
+    outputDriver.Initialize(logicEffort, capNandIn+capNandOut, capLoad, resLoad, false, latency_first, 0, config);
     initialized = true;
     CalculateArea();
     CalculateRC();
@@ -47,9 +45,9 @@ void CAM_DataBuffer::CalculateArea(){
     if (!initialized) {
         ThrowInitializationError("[CAM_DataBuffer]");
     } else {
-        //outputDriver->CalculateArea();
-        height = outputDriver->height * (1+differential);
-        width = outputDriver->width * (1+differential);
+        //outputDriver.CalculateArea();
+        height = outputDriver.height * (1+differential);
+        width = outputDriver.width * (1+differential);
         double hNand, wNand;
         CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &hNand, &wNand, config->peripherals.useUpdatedLib);
         width += wNand*2;
@@ -62,7 +60,7 @@ void CAM_DataBuffer::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[CAM_DataBuffer]");
     } else {
-        //outputDriver->CalculateRC();
+        //outputDriver.CalculateRC();
         CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
     }
 }
@@ -87,15 +85,15 @@ void CAM_DataBuffer::CalculateLatency(double _rampInput) {
         beta = 1 / (resPullDown * gm);
         readLatency = horowitz(tr, beta, rampInput, &rampInternal);
 
-        cap = capNandOut + outputDriver->capInput[0];
+        cap = capNandOut + outputDriver.capInput[0];
         tr = resPullDown * cap;
         readLatency += horowitz(tr, beta, rampInternal, &rampInternal);
 
         rampOutput = rampInternal;
-        if (outputDriver->numStage > 0) {
-            outputDriver->CalculateLatency(rampInternal);
-            readLatency += outputDriver->readLatency;
-            rampOutput = outputDriver->rampOutput;
+        if (outputDriver.numStage > 0) {
+            outputDriver.CalculateLatency(rampInternal);
+            readLatency += outputDriver.readLatency;
+            rampOutput = outputDriver.rampOutput;
         }
         writeLatency = readLatency;
     }
@@ -105,15 +103,15 @@ void CAM_DataBuffer::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[CAM_DataBuffer]");
     } else {
-        //outputDriver->CalculatePower();
+        //outputDriver.CalculatePower();
         leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() *4;
-        leakage += ( outputDriver->leakage * (1+differential) );
+        leakage += ( outputDriver.leakage * (1+differential) );
 
         /* 2 stage nand and the driver */
         double cap;
-        cap = outputDriver->capInput[0] + capNandOut * 4 + capNandIn * 5;
+        cap = outputDriver.capInput[0] + capNandOut * 4 + capNandIn * 5;
         readDynamicEnergy = cap * config->technology.tech->vdd() * config->technology.tech->vdd();
-        readDynamicEnergy += ( outputDriver->readDynamicEnergy * (1+differential) );
+        readDynamicEnergy += ( outputDriver.readDynamicEnergy * (1+differential) );
         writeDynamicEnergy = readDynamicEnergy;
     }
 }

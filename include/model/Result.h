@@ -30,8 +30,8 @@ class Result {
         std::shared_ptr<EvaCamConfig> config;
 
         std::shared_ptr<Bank> bank;
-        std::shared_ptr<Wire> localWire;		/* TODO: this one has the same name as one of the global variables */
-        std::shared_ptr<Wire> globalWire;            // No more globals fixes this
+        Wire localWire;		/* TODO: this one has the same name as one of the global variables */
+        Wire globalWire;            // No more globals fixes this
 
         bool initialized;
         double limitReadLatency;			/* The maximum allowable read latency, Unit: s */

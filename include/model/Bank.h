@@ -39,7 +39,7 @@ class Bank: public FunctionUnit {
                 int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
                 BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
                 SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
-                std::shared_ptr<Wire> _localWire, std::shared_ptr<Wire> _globalWire, 
+                const Wire &_localWire, const Wire &_globalWire,
                 const CAM_Opt &_CAM_opt) = 0;
 
         virtual void CalculateArea() = 0;
@@ -75,8 +75,8 @@ class Bank: public FunctionUnit {
 
         int numBitSerial;
         std::unique_ptr<Mat> mat;
-        std::shared_ptr<Wire> localWire;
-        std::shared_ptr<Wire> globalWire;
+        Wire localWire;
+        Wire globalWire;
         CAM_Opt CAM_opt;
 };
 

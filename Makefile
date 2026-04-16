@@ -28,6 +28,7 @@ TEST_INPUT_VALIDATION_BIN=InputValidationTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
+TEST_WIRE_BIN=WireCopyTest
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
 UML_SLIDE_TEX=docs/repo_uml_slide.tex
@@ -58,7 +59,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(DEPS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_YAML_BIN)
@@ -89,6 +90,10 @@ test-montecarlo: $(BIN) $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_MONTECARLO_BIN)
 
+test-wire: $(OBJECTS_NO_MAIN)
+	$(CC) $(CPP_FLAGS) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_WIRE_BIN)
+
 uml:
 	@if ! command -v pdflatex >/dev/null 2>&1; then \
 		echo "pdflatex not found"; \
@@ -118,6 +123,7 @@ clean:
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
+		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
 		tests/tmp_cell.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell.yaml tests/tmp_variation_config.yaml \
 		tests/tmp_top_level_cell.yaml tests/tmp_top_level_config.yaml \
 		tests/tmp_cell_loader_cell.yaml tests/tmp_cell_loader_missing.yaml \

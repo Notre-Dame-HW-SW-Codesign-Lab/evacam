@@ -21,7 +21,7 @@ class CAM_Precharger: public Precharger {
 
         /* Functions */
         void Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, 
-                std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire);
+                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire);
         void CalculateArea();
 };
 

@@ -95,7 +95,7 @@ class CAM_SubArray: public FunctionUnit {
                 bool _withOutputAcc, bool _withPriorityEnc, BufferDesignTarget _PriorityOptLevel,
                 bool _withInputBuf, bool _withOutputBuf, CAMType _camType, SearchFunction _searchFunction, 
                 bool _withVariation, std::shared_ptr<EvaCamConfig> _config, 
-                std::shared_ptr<Wire> _localWire, const CAM_Opt &_CAM_opt
+                const Wire &_localWire, const CAM_Opt &_CAM_opt
                 );
 
         void ReadCustomDesign(char* _fileInputEnc, char* _fileSenseAmp);
@@ -284,7 +284,7 @@ class CAM_SubArray: public FunctionUnit {
         std::unique_ptr<RowDecoder>	senseAmpMuxLev2Decoder;
         std::unique_ptr<Mux>		bitlineMux;
 
-        std::shared_ptr<Wire> localWire;
+        Wire localWire;
         CAM_Opt CAM_opt;
 };
 

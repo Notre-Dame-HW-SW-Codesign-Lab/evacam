@@ -205,8 +205,8 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
         std::vector<std::shared_ptr<CAM_Result>> &bestResults,
         long long &numSolutions,
         std::ostream *csvStream,
-        const std::shared_ptr<Wire> &localWire,
-        const std::shared_ptr<Wire> &globalWire) {
+        const Wire &localWire,
+        const Wire &globalWire) {
     const auto numActiveMatPerRowValues = config_->exploration.ActiveMatPerRowValues(numColumnMat);
     const auto numActiveMatPerColumnValues = config_->exploration.ActiveMatPerColumnValues(numRowMat);
     const auto &resolved = config_->resolvedExploration;
@@ -296,7 +296,7 @@ void EvaCamExplorer::RefineLocalWires() {
                     continue;
                 }
 
-                localWire_->Initialize(config_->input.processNode,
+                localWire_.Initialize(config_->input.processNode,
                         (WireType)localWireType,
                         (WireRepeaterType)localWireRepeaterType,
                         config_->input.temperature,
@@ -309,11 +309,11 @@ void EvaCamExplorer::RefineLocalWires() {
                         continue;
                     }
 
-                    globalWire_->Initialize(config_->input.processNode,
-                            bestResults_[i]->globalWire->wireType,
-                            bestResults_[i]->globalWire->wireRepeaterType,
+                    globalWire_.Initialize(config_->input.processNode,
+                            bestResults_[i]->globalWire.wireType,
+                            bestResults_[i]->globalWire.wireRepeaterType,
                             config_->input.temperature,
-                            bestResults_[i]->globalWire->isLowSwing,
+                            bestResults_[i]->globalWire.isLowSwing,
                             config_);
                     tempResult = ReevaluateBestResultWithWires(i, localWire_, globalWire_);
                 }
@@ -334,7 +334,7 @@ void EvaCamExplorer::RefineGlobalWires() {
                     continue;
                 }
 
-                globalWire_->Initialize(config_->input.processNode,
+                globalWire_.Initialize(config_->input.processNode,
                         (WireType)globalWireType,
                         (WireRepeaterType)globalWireRepeaterType,
                         config_->input.temperature,
@@ -347,11 +347,11 @@ void EvaCamExplorer::RefineGlobalWires() {
                         continue;
                     }
 
-                    localWire_->Initialize(config_->input.processNode,
-                            bestResults_[i]->localWire->wireType,
-                            bestResults_[i]->localWire->wireRepeaterType,
+                    localWire_.Initialize(config_->input.processNode,
+                            bestResults_[i]->localWire.wireType,
+                            bestResults_[i]->localWire.wireRepeaterType,
                             config_->input.temperature,
-                            bestResults_[i]->localWire->isLowSwing,
+                            bestResults_[i]->localWire.isLowSwing,
                             config_);
                     tempResult = ReevaluateBestResultWithWires(i, localWire_, globalWire_);
                 }
@@ -363,8 +363,8 @@ void EvaCamExplorer::RefineGlobalWires() {
 }
 
 std::shared_ptr<Result> EvaCamExplorer::ReevaluateBestResultWithWires(int optimizationIndex,
-        const std::shared_ptr<Wire> &localWire,
-        const std::shared_ptr<Wire> &globalWire) {
+        const Wire &localWire,
+        const Wire &globalWire) {
     camOpt_.BitSerialWidth = bestResults_[optimizationIndex]->bank->numBitSerial;
     camOpt_.Proirity = bestResults_[optimizationIndex]->bank->mat->subarray->PriorityOptLevel;
     camOpt_.RowDriver = bestResults_[optimizationIndex]->bank->mat->subarray->DriverOptLevel;
@@ -414,8 +414,8 @@ void EvaCamExplorer::BuildPruningResults() {
         for (int j = 0; j < (int)full_exploration; j++) {
             for (int k = 0; k < 3; k++) {
                 pruningResults[i][j][k]->optimizationTarget = (OptimizationTarget)i;
-                *(pruningResults[i][j][k]->localWire) = *(bestResults_[i]->localWire);
-                *(pruningResults[i][j][k]->globalWire) = *(bestResults_[i]->globalWire);
+                pruningResults[i][j][k]->localWire = bestResults_[i]->localWire;
+                pruningResults[i][j][k]->globalWire = bestResults_[i]->globalWire;
                 switch ((OptimizationTarget)j) {
                     case read_latency_optimized:
                         pruningResults[i][j][k]->limitReadLatency = bestResults_[j]->bank->readLatency * (1 + (k + 1.0) / 10);
@@ -536,8 +536,8 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
         int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
         int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
         int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
-        BufferDesignTarget areaOptimizationLevel, const std::shared_ptr<Wire> &localWire,
-        const std::shared_ptr<Wire> &globalWire, const CAM_Opt &camOpt) const {
+        BufferDesignTarget areaOptimizationLevel, const Wire &localWire,
+        const Wire &globalWire, const CAM_Opt &camOpt) const {
     const auto bank = BankFactory::CreateBank(config_);
     BankFactory::InitializeBank(config_, bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
             associativity_, numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
@@ -548,8 +548,8 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
 }
 
 std::shared_ptr<Result> EvaCamExplorer::MakeResult(const std::shared_ptr<Bank> &bank,
-        const std::shared_ptr<Wire> &localWire,
-        const std::shared_ptr<Wire> &globalWire) const {
+        const Wire &localWire,
+        const Wire &globalWire) const {
     auto result = std::make_shared<Result>();
     result->Initialize(config_);
     result->bank = bank;

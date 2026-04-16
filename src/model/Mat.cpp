@@ -6,7 +6,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         int _numActiveSubarrayPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
         int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
         MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
-        std::shared_ptr<EvaCamConfig> _config, std::shared_ptr<Wire> _localWire, 
+        std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire,
         const CAM_Opt &_CAM_opt) {
     if (initialized)
         config->logger.Verbose() << "[Mat] Warning: Already initialized!";
@@ -163,15 +163,15 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         numAddressRowPredecoderBlock2 = numAddressRowPredecoderBlock1 / 2;
         numAddressRowPredecoderBlock1 = numAddressRowPredecoderBlock1 - numAddressRowPredecoderBlock2;
     }
-    double capLoadRowPredecoder = subarray->height * localWire->capWirePerUnit * numRowSubarray / 2
-        + subarray->width * localWire->capWirePerUnit * numColumnSubarray / 2;	/* Assume the predecoder is at the center */
+    double capLoadRowPredecoder = subarray->height * localWire.capWirePerUnit * numRowSubarray / 2
+        + subarray->width * localWire.capWirePerUnit * numColumnSubarray / 2;	/* Assume the predecoder is at the center */
     rowPredecoderBlock1 = std::make_unique<PredecodeBlock>();
     rowPredecoderBlock2 = std::make_unique<PredecodeBlock>();
     rowPredecoderBlock1->Initialize(numAddressRowPredecoderBlock1, capLoadRowPredecoder, 0 /* TODO */, config);
     rowPredecoderBlock2->Initialize(numAddressRowPredecoderBlock2, capLoadRowPredecoder, 0 /* TODO */, config);
 
-    double capLoadMuxPredecoder = MAX(0, subarray->height * localWire->capWirePerUnit * (numRowSubarray - 2) / 2)
-        + MAX(0, subarray->width * localWire->capWirePerUnit * (numColumnSubarray - 2) / 2);
+    double capLoadMuxPredecoder = MAX(0, subarray->height * localWire.capWirePerUnit * (numRowSubarray - 2) / 2)
+        + MAX(0, subarray->width * localWire.capWirePerUnit * (numColumnSubarray - 2) / 2);
     int numAddressBitlineMuxPredecoderBlock1 = (int)(log2(muxSenseAmp) + 0.1);
     int numAddressBitlineMuxPredecoderBlock2 = 0;
     if (numAddressBitlineMuxPredecoderBlock1 > 3) {		/* Block 2 is needed */
