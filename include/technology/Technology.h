@@ -18,7 +18,7 @@ class Technology {
         /* Functions */
         void PrintProperty();
         void Initialize(int _featureSizeInNano, DeviceRoadmap _deviceRoadmap, bool _UseUpdatedLib);
-        void InterpolateWith(const std::shared_ptr<Technology>& rhs, double _alpha);
+        void InterpolateWith(const Technology &rhs, double _alpha);
 
         bool initialized() const { return initialized_; }
         int featureSizeInNano() const { return featureSizeInNano_; }

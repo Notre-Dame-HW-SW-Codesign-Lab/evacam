@@ -40,21 +40,21 @@ void SenseAmp::CalculateArea() {
 
 
         CalculateGateArea(INV, 1, 0, W_SENSE_P * config->technology.tech->featureSize(),
-                pitchSenseAmp, config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
+                pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = MAX(width, tempWidth);
         height += 2 * tempHeight;
         CalculateGateArea(INV, 1, 0, W_SENSE_ISO * config->technology.tech->featureSize(),
-                pitchSenseAmp, config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
+                pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = MAX(width, tempWidth);
         height += tempHeight;
         height += 2 * MIN_GAP_BET_SAME_TYPE_DIFFS * config->technology.tech->featureSize();
 
         CalculateGateArea(INV, 1, W_SENSE_N * config->technology.tech->featureSize(), 0,
-                pitchSenseAmp, config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
+                pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = MAX(width, tempWidth);
         height += 2 * tempHeight;
         CalculateGateArea(INV, 1, W_SENSE_EN * config->technology.tech->featureSize(), 0,
-                pitchSenseAmp, config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
+                pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = MAX(width, tempWidth);
         height += tempHeight;
         height += 2 * MIN_GAP_BET_SAME_TYPE_DIFFS * config->technology.tech->featureSize();
@@ -79,11 +79,11 @@ void SenseAmp::CalculateRC() {
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
     } else {
-        capLoad = CalculateGateCap((W_SENSE_P + W_SENSE_N) * config->technology.tech->featureSize(), config->technology.tech)
-            + CalculateDrainCap(W_SENSE_N * config->technology.tech->featureSize(), NMOS, pitchSenseAmp, config->technology.tech)
-            + CalculateDrainCap(W_SENSE_P * config->technology.tech->featureSize(), PMOS, pitchSenseAmp, config->technology.tech)
-            + CalculateDrainCap(W_SENSE_ISO * config->technology.tech->featureSize(), PMOS, pitchSenseAmp, config->technology.tech)
-            + CalculateDrainCap(W_SENSE_MUX * config->technology.tech->featureSize(), NMOS, pitchSenseAmp, config->technology.tech);
+        capLoad = CalculateGateCap((W_SENSE_P + W_SENSE_N) * config->technology.tech->featureSize(), *config->technology.tech)
+            + CalculateDrainCap(W_SENSE_N * config->technology.tech->featureSize(), NMOS, pitchSenseAmp, *config->technology.tech)
+            + CalculateDrainCap(W_SENSE_P * config->technology.tech->featureSize(), PMOS, pitchSenseAmp, *config->technology.tech)
+            + CalculateDrainCap(W_SENSE_ISO * config->technology.tech->featureSize(), PMOS, pitchSenseAmp, *config->technology.tech)
+            + CalculateDrainCap(W_SENSE_MUX * config->technology.tech->featureSize(), NMOS, pitchSenseAmp, *config->technology.tech);
     }
 }
 
@@ -110,8 +110,8 @@ void SenseAmp::CalculateLatency(double _rampInput) {	/* TODO: _rampInput is actu
         }
 
         /* Voltage sense amplifier */
-        double gm = CalculateTransconductance(W_SENSE_N * config->technology.tech->featureSize(), NMOS, config->technology.tech)
-            + CalculateTransconductance(W_SENSE_P * config->technology.tech->featureSize(), PMOS, config->technology.tech);
+        double gm = CalculateTransconductance(W_SENSE_N * config->technology.tech->featureSize(), NMOS, *config->technology.tech)
+            + CalculateTransconductance(W_SENSE_P * config->technology.tech->featureSize(), PMOS, *config->technology.tech);
         double tau = capLoad / gm;
         readLatency += tau * log(config->technology.tech->vdd() / senseVoltage);
     }
@@ -151,7 +151,7 @@ void SenseAmp::CalculatePower() {
         /* Voltage sense amplifier */
         readDynamicEnergy += capLoad * config->technology.tech->vdd() * config->technology.tech->vdd();
         double idleCurrent =  CalculateGateLeakage(INV, 1, W_SENSE_EN * config->technology.tech->featureSize(), 0,
-                config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
+                config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
         leakage += idleCurrent * config->technology.tech->vdd();
 
         readDynamicEnergy *= numColumn;

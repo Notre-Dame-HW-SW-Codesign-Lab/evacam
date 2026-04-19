@@ -53,7 +53,7 @@ std::shared_ptr<Technology> LoadTech(const InputConfig &input, const PeripheralC
         throw std::runtime_error("[Error]: Technology node below 7nm is not supported.");
     }
 
-    tech->InterpolateWith(techHigh, alpha);
+    tech->InterpolateWith(*techHigh, alpha);
     return tech;
 }
 

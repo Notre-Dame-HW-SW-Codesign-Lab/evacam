@@ -33,12 +33,12 @@ void Comparator::CalculateArea() {
         double totalWidth = 0;
         double h, w;
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
-            CalculateGateArea(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->technology.tech->featureSize()*40, config->technology.tech, &h, &w,
+            CalculateGateArea(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w,
                     config->peripherals.useUpdatedLib);
             totalHeight = MAX(totalHeight, h);
             totalWidth += w;
         }
-        CalculateGateArea(NAND, 2, widthNMOSComp, 0, config->technology.tech->featureSize()*40, config->technology.tech, &h, &w,
+        CalculateGateArea(NAND, 2, widthNMOSComp, 0, config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w,
                 config->peripherals.useUpdatedLib);
         totalHeight += h;
         totalWidth = MAX(totalWidth, numTagBits * w);
@@ -53,14 +53,14 @@ void Comparator::CalculateRC() {
         ThrowInitializationError("[Comparator]");
     } else {
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
-            CalculateGateCapacitance(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->technology.tech, &(capInput[i]), &(capOutput[i]));
+            CalculateGateCapacitance(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &(capInput[i]), &(capOutput[i]));
         }
         double capComp, capTemp;
-        CalculateGateCapacitance(NAND, 2, widthNMOSComp, 0, config->technology.tech->featureSize()*40, config->technology.tech, &capTemp, &capComp);
+        CalculateGateCapacitance(NAND, 2, widthNMOSComp, 0, config->technology.tech->featureSize()*40, *config->technology.tech, &capTemp, &capComp);
         capBottom = capOutput[COMPARATOR_INV_CHAIN_LEN-1] + numTagBits * capComp;
-        capTop = numTagBits * capComp + CalculateDrainCap(widthPMOSComp, PMOS, config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->technology.tech) + capLoad;
-        resBottom = CalculateOnResistance(widthNMOSInv[COMPARATOR_INV_CHAIN_LEN-1], NMOS, config->input.temperature, config->technology.tech);
-        resTop = 2 * CalculateOnResistance(widthNMOSComp, NMOS, config->input.temperature, config->technology.tech);
+        capTop = numTagBits * capComp + CalculateDrainCap(widthPMOSComp, PMOS, config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, *config->technology.tech) + capLoad;
+        resBottom = CalculateOnResistance(widthNMOSInv[COMPARATOR_INV_CHAIN_LEN-1], NMOS, config->input.temperature, *config->technology.tech);
+        resTop = 2 * CalculateOnResistance(widthNMOSComp, NMOS, config->input.temperature, *config->technology.tech);
     }
 }
 
@@ -77,10 +77,10 @@ void Comparator::CalculateLatency(double _rampInput) {
         double temp;
         readLatency = 0;
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN - 1; i++) {
-            resPullDown = CalculateOnResistance(widthNMOSInv[i], NMOS, config->input.temperature, config->technology.tech);
+            resPullDown = CalculateOnResistance(widthNMOSInv[i], NMOS, config->input.temperature, *config->technology.tech);
             capNode = capOutput[i] + capInput[i+1];
             tr = resPullDown * capNode;
-            gm = CalculateTransconductance(widthNMOSInv[i], NMOS, config->technology.tech);
+            gm = CalculateTransconductance(widthNMOSInv[i], NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
             readLatency += horowitz(tr, beta, rampInput, &temp);
             rampInput = temp;	/* for next stage */
@@ -99,10 +99,10 @@ void Comparator::CalculatePower() {
         /* Leakage power */
         leakage = 0;
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
-            leakage += CalculateGateLeakage(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->input.temperature, config->technology.tech)
+            leakage += CalculateGateLeakage(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->input.temperature, *config->technology.tech)
                 * config->technology.tech->vdd();
         }
-        leakage += numTagBits * CalculateGateLeakage(NAND, 2, widthNMOSComp, 0, config->input.temperature, config->technology.tech)
+        leakage += numTagBits * CalculateGateLeakage(NAND, 2, widthNMOSComp, 0, config->input.temperature, *config->technology.tech)
             * config->technology.tech->vdd();
         leakage *= 4;
         /* Dynamic energy */

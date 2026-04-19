@@ -9,10 +9,12 @@ class BasicDecoder: public FunctionUnit {
     public:
         BasicDecoder() {
             initialized = false;
-            outputDriver = std::make_unique<OutputDriver>();
         }
-        BasicDecoder(const BasicDecoder&) {}
-        virtual ~BasicDecoder() {}
+        BasicDecoder(const BasicDecoder&) = delete;
+        BasicDecoder& operator=(const BasicDecoder&) = delete;
+        BasicDecoder(BasicDecoder&&) noexcept = default;
+        BasicDecoder& operator=(BasicDecoder&&) noexcept = default;
+        virtual ~BasicDecoder() = default;
 
         /* Functions */
         void PrintProperty();
@@ -26,7 +28,7 @@ class BasicDecoder: public FunctionUnit {
 
         /* Properties */
         bool initialized;	/* Initialization flag */
-        std::unique_ptr<OutputDriver> outputDriver;
+        OutputDriver outputDriver;
         double capLoad;		/* Load capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */

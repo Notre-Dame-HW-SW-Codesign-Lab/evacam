@@ -86,15 +86,15 @@ class SubArray: public FunctionUnit {
         double MatchlineSenseMargin;
 
 
-        std::shared_ptr<RowDecoder>	rowDecoder;
-        std::shared_ptr<RowDecoder>	bitlineMuxDecoder;
-        std::shared_ptr<Mux>		bitlineMux;
-        std::shared_ptr<RowDecoder>	senseAmpMuxLev1Decoder;
-        std::shared_ptr<Mux>		senseAmpMuxLev1;
-        std::shared_ptr<RowDecoder>	senseAmpMuxLev2Decoder;
-        std::shared_ptr<Mux>		senseAmpMuxLev2;
-        std::shared_ptr<Precharger>	precharger;
-        std::shared_ptr<SenseAmp>	senseAmp;
+        std::unique_ptr<RowDecoder>	rowDecoder;
+        std::unique_ptr<RowDecoder>	bitlineMuxDecoder;
+        std::unique_ptr<Mux>		bitlineMux;
+        std::unique_ptr<RowDecoder>	senseAmpMuxLev1Decoder;
+        std::unique_ptr<Mux>		senseAmpMuxLev1;
+        std::unique_ptr<RowDecoder>	senseAmpMuxLev2Decoder;
+        std::unique_ptr<Mux>		senseAmpMuxLev2;
+        std::unique_ptr<Precharger>	precharger;
+        std::unique_ptr<SenseAmp>	senseAmp;
 
         Wire localWire;
 };

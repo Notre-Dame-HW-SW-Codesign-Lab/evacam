@@ -32,7 +32,7 @@ void CAM_BasicEncoder::Initialize(int _numInputBit, double _capLoad, double _res
         widthP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         double logicEffortCarry = 2 / (1+config->technology.tech->pnSizeRatio());
         double tmp;
-        CalculateGateCapacitance(NOR, 8, widthN*2, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &tmp, &capDyn);
+        CalculateGateCapacitance(NOR, 8, widthN*2, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &tmp, &capDyn);
         outputDriver.Initialize(logicEffortCarry, capDyn, capLoad, resLoad, true, latency_first, 0, config);
     }
     else {
@@ -55,12 +55,12 @@ void CAM_BasicEncoder::CalculateArea() {
             // 4-input OR is 2 NOR2 + 1 NAND2
             // and the tre-state output by trans-gate
             double hNOR, wNOR, hNAND, wNAND, hTRI, wTRI;
-            CalculateGateArea(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*40, config->technology.tech, &hNOR, &wNOR, 
+            CalculateGateArea(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*40, *config->technology.tech, &hNOR, &wNOR, 
                     config->peripherals.useUpdatedLib);
             // assuming the second stage NAND is twice as large as the first stage NOR
-            CalculateGateArea(NAND, 2, widthNandN*2, widthNandP*2, config->technology.tech->featureSize()*40, config->technology.tech, &hNAND, 
+            CalculateGateArea(NAND, 2, widthNandN*2, widthNandP*2, config->technology.tech->featureSize()*40, *config->technology.tech, &hNAND, 
                     &wNAND, config->peripherals.useUpdatedLib);
-            CalculateGateArea(INV, 1, widthN, widthP, config->technology.tech->featureSize()*40, config->technology.tech, &hTRI, &wTRI, 
+            CalculateGateArea(INV, 1, widthN, widthP, config->technology.tech->featureSize()*40, *config->technology.tech, &hTRI, &wTRI, 
                     config->peripherals.useUpdatedLib);
             // TODO: a better layout
             width = MAX(MAX(wNOR, wNAND), wTRI);
@@ -71,10 +71,10 @@ void CAM_BasicEncoder::CalculateArea() {
             // dynamic circuit for carry in
             double hPullDown, wPullDown, hCLK, wCLK;
             // the clock part
-            CalculateGateArea(INV, 1, widthN * 2, widthP, config->technology.tech->featureSize()*40, config->technology.tech, &hCLK, &wCLK,
+            CalculateGateArea(INV, 1, widthN * 2, widthP, config->technology.tech->featureSize()*40, *config->technology.tech, &hCLK, &wCLK,
                     config->peripherals.useUpdatedLib);
             // the pull down NMOS part
-            CalculateGateArea(INV, 8, widthN * 2, 0, config->technology.tech->featureSize()*40, config->technology.tech, &hPullDown, &wPullDown,
+            CalculateGateArea(INV, 8, widthN * 2, 0, config->technology.tech->featureSize()*40, *config->technology.tech, &hPullDown, &wPullDown,
                     config->peripherals.useUpdatedLib);
             // TODO: a better layout
             area += ( hCLK*wCLK + hPullDown*wPullDown );
@@ -91,9 +91,9 @@ void CAM_BasicEncoder::CalculateRC() {
         ThrowInitializationError("[CAM_BasicEncoder]");
     } else {
         outputDriver.CalculateRC();
-        CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNorInput, &capNorOutput);
-        CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandInput, &capNandOutput);
-        CalculateGateCapacitance(INV, 2, widthN, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capInvInput, &capInvOutput);
+        CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNorInput, &capNorOutput);
+        CalculateGateCapacitance(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNandInput, &capNandOutput);
+        CalculateGateCapacitance(INV, 2, widthN, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capInvInput, &capInvOutput);
     }
 }
 
@@ -111,11 +111,11 @@ void CAM_BasicEncoder::CalculateLatency(double _rampInput) {
             double beta;	/* for horowitz calculation */
             double rampInputForDriver;
 
-            resPullDown = CalculateOnResistance(widthN*2, NMOS, config->input.temperature, config->technology.tech);
+            resPullDown = CalculateOnResistance(widthN*2, NMOS, config->input.temperature, *config->technology.tech);
             // carry in also gives to the tri-state gate
             capLoad = capDyn + outputDriver.capInput[0] + capInvInput;
             tr = resPullDown * capLoad;
-            gm = CalculateTransconductance(widthNandN, NMOS, config->technology.tech);
+            gm = CalculateTransconductance(widthNandN, NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
             readLatency = horowitz(tr, beta, rampInput, &rampInputForDriver);
             outputDriver.CalculateLatency(rampInputForDriver);
@@ -139,9 +139,9 @@ void CAM_BasicEncoder::CalculatePower() {
             leakage = outputDriver.leakage;
             readDynamicEnergy = 0;
             // leakage for OR gates and tri-state output
-            leakage += ( CalculateGateLeakage(NOR, 2, widthNorN, widthNorP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() *2*3);
-            leakage += ( CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() *3);
-            leakage += ( CalculateGateLeakage(INV, 1, widthN, widthP, config->input.temperature, config->technology.tech) * config->technology.tech->vdd() *3);
+            leakage += ( CalculateGateLeakage(NOR, 2, widthNorN, widthNorP, config->input.temperature, *config->technology.tech) * config->technology.tech->vdd() *2*3);
+            leakage += ( CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, *config->technology.tech) * config->technology.tech->vdd() *3);
+            leakage += ( CalculateGateLeakage(INV, 1, widthN, widthP, config->input.temperature, *config->technology.tech) * config->technology.tech->vdd() *3);
             // leakage for the dynamic logic
             int tempIndex = (int)config->input.temperature - 300;
             if ((tempIndex > 100) || (tempIndex < 0)) {

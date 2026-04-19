@@ -24,8 +24,8 @@ void BasicDecoder::Initialize(int _numAddressBit, double _capLoad, double _resLo
         double logicEffortInv = 1;
         double widthInvN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
         double widthInvP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-        double capInv = CalculateGateCap(widthInvN, config->technology.tech) + CalculateGateCap(widthInvP, config->technology.tech);
-        outputDriver->Initialize(logicEffortInv, capInv, capLoad, resLoad, true, latency_first, 0, config);  /* Always Latency First */
+        double capInv = CalculateGateCap(widthInvN, *config->technology.tech) + CalculateGateCap(widthInvP, *config->technology.tech);
+        outputDriver.Initialize(logicEffortInv, capInv, capLoad, resLoad, true, latency_first, 0, config);  /* Always Latency First */
     }
     else{
         double logicEffortNand;
@@ -40,8 +40,8 @@ void BasicDecoder::Initialize(int _numAddressBit, double _capLoad, double _resLo
             logicEffortNand = (3+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
         }
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-        capNand = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
-        outputDriver->Initialize(logicEffortNand, capNand, capLoad, resLoad, true, latency_first, 0, config);  /* Always Latency First */
+        capNand = CalculateGateCap(widthNandN, *config->technology.tech) + CalculateGateCap(widthNandP, *config->technology.tech);
+        outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, true, latency_first, 0, config);  /* Always Latency First */
     }
     initialized = true;
     CalculateArea();
@@ -53,16 +53,16 @@ void BasicDecoder::CalculateArea() {
     if (!initialized) {
         ThrowInitializationError("[Basic Decoder]");
     } else {
-        //outputDriver->CalculateArea();
+        //outputDriver.CalculateArea();
         if (numNandInput == 0){
-            height = 2 * outputDriver->height;
-            width = outputDriver->width;
+            height = 2 * outputDriver.height;
+            width = outputDriver.width;
         }
         else {
             double hNand, wNand;
-            CalculateGateArea(NAND, numNandInput, widthNandN, widthNandP, config->technology.tech->featureSize()*40, config->technology.tech, &hNand, &wNand, config->peripherals.useUpdatedLib);
-            height = MAX(hNand, outputDriver->height);
-            width = wNand + outputDriver->width;
+            CalculateGateArea(NAND, numNandInput, widthNandN, widthNandP, config->technology.tech->featureSize()*40, *config->technology.tech, &hNand, &wNand, config->peripherals.useUpdatedLib);
+            height = MAX(hNand, outputDriver.height);
+            width = wNand + outputDriver.width;
             height *= numNandGate;
         }
         area = height * width;
@@ -73,9 +73,9 @@ void BasicDecoder::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[Basic Decoder]");
     } else {
-        //outputDriver->CalculateRC();
+        //outputDriver.CalculateRC();
         if (numNandInput > 0) {
-            CalculateGateCapacitance(NAND, numNandInput, widthNandN, widthNandP, config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandInput, &capNandOutput);
+            CalculateGateCapacitance(NAND, numNandInput, widthNandN, widthNandP, config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNandInput, &capNandOutput);
         }
     }
 }
@@ -86,8 +86,8 @@ void BasicDecoder::CalculateLatency(double _rampInput) {
     } else {
         rampInput = _rampInput;
         if (numNandInput == 0) {
-            outputDriver->CalculateLatency(rampInput);
-            readLatency  = outputDriver->readLatency;
+            outputDriver.CalculateLatency(rampInput);
+            readLatency  = outputDriver.readLatency;
             writeLatency = readLatency;
         } else {
             double resPullDown;
@@ -97,18 +97,18 @@ void BasicDecoder::CalculateLatency(double _rampInput) {
             double beta;	/* for horowitz calculation */
             double rampInputForDriver;
 
-            resPullDown = CalculateOnResistance(widthNandN, NMOS, config->input.temperature, config->technology.tech) * numNandInput;
-            capLoad = capNandOutput + outputDriver->capInput[0];
+            resPullDown = CalculateOnResistance(widthNandN, NMOS, config->input.temperature, *config->technology.tech) * numNandInput;
+            capLoad = capNandOutput + outputDriver.capInput[0];
             tr = resPullDown * capLoad;
-            gm = CalculateTransconductance(widthNandN, NMOS, config->technology.tech);
+            gm = CalculateTransconductance(widthNandN, NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
             readLatency = horowitz(tr, beta, rampInput, &rampInputForDriver);
 
-            outputDriver->CalculateLatency(rampInputForDriver);
-            readLatency += outputDriver->readLatency;
+            outputDriver.CalculateLatency(rampInputForDriver);
+            readLatency += outputDriver.readLatency;
             writeLatency = readLatency;
         }
-        rampOutput = outputDriver->rampOutput;
+        rampOutput = outputDriver.rampOutput;
     }
 }
 
@@ -116,26 +116,26 @@ void BasicDecoder::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[Basic Decoder]");
     } else {
-        //outputDriver->CalculatePower();
+        //outputDriver.CalculatePower();
         double capLoad;
         if (numNandInput == 0) {
-            leakage = 2 * outputDriver->leakage;
-            capLoad = outputDriver->capInput[0] + outputDriver->capOutput[0];
+            leakage = 2 * outputDriver.leakage;
+            capLoad = outputDriver.capInput[0] + outputDriver.capOutput[0];
             readDynamicEnergy = capLoad * config->technology.tech->vdd() * config->technology.tech->vdd();
-            readDynamicEnergy += outputDriver->readDynamicEnergy;
+            readDynamicEnergy += outputDriver.readDynamicEnergy;
             readDynamicEnergy *= 1;	/* only one row is activated each time */
             writeDynamicEnergy = readDynamicEnergy;
 
         } else {
             /* Leakage power */
             leakage = CalculateGateLeakage(NAND, numNandInput, widthNandN, widthNandP,
-                    config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
-            leakage += outputDriver->leakage;
+                    config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
+            leakage += outputDriver.leakage;
             leakage *= numNandGate;
             /* Dynamic energy */
-            capLoad = capNandOutput + outputDriver->capInput[0];
+            capLoad = capNandOutput + outputDriver.capInput[0];
             readDynamicEnergy = capLoad * config->technology.tech->vdd() * config->technology.tech->vdd();
-            readDynamicEnergy += outputDriver->readDynamicEnergy;
+            readDynamicEnergy += outputDriver.readDynamicEnergy;
             readDynamicEnergy *= 1;	/* only one row is activated each time */
             writeDynamicEnergy = readDynamicEnergy;
         }

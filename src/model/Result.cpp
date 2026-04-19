@@ -11,7 +11,7 @@
 void Result::Initialize(std::shared_ptr<EvaCamConfig> _config) {
     config = _config;
 
-    bank = BankFactory::CreateBank(config);
+    bank = BankFactory::CreateBank(*config);
     localWire = WireFactory::CreateDefaultLocalWire(config);
     globalWire = WireFactory::CreateDefaultGlobalWire(config);
 

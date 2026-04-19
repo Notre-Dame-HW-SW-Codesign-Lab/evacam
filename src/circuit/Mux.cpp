@@ -29,7 +29,7 @@ void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _
         if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FEFETRAM) {
             /* Mux resistance should be small enough for voltage dividing */
             double maxResNMOSPassTransistor = config->technology.cell->resistanceOn * IR_DROP_TOLERANCE;
-            widthNMOSPassTransistor = CalculateOnResistance(config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech)
+            widthNMOSPassTransistor = CalculateOnResistance(config->technology.tech->featureSize(), NMOS, config->input.temperature, *config->technology.tech)
                 * config->technology.tech->featureSize() / maxResNMOSPassTransistor;
             if (widthNMOSPassTransistor > config->input.maxNmosSize * config->technology.tech->featureSize()) {	// Change the transistor size to avoid severe IR drop
                 widthNMOSPassTransistor = config->input.maxNmosSize * config->technology.tech->featureSize();
@@ -52,7 +52,7 @@ void Mux::CalculateArea(){
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
             double h,w;
-            CalculateGateArea(INV, 1, widthNMOSPassTransistor, 0, config->technology.tech->featureSize()*40, config->technology.tech, &h, &w, config->peripherals.useUpdatedLib);
+            CalculateGateArea(INV, 1, widthNMOSPassTransistor, 0, config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w, config->peripherals.useUpdatedLib);
             width = numMux * numInput * w;
             height = h;
             area = width * height;
@@ -67,11 +67,11 @@ void Mux::CalculateRC() {
         ThrowInitializationError("[Mux]");
     } else {
         if ((numInput > 1) && (numMux > 0 )) {
-            capNMOSPassTransistor = CalculateDrainCap(widthNMOSPassTransistor, NMOS, config->technology.tech->featureSize()*40, config->technology.tech);
+            capNMOSPassTransistor = CalculateDrainCap(widthNMOSPassTransistor, NMOS, config->technology.tech->featureSize()*40, *config->technology.tech);
             capForPreviousPowerCalculation = capNMOSPassTransistor;
             capOutput = numInput * capNMOSPassTransistor;
             capForPreviousDelayCalculation = capOutput + capNMOSPassTransistor + capLoad;
-            resNMOSPassTransistor = CalculateOnResistance(widthNMOSPassTransistor, NMOS, config->input.temperature, config->technology.tech);
+            resNMOSPassTransistor = CalculateOnResistance(widthNMOSPassTransistor, NMOS, config->input.temperature, *config->technology.tech);
         } else {
             ;	/* nothing to do */
         }

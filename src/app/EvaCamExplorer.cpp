@@ -538,7 +538,7 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
         int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
         BufferDesignTarget areaOptimizationLevel, const Wire &localWire,
         const Wire &globalWire, const CAM_Opt &camOpt) const {
-    const auto bank = BankFactory::CreateBank(config_);
+    const auto bank = BankFactory::CreateBank(*config_);
     BankFactory::InitializeBank(config_, bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
             associativity_, numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
             muxOutputLev1, muxOutputLev2, numRowSubarray, numColumnSubarray,

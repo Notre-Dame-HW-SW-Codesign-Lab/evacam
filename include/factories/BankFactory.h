@@ -11,7 +11,7 @@ class Wire;
 
 class BankFactory {
     public:
-        static std::shared_ptr<Bank> CreateBank(const std::shared_ptr<EvaCamConfig> &config);
+        static std::shared_ptr<Bank> CreateBank(const EvaCamConfig &config);
         static void InitializeBank(const std::shared_ptr<EvaCamConfig> &config,
                 const std::shared_ptr<Bank> &bank, int numRowMat, int numColumnMat,
                 long long capacityBits, long blockSizeBits, int associativityValue, int numRowPerSet,

@@ -29,7 +29,7 @@ class Precharger: public FunctionUnit {
 
         /* Properties */
         bool initialized;	/* Initialization flag */
-        std::unique_ptr<OutputDriver> outputDriver;
+        OutputDriver outputDriver;
         double voltagePrecharge;  /* Precharge Voltage */
         double capBitline, resBitline;
         double capLoadInv;

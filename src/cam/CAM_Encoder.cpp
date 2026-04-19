@@ -38,13 +38,13 @@ void CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizat
     }
     widthN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
     widthP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-    CalculateGateCapacitance(INV, 2, widthN, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capInvInput, &capInvOutput);
+    CalculateGateCapacitance(INV, 2, widthN, widthP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capInvInput, &capInvOutput);
     double logicEffort = (2+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
     outputDriver.Initialize(logicEffort, capInvOutput, capLoad, resLoad, false, areaOptimizationLevel, 0, config);
 
     widthNorN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
     widthNorP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-    CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNorInput, &capNorOutput);
+    CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNorInput, &capNorOutput);
     BasicEncoder.Initialize(8, capNorInput, 0, config /*TODO gate resistance */);
     initialized = true;
     CalculateArea();

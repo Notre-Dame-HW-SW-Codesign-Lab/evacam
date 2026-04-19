@@ -105,24 +105,24 @@ void Technology::PrintProperty() {
     std::cout << " - PMOS Current @300K = " << currentOnPmos_[0] << "A/m" << std::endl;
 }
 
-void Technology::InterpolateWith(const std::shared_ptr<Technology>& rhs, double _alpha) {
-    if (featureSizeInNano_ != rhs->featureSizeInNano_) {
-        vdd_ = (1 - _alpha) * vdd_ + _alpha * rhs->vdd_;
-        vth_ = (1 - _alpha) * vth_ + _alpha * rhs->vth_;
-        phyGateLength_ = (1 - _alpha) * phyGateLength_ + _alpha * rhs->phyGateLength_;
-        capIdealGate_ = (1 - _alpha) * capIdealGate_ + _alpha * rhs->capIdealGate_;
-        capFringe_ = (1 - _alpha) * capFringe_ + _alpha * rhs->capFringe_;
-        capJunction_ = (1 - _alpha) * capJunction_ + _alpha * rhs->capJunction_;
-        capOx_ = (1 - _alpha) * capOx_ + _alpha * rhs->capOx_;
-        effectiveElectronMobility_ = (1 - _alpha) * effectiveElectronMobility_ + _alpha * rhs->effectiveElectronMobility_;
-        effectiveHoleMobility_ = (1 - _alpha) * effectiveHoleMobility_ + _alpha * rhs->effectiveHoleMobility_;
-        pnSizeRatio_ = (1 - _alpha) * pnSizeRatio_ + _alpha * rhs->pnSizeRatio_;
-        effectiveResistanceMultiplier_ = (1 - _alpha) * effectiveResistanceMultiplier_ + _alpha * rhs->effectiveResistanceMultiplier_;
+void Technology::InterpolateWith(const Technology &rhs, double _alpha) {
+    if (featureSizeInNano_ != rhs.featureSizeInNano_) {
+        vdd_ = (1 - _alpha) * vdd_ + _alpha * rhs.vdd_;
+        vth_ = (1 - _alpha) * vth_ + _alpha * rhs.vth_;
+        phyGateLength_ = (1 - _alpha) * phyGateLength_ + _alpha * rhs.phyGateLength_;
+        capIdealGate_ = (1 - _alpha) * capIdealGate_ + _alpha * rhs.capIdealGate_;
+        capFringe_ = (1 - _alpha) * capFringe_ + _alpha * rhs.capFringe_;
+        capJunction_ = (1 - _alpha) * capJunction_ + _alpha * rhs.capJunction_;
+        capOx_ = (1 - _alpha) * capOx_ + _alpha * rhs.capOx_;
+        effectiveElectronMobility_ = (1 - _alpha) * effectiveElectronMobility_ + _alpha * rhs.effectiveElectronMobility_;
+        effectiveHoleMobility_ = (1 - _alpha) * effectiveHoleMobility_ + _alpha * rhs.effectiveHoleMobility_;
+        pnSizeRatio_ = (1 - _alpha) * pnSizeRatio_ + _alpha * rhs.pnSizeRatio_;
+        effectiveResistanceMultiplier_ = (1 - _alpha) * effectiveResistanceMultiplier_ + _alpha * rhs.effectiveResistanceMultiplier_;
         for (int i = 0; i <= 100; i++){
-            currentOnNmos_[i] = (1 - _alpha) * currentOnNmos_[i] + _alpha * rhs->currentOnNmos_[i];
-            currentOnPmos_[i] = (1 - _alpha) * currentOnPmos_[i] + _alpha * rhs->currentOnPmos_[i];
-            currentOffNmos_[i] = pow(currentOffNmos_[i], 1 - _alpha) * pow(rhs->currentOffNmos_[i], _alpha);
-            currentOffPmos_[i] = pow(currentOffPmos_[i], 1 - _alpha) * pow(rhs->currentOffPmos_[i], _alpha);
+            currentOnNmos_[i] = (1 - _alpha) * currentOnNmos_[i] + _alpha * rhs.currentOnNmos_[i];
+            currentOnPmos_[i] = (1 - _alpha) * currentOnPmos_[i] + _alpha * rhs.currentOnPmos_[i];
+            currentOffNmos_[i] = pow(currentOffNmos_[i], 1 - _alpha) * pow(rhs.currentOffNmos_[i], _alpha);
+            currentOffPmos_[i] = pow(currentOffPmos_[i], 1 - _alpha) * pow(rhs.currentOffPmos_[i], _alpha);
         }
         //capSidewall = 2.5e-10;	/* Unit: F/m, this value is from CACTI, PTM model shows the value is 5e-10 */
         double cjd = 1e-3;             /* Bottom junction capacitance, Unit: F/m^2*/

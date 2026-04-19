@@ -39,7 +39,7 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
             logicEffortNand = (3+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
         }
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-        capNand = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
+        capNand = CalculateGateCap(widthNandN, *config->technology.tech) + CalculateGateCap(widthNandP, *config->technology.tech);
         // begin_change
         //outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, true, areaOptimizationLevel, minDriverCurrent);
         outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, driverInv, areaOptimizationLevel, minDriverCurrent, config);
@@ -49,7 +49,7 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
         double capInv;
         widthNandN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-        capInv = CalculateGateCap(widthNandN, config->technology.tech) + CalculateGateCap(widthNandP, config->technology.tech);
+        capInv = CalculateGateCap(widthNandN, *config->technology.tech) + CalculateGateCap(widthNandP, *config->technology.tech);
         // begin_change
         //outputDriver.Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, minDriverCurrent);
         outputDriver.Initialize(1, capInv, capLoad, resLoad, driverInv, areaOptimizationLevel, minDriverCurrent, config);

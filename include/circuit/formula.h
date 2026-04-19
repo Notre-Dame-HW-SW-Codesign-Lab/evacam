@@ -13,42 +13,42 @@ bool isPow2(int n);
 int intLog2(int n);
 
 /* calculate the gate capacitance */
-double CalculateGateCap(double width, std::shared_ptr<Technology> tech);
+double CalculateGateCap(double width, const Technology &tech);
 
 double CalculateGateArea(
         int gateType, int numInput,
         double widthNMOS, double widthPMOS,
-        double heightTransistorRegion, std::shared_ptr<Technology> tech,
+        double heightTransistorRegion, const Technology &tech,
         double *height, double *width, bool UseUpdatedWidth);
 
 /* calculate the capacitance of a gate */
 void CalculateGateCapacitance(
         int gateType, int numInput,
         double widthNMOS, double widthPMOS,
-        double heightTransistorRegion, std::shared_ptr<Technology> tech,
+        double heightTransistorRegion, const Technology &tech,
         double *capInput, double *capOutput);
 
 double CalculateDrainCap(
         double width, int type,
-        double heightTransistorRegion, std::shared_ptr<Technology> tech);
+        double heightTransistorRegion, const Technology &tech);
 
 double CAM_CalculateSourceCap(
         double width, int type,
-        double heightTransistorRegion, std::shared_ptr<Technology> tech);
+        double heightTransistorRegion, const Technology &tech);
 
 /* calculate the capacitance of a FBRAM */
-double CalculateFBRAMGateCap(double width, double thicknessFactor, std::shared_ptr<Technology> tech);
+double CalculateFBRAMGateCap(double width, double thicknessFactor, const Technology &tech);
 
-double CalculateFBRAMDrainCap(double width, std::shared_ptr<Technology> tech);
+double CalculateFBRAMDrainCap(double width, const Technology &tech);
 
 double CalculateGateLeakage(
         int gateType, int numInput,
         double widthNMOS, double widthPMOS,
-        double temperature, std::shared_ptr<Technology> tech);
+        double temperature, const Technology &tech);
 
-double CalculateOnResistance(double width, int type, double temperature, std::shared_ptr<Technology> tech);
+double CalculateOnResistance(double width, int type, double temperature, const Technology &tech);
 
-double CalculateTransconductance(double width, int type, std::shared_ptr<Technology> tech);
+double CalculateTransconductance(double width, int type, const Technology &tech);
 
 double horowitz(double tr, double beta, double rampInput, double *rampOutput);
 

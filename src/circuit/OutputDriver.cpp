@@ -58,14 +58,14 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
         double inputCapLast = outputCap / f;
 
         widthNMOS[optimalNumStage-1] = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-                inputCapLast / CalculateGateCap(1/*meter*/, config->technology.tech) / (1.0 + config->technology.tech->pnSizeRatio()));
+                inputCapLast / CalculateGateCap(1/*meter*/, *config->technology.tech) / (1.0 + config->technology.tech->pnSizeRatio()));
 
         if (widthNMOS[optimalNumStage-1] > config->input.maxNmosSize * config->technology.tech->featureSize()) {
             if (WARNING)
                 std::cout << "[WARNING] Exceed maximum NMOS size!" << std::endl;
             widthNMOS[optimalNumStage-1] = config->input.maxNmosSize * config->technology.tech->featureSize();
             /* re-Calculate the logic effort */
-            double capLastStage = CalculateGateCap((1 + config->technology.tech->pnSizeRatio()) * config->input.maxNmosSize * config->technology.tech->featureSize(), config->technology.tech);
+            double capLastStage = CalculateGateCap((1 + config->technology.tech->pnSizeRatio()) * config->input.maxNmosSize * config->technology.tech->featureSize(), *config->technology.tech);
             F = logicEffort * capLastStage / inputCap;
             f =	pow(F, 1.0 / (optimalNumStage));
         }
@@ -89,7 +89,7 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
     }
 
     if (areaOptimizationLevel == latency_area_trade_off){
-        double newOutputCap = CalculateGateCap(minNMOSDriverWidth, config->technology.tech) * (1.0 + config->technology.tech->pnSizeRatio());
+        double newOutputCap = CalculateGateCap(minNMOSDriverWidth, *config->technology.tech) * (1.0 + config->technology.tech->pnSizeRatio());
         double F = MAX(1, logicEffort * newOutputCap / inputCap);	/* Total logic effort */
         optimalNumStage = MAX(0, (int)(log(F) / log(OPT_F) + 0.5) - 1);
 
@@ -153,7 +153,7 @@ void OutputDriver::CalculateArea() {
         double totalWidth = 0;
         double h, w;
         for (int i = 0; i < numStage; i++) {
-            CalculateGateArea(INV, 1, widthNMOS[i], widthPMOS[i], config->technology.tech->featureSize()*40, config->technology.tech, &h, &w, config->peripherals.useUpdatedLib);
+            CalculateGateArea(INV, 1, widthNMOS[i], widthPMOS[i], config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w, config->peripherals.useUpdatedLib);
             totalHeight = MAX(totalHeight, h);
             totalWidth += w;
         }
@@ -173,7 +173,7 @@ void OutputDriver::CalculateRC() {
         capOutput[0] = 0;
     } else {
         for (int i = 0; i < numStage; i++) {
-            CalculateGateCapacitance(INV, 1, widthNMOS[i], widthPMOS[i], config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, config->technology.tech, &(capInput[i]), &(capOutput[i]));
+            CalculateGateCapacitance(INV, 1, widthNMOS[i], widthPMOS[i], config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &(capInput[i]), &(capOutput[i]));
         }
     }
 }
@@ -197,10 +197,10 @@ void OutputDriver::CalculateLatency(double _rampInput) {
         //std::cout << "numStage = " << numStage << std::endl;
 
         for (int i = 0; i < numStage - 1; i++) {
-            resPullDown = CalculateOnResistance(widthNMOS[i], NMOS, config->input.temperature, config->technology.tech);
+            resPullDown = CalculateOnResistance(widthNMOS[i], NMOS, config->input.temperature, *config->technology.tech);
             capLoad = capOutput[i] + capInput[i+1];
             tr = resPullDown * capLoad;
-            gm = CalculateTransconductance(widthNMOS[i], NMOS, config->technology.tech);
+            gm = CalculateTransconductance(widthNMOS[i], NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
             readLatency += horowitz(tr, beta, rampInput, &temp);
             rampInput = temp;	/* for next stage */
@@ -209,7 +209,7 @@ void OutputDriver::CalculateLatency(double _rampInput) {
 
         //int tmpNumStage = numStage ? numStage > 0 : 1;
         if (numStage != 0) {
-            resPullDown = CalculateOnResistance(widthNMOS[/*tmpN*/numStage-1], NMOS, config->input.temperature, config->technology.tech);
+            resPullDown = CalculateOnResistance(widthNMOS[/*tmpN*/numStage-1], NMOS, config->input.temperature, *config->technology.tech);
             capLoad = capOutput[/*tmpN*/numStage-1] + outputCap;
 
             //std::cout << capLoad << std::endl;
@@ -219,7 +219,7 @@ void OutputDriver::CalculateLatency(double _rampInput) {
             //std::cout << outputRes << std::endl;
 
             tr = resPullDown * capLoad + outputCap * outputRes / 2;
-            gm = CalculateTransconductance(widthNMOS[/*tmpN*/numStage-1], NMOS, config->technology.tech);
+            gm = CalculateTransconductance(widthNMOS[/*tmpN*/numStage-1], NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
             readLatency += horowitz(tr, beta, rampInput, &rampOutput);
             rampInput = _rampInput;
@@ -242,7 +242,7 @@ void OutputDriver::CalculatePower() {
 
         for (int i = 0; i < numStage; i++) {
             leakage += CalculateGateLeakage(INV, 1, widthNMOS[i], widthPMOS[i], 
-                    config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
+                    config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
         }
         /* Dynamic energy */
         readDynamicEnergy = 0;

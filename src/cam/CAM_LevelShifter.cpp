@@ -31,7 +31,7 @@ void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _res
     double logicEffort = (2+config->technology.tech->pnSizeRatio()) / (1+config->technology.tech->pnSizeRatio());
     logicEffort *= logicEffort;
     /* driver's cap-in: both the input and output of nand */
-    CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
+    CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNandIn, &capNandOut);
 
 
     initialized = true;
@@ -49,8 +49,8 @@ void CAM_LevelShifter::CalculateArea(){
         width = 0;
 
         double hlow, /* hlatch,*/  hhigh, wlow, wlatch, whigh; // TODO: why is hlatch unused?
-        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &hlow, &wlow, config->peripherals.useUpdatedLib);
-        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &hhigh, &whigh, config->peripherals.useUpdatedLib);
+        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hlow, &wlow, config->peripherals.useUpdatedLib);
+        CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hhigh, &whigh, config->peripherals.useUpdatedLib);
         double hLS = MAX(hlow, hhigh);
 
         //TODO: figure out what this is supposed to be initialized to
@@ -66,7 +66,7 @@ void CAM_LevelShifter::CalculateRC() {
         ThrowInitializationError("[CAM_LevelShifter]");
     } else {
 
-        CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNandIn, &capNandOut);
+        CalculateGateCapacitance(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNandIn, &capNandOut);
     }
 }
 
@@ -83,10 +83,10 @@ void CAM_LevelShifter::CalculateLatency(double _rampInput) {
         double rampInternal;
 
         /* 2 stage nand and the driver */
-        resPullDown = CalculateOnResistance(widthNandP*10, PMOS, config->input.temperature, config->technology.tech);
+        resPullDown = CalculateOnResistance(widthNandP*10, PMOS, config->input.temperature, *config->technology.tech);
         cap = capNandOut + capNandIn;
         tr = resPullDown * cap;
-        gm = CalculateTransconductance(widthNandN, NMOS, config->technology.tech);
+        gm = CalculateTransconductance(widthNandN, NMOS, *config->technology.tech);
         beta = 1 / (resPullDown * gm);
         readLatency = horowitz(tr, beta, rampInput, &rampInternal);
 

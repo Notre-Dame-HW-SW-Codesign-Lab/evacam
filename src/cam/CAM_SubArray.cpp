@@ -229,37 +229,37 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffNmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.numCmos;
                         nominalResMatchTranOff = config->technology.cell->resistanceOff/2;
                         resMemCellOff = nominalResCellAccessOff + nominalResMatchTranOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech)*Col[i].CellPort.numCmos;
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, *config->technology.tech)*Col[i].CellPort.numCmos;
                         resMatchTran = config->technology.cell->resistanceOn;
                         resMemCellOn  = resCellAccess + resMatchTran;
                         // Update for HV
-                        capCellAccess = (CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize()*3 /* Update for HV */, NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize()*3 /* Update for HV */, config->technology.tech)+config->technology.cell->capacitanceOff)*Col[i].CellPort.numCmos;
+                        capCellAccess = (CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize()*3 /* Update for HV */, NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize()*3 /* Update for HV */, *config->technology.tech)+config->technology.cell->capacitanceOff)*Col[i].CellPort.numCmos;
                     }else{
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffNmos()[config->input.temperature - 300] / config->technology.tech->featureSize() / Col[i].CellPort.numCmos;
                         nominalResMatchTranOff = 0;
                         resMemCellOff = nominalResCellAccessOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech);
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, *config->technology.tech);
                         resMatchTran = 0;
                         resMemCellOn  = resCellAccess;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos;
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos;
                     }
                 }else{
                     if(config->technology.cell->isNVMdischarge){
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffPmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.numCmos / 2;
                         nominalResMatchTranOff = config->technology.cell->resistanceOff / 2;
                         resMemCellOff = nominalResCellAccessOff + nominalResMatchTranOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, config->technology.tech);
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, *config->technology.tech);
                         resMatchTran = config->technology.cell->resistanceOn;
                         resMemCellOn  = resCellAccess + resMatchTran;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos;
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos;
                     }else{
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffPmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.numCmos;
                         nominalResMatchTranOff = 0;
                         resMemCellOff = nominalResCellAccessOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, config->technology.tech)*Col[i].CellPort.numCmos;
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, *config->technology.tech)*Col[i].CellPort.numCmos;
                         resMatchTran = 0;
                         resMemCellOn  = resCellAccess;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos;
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos;
                     }
                 }
             }else if(Col[i].CellPort.ConnectedRegion == diode){
@@ -268,46 +268,46 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffNmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.widthCmos*Col[i].CellPort.numCmos/4;
                         nominalResMatchTranOff = config->technology.cell->resistanceOff/2;
                         resMemCellOff = nominalResCellAccessOff + nominalResMatchTranOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech);
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, *config->technology.tech);
                         resMatchTran = config->technology.cell->resistanceOn;
                         resMemCellOn  = resCellAccess + resMatchTran;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos
-                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), config->technology.tech);
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos
+                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), *config->technology.tech);
                     }else{
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffNmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.widthCmos*Col[i].CellPort.numCmos;
                         nominalResMatchTranOff = 0;
                         resMemCellOff = nominalResCellAccessOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech)*Col[i].CellPort.numCmos;
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, *config->technology.tech)*Col[i].CellPort.numCmos;
                         resMatchTran = 0;
                         resMemCellOn  = resCellAccess;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos
-                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), config->technology.tech);
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos
+                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), *config->technology.tech);
                     }
                 }else{
                     if(config->technology.cell->isNVMdischarge){
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffNmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.widthCmos*Col[i].CellPort.numCmos/4;
                         nominalResMatchTranOff = config->technology.cell->resistanceOff/2;
                         resMemCellOff = nominalResCellAccessOff + nominalResMatchTranOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, config->technology.tech)*Col[i].CellPort.numCmos;
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->input.temperature, *config->technology.tech)*Col[i].CellPort.numCmos;
                         resMatchTran = config->technology.cell->resistanceOn;
                         resMemCellOn  = resCellAccess + resMatchTran;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos
-                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), config->technology.tech);
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos
+                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), *config->technology.tech);
                     }else{
                         nominalResCellAccessOff = config->technology.tech->vdd() / config->technology.tech->currentOffPmos()[config->input.temperature - 300]/ config->technology.tech->featureSize() / Col[i].CellPort.widthCmos*Col[i].CellPort.numCmos;
                         nominalResMatchTranOff = 0;
                         resMemCellOff = nominalResCellAccessOff;
-                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, config->technology.tech)*Col[i].CellPort.numCmos;
+                        resCellAccess = CalculateOnResistance(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->input.temperature, *config->technology.tech)*Col[i].CellPort.numCmos;
                         resMatchTran = 0;
                         resMemCellOn  = resCellAccess;
-                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), config->technology.tech)*Col[i].CellPort.numCmos
-                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), config->technology.tech);
+                        capCellAccess = CalculateDrainCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), PMOS, config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize(), *config->technology.tech)*Col[i].CellPort.numCmos
+                            +CalculateGateCap(Col[i].CellPort.widthCmos*config->technology.tech->featureSize(), *config->technology.tech);
                     }
                 }
 
             }else if(Col[i].CellPort.ConnectedRegion == none){			
                 if(config->technology.cell->memCellType == FEFETRAM){
-                    capCellAccess += CalculateDrainCap(Col[i].CellPort.widthCmos * config->technology.fefetTech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.fefetTech->featureSize(), config->technology.fefetTech)*Col[i].CellPort.numCmos;
+                    capCellAccess += CalculateDrainCap(Col[i].CellPort.widthCmos * config->technology.fefetTech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.fefetTech->featureSize(), *config->technology.fefetTech)*Col[i].CellPort.numCmos;
                 }
                 nominalResCellAccessOff = 0;
                 nominalResMatchTranOff = config->technology.cell->resistanceOff/Col[i].CellPort.numCmos;
@@ -391,25 +391,25 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     double capNandInput, tmp;
     if(withInputBuf) {
         CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-                config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, config->technology.tech, &capNandInput, &tmp);
+                config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, *config->technology.tech, &capNandInput, &tmp);
         inputBuf->Initialize(true /*TODO*/, capNandInput, 0, config);
     }
 
     CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-            config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, config->technology.tech, &capNandInput, &tmp);
+            config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, *config->technology.tech, &capNandInput, &tmp);
     inputLS->Initialize(true /*TODO*/, capNandInput, 0, config);
     CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-            config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, config->technology.tech, &capNandInput, &tmp);
+            config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, *config->technology.tech, &capNandInput, &tmp);
     outputLS->Initialize(true /*TODO*/, capNandInput, 0, config);
     if(withInputEnc) {
         CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-                config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT *3 /* Update for HV */, config->technology.tech, &capNandInput, &tmp);
+                config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT *3 /* Update for HV */, *config->technology.tech, &capNandInput, &tmp);
         inputEnc->Initialize(encoding_two_bit, false, capNandInput, 0, config/* TODO*/);
         inputEnc->CalculateRC();
     }
     // this NAND merges pre-decoder's result, output the WL activation signal
     CalculateGateCapacitance(NAND, 2, 2 * MIN_NMOS_SIZE /* Update for HV */ * config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-            config->technology.tech->featureSize()* MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */ , config->technology.tech, &capNandInput, &tmp);
+            config->technology.tech->featureSize()* MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */ , *config->technology.tech, &capNandInput, &tmp);
     if(config->technology.cell->memCellType != SRAM) {
 
         RowDecMergeNand->Initialize(numRow * 2, capNandInput, 0, false/*TODO*/, true, DecMergeOptLevel, 0, config /*TODO*/);
@@ -498,7 +498,7 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
 
     if(withOutputBuf) {
         CalculateGateCapacitance(NAND, 2, 8 * MIN_NMOS_SIZE /* Update for HV */* config->technology.tech->featureSize(), config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-                config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, config->technology.tech, &capNandInput, &tmp);
+                config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT * 3 /* Update for HV */, *config->technology.tech, &capNandInput, &tmp);
         outputBuf->Initialize(true /*TODO*/, capNandInput, 0, config);
     }
 
@@ -703,7 +703,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             // referDelay = tau * log((voltagePrecharge) / (config->technology.cell->readVoltage)); // Too hard for user to provide read voltage
             // referDelay = tau * log(2);
             // beta = resMemCellOff / CAM_opt->BitSerialWidth / resTotalCell;
-            gm = CalculateTransconductance(Col[indexMatchline].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.tech);
+            gm = CalculateTransconductance(Col[indexMatchline].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, *config->technology.tech);
             beta = 1 / gm / resTotalCell;
             matchlineDelay = horowitz(tau, beta, RowDriver[indexMaxRowDriver]->rampOutput, &matchlineRamp);
             config->logger.Verbose() << "matchlineDelay = " << matchlineDelay * 1e12 << " ps";
@@ -808,7 +808,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                     double tauTemp1 = resTemp1 * (capTotalCell + ColMux[indexMatchline]->capForPreviousDelayCalculation + config->peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad)
                         + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + config->peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad + Col[indexMatchline].cap / 2);
 
-                    gm = CalculateTransconductance(Col[indexMatchline].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, config->technology.tech);
+                    gm = CalculateTransconductance(Col[indexMatchline].CellPort.widthCmos*config->technology.tech->featureSize(), NMOS, *config->technology.tech);
 
                     double beta0 = 1 / gm / resTemp0;
                     double beta1 = 1 / gm / resTemp1;
@@ -1033,7 +1033,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                                     * voltageMemCellOn ) * numColumn / muxSenseAmp;
                     }
                     // } else if (config->technology.cell->memCellType ==FEFETRAM){
-                    // 	double FEFETCap = CalculateDrainCap(config->technology.cell->widthAccessCMOS * config->technology.fefetTech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.fefetTech->featureSize(), config->technology.fefetTech);
+                    // 	double FEFETCap = CalculateDrainCap(config->technology.cell->widthAccessCMOS * config->technology.fefetTech->featureSize(), NMOS, config->technology.cell->widthInFeatureSize * config->technology.fefetTech->featureSize(), *config->technology.fefetTech);
                     // 			(voltagePrecharge * voltagePrecharge) * numColumn / muxSenseAmp;
             }// }
         }
@@ -1109,7 +1109,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             double capSRAMin;
             double capSRAMout;
             CalculateGateCapacitance(INV, 1, config->technology.cell->widthSRAMCellNMOS, config->technology.cell->widthSRAMCellPMOS,
-                    config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capSRAMin, &capSRAMout);
+                    config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capSRAMin, &capSRAMout);
             cellResetEnergy = (capSRAMin + capSRAMout) * config->technology.tech->vdd() * config->technology.tech->vdd();
             cellResetEnergy += (Col[indexBitline].cap + ColMux[indexBitline]->capForPreviousPowerCalculation)
                 * config->technology.tech->vdd()  * config->technology.tech->vdd();
@@ -1209,14 +1209,14 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         // leakage inside the cell
         if (config->technology.cell->memCellType == SRAM) {
             leakage = CalculateGateLeakage(INV, 1, config->technology.cell->widthSRAMCellNMOS * config->technology.tech->featureSize(),
-                    config->technology.cell->widthSRAMCellPMOS * config->technology.tech->featureSize(), config->input.temperature, config->technology.tech)
+                    config->technology.cell->widthSRAMCellPMOS * config->technology.tech->featureSize(), config->input.temperature, *config->technology.tech)
                 * config->technology.tech->vdd() * 2;	/* two inverters per SRAM cell */
             leakage += CalculateGateLeakage(INV, 1, config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), 0,
-                    config->input.temperature, config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
+                    config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
             leakage += CalculateGateLeakage(INV, 1, config->technology.cell->widthAccessCMOS * config->technology.tech->featureSize(), 0,
-                    config->input.temperature, config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
+                    config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
             leakage += CalculateGateLeakage(INV, 1, config->technology.cell->camWidthMatchTran * config->technology.tech->featureSize(), 0,
-                    config->input.temperature, config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
+                    config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();	/* two accesses NMOS, but combined as one with vdd crossed */
             leakage *= 2;
         } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FEFETRAM) {
             // basically count the transistors in the cell
@@ -1230,27 +1230,27 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                                 Row[i].CellPort.widthCmos * config->technology.tech->featureSize(),
                                 0, 
                                 config->input.temperature, 
-                                config->technology.tech) * config->technology.tech->vdd();
+                                *config->technology.tech) * config->technology.tech->vdd();
                     else
                         leakage += CalculateGateLeakage(INV, 1, 0, 
                                 Row[i].CellPort.widthCmos * config->technology.tech->featureSize(),
                                 config->input.temperature, 
-                                config->technology.tech) * config->technology.tech->vdd();
+                                *config->technology.tech) * config->technology.tech->vdd();
                 }
             }
             for (int i=0; i<config->technology.cell->camNumCol; i++) {
                 if (Col[i].CellPort.ConnectedRegion == gate && Col[i].CellPort.leak) {
                     if (Col[i].CellPort.isNMOS)
                         leakage += CalculateGateLeakage(INV, 1, Col[i].CellPort.widthCmos * config->technology.tech->featureSize(), 0,
-                                config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
+                                config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
                     else
                         leakage += CalculateGateLeakage(INV, 1, 0, Col[i].CellPort.widthCmos * config->technology.tech->featureSize(),
-                                config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
+                                config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
                 }
             }
             if (config->technology.cell->accessType == CMOS_access) {
                 leakage += CalculateGateLeakage(INV, 1, config->technology.cell->camWidthMatchTran * config->technology.tech->featureSize(),  0,
-                        config->input.temperature, config->technology.tech) * config->technology.tech->vdd();
+                        config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
             }
         } else {
             invalid = true;
@@ -1354,7 +1354,7 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
 
         double gm = CalculateTransconductance(
                 Col[indexMatchline].CellPort.widthCmos * config->technology.tech->featureSize(),
-                NMOS, config->technology.tech);
+                NMOS, *config->technology.tech);
         double beta = 1 / gm / resTemp;
         double rampTemp = 0;
         effectiveMatchlineDelay = horowitz(tauTemp, beta, RowDriver[0]->rampOutput, &rampTemp);
@@ -1469,7 +1469,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
         const double gm = CalculateTransconductance(
                 Col[indexMatchline].CellPort.widthCmos * config->technology.tech->featureSize(),
                 NMOS,
-                config->technology.tech);
+                *config->technology.tech);
         const double beta = 1 / gm / sampleResTotalCell;
         double sampleRamp = 0;
         double sampleMatchlineDelay = horowitz(
@@ -1550,7 +1550,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
         const double gm = CalculateTransconductance(
                 Col[indexMatchline].CellPort.widthCmos * config->technology.tech->featureSize(),
                 NMOS,
-                config->technology.tech);
+                *config->technology.tech);
         const double beta = 1 / gm / sampleResTotalCell;
         double sampleRamp = 0;
         double sampleMatchlineDelay = horowitz(

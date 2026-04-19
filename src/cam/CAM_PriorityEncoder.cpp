@@ -29,7 +29,7 @@ void CAM_PriorityEncoder::Initialize(int _numInputBits, BufferDesignTarget _area
     Encoder.Initialize(numInputBits, areaOptimizationLevel, capLoad, resLoad, _config);
     widthNorN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
     widthNorP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
-    CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, config->technology.tech, &capNorInput, &capNorOutput);
+    CalculateGateCapacitance(NOR, 2, widthNorN, widthNorP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &capNorInput, &capNorOutput);
     MMR.Initialize(numInputBits, areaOptimizationLevel, capNorInput, 0, _config/*TODO gate resistance */);
     initialized = true;
     CalculateArea();

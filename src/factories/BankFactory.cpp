@@ -4,8 +4,8 @@
 #include "BankWithoutHtree.h"
 #include "EvaCamConfig.h"
 
-std::shared_ptr<Bank> BankFactory::CreateBank(const std::shared_ptr<EvaCamConfig> &config) {
-    if (config->input.routingMode == h_tree) {
+std::shared_ptr<Bank> BankFactory::CreateBank(const EvaCamConfig &config) {
+    if (config.input.routingMode == h_tree) {
         return std::make_shared<BankWithHtree>();
     }
     return std::make_shared<BankWithoutHtree>();

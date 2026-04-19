@@ -10,9 +10,9 @@
 #include "constant.h"
 
 extern void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, 
-        std::shared_ptr<Technology> tech, double *width, double *height, bool UseUpdatedLib);
+        const Technology &tech, double *width, double *height, bool UseUpdatedLib);
 
 extern void CalcCapForCostomSA(int designNum, double widthTransistorRegion, 
-        std::shared_ptr<Technology> tech, double *CapLoad);
+        const Technology &tech, double *CapLoad);
 
 #endif /* CAM_CUSTOMSAAREA_H_ */
