@@ -43,7 +43,6 @@ void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void Mux::CalculateArea(){

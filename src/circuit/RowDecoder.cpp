@@ -59,7 +59,6 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void RowDecoder::CalculateArea() {
@@ -141,7 +140,7 @@ void RowDecoder::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[Row Decoder]");
     } else {
-        //outputDriver.CalculatePower();
+        outputDriver.CalculatePower();
         leakage = outputDriver.leakage;
         if (numNandInput == 0) {	/* no circuit needed, use predecoder outputs directly */
             readDynamicEnergy = writeDynamicEnergy = outputDriver.readDynamicEnergy;

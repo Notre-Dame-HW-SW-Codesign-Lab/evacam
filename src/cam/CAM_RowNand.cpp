@@ -65,5 +65,4 @@ void CAM_RowNand::Initialize(int _numRow, double _capLoad, double _resLoad,
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }

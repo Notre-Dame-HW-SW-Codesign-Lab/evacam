@@ -208,7 +208,6 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     initialized = true;
     CalculateRC();
     CalculateArea();
-    CalculatePower();
 }
 
 void Mat::CalculateArea() {

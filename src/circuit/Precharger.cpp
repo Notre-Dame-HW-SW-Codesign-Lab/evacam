@@ -38,7 +38,6 @@ void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _ca
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void Precharger::CalculateArea() {
@@ -105,7 +104,7 @@ void Precharger::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[Precharger]");
     } else {
-        //outputDriver.CalculatePower();
+        outputDriver.CalculatePower();
         /* Leakage power */
         leakage = outputDriver.leakage;
         leakage += numColumn * config->technology.tech->vdd() * CalculateGateLeakage(INV, 1, widthInvNmos, widthInvPmos, config->input.temperature, *config->technology.tech);

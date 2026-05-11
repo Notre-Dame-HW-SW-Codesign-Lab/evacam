@@ -20,7 +20,6 @@ void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _sens
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void SenseAmp::CalculateArea() {
@@ -77,7 +76,7 @@ void SenseAmp::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[Sense Amp]");
     } else if (invalid) {
-        readLatency = writeLatency = 1e41;
+        capLoad = 1e41;
     } else {
         capLoad = CalculateGateCap((W_SENSE_P + W_SENSE_N) * config->technology.tech->featureSize(), *config->technology.tech)
             + CalculateDrainCap(W_SENSE_N * config->technology.tech->featureSize(), NMOS, pitchSenseAmp, *config->technology.tech)

@@ -49,7 +49,6 @@ void CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizat
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_Encoder::CalculateArea() {

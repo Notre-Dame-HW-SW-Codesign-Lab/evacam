@@ -95,7 +95,6 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_SenseAmp::CalculateArea() {
@@ -141,7 +140,7 @@ void CAM_SenseAmp::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[CAM_SenseAmp]");
     } else if (invalid) {
-        readLatency = writeLatency = 1e41;
+        capLoad = 1e41;
     } else {
         if (isCustom && customSA->setLatency > 0) {
             // custom design
@@ -207,9 +206,8 @@ void CAM_SenseAmp::CalculatePower() {
     } else {
         readDynamicEnergy = writeDynamicEnergy = 0;
         leakage = 0;
-        readLatency = writeLatency = 0;
+        normalSenseAmp->CalculatePower();
         if (isCustom && customSA->readDynamicEnergy > 0) {
-            //normalSenseAmp->CalculatePower();
             readDynamicEnergy = customSA->readDynamicEnergy * numColumn;
             writeDynamicEnergy = readDynamicEnergy;
             if (customSA->leakage > 0) {
@@ -219,7 +217,6 @@ void CAM_SenseAmp::CalculatePower() {
             }
         }
         else if (typeSA == nvsim_voltage_sense || typeSA == nvsim_current_sense || typeSA == discharge) {
-            //normalSenseAmp->CalculatePower();
             readDynamicEnergy = normalSenseAmp->readDynamicEnergy;
             writeDynamicEnergy = normalSenseAmp->writeDynamicEnergy;
             leakage = normalSenseAmp->leakage;

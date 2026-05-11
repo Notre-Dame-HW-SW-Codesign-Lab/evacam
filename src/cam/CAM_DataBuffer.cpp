@@ -38,7 +38,6 @@ void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _res
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_DataBuffer::CalculateArea(){
@@ -103,7 +102,7 @@ void CAM_DataBuffer::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[CAM_DataBuffer]");
     } else {
-        //outputDriver.CalculatePower();
+        outputDriver.CalculatePower();
         leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, *config->technology.tech) * config->technology.tech->vdd() *4;
         leakage += ( outputDriver.leakage * (1+differential) );
 

@@ -34,7 +34,6 @@ void CAM_PriorityEncoder::Initialize(int _numInputBits, BufferDesignTarget _area
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_PriorityEncoder::CalculateArea(){
@@ -113,6 +112,5 @@ CAM_PriorityEncoder & CAM_PriorityEncoder::operator=(const CAM_PriorityEncoder &
     capNorOutput = rhs.capNorOutput;
     return *this;
 }
-
 
 

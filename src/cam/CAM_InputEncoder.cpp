@@ -142,13 +142,13 @@ void CAM_InputEncoder::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[CAM_InputEncoder]");
     } else {
-        //outputDriver.CalculatePower();
         if(isCustom) {
             // TODO Customizable Input Encoder
             std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
+            outputDriver.CalculatePower();
             leakage = CalculateGateLeakage(NAND, 2, widthNandN, widthNandP, config->input.temperature, *config->technology.tech) * config->technology.tech->vdd() * numInputBits * 2;
             leakage += outputDriver.leakage * numInputBits * 2;
 

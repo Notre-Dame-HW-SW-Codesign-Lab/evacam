@@ -1,5 +1,5 @@
 /*
- * CAM_SubArray->cpp
+ * CAM_SubArray.cpp
  *
  */
 #include "CAM_SubArray.h"
@@ -201,12 +201,6 @@ void CAM_SubArray::Initialize(long long _numRow, long long _numColumn, bool _mul
     for(int i=0;i<config->technology.cell->camNumCol;i++) {
         Col[i].Initialize(false, i, lenCol, numRow, config, localWire);
     }
-
-
-    // Variation generation model
-    // for (int i = 0; i < 100; i++) {
-    // }
-
 
     /* Caculate the CAM cell resistance and capaciatence on the matchline. */
     indexMatchline = -1;
@@ -943,56 +937,59 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
             readDynamicEnergy = writeDynamicEnergy = leakage = 0;
 
+            double inputBufReadEnergy = 0;
+            double inputBufLeakage = 0;
             if(withInputBuf) {
-                //inputBuf->CalculatePower();
-            } else {
-                inputBuf->readDynamicEnergy = 0;
-                inputBuf->leakage = 0;
+                inputBuf->CalculatePower();
+                inputBufReadEnergy = inputBuf->readDynamicEnergy;
+                inputBufLeakage = inputBuf->leakage;
             }
-            //inputLS->CalculatePower();
-            //outputLS->CalculatePower();
+            inputLS->CalculatePower();
+            outputLS->CalculatePower();
+            double inputEncReadEnergy = 0;
+            double inputEncLeakage = 0;
             if(withInputEnc) {
                 inputEnc->CalculatePower();
-            } else {
-                inputEnc->readDynamicEnergy = 0;
-                inputEnc->leakage = 0;
+                inputEncReadEnergy = inputEnc->readDynamicEnergy;
+                inputEncLeakage = inputEnc->leakage;
             }
 
             // this NAND merges pre-decoder's result, output the WL activation signal
-            //RowDecMergeNand->CalculatePower();
+            RowDecMergeNand->CalculatePower();
             // those NAND merges the WL and SL signal
             for(int i=0;i<config->technology.cell->camNumRow;i++){
-                //RowDriver[i]->CalculatePower();
+                RowDriver[i]->CalculatePower();
             }
 
             // precharge
-            //precharger->CalculatePower();
+            precharger->CalculatePower();
 
             // colmn decoder signal merge
-            //ColDecMergeNand->CalculatePower();
+            ColDecMergeNand->CalculatePower();
 
-            //senseAmpMuxLev1Nand->CalculatePower();
-            //senseAmpMuxLev2Nand->CalculatePower();
+            senseAmpMuxLev1Nand->CalculatePower();
+            senseAmpMuxLev2Nand->CalculatePower();
 
             if (internalSenseAmp) {
-                //senseAmp->CalculatePower();
+                senseAmp->CalculatePower();
             }
-            //senseAmpMuxLev1->CalculatePower();
-            //senseAmpMuxLev2->CalculatePower();
+            senseAmpMuxLev1->CalculatePower();
+            senseAmpMuxLev2->CalculatePower();
 
             if (withOutputAcc) {
-                //outputAcc->CalculatePower();
+                outputAcc->CalculatePower();
             }
 
             if (withPriorityEnc) {
-                //priorityEnc->CalculatePower();
+                priorityEnc->CalculatePower();
             }
 
+            double outputBufReadEnergy = 0;
+            double outputBufLeakage = 0;
             if(withOutputBuf) {
-                //outputBuf->CalculatePower();
-            } else {
-                outputBuf->readDynamicEnergy = 0;
-                outputBuf->leakage = 0;
+                outputBuf->CalculatePower();
+                outputBufReadEnergy = outputBuf->readDynamicEnergy;
+                outputBufLeakage = outputBuf->leakage;
             }
 
             //////////////////////////////////////////////////////////////////////////////////
@@ -1076,17 +1073,17 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         searchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1)/2;
         UpdateMonteCarloPowerSummary();
 
-        readDynamicEnergy = searchDynamicEnergy + inputBuf->readDynamicEnergy * numRow 
-            + inputEnc->readDynamicEnergy * numRow
+        readDynamicEnergy = searchDynamicEnergy + inputBufReadEnergy * numRow 
+            + inputEncReadEnergy * numRow
             + cellReadEnergy + ColDecMergeNand->readDynamicEnergy + precharger->readDynamicEnergy
             + senseAmpMuxLev1Nand->readDynamicEnergy + senseAmpMuxLev2Nand->readDynamicEnergy
             + ColMux[indexMatchline]->readDynamicEnergy + senseAmp->readDynamicEnergy 
             + senseAmpMuxLev1->readDynamicEnergy + senseAmpMuxLev2->readDynamicEnergy
             + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
-            + outputBuf->readDynamicEnergy * numColumn
+            + outputBufReadEnergy * numColumn
             + inputLS->readDynamicEnergy * numRow + outputLS->readDynamicEnergy * numColumn;
 
-        searchDynamicEnergy +=  inputBuf->readDynamicEnergy * numRow + inputEnc->readDynamicEnergy * numRow
+        searchDynamicEnergy +=  inputBufReadEnergy * numRow + inputEncReadEnergy * numRow
             + cellReadEnergy + ColDecMergeNand->readDynamicEnergy + precharger->readDynamicEnergy
             + ColMux[indexMatchline]->readDynamicEnergy
             + senseAmp->readDynamicEnergy
@@ -1185,8 +1182,9 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         if (withWriteDriver) {
             for(int i=0;i<config->technology.cell->camNumCol;i++){
                 if (WriteDriver[i]->initialized) {
-                    //WriteDriver[i]->CalculatePower();
+                    WriteDriver[i]->CalculatePower();
                     WriteDriverDyn += WriteDriver[i]->writeDynamicEnergy;
+                    WriteDriverLeakage += WriteDriver[i]->leakage;
                 }
             }
         }
@@ -1270,14 +1268,14 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             leak += ColMux[i]->leakage;
         }
 
-        leakage += inputBuf->leakage * numColumn + inputEnc->leakage + precharger->leakage + senseAmpMuxLev1Nand->leakage
+        leakage += inputBufLeakage * numColumn + inputEncLeakage + precharger->leakage + senseAmpMuxLev1Nand->leakage
             + senseAmpMuxLev2Nand->leakage + ColDecMergeNand->leakage + WriteDriverLeakage + senseAmp->leakage
             + senseAmpMuxLev1->leakage + senseAmpMuxLev2->leakage + outputAcc->leakage + priorityEnc->leakage
-            + outputBuf->leakage * numColumn;
-        leak += inputBuf->leakage * numColumn + inputEnc->leakage + precharger->leakage + senseAmpMuxLev1Nand->leakage
+            + outputBufLeakage * numColumn;
+        leak += inputBufLeakage * numColumn + inputEncLeakage + precharger->leakage + senseAmpMuxLev1Nand->leakage
             + senseAmpMuxLev2Nand->leakage + ColDecMergeNand->leakage + WriteDriverLeakage + senseAmp->leakage
             + senseAmpMuxLev1->leakage + senseAmpMuxLev2->leakage + outputAcc->leakage + priorityEnc->leakage
-            + outputBuf->leakage * numColumn;
+            + outputBufLeakage * numColumn;
     }
 
 }

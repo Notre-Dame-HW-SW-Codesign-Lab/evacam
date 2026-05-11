@@ -46,7 +46,6 @@ void BasicDecoder::Initialize(int _numAddressBit, double _capLoad, double _resLo
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void BasicDecoder::CalculateArea() {
@@ -116,7 +115,7 @@ void BasicDecoder::CalculatePower() {
     if (!initialized) {
         ThrowInitializationError("[Basic Decoder]");
     } else {
-        //outputDriver.CalculatePower();
+        outputDriver.CalculatePower();
         double capLoad;
         if (numNandInput == 0) {
             leakage = 2 * outputDriver.leakage;

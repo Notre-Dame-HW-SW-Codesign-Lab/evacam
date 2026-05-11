@@ -53,7 +53,6 @@ void CAM_BasicMMR::Initialize(int _numInputBits, double _capLoad, double _resLoa
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_BasicMMR::CalculateArea(){

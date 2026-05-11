@@ -42,7 +42,6 @@ void CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimization
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_MMR::CalculateArea(){

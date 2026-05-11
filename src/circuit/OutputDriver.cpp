@@ -140,7 +140,6 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
     initialized = true;
     CalculateRC();
     CalculateArea();
-    CalculatePower();
 }
 
 void OutputDriver::CalculateArea() {

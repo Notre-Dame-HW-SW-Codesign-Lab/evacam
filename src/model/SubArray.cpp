@@ -385,7 +385,6 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
 
     initialized = true;
     CalculateArea();
-    CalculatePower();
 }
 
 void SubArray::CalculateArea() {
@@ -635,6 +634,10 @@ void SubArray::CalculatePower() {
         }
         senseAmpMuxLev1->CalculatePower();
         senseAmpMuxLev2->CalculatePower();
+        double rowDecoderReadEnergy = rowDecoder->readDynamicEnergy;
+        double rowDecoderWriteEnergy = rowDecoder->writeDynamicEnergy;
+        double rowDecoderSetEnergy = rowDecoder->setDynamicEnergy;
+        double rowDecoderResetEnergy = rowDecoder->resetDynamicEnergy;
 
         if (config->technology.cell->memCellType == SRAM) {
             /* Codes below calculate the SRAM bitline power */
@@ -739,12 +742,12 @@ void SubArray::CalculatePower() {
              * In SLC NAND operation, SSL, GSL, and unselected wordlines in a block are charged to Vpass,
              * but the selected wordline is not charged, which is totally different from the other cases.
              */
-            rowDecoder->resetDynamicEnergy = rowDecoder->readDynamicEnergy;
-            rowDecoder->setDynamicEnergy = rowDecoder->readDynamicEnergy;
-            double actualWordlineReadEnergy = rowDecoder->readDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+            rowDecoderResetEnergy = rowDecoderReadEnergy;
+            rowDecoderSetEnergy = rowDecoderReadEnergy;
+            double actualWordlineReadEnergy = rowDecoderReadEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
                 * config->technology.cell->flashPassVoltage * config->technology.cell->flashPassVoltage;	/* approximate calculate, the wordline is charged to Vpass instead of Vdd */
             actualWordlineReadEnergy = actualWordlineReadEnergy * (numRow / pageCount * stringLength - 1);	/* except the selected wordline itself */
-            rowDecoder->readDynamicEnergy = actualWordlineReadEnergy;	/* update the correct value */
+            rowDecoderReadEnergy = actualWordlineReadEnergy;
 
             /* === Programming (SET) energy === */
             /* first calculate the source line energy (charged to Vdd), which is a part of "bitline" in this scenario */
@@ -759,14 +762,14 @@ void SubArray::CalculatePower() {
             /* in programming, the SSL is precharged to Vdd, which is equal to the original value calculated
              * from row decoder
              */
-            double actualWordlineSetEnergy = rowDecoder->setDynamicEnergy;
+            double actualWordlineSetEnergy = rowDecoderSetEnergy;
             /* however, the unselected wordlines in the same block have to precharge to Vpass */
-            actualWordlineSetEnergy += rowDecoder->setDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+            actualWordlineSetEnergy += rowDecoderSetEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
                 * config->technology.cell->flashPassVoltage * config->technology.cell->flashPassVoltage * (numRow / pageCount * stringLength - 1);
             /* And the selected wordline is precharged to Vpgm */
-            actualWordlineSetEnergy += rowDecoder->setDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+            actualWordlineSetEnergy += rowDecoderSetEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
                 * config->technology.cell->flashProgramVoltage * config->technology.cell->flashProgramVoltage;
-            rowDecoder->setDynamicEnergy = actualWordlineSetEnergy;	/* update the correct value */
+            rowDecoderSetEnergy = actualWordlineSetEnergy;
 
             /* === Erase (RESET) energy === */
             /* in erase, all the bitlines (selected or unselected) and the sourceline are precharged to Vera-Vbi */
@@ -783,13 +786,13 @@ void SubArray::CalculatePower() {
              * here beta is fixed at 0.8
              */
             double beta = 0.8;
-            double actualWordlineResetEnergy = rowDecoder->resetDynamicEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
+            double actualWordlineResetEnergy = rowDecoderResetEnergy / config->technology.tech->vdd() / config->technology.tech->vdd()
                 * (config->technology.cell->flashEraseVoltage * beta) * (config->technology.cell->flashEraseVoltage * beta);
             actualWordlineResetEnergy *= (numRow / pageCount * stringLength - pageCount);
-            rowDecoder->resetDynamicEnergy = actualWordlineResetEnergy;
+            rowDecoderResetEnergy = actualWordlineResetEnergy;
 
             /* let write energy to be the average energy per page*/
-            rowDecoder->writeDynamicEnergy = (rowDecoder->setDynamicEnergy + rowDecoder->resetDynamicEnergy / pageCount) / 2;
+            rowDecoderWriteEnergy = (rowDecoderSetEnergy + rowDecoderResetEnergy / pageCount) / 2;
             writeDynamicEnergy = (setDynamicEnergy + resetDynamicEnergy / pageCount) / 2;
 
             /* Assume NAND flash cell does not consume any leakage */
@@ -800,17 +803,17 @@ void SubArray::CalculatePower() {
             return;
         }
 
-        readDynamicEnergy += cellReadEnergy + rowDecoder->readDynamicEnergy + bitlineMuxDecoder->readDynamicEnergy + senseAmpMuxLev1Decoder->readDynamicEnergy
+        readDynamicEnergy += cellReadEnergy + rowDecoderReadEnergy + bitlineMuxDecoder->readDynamicEnergy + senseAmpMuxLev1Decoder->readDynamicEnergy
             + senseAmpMuxLev2Decoder->readDynamicEnergy + precharger->readDynamicEnergy + bitlineMux->readDynamicEnergy
             + senseAmp->readDynamicEnergy + senseAmpMuxLev1->readDynamicEnergy + senseAmpMuxLev2->readDynamicEnergy;
-        writeDynamicEnergy += rowDecoder->writeDynamicEnergy + bitlineMuxDecoder->writeDynamicEnergy + senseAmpMuxLev1Decoder->writeDynamicEnergy
+        writeDynamicEnergy += rowDecoderWriteEnergy + bitlineMuxDecoder->writeDynamicEnergy + senseAmpMuxLev1Decoder->writeDynamicEnergy
             + senseAmpMuxLev2Decoder->writeDynamicEnergy + bitlineMux->writeDynamicEnergy
             + senseAmp->writeDynamicEnergy + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy;
         /* for assymetric RESET and SET latency calculation only */
-        setDynamicEnergy += cellSetEnergy + rowDecoder->setDynamicEnergy + bitlineMuxDecoder->writeDynamicEnergy + senseAmpMuxLev1Decoder->writeDynamicEnergy
+        setDynamicEnergy += cellSetEnergy + rowDecoderSetEnergy + bitlineMuxDecoder->writeDynamicEnergy + senseAmpMuxLev1Decoder->writeDynamicEnergy
             + senseAmpMuxLev2Decoder->writeDynamicEnergy + bitlineMux->writeDynamicEnergy
             + senseAmp->writeDynamicEnergy + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy;
-        resetDynamicEnergy += setDynamicEnergy + rowDecoder->resetDynamicEnergy + bitlineMuxDecoder->writeDynamicEnergy + senseAmpMuxLev1Decoder->writeDynamicEnergy
+        resetDynamicEnergy += setDynamicEnergy + rowDecoderResetEnergy + bitlineMuxDecoder->writeDynamicEnergy + senseAmpMuxLev1Decoder->writeDynamicEnergy
             + senseAmpMuxLev2Decoder->writeDynamicEnergy + bitlineMux->writeDynamicEnergy
             + senseAmp->writeDynamicEnergy + senseAmpMuxLev1->writeDynamicEnergy + senseAmpMuxLev2->writeDynamicEnergy;
 

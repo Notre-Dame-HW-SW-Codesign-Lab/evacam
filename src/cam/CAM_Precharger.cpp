@@ -29,7 +29,6 @@ void CAM_Precharger::Initialize(double _voltagePrecharge, int _numColumn, double
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_Precharger::CalculateArea() {

@@ -1,9 +1,11 @@
 #include "Comparator.h"
 #include "formula.h"
+
 void Comparator::Initialize(int _numTagBits, double _capLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
         _config->logger.Verbose() << "[Comparator] Warning: Already initialized!";
 
+    config = _config;
     numTagBits = _numTagBits / 4;  /* Assuming there are 4 quarter comparators. input tagbits is already a multiple of 4 */
     capLoad = _capLoad;
     widthNMOSInv[0] = 7.5 * config->technology.tech->featureSize();
@@ -17,12 +19,9 @@ void Comparator::Initialize(int _numTagBits, double _capLoad, std::shared_ptr<Ev
     widthNMOSComp = 12.5 * config->technology.tech->featureSize();
     widthPMOSComp = 37.5 * config->technology.tech->featureSize();
 
-    config = _config;
-
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void Comparator::CalculateArea() {

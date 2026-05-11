@@ -42,7 +42,6 @@ void CAM_BasicEncoder::Initialize(int _numInputBit, double _capLoad, double _res
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_BasicEncoder::CalculateArea() {

@@ -293,7 +293,7 @@ void PredecodeBlock::CalculateLatency(double _rampInput) {
         maxRampOutput = 0;
         if (basicDecoderA2 != NULL) {
             basicDecoderA2->CalculateLatency(rampInput);
-            delayA2 += basicDecoderA1->readLatency;
+            delayA2 += basicDecoderA2->readLatency;
             rowDecoderStage1A->CalculateLatency(basicDecoderA2->rampOutput);
             delayA2 += rowDecoderStage1A->readLatency;
             maxRampOutput = rowDecoderStage1A->rampOutput;
@@ -342,40 +342,41 @@ void PredecodeBlock::CalculatePower() {
     } else {
         leakage = readDynamicEnergy = 0;
         if (basicDecoderA1 != NULL) {
-            //basicDecoderA1->CalculatePower();
+            basicDecoderA1->CalculatePower();
             leakage += basicDecoderA1->leakage;
             readDynamicEnergy += basicDecoderA1->readDynamicEnergy;
             if (basicDecoderA2 != NULL) {
-                //basicDecoderA2->CalculatePower();
+                basicDecoderA2->CalculatePower();
                 leakage += basicDecoderA2->leakage;
                 readDynamicEnergy += basicDecoderA2->readDynamicEnergy;
             }
             if (basicDecoderB != NULL) {
-                //basicDecoderB->CalculatePower();
+                basicDecoderB->CalculatePower();
                 leakage += basicDecoderB->leakage;
                 readDynamicEnergy += basicDecoderB->readDynamicEnergy;
                 if (basicDecoderC != NULL) {
-                    //basicDecoderC->CalculatePower();
+                    basicDecoderC->CalculatePower();
                     leakage += basicDecoderC->leakage;
                     readDynamicEnergy += basicDecoderC->readDynamicEnergy;
                 }
             }
         }
         if (rowDecoderStage1A != NULL) {
-            //rowDecoderStage1A->CalculatePower();
+            rowDecoderStage1A->CalculatePower();
             leakage += rowDecoderStage1A->leakage;
             readDynamicEnergy += rowDecoderStage1A->readDynamicEnergy;
             if (rowDecoderStage1B != NULL) {
-                //rowDecoderStage1B->CalculatePower();
+                rowDecoderStage1B->CalculatePower();
                 leakage += rowDecoderStage1B->leakage;
                 readDynamicEnergy += rowDecoderStage1B->readDynamicEnergy;
                 if (rowDecoderStage1C != NULL) {
-                    //rowDecoderStage1C->CalculatePower();
+                    rowDecoderStage1C->CalculatePower();
                     leakage += rowDecoderStage1C->leakage;
                     readDynamicEnergy += rowDecoderStage1C->readDynamicEnergy;
                 }
             }
             if (rowDecoderStage2 != NULL) {
+                rowDecoderStage2->CalculatePower();
                 leakage += rowDecoderStage2->leakage;
                 readDynamicEnergy += rowDecoderStage2->readDynamicEnergy;
             }

@@ -35,7 +35,6 @@ void CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::sh
     initialized = true;
     CalculateArea();
     CalculateRC();
-    CalculatePower();
 }
 
 void CAM_OutputAccumulator::CalculateArea(){
