@@ -60,6 +60,7 @@ std::shared_ptr<Technology> LoadTech(const InputConfig &input, const PeripheralC
 std::shared_ptr<MemCell> LoadCell(const InputConfig &input, const std::shared_ptr<Technology> &tech) {
     auto cell = std::make_shared<MemCell>();
     cell->ReadCellFromFile(input.fileMemCell, input.designTarget, tech->vdd());
+    cell->CalculateWriteEnergy();
     return cell;
 }
 

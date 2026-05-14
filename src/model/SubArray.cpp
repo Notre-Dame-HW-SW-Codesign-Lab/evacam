@@ -679,8 +679,6 @@ void SubArray::CalculatePower() {
 
             /* Ignore the dynamic transition during the SET/RESET operation */
             /* Assume that the cell resistance keeps high for worst-case power estimation */
-            config->technology.cell->CalculateWriteEnergy();
-
             double resetEnergyPerBit = config->technology.cell->resetEnergy;
             double setEnergyPerBit = config->technology.cell->setEnergy;
             if (config->technology.cell->setMode)

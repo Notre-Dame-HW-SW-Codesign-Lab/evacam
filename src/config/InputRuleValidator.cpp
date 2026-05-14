@@ -1,12 +1,223 @@
 #include "config/InputRuleValidator.h"
 
+#include <cctype>
+#include <fstream>
 #include <limits>
 #include <stdexcept>
 #include <string>
 
 #include "EvaCamConfig.h"
+#include "input/YamlNodeHelpers.h"
 
 namespace {
+
+bool IsCamModelMemCellTypeSupported(MemCellType type) {
+    switch (type) {
+        case SRAM:
+        case MRAM:
+        case PCRAM:
+        case memristor:
+        case FEFETRAM:
+            return true;
+        default:
+            return false;
+    }
+}
+
+YAML::Node LoadCellFileForValidation(const std::string &cellFile) {
+    return YAML::LoadFile(cellFile);
+}
+
+std::string InferCamTypeToken(const YAML::Node &cellNode, const std::string &cellFile) {
+    if (YamlHelpers::child_optional(cellNode, "cam_type")) {
+        return YamlHelpers::read_required<std::string>(cellNode, "cam_type");
+    }
+
+    std::string probe = cellFile;
+    if (YamlHelpers::child_optional(cellNode, "name")) {
+        probe = YamlHelpers::read_required<std::string>(cellNode, "name") + " " + probe;
+    }
+
+    for (char &c : probe) {
+        c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
+    }
+
+    if (probe.find("mcam") != std::string::npos) {
+        return "MCAM";
+    }
+    if (probe.find("acam") != std::string::npos) {
+        return "ACAM";
+    }
+    return "TCAM";
+}
+
+MemCellType LoadMemCellTypeForValidation(const YAML::Node &root) {
+    const YAML::Node cellNode = YamlHelpers::child_required(root, "cell");
+    return YamlHelpers::read_enum_required<MemCellType>(cellNode, "type", false);
+}
+
+CAMType LoadCamTypeForValidation(const YAML::Node &root, const std::string &cellFile) {
+    const YAML::Node cellNode = YamlHelpers::child_required(root, "cell");
+    if (YamlHelpers::child_optional(cellNode, "cam_type")) {
+        return YamlHelpers::read_enum_required<CAMType>(cellNode, "cam_type", false);
+    }
+    const std::string camType = InferCamTypeToken(cellNode, cellFile);
+    if (camType == "MCAM") {
+        return MCAM;
+    }
+    if (camType == "ACAM") {
+        return ACAM;
+    }
+    return TCAM;
+}
+
+void ValidateCamPortPresence(const YAML::Node &root) {
+    const YAML::Node ports = YamlHelpers::child_required(root, "ports");
+    const YAML::Node rowPorts = YamlHelpers::child_optional(ports, "row");
+    const YAML::Node columnPorts = YamlHelpers::child_optional(ports, "column");
+
+    if (!rowPorts || !rowPorts.IsMap() || rowPorts.size() == 0) {
+        throw std::runtime_error(
+                "[Input] Error: cell.ports.row must define at least one CAM row port.");
+    }
+
+    if (!columnPorts || !columnPorts.IsMap() || columnPorts.size() == 0) {
+        throw std::runtime_error(
+                "[Input] Error: cell.ports.column must define at least one CAM column port.");
+    }
+}
+
+void ValidateCamColumnTopology(const YAML::Node &root) {
+    const YAML::Node ports = YamlHelpers::child_required(root, "ports");
+    const YAML::Node columnPorts = YamlHelpers::child_required(ports, "column");
+    bool foundMatchline = false;
+
+    for (auto it = columnPorts.begin(); it != columnPorts.end(); ++it) {
+        const YAML::Node portNode = it->second;
+        const CAM_PortType portType =
+                YamlHelpers::read_enum_required<CAM_PortType>(portNode, "type", false);
+
+        if (portType == Bitline) {
+            throw std::runtime_error(
+                    "[Input] Error: cell.ports.column does not support Bitline topology for CAM modeling.");
+        }
+
+        if (portType != Matchline && portType != Matchline_Bitline) {
+            continue;
+        }
+
+        foundMatchline = true;
+        const CAM_CmosRegion region =
+                YamlHelpers::read_enum_required<CAM_CmosRegion>(portNode, "cmos_region", false);
+        if (region == gate) {
+            throw std::runtime_error(
+                    "[Input] Error: cell.ports.column matchline connection cannot use cmos_region gate.");
+        }
+        if (region != drain && region != source && region != diode && region != none) {
+            throw std::runtime_error(
+                    "[Input] Error: cell.ports.column matchline connection uses unsupported cmos_region.");
+        }
+    }
+
+    if (!foundMatchline) {
+        throw std::runtime_error(
+                "[Input] Error: cell.ports.column must define at least one CAM matchline port.");
+    }
+}
+
+void ValidateCamModelSupport(const EvaCamConfig &config, const YAML::Node &root,
+        MemCellType memCellType) {
+    const CAMType camType = LoadCamTypeForValidation(root, config.input.fileMemCell);
+    if (camType == ACAM) {
+        throw std::runtime_error("[Input] Error: ACAM is not supported at this time.");
+    }
+
+    if (camType == MCAM && memCellType != FEFETRAM) {
+        throw std::runtime_error(
+                "[Input] Error: only 2FeFET MCAM design has limited support.");
+    }
+}
+
+bool IsSupportedCamSenseAmpType(TypeOfSenseAmp type) {
+    return type == nvsim_voltage_sense
+        || type == nvsim_current_sense
+        || type == discharge;
+}
+
+void ValidateCustomSenseAmpFile(const std::string &filePath) {
+    if (filePath.empty()) {
+        throw std::runtime_error(
+                "[Input] Error: sensing.custom_sense_amp requires advanced.custom_sa_input_file.");
+    }
+
+    std::ifstream input(filePath);
+    if (!input) {
+        throw std::runtime_error(
+                "[Input] Error: custom sense amp file cannot be found: " + filePath);
+    }
+
+    bool hasHeight = false;
+    bool hasWidth = false;
+    bool hasArea = false;
+    bool hasLatency = false;
+    bool hasEnergy = false;
+    bool hasCapLoad = false;
+    std::string line;
+
+    while (std::getline(input, line)) {
+        if (line.rfind("-Height", 0) == 0) {
+            hasHeight = true;
+        } else if (line.rfind("-Width", 0) == 0) {
+            hasWidth = true;
+        } else if (line.rfind("-Area", 0) == 0) {
+            hasArea = true;
+        } else if (line.rfind("-Latency", 0) == 0) {
+            hasLatency = true;
+        } else if (line.rfind("-Energy", 0) == 0) {
+            hasEnergy = true;
+        } else if (line.rfind("-CapLoad", 0) == 0) {
+            hasCapLoad = true;
+        }
+    }
+
+    if (!(hasArea || (hasHeight && hasWidth)) || !hasLatency || !hasEnergy || !hasCapLoad) {
+        throw std::runtime_error(
+                "[Input] Error: custom sense amp file is missing required fields.");
+    }
+}
+
+void ValidatePeripheralSupport(const EvaCamConfig &config) {
+    if (config.peripherals.customInputEnc) {
+        throw std::runtime_error(
+                "[Input] Error: custom input encoder is not supported.");
+    }
+
+    if (config.peripherals.typeInputEnc != encoding_two_bit) {
+        throw std::runtime_error(
+                "[Input] Error: input encoder type must be encoding_two_bit.");
+    }
+
+    if (!IsSupportedCamSenseAmpType(config.peripherals.typeSenseAmp)) {
+        throw std::runtime_error(
+                "[Input] Error: sensing.amplifier_type is not supported for CAM modeling.");
+    }
+
+    if (config.peripherals.customSenseAmp) {
+        ValidateCustomSenseAmpFile(config.peripherals.fileCustomSA);
+    }
+
+    if (config.exploration.wires.isLocalWireLowSwing.Min() != 0
+            && config.exploration.wires.localWireRepeaterType.Min() != repeated_none) {
+        throw std::runtime_error(
+                "[Input] Error: wires.local.low_swing is not supported with repeaters.");
+    }
+
+    if (config.exploration.wires.isGlobalWireLowSwing.Min() != 0
+            && config.exploration.wires.globalWireRepeaterType.Min() != repeated_none) {
+        throw std::runtime_error(
+                "[Input] Error: wires.global.low_swing is not supported with repeaters.");
+    }
+}
 
 long long CheckedMultiply(long long lhs, long long rhs, const char *what) {
     if (lhs <= 0 || rhs <= 0) {
@@ -139,9 +350,33 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
     }
 }
 
+void ValidateMemCellSupport(const EvaCamConfig &config) {
+    if (config.input.designTarget != CAM_chip) {
+        return;
+    }
+
+    const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
+    const MemCellType memCellType = LoadMemCellTypeForValidation(root);
+    ValidateCamPortPresence(root);
+    ValidateCamColumnTopology(root);
+    ValidateCamModelSupport(config, root, memCellType);
+
+    if (!IsCamModelMemCellTypeSupported(memCellType)) {
+        throw std::runtime_error(
+                "[Input] Error: memory.cell.type is not supported for CAM modeling.");
+    }
+
+    if (!config.input.internalSensing && memCellType != SRAM) {
+        throw std::runtime_error(
+                "[Input] Error: external sensing is only supported for SRAM CAM cells.");
+    }
+}
+
 }  // namespace
 
 void InputRuleValidator::Validate(EvaCamConfig &config) {
     ValidateAndResolveExplicitSubarrayDimensions(config);
     ValidateDerivedInputs(config);
+    ValidatePeripheralSupport(config);
+    ValidateMemCellSupport(config);
 }

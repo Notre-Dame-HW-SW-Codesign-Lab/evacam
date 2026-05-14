@@ -11,8 +11,143 @@ namespace {
 
 const char *kCellPath = "tests/tmp_input_validation_cell.yaml";
 const char *kConfigPath = "tests/tmp_input_validation_config.yaml";
+const char *kCustomSaPath = "tests/tmp_input_validation_custom_sa.txt";
 
-void WriteMinimalCellFile() {
+void WriteMinimalCellFile(const std::string &cellType = "SRAM",
+        const std::string &camType = "TCAM",
+        const std::string &columnType = "matchline",
+        const std::string &columnRegion = "drain") {
+    std::ofstream out(kCellPath);
+    out <<
+        "cell:\n"
+        "  name: TestCell\n"
+        "  type: " << cellType << "\n"
+        "  cam_type: " << camType << "\n"
+        "  process_node: 45nm\n"
+        "  area: 300F^2\n"
+        "  aspect_ratio: 2.0\n"
+        "access_device:\n"
+        "  type: CMOS\n"
+        "  cmos_width: 2F\n"
+        "resistance:\n"
+        "  'on': 1kohm\n"
+        "  'off': 1Mohm\n"
+        "read:\n"
+        "  mode: voltage\n"
+        "  voltage: 1V\n"
+        "  current: 5uA\n"
+        "  power: 2uW\n"
+        "  energy: 10fJ\n"
+        "  min_sense_voltage: 70mV\n"
+        "write:\n"
+        "  set:\n"
+        "    mode: voltage\n"
+        "    voltage: 4V\n"
+        "    current: 1uA\n"
+        "    pulse: 10ns\n"
+        "    energy: 2pJ\n"
+        "  reset:\n"
+        "    mode: current\n"
+        "    voltage: 3V\n"
+        "    current: 2uA\n"
+        "    pulse: 20ns\n"
+        "    energy: 3pJ\n"
+        "match:\n"
+        "  cmos_width: 3F\n"
+        "ports:\n"
+        "  row:\n"
+        "    0:\n"
+        "      type: searchline\n"
+        "      cmos_region: gate\n"
+        "      num_cmos: 1\n"
+        "      cmos_width: 1F\n"
+        "      is_nmos: true\n"
+        "      wire_width: 1F\n"
+        "      voltages:\n"
+        "        set_lrs: 4V\n"
+        "        set_mrs: 4V\n"
+        "        reset: 4V\n"
+        "        search0: 1V\n"
+        "        search1: 1V\n"
+        "  column:\n"
+        "    0:\n"
+        "      type: " << columnType << "\n"
+        "      cmos_region: " << columnRegion << "\n"
+        "      num_cmos: 1\n"
+        "      cmos_width: 1F\n"
+        "      is_nmos: true\n"
+        "      wire_width: 1F\n"
+        "      voltages:\n"
+        "        set_lrs: 1V\n"
+        "        set_mrs: 1V\n"
+        "        reset: 1V\n"
+        "        search0: 0V\n"
+        "        search1: 1V\n";
+}
+
+void WriteInvalidCustomSenseAmpFile() {
+    std::ofstream out(kCustomSaPath);
+    out <<
+        "-Height (F): 10\n"
+        "-Width (F): 4\n";
+}
+
+void WriteCellFileWithoutRowPorts() {
+    std::ofstream out(kCellPath);
+    out <<
+        "cell:\n"
+        "  name: TestCell\n"
+        "  type: SRAM\n"
+        "  cam_type: TCAM\n"
+        "  process_node: 45nm\n"
+        "  area: 300F^2\n"
+        "  aspect_ratio: 2.0\n"
+        "access_device:\n"
+        "  type: CMOS\n"
+        "  cmos_width: 2F\n"
+        "resistance:\n"
+        "  'on': 1kohm\n"
+        "  'off': 1Mohm\n"
+        "read:\n"
+        "  mode: voltage\n"
+        "  voltage: 1V\n"
+        "  current: 5uA\n"
+        "  power: 2uW\n"
+        "  energy: 10fJ\n"
+        "  min_sense_voltage: 70mV\n"
+        "write:\n"
+        "  set:\n"
+        "    mode: voltage\n"
+        "    voltage: 4V\n"
+        "    current: 1uA\n"
+        "    pulse: 10ns\n"
+        "    energy: 2pJ\n"
+        "  reset:\n"
+        "    mode: current\n"
+        "    voltage: 3V\n"
+        "    current: 2uA\n"
+        "    pulse: 20ns\n"
+        "    energy: 3pJ\n"
+        "match:\n"
+        "  cmos_width: 3F\n"
+        "ports:\n"
+        "  column:\n"
+        "    0:\n"
+        "      type: matchline\n"
+        "      cmos_region: drain\n"
+        "      num_cmos: 1\n"
+        "      cmos_width: 1F\n"
+        "      is_nmos: true\n"
+        "      wire_width: 1F\n"
+        "      voltages:\n"
+        "        set_lrs: 1V\n"
+        "        set_mrs: 1V\n"
+        "        reset: 1V\n"
+        "        search0: 0V\n"
+        "        search1: 1V\n";
+}
+
+void WriteCellFileWithoutColumnPorts() {
     std::ofstream out(kCellPath);
     out <<
         "cell:\n"
@@ -64,27 +199,14 @@ void WriteMinimalCellFile() {
         "        set_mrs: 4V\n"
         "        reset: 4V\n"
         "        search0: 1V\n"
-        "        search1: 1V\n"
-        "  column:\n"
-        "    0:\n"
-        "      type: matchline\n"
-        "      cmos_region: drain\n"
-        "      num_cmos: 1\n"
-        "      cmos_width: 1F\n"
-        "      is_nmos: true\n"
-        "      wire_width: 1F\n"
-        "      voltages:\n"
-        "        set_lrs: 1V\n"
-        "        set_mrs: 1V\n"
-        "        reset: 1V\n"
-        "        search0: 0V\n"
         "        search1: 1V\n";
 }
 
 void WriteConfig(const std::string &memoryBlock,
         const std::string &optimizationBlock,
         const std::string &organizationBlock = "",
-        const std::string &extraBlock = "") {
+        const std::string &extraBlock = "",
+        const std::string &advancedBlock = "") {
     std::ofstream out(kConfigPath);
     out <<
         "design:\n"
@@ -123,6 +245,9 @@ void WriteConfig(const std::string &memoryBlock,
         "    type: GlobalAggressive\n"
         "    repeater: RepeatedOpt\n"
         "    low_swing: false\n";
+    if (!advancedBlock.empty()) {
+        out << advancedBlock;
+    }
     if (!organizationBlock.empty()) {
         out << organizationBlock;
     }
@@ -254,6 +379,468 @@ void TestNonPowerOfTwoWordWidthParsesWithRealCapacity() {
     assert(config.runtimeSizing.realCapacity == 1152);
 }
 
+void TestUnsupportedCamMemCellTypeThrows() {
+    WriteMinimalCellFile("FBRAM");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("memory.cell.type is not supported for CAM modeling"));
+    WriteMinimalCellFile();
+}
+
+void TestExternalSensingRejectsNonSramCam() {
+    WriteMinimalCellFile("MRAM");
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+            "design:\n"
+            "  target: CAM\n"
+            "  search_function: EX\n"
+            "  process_node: 45nm\n"
+            "  device_roadmap: HP\n"
+            "  temperature: 300K\n"
+            "memory:\n"
+            "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+            "  capacity: 1KB\n"
+            "  word_width: 64bits\n"
+            "routing:\n"
+            "  type: H-tree\n"
+            "peripherals:\n"
+            "  write_driver: false\n"
+            "  input:\n"
+            "    buffer: false\n"
+            "    encoder: false\n"
+            "    custom_encoder: false\n"
+            "  output:\n"
+            "    buffer: false\n"
+            "    priority_encoder: false\n"
+            "    accumulator: false\n"
+            "sensing:\n"
+            "  internal: false\n"
+            "  custom_sense_amp: false\n"
+            "  amplifier_type: nvsim_vol\n"
+            "optimization:\n"
+            "  target: ReadLatency\n"
+            "  buffer_design: latency\n"
+            "  row_driver: latency\n"
+            "  priority_encoder: latency\n"
+            "wires:\n"
+            "  local:\n"
+            "    type: LocalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n";
+    }
+
+    assert(LoadThrowsWithMessage("external sensing is only supported for SRAM CAM cells"));
+    WriteMinimalCellFile();
+}
+
+void TestMissingCamRowPortsThrows() {
+    WriteCellFileWithoutRowPorts();
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("cell.ports.row must define at least one CAM row port"));
+    WriteMinimalCellFile();
+}
+
+void TestMissingCamColumnPortsThrows() {
+    WriteCellFileWithoutColumnPorts();
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("cell.ports.column must define at least one CAM column port"));
+    WriteMinimalCellFile();
+}
+
+void TestAcamUnsupportedThrows() {
+    WriteMinimalCellFile("SRAM", "ACAM");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("ACAM is not supported"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamRequiresFefetramThrows() {
+    WriteMinimalCellFile("SRAM", "MCAM");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("only 2FeFET MCAM design has limited support"));
+    WriteMinimalCellFile();
+}
+
+void TestMatchlineGateConnectionThrows() {
+    WriteMinimalCellFile("SRAM", "TCAM", "matchline", "gate");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("matchline connection cannot use cmos_region gate"));
+    WriteMinimalCellFile();
+}
+
+void TestBitlineColumnTopologyThrows() {
+    WriteMinimalCellFile("SRAM", "TCAM", "Bitline", "drain");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("does not support Bitline topology"));
+    WriteMinimalCellFile();
+}
+
+void TestMissingMatchlineColumnThrows() {
+    WriteMinimalCellFile("SRAM", "TCAM", "dataline", "drain");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("must define at least one CAM matchline port"));
+    WriteMinimalCellFile();
+}
+
+void TestUnsupportedSenseAmpTypeThrows() {
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+            "design:\n"
+            "  target: CAM\n"
+            "  search_function: EX\n"
+            "  process_node: 45nm\n"
+            "  device_roadmap: HP\n"
+            "  temperature: 300K\n"
+            "memory:\n"
+            "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+            "  capacity: 1KB\n"
+            "  word_width: 64bits\n"
+            "routing:\n"
+            "  type: H-tree\n"
+            "peripherals:\n"
+            "  write_driver: false\n"
+            "  input:\n"
+            "    buffer: false\n"
+            "    encoder: false\n"
+            "    custom_encoder: false\n"
+            "  output:\n"
+            "    buffer: false\n"
+            "    priority_encoder: false\n"
+            "    accumulator: false\n"
+            "sensing:\n"
+            "  internal: true\n"
+            "  custom_sense_amp: false\n"
+            "  amplifier_type: self_clock\n"
+            "optimization:\n"
+            "  target: ReadLatency\n"
+            "  buffer_design: latency\n"
+            "  row_driver: latency\n"
+            "  priority_encoder: latency\n"
+            "wires:\n"
+            "  local:\n"
+            "    type: LocalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n";
+    }
+
+    assert(LoadThrowsWithMessage("sensing.amplifier_type is not supported"));
+}
+
+void TestMissingCustomSenseAmpFileThrows() {
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: false\n"
+        "    custom_encoder: false\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  custom_sense_amp: true\n"
+        "  amplifier_type: nvsim_vol\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n"
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+        "  global:\n"
+        "    type: GlobalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+            "advanced:\n"
+            "  custom_sa_input_file: tests/does_not_exist_sa.txt\n";
+    }
+
+    assert(LoadThrowsWithMessage("custom sense amp file cannot be found"));
+}
+
+void TestInvalidCustomSenseAmpFileThrows() {
+    WriteInvalidCustomSenseAmpFile();
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: false\n"
+        "    custom_encoder: false\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  custom_sense_amp: true\n"
+        "  amplifier_type: nvsim_vol\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n"
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+        "  global:\n"
+        "    type: GlobalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+            "advanced:\n"
+            "  custom_sa_input_file: tests/tmp_input_validation_custom_sa.txt\n";
+    }
+
+    assert(LoadThrowsWithMessage("custom sense amp file is missing required fields"));
+}
+
+void TestCustomInputEncoderUnsupportedThrows() {
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: true\n"
+        "    custom_encoder: true\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  custom_sense_amp: false\n"
+        "  amplifier_type: nvsim_vol\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n"
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n";
+    }
+
+    assert(LoadThrowsWithMessage("custom input encoder is not supported"));
+}
+
+void TestLocalLowSwingWithRepeaterThrows() {
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: false\n"
+        "    custom_encoder: false\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  custom_sense_amp: false\n"
+        "  amplifier_type: nvsim_vol\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n"
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: true\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: false\n";
+    }
+
+    assert(LoadThrowsWithMessage("wires.local.low_swing is not supported with repeaters"));
+}
+
+void TestGlobalLowSwingWithRepeaterThrows() {
+    {
+        std::ofstream out(kConfigPath);
+        out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: false\n"
+        "    custom_encoder: false\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  custom_sense_amp: false\n"
+        "  amplifier_type: nvsim_vol\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n"
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+            "  global:\n"
+            "    type: GlobalAggressive\n"
+            "    repeater: RepeatedOpt\n"
+            "    low_swing: true\n";
+    }
+
+    assert(LoadThrowsWithMessage("wires.global.low_swing is not supported with repeaters"));
+}
+
 }  // namespace
 
 int main() {
@@ -264,6 +851,21 @@ int main() {
     TestFixedSubarrayDimensionsRejectExploration();
     TestNonPowerOfTwoWordWidthRequiresRealCapacity();
     TestNonPowerOfTwoWordWidthParsesWithRealCapacity();
+    TestUnsupportedCamMemCellTypeThrows();
+    TestExternalSensingRejectsNonSramCam();
+    TestMissingCamRowPortsThrows();
+    TestMissingCamColumnPortsThrows();
+    TestAcamUnsupportedThrows();
+    TestMcamRequiresFefetramThrows();
+    TestMatchlineGateConnectionThrows();
+    TestBitlineColumnTopologyThrows();
+    TestMissingMatchlineColumnThrows();
+    TestUnsupportedSenseAmpTypeThrows();
+    TestMissingCustomSenseAmpFileThrows();
+    TestInvalidCustomSenseAmpFileThrows();
+    TestCustomInputEncoderUnsupportedThrows();
+    TestLocalLowSwingWithRepeaterThrows();
+    TestGlobalLowSwingWithRepeaterThrows();
     std::cout << "InputValidation tests passed" << std::endl;
     return 0;
 }
