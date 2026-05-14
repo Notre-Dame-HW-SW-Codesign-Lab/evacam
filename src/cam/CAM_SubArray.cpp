@@ -88,6 +88,7 @@ MatchlineElectricalParams BuildDiodeMatchlineParams(
         const MemCell &cell,
         const Technology &tech,
         int temperature) {
+
     MatchlineElectricalParams params;
     const int mosType = MatchlineMosType(cellPort);
     const double featureSize = tech.featureSize();
@@ -1079,7 +1080,7 @@ void CAM_SubArray::CalculatePower() {
                         * numColumn / muxSenseAmp;
             } else {
                 if (UsesSramStyleCamModel(cell.memCellType)) {
-                    /* Codes below calculate the SRAM matchline power */
+                    // Calculate the SRAM matchline power
                     searchDynamicEnergy = (Col[indexMatchline].cap
                             + ColMux[indexMatchline]->capForPreviousPowerCalculation + capTotalCell)
                             * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp;
@@ -1169,9 +1170,11 @@ void CAM_SubArray::CalculatePower() {
             + senseAmp->readDynamicEnergy
             + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
             + outputBuf->readDynamicEnergy * numColumn;
+
         /*****************************************************************************
          * Calculate write
          *****************************************************************************/
+
         numBitline = 0;
         indexBitline = 0;
         // default status is using ML as the BL, as it is in the case of JSSC 2t2r
@@ -1339,6 +1342,7 @@ void CAM_SubArray::CalculatePower() {
         /*****************************************************************************
          * Leakage totals
          *****************************************************************************/
+
         double leak = 0;
         for (int i = 0; i < cell.camNumRow; i++) {
             leakage += RowDriver[i]->leakage;

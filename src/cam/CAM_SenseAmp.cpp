@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+
 CAM_SenseAmp::CAM_SenseAmp() {
     initialized = false;
     invalid = false;
@@ -16,16 +17,26 @@ CAM_SenseAmp::CAM_SenseAmp() {
     pitchSenseAmp = 0;
 }
 
-void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool _isCustom, double _senseVoltage, double _pitchSenseAmp, std::string _fileCustomSA, std::shared_ptr<EvaCamConfig> _config) {
+void CAM_SenseAmp::Initialize(
+        long long _numColumn, 
+        TypeOfSenseAmp _typeSA, 
+        bool _isCustom, 
+        double _senseVoltage, 
+        double _pitchSenseAmp, 
+        std::string _fileCustomSA, 
+        std::shared_ptr<EvaCamConfig> _config) {
+
+    config = _config;
+
     if (initialized)
-        _config->logger.Verbose() << "[CAM_SenseAmp] Warning: Already initialized!";
+        config->logger.Verbose() << "[CAM_SenseAmp] Warning: Already initialized!";
+
     typeSA = _typeSA;
     isCustom = _isCustom;
     senseVoltage = _senseVoltage;
     pitchSenseAmp = _pitchSenseAmp;
     numColumn = _numColumn;
     fileCustomSA = _fileCustomSA;
-    config = _config;
 
     if (pitchSenseAmp <= config->technology.tech->featureSize() * 2) {
         /* too small, cannot do the layout */
@@ -35,11 +46,11 @@ void CAM_SenseAmp::Initialize(long long _numColumn, TypeOfSenseAmp _typeSA, bool
 
     normalSenseAmp = std::make_unique<SenseAmp>();
     normalSenseAmp->Initialize(numColumn, typeSA == nvsim_current_sense, senseVoltage, pitchSenseAmp, config);
-    if(isCustom == false && (typeSA != nvsim_voltage_sense && typeSA != nvsim_current_sense && typeSA != discharge ) ){
+    if (isCustom == false && (typeSA != nvsim_voltage_sense && typeSA != nvsim_current_sense && typeSA != discharge )) {
         normalSenseAmp->invalid = true;
         throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
     }
-    if(isCustom) {
+    if (isCustom) {
         customSA = std::make_unique<SenseAmp>();
         FILE *fp = fopen(fileCustomSA.c_str(), "r");
         char line[5000];
