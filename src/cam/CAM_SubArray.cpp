@@ -1,7 +1,7 @@
 /*
  * CAM_SubArray.cpp
- *
  */
+
 #include "CAM_SubArray.h"
 #include "formula.h"
 #include "constant.h"
@@ -643,7 +643,6 @@ void CAM_SubArray::CalculateArea() {
         height = width = area = 1e41;
     } else {
         double addWidthArea = 0, addHeightArea = 0;
-
 
         width = lenRow;
         height = lenCol;
