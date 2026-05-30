@@ -18,6 +18,7 @@ summary:
     variation:
       mode: monte_carlo
       samples: 9
+      sample_file: results/example_variation_samples.csv
       matchline_delay:
         nominal: ...
         mean: ...
@@ -63,6 +64,7 @@ Variation summary keys:
 
 - `summary.timing.variation` is emitted only when variation is enabled
 - `mode` and `samples` describe the aggregation run
+- `sample_file` is emitted for Monte Carlo runs and points to the per-sample CSV
 - metric blocks currently include:
   - `matchline_delay`
   - `search_latency`
@@ -90,6 +92,26 @@ Variation summary keys:
 - leakage
 
 These values are useful for debugging which peripheral block dominates a result.
+
+## Monte Carlo Sample CSV
+
+Monte Carlo variation runs also write a per-sample CSV next to the YAML results file.
+For example:
+
+```text
+results/2FeFET_TCAM_results.yaml
+results/2FeFET_TCAM_variation_samples.csv
+```
+
+The CSV uses base SI units and has one row per sample:
+
+```csv
+sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
+0,...
+```
+
+Full-exploration runs write one sample CSV per objective that has Monte Carlo data,
+using the objective name in the file stem.
 
 ## Exploration CSV
 

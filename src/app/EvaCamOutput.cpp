@@ -5,12 +5,15 @@
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "CAM_Result.h"
 #include "EvaCamConfig.h"
 #include "Logger.h"
-#include "output/ResultsYaml.h"
 #include "config/DerivedValueHelpers.h"
+#include "config/OutputPathBuilder.h"
+#include "output/ResultsYaml.h"
+#include "output/VariationSamplesCsv.h"
 
 namespace {
 
@@ -48,6 +51,58 @@ void PrintVariationSampleMetric(const char *name, double scale, const char *unit
               << ", sample=" << stats.sample * scale
               << " " << unit
               << std::endl;
+}
+
+std::string OptimizationTargetName(OptimizationTarget t) {
+    switch (t) {
+        case read_latency_optimized:
+            return "ReadLatency";
+        case write_latency_optimized:
+            return "WriteLatency";
+        case read_energy_optimized:
+            return "ReadDynamicEnergy";
+        case write_energy_optimized:
+            return "WriteDynamicEnergy";
+        case read_edp_optimized:
+            return "ReadEDP";
+        case write_edp_optimized:
+            return "WriteEDP";
+        case leakage_optimized:
+            return "LeakagePower";
+        case area_optimized:
+            return "Area";
+        case search_latency_optimized:
+            return "SearchLatency";
+        case search_energy_optimized:
+            return "SearchEnergy";
+        case search_edp_optimized:
+            return "SearchEDP";
+        case full_exploration:
+            return "Exploration";
+    }
+    return "Unknown";
+}
+
+bool HasMonteCarloSamples(const std::shared_ptr<CAM_Result> &result) {
+    return result
+        && result->bank
+        && result->bank->mat
+        && result->bank->mat->subarray
+        && result->bank->mat->subarray->monteCarloSummary.mode == "monte_carlo"
+        && !result->bank->mat->subarray->monteCarloSamples.empty();
+}
+
+void WriteVariationSamplesFile(const CAM_Result &result, const std::string &path) {
+    std::filesystem::path outPath(path);
+    if (!outPath.parent_path().empty()) {
+        std::filesystem::create_directories(outPath.parent_path());
+    }
+
+    std::ofstream csvOut(path);
+    if (!csvOut) {
+        throw std::runtime_error("Failed to open variation samples CSV file: " + path);
+    }
+    WriteVariationSamplesCsv(csvOut, result);
 }
 
 }  // namespace
@@ -171,16 +226,43 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         std::filesystem::create_directories(outPath.parent_path());
     }
 
-    std::ofstream yamlOut(outputYamlFileName);
-    if (!yamlOut) {
-        throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
-    }
-
     if (numSolution <= 0) {
+        std::ofstream yamlOut(outputYamlFileName);
+        if (!yamlOut) {
+            throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
+        }
         WriteResultsYamlNoSolutions(yamlOut);
     } else if (DerivedValueHelpers::IsFullExploration(config.input)) {
-        WriteResultsYamlMulti(yamlOut, AsResults(bestResults));
+        std::unordered_map<OptimizationTarget, std::string> variationSamplesFiles;
+        for (const auto &result : bestResults) {
+            if (!HasMonteCarloSamples(result)) {
+                continue;
+            }
+
+            const std::string path = OutputPathBuilder::VariationSamplesCsvPath(
+                    outputYamlFileName,
+                    OptimizationTargetName(result->optimizationTarget));
+            WriteVariationSamplesFile(*result, path);
+            variationSamplesFiles[result->optimizationTarget] = path;
+        }
+
+        std::ofstream yamlOut(outputYamlFileName);
+        if (!yamlOut) {
+            throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
+        }
+        WriteResultsYamlMulti(yamlOut, AsResults(bestResults), variationSamplesFiles);
     } else {
-        WriteResultsYaml(yamlOut, *bestResults[config.input.optimizationTarget]);
+        const auto &result = bestResults[config.input.optimizationTarget];
+        std::string variationSamplesFile;
+        if (HasMonteCarloSamples(result)) {
+            variationSamplesFile = OutputPathBuilder::VariationSamplesCsvPath(outputYamlFileName);
+            WriteVariationSamplesFile(*result, variationSamplesFile);
+        }
+
+        std::ofstream yamlOut(outputYamlFileName);
+        if (!yamlOut) {
+            throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
+        }
+        WriteResultsYaml(yamlOut, *result, variationSamplesFile);
     }
 }

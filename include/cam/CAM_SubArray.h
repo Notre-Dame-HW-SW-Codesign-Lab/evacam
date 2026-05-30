@@ -61,6 +61,15 @@ struct CAMMonteCarloSummary {
     CAMMetricStats senseMargin;
 };
 
+struct CAMMonteCarloSample {
+    int sample = 0;
+    double matchlineDelay = 0;
+    double searchLatency = 0;
+    double searchDynamicEnergy = 0;
+    double senseMargin = 0;
+    double referDelay = 0;
+};
+
 class CAM_SubArray: public FunctionUnit {
     public:
         CAM_SubArray() {
@@ -244,6 +253,7 @@ class CAM_SubArray: public FunctionUnit {
         double matchlineWireRes;
         CAMResistanceSample sampledResistance;
         CAMMonteCarloSummary monteCarloSummary;
+        std::vector<CAMMonteCarloSample> monteCarloSamples;
 
         double decoderLatency;
         double bitlineRamp;

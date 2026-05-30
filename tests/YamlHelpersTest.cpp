@@ -800,10 +800,10 @@ int main() {
     test_enum_read();
     test_bcam_alias();
     test_units();
+    test_memcell_yaml();
     test_organization_section();
     test_explicit_subarray_dimensions();
     test_invalid_inputs();
-    test_memcell_yaml();
     test_memcell_variation_yaml();
     test_cell_variation_drives_runtime_config();
     test_variation_builder_rejects_invalid_mode_and_samples();

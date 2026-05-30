@@ -9,6 +9,9 @@
 class OutputPathBuilder {
     public:
         static std::string DefaultResultsYamlPath(const std::string &inputFile);
+        static std::string VariationSamplesCsvPath(const std::string &outputYamlFile);
+        static std::string VariationSamplesCsvPath(const std::string &outputYamlFile,
+                const std::string &label);
         static std::string ExplorationCsvPath(const InputConfig &input, const TechnologyContext &technology);
 };
 

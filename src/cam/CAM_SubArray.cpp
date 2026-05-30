@@ -1531,6 +1531,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     const auto &peripherals = config->peripherals;
 
     monteCarloSummary = CAMMonteCarloSummary{};
+    monteCarloSamples.clear();
     if (!variation.enabled) {
         return;
     }
@@ -1614,6 +1615,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     searchLatencies.reserve(variation.samples);
     senseMargins.reserve(variation.samples);
     referDelays.reserve(variation.samples);
+    monteCarloSamples.reserve(variation.samples);
 
     const double searchBase = searchLatency - matchlineDelay;
     const double readBase = readLatency - matchlineDelay;
@@ -1673,6 +1675,14 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
         searchLatencies.push_back(sampleSearchLatency);
         senseMargins.push_back(sampleSenseMargin);
         referDelays.push_back(sampleReferDelay);
+        monteCarloSamples.push_back({
+                sampleIndex,
+                sampleMatchlineDelay,
+                sampleSearchLatency,
+                0.0,
+                sampleSenseMargin,
+                sampleReferDelay
+        });
     }
 
     monteCarloSummary.enabled = true;
@@ -1781,6 +1791,9 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
 
         sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
         searchEnergies.push_back(sampleSearchDynamicEnergy);
+        if (sampleIndex < static_cast<int>(monteCarloSamples.size())) {
+            monteCarloSamples[sampleIndex].searchDynamicEnergy = sampleSearchDynamicEnergy;
+        }
     }
 
     monteCarloSummary.searchDynamicEnergy = BuildMetricStats(searchEnergies, searchDynamicEnergy);

@@ -57,10 +57,11 @@ MonteCarloFixture WriteMonteCarloConfig(
         const std::string &mode = "monte_carlo",
         int samples = 9) {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
-    const std::filesystem::path sourceConfig = repoRoot / "config/ReRAM-2T2R/ReRAM-2T2R_config.yaml";
-    const std::filesystem::path sourceCell = repoRoot / "config/ReRAM-2T2R/ReRAM-2T2R_cell.yaml";
+    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_config.yaml";
+    const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell.yaml";
 
     const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("mc_regression_" + tag);
+    std::filesystem::remove_all(tmpDir);
     std::filesystem::create_directories(tmpDir);
 
     const std::filesystem::path testCell = tmpDir / "cell.yaml";
@@ -90,12 +91,10 @@ MonteCarloFixture WriteMonteCarloConfig(
 
     std::string configText = ReadFile(sourceConfig);
     ReplaceAll(configText,
-            "cell_file: ./config/ReRAM-2T2R/ReRAM-2T2R_cell.yaml",
+            "cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell.yaml",
             "cell_file: " + testCell.string());
+    ReplaceAll(configText, "search_function: BE", "search_function: EX");
     configText +=
-        "\nadvanced:\n"
-        "  bit_serial_width: 32bits\n"
-        "\n"
         "\nextra:\n"
         "  output_yaml_file: " + testOutput.string() + "\n";
     WriteFile(testConfig, configText);
@@ -152,6 +151,22 @@ void test_monte_carlo_output_summary_is_emitted() {
     assert(variation);
     assert(variation["mode"].as<std::string>() == "monte_carlo");
     assert(variation["samples"].as<int>() == 9);
+    assert(variation["sample_file"]);
+
+    const std::filesystem::path samplePath = variation["sample_file"].as<std::string>();
+    assert(std::filesystem::exists(samplePath));
+
+    std::ifstream sampleCsv(samplePath);
+    assert(sampleCsv);
+    std::string line;
+    assert(std::getline(sampleCsv, line));
+    assert(line == "sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s");
+    int rowCount = 0;
+    while (std::getline(sampleCsv, line)) {
+        assert(!line.empty());
+        rowCount++;
+    }
+    assert(rowCount == 9);
 
     const std::vector<std::string> metricNames = {
         "matchline_delay",
@@ -192,6 +207,7 @@ void test_single_point_output_summary_is_emitted() {
     assert(variation);
     assert(variation["mode"].as<std::string>() == "single_point");
     assert(variation["samples"].as<int>() == 1);
+    assert(!variation["sample_file"]);
 
     const std::vector<std::string> metricNames = {
         "matchline_delay",
@@ -225,6 +241,7 @@ void test_variation_output_summary_is_absent_when_disabled() {
     const YAML::Node timing = root["summary"]["timing"];
     assert(timing);
     assert(!timing["variation"]);
+    assert(!std::filesystem::exists(fixture.outputPath.parent_path() / "results_variation_samples.csv"));
 }
 
 }  // namespace
