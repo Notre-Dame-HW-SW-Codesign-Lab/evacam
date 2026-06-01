@@ -152,9 +152,12 @@ void test_monte_carlo_output_summary_is_emitted() {
     assert(variation["mode"].as<std::string>() == "monte_carlo");
     assert(variation["samples"].as<int>() == 9);
     assert(variation["sample_file"]);
+    assert(variation["plot_file"]);
 
     const std::filesystem::path samplePath = variation["sample_file"].as<std::string>();
+    const std::filesystem::path plotPath = variation["plot_file"].as<std::string>();
     assert(std::filesystem::exists(samplePath));
+    assert(std::filesystem::exists(plotPath));
 
     std::ifstream sampleCsv(samplePath);
     assert(sampleCsv);
@@ -208,6 +211,7 @@ void test_single_point_output_summary_is_emitted() {
     assert(variation["mode"].as<std::string>() == "single_point");
     assert(variation["samples"].as<int>() == 1);
     assert(!variation["sample_file"]);
+    assert(!variation["plot_file"]);
 
     const std::vector<std::string> metricNames = {
         "matchline_delay",

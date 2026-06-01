@@ -19,6 +19,7 @@ summary:
       mode: monte_carlo
       samples: 9
       sample_file: results/example_variation_samples.csv
+      plot_file: results/example_variation_samples_histograms.svg
       matchline_delay:
         nominal: ...
         mean: ...
@@ -65,6 +66,7 @@ Variation summary keys:
 - `summary.timing.variation` is emitted only when variation is enabled
 - `mode` and `samples` describe the aggregation run
 - `sample_file` is emitted for Monte Carlo runs and points to the per-sample CSV
+- `plot_file` is emitted for Monte Carlo runs and points to the generated SVG histograms
 - metric blocks currently include:
   - `matchline_delay`
   - `search_latency`
@@ -101,6 +103,7 @@ For example:
 ```text
 results/2FeFET_TCAM_results.yaml
 results/2FeFET_TCAM_variation_samples.csv
+results/2FeFET_TCAM_variation_samples_histograms.svg
 ```
 
 The CSV uses base SI units and has one row per sample:

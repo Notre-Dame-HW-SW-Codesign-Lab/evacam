@@ -78,14 +78,15 @@ output_2048K_512_1_IN_VOL.csv
 ## Monte Carlo Variation CSV
 
 When cell-level variation uses `mode: monte_carlo`, EvaCAM also emits a
-per-sample CSV next to the YAML results file. The YAML
-`summary.timing.variation.sample_file` field points to this file.
+per-sample CSV and SVG histogram plot next to the YAML results file. The YAML
+`summary.timing.variation.sample_file` and `plot_file` fields point to these files.
 
 Default example:
 
 ```text
 results/2FeFET_TCAM_results.yaml
 results/2FeFET_TCAM_variation_samples.csv
+results/2FeFET_TCAM_variation_samples_histograms.svg
 ```
 
 The CSV columns are:
@@ -94,7 +95,7 @@ The CSV columns are:
 sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
 ```
 
-You can plot the CSV with:
+EvaCAM writes the plot automatically. To regenerate it manually, run:
 
 ```bash
 python3 scripts/plot_variation_histograms.py results/2FeFET_TCAM_variation_samples.csv

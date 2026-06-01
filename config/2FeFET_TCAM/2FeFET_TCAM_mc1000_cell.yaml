@@ -40,11 +40,11 @@ variation:
   seed: 33333
   mode: monte_carlo
   samples: 1000
-  memory_device_resistance_on_stdev: 15%
-  memory_device_resistance_off_stdev: 20%
-  matchline_wire_resistance_stdev: 10%
-  device_access_resistance_stdev: 12%
-  device_match_resistance_stdev: 8%
+  memory_device_resistance_on_stdev: 5%
+  memory_device_resistance_off_stdev: 5%
+  matchline_wire_resistance_stdev: 3%
+  device_access_resistance_stdev: 1%
+  device_match_resistance_stdev: 1%
 match:
   cmos_width: 3F
 ports:

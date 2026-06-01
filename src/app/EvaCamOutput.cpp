@@ -12,6 +12,7 @@
 #include "Logger.h"
 #include "config/DerivedValueHelpers.h"
 #include "config/OutputPathBuilder.h"
+#include "output/VariationHistogramSvg.h"
 #include "output/ResultsYaml.h"
 #include "output/VariationSamplesCsv.h"
 
@@ -103,6 +104,19 @@ void WriteVariationSamplesFile(const CAM_Result &result, const std::string &path
         throw std::runtime_error("Failed to open variation samples CSV file: " + path);
     }
     WriteVariationSamplesCsv(csvOut, result);
+}
+
+void WriteVariationHistogramFile(const CAM_Result &result, const std::string &path) {
+    std::filesystem::path outPath(path);
+    if (!outPath.parent_path().empty()) {
+        std::filesystem::create_directories(outPath.parent_path());
+    }
+
+    std::ofstream svgOut(path);
+    if (!svgOut) {
+        throw std::runtime_error("Failed to open variation histogram SVG file: " + path);
+    }
+    WriteVariationHistogramSvg(svgOut, result);
 }
 
 }  // namespace
@@ -234,35 +248,42 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         WriteResultsYamlNoSolutions(yamlOut);
     } else if (DerivedValueHelpers::IsFullExploration(config.input)) {
         std::unordered_map<OptimizationTarget, std::string> variationSamplesFiles;
+        std::unordered_map<OptimizationTarget, std::string> variationPlotFiles;
         for (const auto &result : bestResults) {
             if (!HasMonteCarloSamples(result)) {
                 continue;
             }
 
-            const std::string path = OutputPathBuilder::VariationSamplesCsvPath(
+            const std::string samplePath = OutputPathBuilder::VariationSamplesCsvPath(
                     outputYamlFileName,
                     OptimizationTargetName(result->optimizationTarget));
-            WriteVariationSamplesFile(*result, path);
-            variationSamplesFiles[result->optimizationTarget] = path;
+            const std::string plotPath = OutputPathBuilder::VariationHistogramsSvgPath(samplePath);
+            WriteVariationSamplesFile(*result, samplePath);
+            WriteVariationHistogramFile(*result, plotPath);
+            variationSamplesFiles[result->optimizationTarget] = samplePath;
+            variationPlotFiles[result->optimizationTarget] = plotPath;
         }
 
         std::ofstream yamlOut(outputYamlFileName);
         if (!yamlOut) {
             throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
         }
-        WriteResultsYamlMulti(yamlOut, AsResults(bestResults), variationSamplesFiles);
+        WriteResultsYamlMulti(yamlOut, AsResults(bestResults), variationSamplesFiles, variationPlotFiles);
     } else {
         const auto &result = bestResults[config.input.optimizationTarget];
         std::string variationSamplesFile;
+        std::string variationPlotFile;
         if (HasMonteCarloSamples(result)) {
             variationSamplesFile = OutputPathBuilder::VariationSamplesCsvPath(outputYamlFileName);
+            variationPlotFile = OutputPathBuilder::VariationHistogramsSvgPath(variationSamplesFile);
             WriteVariationSamplesFile(*result, variationSamplesFile);
+            WriteVariationHistogramFile(*result, variationPlotFile);
         }
 
         std::ofstream yamlOut(outputYamlFileName);
         if (!yamlOut) {
             throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
         }
-        WriteResultsYaml(yamlOut, *result, variationSamplesFile);
+        WriteResultsYaml(yamlOut, *result, variationSamplesFile, variationPlotFile);
     }
 }

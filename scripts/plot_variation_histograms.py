@@ -86,20 +86,20 @@ def panel_svg(x, y, width, height, title, unit, values, bins):
 
     parts = [
         svg_text(x + 18, y + 30, title, size=15, weight="bold"),
-        f'<line x1="{plot_x}" y1="{plot_y + plot_h}" x2="{plot_x + plot_w}" y2="{plot_y + plot_h}" stroke="#24292f"/>',
-        f'<line x1="{plot_x}" y1="{plot_y}" x2="{plot_x}" y2="{plot_y + plot_h}" stroke="#24292f"/>',
     ]
 
     for i, count in enumerate(counts):
-        bar_h = plot_h * count / max_count
+        bar_h = max(plot_h * count / max_count - 1, 0)
         bx = plot_x + i * bar_w + 1
-        by = plot_y + plot_h - bar_h
+        by = plot_y + plot_h - 1 - bar_h
         parts.append(
             f'<rect x="{bx:.2f}" y="{by:.2f}" width="{max(bar_w - 2, 1):.2f}" '
             f'height="{bar_h:.2f}" fill="#4f7cac"/>'
         )
 
     parts.extend([
+        f'<line x1="{plot_x}" y1="{plot_y + plot_h}" x2="{plot_x + plot_w}" y2="{plot_y + plot_h}" stroke="#24292f"/>',
+        f'<line x1="{plot_x}" y1="{plot_y}" x2="{plot_x}" y2="{plot_y + plot_h}" stroke="#24292f"/>',
         svg_text(plot_x, plot_y + plot_h + 22, fmt(lo), size=11, anchor="middle"),
         svg_text(plot_x + plot_w, plot_y + plot_h + 22, fmt(hi), size=11, anchor="middle"),
         svg_text(plot_x + plot_w / 2, y + height - 16, unit, size=12, anchor="middle"),
@@ -158,7 +158,10 @@ def build_svg(rows, bins, include_internal=False):
 
 
 def default_output_path(csv_path):
-    return csv_path.with_name(csv_path.stem + "_histograms.svg")
+    stem = csv_path.stem
+    if stem.endswith("_variation_samples"):
+        stem = stem[: -len("_variation_samples")] + "_variation"
+    return csv_path.with_name(stem + "_histograms.svg")
 
 
 def main():

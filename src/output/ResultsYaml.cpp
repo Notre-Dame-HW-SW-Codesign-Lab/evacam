@@ -288,7 +288,8 @@ namespace {
     }
 
     void write_summary(YamlWriter& y, const Result& result,
-            const std::string &variationSamplesFile = "") {
+            const std::string &variationSamplesFile = "",
+            const std::string &variationPlotFile = "") {
         const auto& input = result.config;
         const auto& bank = result.bank;
         const std::string route_key = (input->input.routingMode == h_tree) ? "h_tree" : "non_h_tree";
@@ -386,6 +387,9 @@ namespace {
             y.line("samples", std::to_string(bank->mat->subarray->monteCarloSummary.samples));
             if (!variationSamplesFile.empty()) {
                 y.line("sample_file", variationSamplesFile);
+            }
+            if (!variationPlotFile.empty()) {
+                y.line("plot_file", variationPlotFile);
             }
             if (bank->mat->subarray->monteCarloSummary.mode == "single_point") {
                 write_metric_sample(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
@@ -485,21 +489,24 @@ namespace {
     }
 
     void write_results_body(YamlWriter& y, const Result& result,
-            const std::string &variationSamplesFile = "") {
-        write_summary(y, result, variationSamplesFile);
+            const std::string &variationSamplesFile = "",
+            const std::string &variationPlotFile = "") {
+        write_summary(y, result, variationSamplesFile, variationPlotFile);
         write_breakdown(y, result);
     }
 
 } // namespace
 
 void WriteResultsYaml(std::ostream& os, const Result& result,
-        const std::string &variationSamplesFile) {
+        const std::string &variationSamplesFile,
+        const std::string &variationPlotFile) {
     YamlWriter y(os);
-    write_results_body(y, result, variationSamplesFile);
+    write_results_body(y, result, variationSamplesFile, variationPlotFile);
 }
 
 void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<Result>>& results,
-        const std::unordered_map<OptimizationTarget, std::string> &variationSamplesFiles) {
+        const std::unordered_map<OptimizationTarget, std::string> &variationSamplesFiles,
+        const std::unordered_map<OptimizationTarget, std::string> &variationPlotFiles) {
     YamlWriter y(os);
     for (const auto& res : results) {
         if (!res || !res->bank || !res->bank->initialized)
@@ -509,8 +516,13 @@ void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<R
         if (sampleFile != variationSamplesFiles.end()) {
             variationSamplesFile = sampleFile->second;
         }
+        std::string variationPlotFile;
+        const auto plotFile = variationPlotFiles.find(res->optimizationTarget);
+        if (plotFile != variationPlotFiles.end()) {
+            variationPlotFile = plotFile->second;
+        }
         y.begin_map(optimization_target_name(res->optimizationTarget));
-        write_summary(y, *res, variationSamplesFile);
+        write_summary(y, *res, variationSamplesFile, variationPlotFile);
         write_breakdown(y, *res);
         y.end_map();
     }

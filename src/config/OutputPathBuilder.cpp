@@ -45,6 +45,18 @@ std::string OutputPathBuilder::VariationSamplesCsvPath(const std::string &output
     return (yamlPath.parent_path() / stem).string();
 }
 
+std::string OutputPathBuilder::VariationHistogramsSvgPath(const std::string &samplesCsvFile) {
+    std::filesystem::path csvPath(samplesCsvFile);
+    std::string stem = csvPath.stem().string();
+    const std::string suffix = "_variation_samples";
+    if (stem.size() > suffix.size()
+            && stem.compare(stem.size() - suffix.size(), suffix.size(), suffix) == 0) {
+        stem.resize(stem.size() - suffix.size());
+        stem += "_variation";
+    }
+    return (csvPath.parent_path() / (stem + "_histograms.svg")).string();
+}
+
 std::string OutputPathBuilder::ExplorationCsvPath(const InputConfig &input,
         const TechnologyContext &technology) {
     std::stringstream temp;
