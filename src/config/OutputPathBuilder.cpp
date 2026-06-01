@@ -1,22 +1,26 @@
-#include "config/OutputPathBuilder.h"
-
 #include <filesystem>
 #include <sstream>
+#include <vector>
 
+#include "config/OutputPathBuilder.h"
 #include "MemCell.h"
 
 std::string OutputPathBuilder::DefaultResultsYamlPath(const std::string &inputFile) {
     std::filesystem::path inputPath(inputFile);
     std::string base = inputPath.stem().string();
-    const std::string suffix1 = "_config";
-    const std::string suffix2 = "-config";
+    const std::vector<std::string> suffixes = {
+        "_system_config",
+        "-system-config",
+        "_config",
+        "-config",
+    };
 
-    if (base.size() > suffix1.size()
-            && base.compare(base.size() - suffix1.size(), suffix1.size(), suffix1) == 0) {
-        base.resize(base.size() - suffix1.size());
-    } else if (base.size() > suffix2.size()
-            && base.compare(base.size() - suffix2.size(), suffix2.size(), suffix2) == 0) {
-        base.resize(base.size() - suffix2.size());
+    for (const std::string &suffix : suffixes) {
+        if (base.size() > suffix.size()
+                && base.compare(base.size() - suffix.size(), suffix.size(), suffix) == 0) {
+            base.resize(base.size() - suffix.size());
+            break;
+        }
     }
 
     return (std::filesystem::path("results") / (base + "_results.yaml")).string();

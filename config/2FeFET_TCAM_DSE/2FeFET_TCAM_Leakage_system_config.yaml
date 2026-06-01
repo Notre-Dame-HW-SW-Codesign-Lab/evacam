@@ -1,4 +1,4 @@
-# 2FeFET-TCAM-SearchEnergy System Configuration
+# 2FeFET-TCAM-Leakage System Configuration
 # CAM array and peripheral circuit settings
 
 design:
@@ -9,7 +9,7 @@ design:
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell.yaml
+  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell_config.yaml
   capacity: 2MB
   word_width: 512bits
 
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: ReadDynamicEnergy  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: LeakagePower  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: balance    # options: latency, area, balance
   row_driver: balance
   priority_encoder: balance

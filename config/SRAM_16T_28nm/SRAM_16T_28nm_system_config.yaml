@@ -1,31 +1,31 @@
-# 2FeFET-TCAM-SearchLatency System Configuration
+# SRAM-16T-28nm System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 45nm
+  process_node: 28nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell.yaml
-  capacity: 2MB
-  word_width: 256bits
+  cell_file: ./config/SRAM_16T_28nm/SRAM_16T_28nm_cell_config.yaml
+  capacity: 1KB
+  word_width: 128bits
 
 routing:
   type: H-tree
 
 peripherals:
   input:
-    buffer: false
+    buffer: true
     encoder: false
     custom_encoder: false
   output:
-    buffer: true
+    buffer: false
     priority_encoder: false
     accumulator: false
-  write_driver: true
+  write_driver: false
 
 sensing:
   internal: true
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: ReadLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: Area  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
@@ -50,8 +50,13 @@ wires:
     low_swing: false
 
 organization:
+  banks:
+    total: [1, 1]    # AxB
+    active: [1, 1]   # CxD
+  mats:
+    total: [1, 1]
+    active: [1, 1]
   mux:
     sense_amp: 1
-
-matchline:
-  additional_cap: 0fF
+    output_level1: 1  # for write only
+    output_level2: 1  # for write only

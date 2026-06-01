@@ -8,7 +8,7 @@ design:
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_mc1000_cell.yaml
+  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_mc1000_cell_config.yaml
   capacity: 512B
   word_width: 64bits
 

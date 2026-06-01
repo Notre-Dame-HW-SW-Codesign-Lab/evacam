@@ -9,7 +9,7 @@ design:
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM_var/2FeFET_TCAM_cell.yaml
+  cell_file: ./config/2FeFET_TCAM_var/2FeFET_TCAM_cell_config.yaml
   capacity: 512B
   word_width: 64bits
 

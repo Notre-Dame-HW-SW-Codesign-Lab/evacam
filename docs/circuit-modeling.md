@@ -18,7 +18,7 @@ This document covers the current circuit model for:
 
 EvaCAM models the array as a composition of:
 
-- a cell/device description from the cell YAML
+- a cell/device description from the cell config
 - a peripheral CMOS technology model from built-in technology tables
 - explicit row and column wires
 - attached peripheral blocks such as decoders, muxes, prechargers, and sense amplifiers
@@ -34,7 +34,7 @@ The implementation is centered on TCAM-style search with matchline discharge. Ot
 
 ## Inputs That Drive the Circuit Model
 
-The circuit model is driven by both the top-level config YAML and the referenced cell YAML.
+The circuit model is driven by both the system config YAML and the referenced cell config.
 
 Important top-level inputs include:
 
@@ -90,7 +90,7 @@ These parameters feed the transistor sizing, gate/drain capacitance, on-resistan
 
 ### Cell Model
 
-The cell YAML is parsed into a `MemCell` object. The fields most relevant to the circuit model are:
+The cell config is parsed into a `MemCell` object. The fields most relevant to the circuit model are:
 
 - low-resistance and high-resistance states
 - read voltage/current/energy/power settings
@@ -100,7 +100,7 @@ The cell YAML is parsed into a `MemCell` object. The fields most relevant to the
 - CAM port topology
 - variation enablement and sigma values
 
-The cell model is not just a metadata container. It also computes fallback read power and write energy when the cell YAML does not provide explicit energy values.
+The cell model is not just a metadata container. It also computes fallback read power and write energy when the cell config does not provide explicit energy values.
 
 ### FeFET Technology Selection
 
@@ -108,7 +108,7 @@ A separate FeFET technology object may also be loaded when needed. This matters 
 
 ## Line and Device Abstraction
 
-Rows and columns are modeled by `CAM_Line`. Each line starts with wire resistance and wire capacitance based on line length and the selected wire model, then adds the device loading implied by the corresponding port description in the cell YAML.
+Rows and columns are modeled by `CAM_Line`. Each line starts with wire resistance and wire capacitance based on line length and the selected wire model, then adds the device loading implied by the corresponding port description in the cell config.
 
 ### Line Geometry
 
@@ -130,7 +130,7 @@ If the port requests a non-default wire width, the code recomputes the wire resi
 
 ### Added Device Capacitance
 
-The port connectivity declared in the cell YAML determines what extra capacitance is attached to a row or column:
+The port connectivity declared in the cell config determines what extra capacitance is attached to a row or column:
 
 - gate-connected ports add gate capacitance
 - drain- or source-connected ports add drain capacitance
@@ -365,7 +365,7 @@ The sense amplifier affects:
 - the post-matchline latency
 - the search/read dynamic energy
 
-The minimum sensible voltage from the cell YAML is also passed into the sense-amp path as the sense threshold used by the current high-level model.
+The minimum sensible voltage from the cell config is also passed into the sense-amp path as the sense threshold used by the current high-level model.
 
 ## Dynamic Energy Model
 
@@ -502,7 +502,7 @@ As with other metrics, this is a compact analytical estimate, not a transistor-l
 
 ## Variation Model
 
-Variation is controlled from the cell YAML under `variation` and loaded through [src/config/TechnologyLoader.cpp](../src/config/TechnologyLoader.cpp).
+Variation is controlled from the cell config under `variation` and loaded through [src/config/TechnologyLoader.cpp](../src/config/TechnologyLoader.cpp).
 
 ### Supported Modes
 
@@ -661,15 +661,15 @@ The shipped `config/2FeFET_TCAM/` example is a good reference point for understa
 
 At a high level:
 
-1. The top-level config selects process node, search mode, array organization, and peripheral options.
-2. The cell YAML supplies the device resistances, read/write settings, minimum sense voltage, and the row/column port description.
+1. The system config selects process node, search mode, array organization, and peripheral options.
+2. The cell config supplies the device resistances, read/write settings, minimum sense voltage, and the row/column port description.
 3. EvaCAM converts the cell geometry into row and column lengths.
 4. Each line receives wire RC plus device capacitance from its attached ports.
 5. The matchline-bearing column determines the effective on-state and off-state matchline path resistance.
 6. The subarray builds a one-mismatch RC delay for nominal search timing and an all-match RC delay for sense-margin validation.
 7. Peripheral latencies are added around the matchline event.
 8. Matchline, cell, driver, and peripheral energies are summed into search/read/write metrics.
-9. If variation is enabled in the cell YAML, the matchline-path resistances are resampled and the timing and search-energy summaries are recomputed.
+9. If variation is enabled in the cell config, the matchline-path resistances are resampled and the timing and search-energy summaries are recomputed.
 
 For a new cell technology, the most important calibration knobs are usually:
 

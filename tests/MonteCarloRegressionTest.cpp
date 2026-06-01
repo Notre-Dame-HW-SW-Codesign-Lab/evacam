@@ -57,8 +57,8 @@ MonteCarloFixture WriteMonteCarloConfig(
         const std::string &mode = "monte_carlo",
         int samples = 9) {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
-    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_config.yaml";
-    const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell.yaml";
+    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml";
+    const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
 
     const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("mc_regression_" + tag);
     std::filesystem::remove_all(tmpDir);
@@ -91,7 +91,7 @@ MonteCarloFixture WriteMonteCarloConfig(
 
     std::string configText = ReadFile(sourceConfig);
     ReplaceAll(configText,
-            "cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell.yaml",
+            "cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml",
             "cell_file: " + testCell.string());
     ReplaceAll(configText, "search_function: BE", "search_function: EX");
     configText +=

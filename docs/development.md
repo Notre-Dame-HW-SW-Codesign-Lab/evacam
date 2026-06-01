@@ -23,7 +23,7 @@ make
 Run a known-good example:
 
 ```bash
-make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
 ```
 
 Run focused tests:
@@ -77,4 +77,4 @@ The current tests are small assert-based executables under `tests/`; there is no
 - Treat `old_style_config/` as legacy reference only; do not add new examples there
 - Update the matching docs when you add or remove parsed keys
 - Prefer `README.md`, `docs/input-files.md`, `docs/schema.md`, and `docs/results-reference.md` for user-facing changes
-- `docs/config_full_example.yaml` and `docs/cell_full_example.yaml` are schema references, not physically valid experiments
+- `docs/system_config_full_example.yaml` and `docs/cell_config_full_example.yaml` are schema references, not physically valid experiments

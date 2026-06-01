@@ -8,7 +8,7 @@
 
 namespace {
 
-const char *kCellPath = "tests/tmp_cell_loader_cell.yaml";
+const char *kCellPath = "tests/tmp_cell_loader_cell_config.yaml";
 const char *kMissingFieldPath = "tests/tmp_cell_loader_missing.yaml";
 
 void WriteMinimalCellFile(const char *path, const std::string &extra = "") {

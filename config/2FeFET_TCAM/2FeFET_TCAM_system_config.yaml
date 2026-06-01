@@ -1,17 +1,17 @@
-# MRAM-4T2R-VLSIC12 System Configuration
+# 2FeFET-TCAM System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
-  search_function: EX
-  process_node: 90nm
+  search_function: BE
+  process_node: 45nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12_cell.yaml
-  capacity: 8KB
-  word_width: 256bits
+  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml
+  capacity: 512B
+  word_width: 64bits
 
 routing:
   type: H-tree
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: ReadLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: LeakagePower  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
@@ -41,7 +41,7 @@ optimization:
 wires:
   local:
     type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
-                          #          SemiConservative, GlobalAggressive, GlobalConservative
+                              #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
   global:
@@ -59,4 +59,7 @@ organization:
   mux:
     sense_amp: 1
     output_level1: 1  # for write only
-    output_level2: 64  # for write only
+    output_level2: 1  # for write only
+
+matchline:
+  additional_cap: 6fF

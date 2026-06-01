@@ -9,8 +9,8 @@
 
 namespace {
 
-const char *kCellPath = "tests/tmp_top_level_cell.yaml";
-const char *kConfigPath = "tests/tmp_top_level_config.yaml";
+const char *kCellPath = "tests/tmp_top_level_cell_config.yaml";
+const char *kConfigPath = "tests/tmp_top_level_system_config.yaml";
 
 void WriteMinimalCellFile() {
     std::ofstream out(kCellPath);
@@ -91,7 +91,7 @@ void WriteBaseTopLevelConfig(const std::string &extra = "") {
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_top_level_cell.yaml\n"
+        "  cell_file: tests/tmp_top_level_cell_config.yaml\n"
         "  capacity: 1KB\n"
         "  word_width: 64bits\n"
         "routing:\n"
@@ -144,7 +144,7 @@ void WriteExplicitSubarrayConfig(const std::string &memoryCapacity,
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_top_level_cell.yaml\n";
+        "  cell_file: tests/tmp_top_level_cell_config.yaml\n";
     if (!memoryCapacity.empty()) {
         out << "  capacity: " << memoryCapacity << "\n";
     }
@@ -329,7 +329,7 @@ void TestAutoCapacityRequiresFixedSubarrayDimensions() {
             "  device_roadmap: HP\n"
             "  temperature: 300K\n"
             "memory:\n"
-            "  cell_file: tests/tmp_top_level_cell.yaml\n"
+            "  cell_file: tests/tmp_top_level_cell_config.yaml\n"
             "  capacity: auto\n"
             "  word_width: 64bits\n"
             "routing:\n"
@@ -378,7 +378,7 @@ void TestNonPowerOfTwoWordWidthRequiresRealCapacity() {
             "  device_roadmap: HP\n"
             "  temperature: 300K\n"
             "memory:\n"
-            "  cell_file: tests/tmp_top_level_cell.yaml\n"
+            "  cell_file: tests/tmp_top_level_cell_config.yaml\n"
             "  capacity: 1KB\n"
             "  word_width: 96bits\n"
             "routing:\n"

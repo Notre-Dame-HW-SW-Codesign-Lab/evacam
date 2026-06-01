@@ -9,12 +9,12 @@ Default behavior:
 - output directory: `results/`
 - filename pattern: `<config-base>_results.yaml`
 
-If the input file ends with `_config.yaml` or `-config.yaml`, that suffix is removed before the results filename is built.
+If the input file ends with `_system_config.yaml` or `-system-config.yaml`, that suffix is removed before the results filename is built. Legacy `_config.yaml` and `-config.yaml` suffixes are also stripped.
 
 Examples:
 
-- `config/2FeFET_TCAM/2FeFET_TCAM_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
-- `config/ReRAM-2T2R/ReRAM-2T2R_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
+- `config/ReRAM-2T2R/ReRAM-2T2R_system_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
 
 You can override the YAML output path with `extra.output_yaml_file` in the config:
 

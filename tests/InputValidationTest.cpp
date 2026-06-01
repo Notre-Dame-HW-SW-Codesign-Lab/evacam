@@ -9,8 +9,8 @@
 
 namespace {
 
-const char *kCellPath = "tests/tmp_input_validation_cell.yaml";
-const char *kConfigPath = "tests/tmp_input_validation_config.yaml";
+const char *kCellPath = "tests/tmp_input_validation_cell_config.yaml";
+const char *kConfigPath = "tests/tmp_input_validation_system_config.yaml";
 const char *kCustomSaPath = "tests/tmp_input_validation_custom_sa.txt";
 
 void WriteMinimalCellFile(const std::string &cellType = "SRAM",
@@ -216,7 +216,7 @@ void WriteConfig(const std::string &memoryBlock,
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         << memoryBlock <<
         "routing:\n"
         "  type: H-tree\n"
@@ -405,7 +405,7 @@ void TestExternalSensingRejectsNonSramCam() {
             "  device_roadmap: HP\n"
             "  temperature: 300K\n"
             "memory:\n"
-            "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+            "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
             "  capacity: 1KB\n"
             "  word_width: 64bits\n"
             "routing:\n"
@@ -553,7 +553,7 @@ void TestUnsupportedSenseAmpTypeThrows() {
             "  device_roadmap: HP\n"
             "  temperature: 300K\n"
             "memory:\n"
-            "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+            "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
             "  capacity: 1KB\n"
             "  word_width: 64bits\n"
             "routing:\n"
@@ -602,7 +602,7 @@ void TestMissingCustomSenseAmpFileThrows() {
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         "  capacity: 1KB\n"
         "  word_width: 64bits\n"
         "routing:\n"
@@ -654,7 +654,7 @@ void TestInvalidCustomSenseAmpFileThrows() {
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         "  capacity: 1KB\n"
         "  word_width: 64bits\n"
         "routing:\n"
@@ -705,7 +705,7 @@ void TestCustomInputEncoderUnsupportedThrows() {
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         "  capacity: 1KB\n"
         "  word_width: 64bits\n"
         "routing:\n"
@@ -754,7 +754,7 @@ void TestLocalLowSwingWithRepeaterThrows() {
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         "  capacity: 1KB\n"
         "  word_width: 64bits\n"
         "routing:\n"
@@ -803,7 +803,7 @@ void TestGlobalLowSwingWithRepeaterThrows() {
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_input_validation_cell.yaml\n"
+        "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         "  capacity: 1KB\n"
         "  word_width: 64bits\n"
         "routing:\n"

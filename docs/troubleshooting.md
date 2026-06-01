@@ -32,7 +32,7 @@ Check:
 
 ## Missing Or Broken `memory.cell_file`
 
-If the top-level config parses but the referenced cell file is wrong, the run will fail during config loading. Verify the path under `memory.cell_file` first.
+If the system config parses but the referenced cell config is wrong, the run will fail during config loading. Verify the path under `memory.cell_file` first.
 
 ## `No valid solutions.`
 
@@ -65,7 +65,7 @@ The exploration CSV is only written for full-exploration runs without pruning. I
 Use:
 
 ```bash
-./EvaCAM -v config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
+./EvaCAM -v config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
 ```
 
 Verbose mode is the fastest way to see where startup or config loading stops.

@@ -140,7 +140,7 @@ static void test_units() {
 }
 
 static void test_organization_section() {
-    const char *cfgPath = "tests/tmp_organization_config.yaml";
+    const char *cfgPath = "tests/tmp_organization_system_config.yaml";
 
     {
         std::ofstream out(cfgPath);
@@ -152,7 +152,7 @@ static void test_organization_section() {
             "  device_roadmap: HP\n"
             "  temperature: 300K\n"
             "memory:\n"
-            "  cell_file: tests/tmp_cell.yaml\n"
+            "  cell_file: tests/tmp_cell_config.yaml\n"
             "  capacity: 1KB\n"
             "  word_width: 64bits\n"
             "routing:\n"
@@ -229,7 +229,7 @@ static void write_explicit_subarray_config(const char *cfgPath,
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
         "memory:\n"
-        "  cell_file: tests/tmp_cell.yaml\n";
+        "  cell_file: tests/tmp_cell_config.yaml\n";
     if (!memoryCapacity.empty()) {
         out << "  capacity: " << memoryCapacity << "\n";
     }
@@ -304,7 +304,7 @@ static bool load_config_throws(const char *cfgPath) {
 }
 
 static void test_explicit_subarray_dimensions() {
-    const char *cfgPath = "tests/tmp_explicit_subarray_config.yaml";
+    const char *cfgPath = "tests/tmp_explicit_subarray_system_config.yaml";
 
     write_explicit_subarray_config(cfgPath, "", "[64, 64]");
     {
@@ -394,7 +394,7 @@ static void test_invalid_inputs() {
 }
 
 static void test_memcell_yaml() {
-    const char* path = "tests/tmp_cell.yaml";
+    const char* path = "tests/tmp_cell_config.yaml";
     {
         std::ofstream out(path);
         out <<
@@ -605,8 +605,8 @@ static void test_memcell_variation_yaml() {
 }
 
 static void test_cell_variation_drives_runtime_config() {
-    const char* cellPath = "tests/tmp_variation_cell.yaml";
-    const char* cfgPath = "tests/tmp_variation_config.yaml";
+    const char* cellPath = "tests/tmp_variation_cell_config.yaml";
+    const char* cfgPath = "tests/tmp_variation_system_config.yaml";
 
     {
         std::ofstream out(cellPath);
@@ -696,7 +696,7 @@ static void test_cell_variation_drives_runtime_config() {
             "  device_roadmap: HP\n"
             "  temperature: 300K\n"
             "memory:\n"
-            "  cell_file: tests/tmp_variation_cell.yaml\n"
+            "  cell_file: tests/tmp_variation_cell_config.yaml\n"
             "  capacity: 1KB\n"
             "  word_width: 8bit\n"
             "routing:\n"

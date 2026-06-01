@@ -1,20 +1,20 @@
 # Input Files
 
-EvaCAM expects one top-level YAML config file. That config file must reference a cell YAML file through `memory.cell_file`.
+EvaCAM expects one system config YAML file. That config file must reference a cell config file through `memory.cell_file`.
 
 ## File Roles
 
-- `config/<cell-group>/*_config.yaml`: system-level configurations grouped by the cell they use
-- `config/<cell-group>/*_cell.yaml`: the corresponding cell/device description
+- `config/<cell-group>/*_system_config.yaml`: system-level configurations grouped by the cell they use
+- `config/<cell-group>/*_cell_config.yaml`: the corresponding cell/device description
 
 Example:
 
 ```yaml
 memory:
-  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell.yaml
+  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml
 ```
 
-## Top-Level Config Structure
+## System Config Structure
 
 The shipped configs use these top-level sections:
 
@@ -35,7 +35,7 @@ Representative fields:
 - `design.process_node`: process node with units, for example `45nm`
 - `design.device_roadmap`: roadmap such as `HP`
 - `design.temperature`: temperature with units, for example `350K`
-- `memory.cell_file`: path to the cell YAML
+- `memory.cell_file`: path to the cell config
 - `memory.capacity`: capacity with units, for example `512B`; optional or exact scalar `auto` only when fixed `organization.subarray.dimensions` derives capacity
 - `memory.word_width`: width with units, for example `64bits`
 - `optimization.target`: objective such as `LeakagePower` or `Exploration`
@@ -47,13 +47,13 @@ Representative fields:
 
 Use the grouped examples under `config/` as the source of truth for current syntax.
 
-Variation is not configured in the top-level YAML. Variation enablement and sigma values are defined in the cell YAML under `variation`.
+Variation is not configured in the system config. Variation enablement and sigma values are defined in the cell config under `variation`.
 
 For a fuller list of implemented sections and fields, see [schema.md](schema.md).
 
 ## Cell File Structure
 
-The shipped cell files use these top-level sections:
+The shipped cell configs use these top-level sections:
 
 - `cell`
 - `access_device`
@@ -83,7 +83,7 @@ Representative fields:
 - `ports.row`
 - `ports.column`
 
-If `variation.with_variation` is enabled in the cell file, EvaCAM uses its built-in bounded-Gaussian variation model today. There is no top-level variation block. You may also provide `variation.lut_file` as a future-facing hook for an external variation lookup table path; EvaCAM currently accepts and propagates the filename but does not consume the LUT yet.
+If `variation.with_variation` is enabled in the cell config, EvaCAM uses its built-in bounded-Gaussian variation model today. There is no top-level variation block. You may also provide `variation.lut_file` as a future-facing hook for an external variation lookup table path; EvaCAM currently accepts and propagates the filename but does not consume the LUT yet.
 
 Supported cell-level variation controls:
 
@@ -112,7 +112,7 @@ Keep units explicit and consistent with the shipped examples.
 ## Minimal Workflow
 
 1. Copy a known-good config from `config/<cell-group>/`.
-2. Keep its referenced cell file unchanged at first.
+2. Keep its referenced cell config unchanged at first.
 3. Change one parameter at a time.
 4. Run EvaCAM after each change.
 5. Only move to larger structural edits after the small edits run cleanly.
@@ -121,8 +121,8 @@ Keep units explicit and consistent with the shipped examples.
 
 The files below are not intended for real runs:
 
-- `docs/config_full_example.yaml`
-- `docs/cell_full_example.yaml`
+- `docs/system_config_full_example.yaml`
+- `docs/cell_config_full_example.yaml`
 
 See [FULL_INPUT_EXAMPLES_WARNING.md](FULL_INPUT_EXAMPLES_WARNING.md).
 

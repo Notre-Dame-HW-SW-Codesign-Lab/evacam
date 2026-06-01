@@ -1,17 +1,17 @@
-# ReRAM-3T1R-ISSCC15 System Configuration
+# ReRAM-4T2R-VLSIC14 System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 90nm
+  process_node: 40nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/ReRAM-3T1R-ISSCC15/ReRAM-3T1R-ISSCC15_cell.yaml
-  capacity: 512B
-  word_width: 64bits
+  cell_file: ./config/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14_cell_config.yaml
+  capacity: 128B
+  word_width: 16bits
 
 routing:
   type: H-tree
@@ -25,7 +25,7 @@ peripherals:
     buffer: false
     priority_encoder: false
     accumulator: false
-  write_driver: false
+  write_driver: true
 
 sensing:
   internal: true
@@ -54,8 +54,8 @@ organization:
     total: [1, 1]    # AxB
     active: [1, 1]   # CxD
   mats:
-    total: [1, 2]
-    active: [1, 2]
+    total: [1, 1]
+    active: [1, 1]
   mux:
     sense_amp: 1
     output_level1: 1  # for write only

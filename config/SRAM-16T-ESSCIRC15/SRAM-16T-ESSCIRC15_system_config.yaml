@@ -1,17 +1,17 @@
-# PCM-2T2R-JSSC11 System Configuration
+# SRAM-16T-ESSCIRC15 System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 90nm
+  process_node: 28nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11_cell.yaml
-  capacity: 128KB
-  word_width: 64bits
+  cell_file: ./config/SRAM-16T-ESSCIRC15/SRAM-16T-ESSCIRC15_cell_config.yaml
+  capacity: 32KB
+  word_width: 32bits
 
 routing:
   type: H-tree
@@ -22,7 +22,7 @@ peripherals:
     encoder: false
     custom_encoder: false
   output:
-    buffer: false
+    buffer: true
     priority_encoder: false
     accumulator: false
   write_driver: false
@@ -33,14 +33,14 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: ReadLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: Area  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
 
 wires:
   local:
-    type: LocalAggressive   # options: LocalAggressive, LocalConservative, SemiAggressive,
+    type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
                           #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
@@ -51,15 +51,12 @@ wires:
 
 organization:
   banks:
-    total: [4, 2]    # AxB
-    active: [4, 2]   # CxD
+    total: [1, 1]    # AxB
+    active: [1, 1]   # CxD
   mats:
-    total: [2, 2]
-    active: [2, 2]
+    total: [16, 16]
+    active: [16, 16]
   mux:
     sense_amp: 1
-    output_level1: 8  # for write only
-    output_level2: 1  # for write only
-
-extra:
-  "InputEncType": encoding_two_bit
+    output_level1: 1  # for write only
+    output_level2: 32  # for write only

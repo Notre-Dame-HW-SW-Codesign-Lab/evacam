@@ -1,24 +1,24 @@
-# SRAM-16T-28nm System Configuration
+# ReRAM-2.5T1R-ISSCC16 System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 28nm
+  process_node: 65nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/SRAM_16T_28nm/SRAM_16T_28nm_cell.yaml
-  capacity: 1KB
-  word_width: 128bits
+  cell_file: ./config/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16_cell_config.yaml
+  capacity: 2KB
+  word_width: 256bits
 
 routing:
   type: H-tree
 
 peripherals:
   input:
-    buffer: true
+    buffer: false
     encoder: false
     custom_encoder: false
   output:
@@ -29,18 +29,18 @@ peripherals:
 
 sensing:
   internal: true
-  amplifier_type: nvsim_vol  # options: nvsim_vol, nvsim_cur, self_clock, dual_the
+  amplifier_type: nvsim_cur  # options: nvsim_vol, nvsim_cur, self_clock, dual_the
   custom_sense_amp: false
 
 optimization:
-  target: Area  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: ReadLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
 
 wires:
   local:
-    type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
+    type: LocalAggressive   # options: LocalAggressive, LocalConservative, SemiAggressive,
                           #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false

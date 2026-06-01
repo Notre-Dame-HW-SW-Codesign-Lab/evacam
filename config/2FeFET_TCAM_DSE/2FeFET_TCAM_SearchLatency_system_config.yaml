@@ -1,16 +1,16 @@
-# ReRAM-2.5T1R-ISSCC16 System Configuration
+# 2FeFET-TCAM-SearchLatency System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 65nm
+  process_node: 45nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16_cell.yaml
-  capacity: 2KB
+  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell_config.yaml
+  capacity: 2MB
   word_width: 256bits
 
 routing:
@@ -22,14 +22,14 @@ peripherals:
     encoder: false
     custom_encoder: false
   output:
-    buffer: false
+    buffer: true
     priority_encoder: false
     accumulator: false
-  write_driver: false
+  write_driver: true
 
 sensing:
   internal: true
-  amplifier_type: nvsim_cur  # options: nvsim_vol, nvsim_cur, self_clock, dual_the
+  amplifier_type: nvsim_vol  # options: nvsim_vol, nvsim_cur, self_clock, dual_the
   custom_sense_amp: false
 
 optimization:
@@ -40,7 +40,7 @@ optimization:
 
 wires:
   local:
-    type: LocalAggressive   # options: LocalAggressive, LocalConservative, SemiAggressive,
+    type: LocalConservative   # options: LocalAggressive, LocalConservative, SemiAggressive,
                           #          SemiConservative, GlobalAggressive, GlobalConservative
     repeater: RepeatedNone    # options: RepeatedNone, RepeatedOpt, Repeated5%Penalty, etc.
     low_swing: false
@@ -50,13 +50,8 @@ wires:
     low_swing: false
 
 organization:
-  banks:
-    total: [1, 1]    # AxB
-    active: [1, 1]   # CxD
-  mats:
-    total: [1, 1]
-    active: [1, 1]
   mux:
     sense_amp: 1
-    output_level1: 1  # for write only
-    output_level2: 1  # for write only
+
+matchline:
+  additional_cap: 0fF

@@ -11,7 +11,7 @@ design: # map
   temperature: 350K # units: K
 
 memory: # map
-  cell_file: ./config/example/example_full_cell.yaml # string path
+  cell_file: ./config/example/example_full_cell_config.yaml # string path
   capacity: 8KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb); may be exact scalar auto only with organization.subarray.dimensions
   word_width: 256bits # units: bit | bits
 

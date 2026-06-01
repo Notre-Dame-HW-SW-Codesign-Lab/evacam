@@ -20,9 +20,9 @@ This is the high-level execution flow for the current codebase.
 ## Module Layout
 
 - `src/app`, `include/app`: exploration orchestration and top-level runtime flow
-- `src/input`, `include/input`: CLI parsing, cell YAML loading, YAML node helpers, and unit parsing helpers
+- `src/input`, `include/input`: CLI parsing, cell config loading, YAML node helpers, and unit parsing helpers
 - `src/output`, `include/output`: result serialization
-- `src/config`, `include/config`: top-level config loading, section readers, normalization, validation, and derived exploration settings
+- `src/config`, `include/config`: system config loading, section readers, normalization, validation, and derived exploration settings
 - `src/technology`, `include/technology`: technology models, memory-cell models, and built-in technology tables
 - `src/circuit`, `include/circuit`: reusable circuit blocks and shared equations
 - `src/model`, `include/model`: bank, mat, subarray, and result abstractions
@@ -33,7 +33,7 @@ This is the high-level execution flow for the current codebase.
 
 `EvaCamConfig` is the central in-memory configuration object shared across exploration and hardware blocks.
 
-- `ReadConfigFromFile()` delegates top-level YAML loading to `EvaCamYamlLoader` and then loads technology/cell objects through `TechnologyLoader`
+- `ReadConfigFromFile()` delegates system config YAML loading to `EvaCamYamlLoader` and then loads technology/cell objects through `TechnologyLoader`
 - Parsed settings are grouped into typed sections such as `InputConfig`, `PeripheralConfig`, `ConstraintConfig`, and `RuntimeSizingConfig`
 - Loaded modeling state lives under `technology`, which is a `TechnologyContext` containing:
   - `tech`: the main CMOS/peripheral technology model
@@ -52,9 +52,9 @@ Top-level config loading is now an explicit four-step pipeline:
 3. `ConfigNormalizer` applies derived exploration/default shaping.
 4. `InputRuleValidator` enforces conditional input rules before runtime objects are loaded.
 
-The referenced cell YAML follows a similar split:
+The referenced cell config follows a similar split:
 
-- `CellYamlLoader` parses the cell file by section
+- `CellYamlLoader` parses the cell config by section
 - `YamlNodeHelpers` owns generic YAML node access, scalar conversion, and enum helpers
 - `YamlUnitParsers` owns quantity parsing and unit tables
 
@@ -76,7 +76,7 @@ Variation policy is also separated from runtime object loading:
 
 ## Input Boundary
 
-The main user-facing interface is the YAML config, the referenced cell YAML, and the CLI.
+The main user-facing interface is the YAML config, the referenced cell config, and the CLI.
 
 ## Exploration Modes
 
@@ -90,7 +90,7 @@ The config key `optimization.deep_exploration` expands the search space used dur
 ## Where To Extend
 
 - Add or adjust CLI behavior in `src/input/CliOptions.cpp`
-- Add new top-level YAML fields in `ConfigSectionReaders` and the typed config structs owned by `EvaCamConfig`
+- Add new system config YAML fields in `ConfigSectionReaders` and the typed config structs owned by `EvaCamConfig`
 - Add new cell-YAML fields in `CellYamlLoader`
 - Add technology-table entries in `src/technology/TechnologyTables.cpp` and update `TechnologyLoader` if new loading rules are required
 - Change result serialization in `src/output/ResultsYaml.cpp`

@@ -1,30 +1,30 @@
-# MRAM-2T2R-ASPDAC12 System Configuration
+# 2FeFET-TCAM-SearchEnergy System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 140nm
+  process_node: 45nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/MRAM-2T2R-ASPDAC12/MRAM-2T2R-ASPDAC12_cell.yaml
-  capacity: 1152B
-  word_width: 72bits
+  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell_config.yaml
+  capacity: 2MB
+  word_width: 512bits
 
 routing:
   type: H-tree
 
 peripherals:
   input:
-    buffer: true
+    buffer: false
     encoder: false
     custom_encoder: false
   output:
     buffer: true
     priority_encoder: false
-    accumulator: true
+    accumulator: false
   write_driver: true
 
 sensing:
@@ -33,10 +33,10 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: WriteDynamicEnergy  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
-  buffer_design: latency    # options: latency, area, balance
-  row_driver: latency
-  priority_encoder: latency
+  target: ReadDynamicEnergy  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  buffer_design: balance    # options: latency, area, balance
+  row_driver: balance
+  priority_encoder: balance
 
 wires:
   local:
@@ -50,16 +50,8 @@ wires:
     low_swing: false
 
 organization:
-  banks:
-    total: [1, 1]    # AxB
-    active: [1, 1]   # CxD
-  mats:
-    total: [1, 1]
-    active: [1, 1]
   mux:
     sense_amp: 1
-    output_level1: 1  # for write only
-    output_level2: 128  # for write only
 
-extra:
-  real_capacity: 9kb
+matchline:
+  additional_cap: 0fF

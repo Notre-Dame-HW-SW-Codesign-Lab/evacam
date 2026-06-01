@@ -1,4 +1,4 @@
-# 2FeFET-TCAM-area System Configuration
+# 2FeFET-TCAM-WriteLatency System Configuration
 # CAM array and peripheral circuit settings
 
 design:
@@ -9,9 +9,9 @@ design:
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell.yaml
+  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell_config.yaml
   capacity: 2MB
-  word_width: 512bits
+  word_width: 128bits
 
 routing:
   type: H-tree
@@ -33,10 +33,10 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: Area  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
-  buffer_design: area    # options: latency, area, balance
-  row_driver: area
-  priority_encoder: area
+  target: WriteLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  buffer_design: latency    # options: latency, area, balance
+  row_driver: latency
+  priority_encoder: latency
 
 wires:
   local:
@@ -55,6 +55,3 @@ organization:
 
 matchline:
   additional_cap: 0fF
-
-extra:
-  "CamType": TCAM

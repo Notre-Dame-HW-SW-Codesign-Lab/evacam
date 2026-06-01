@@ -2,7 +2,7 @@
 
 EvaCAM is a C++ simulator and design-space exploration tool for content-addressable memory (CAM) arrays and related memory-cell technologies.
 
-It reads a top-level YAML configuration, loads a YAML cell description, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
+It reads a system config YAML, loads a cell config YAML, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
 
 ## Repository Layout
 
@@ -46,13 +46,13 @@ This builds the `EvaCAM` binary in the repository root.
 Run one of the shipped example configurations:
 
 ```bash
-./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
+./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
 ```
 
 Or use the `make` wrapper:
 
 ```bash
-make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
 ```
 
 By default, EvaCAM writes YAML results to `results/<config-name>_results.yaml`.
@@ -60,7 +60,7 @@ The `make run` wrapper also saves the console output to `results/<config-name>_r
 
 For example:
 
-- `config/2FeFET_TCAM/2FeFET_TCAM_config.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml`
 - `results/2FeFET_TCAM_results.yaml`
 - `results/2FeFET_TCAM_run.log`
 
@@ -83,19 +83,19 @@ Options:
 Examples:
 
 ```bash
-./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_config.yaml
-./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_config.yaml
-./EvaCAM -d config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_config.yaml
+./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_system_config.yaml
+./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_system_config.yaml
+./EvaCAM -d config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_system_config.yaml
 ```
 
 ## Input Files
 
-EvaCAM consumes a top-level config file and a separate cell file.
+EvaCAM consumes a system config file and a separate cell config file.
 
-- The top-level config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell file.
-- The cell file describes the device, ports, voltages, currents, related physical parameters, and any variation settings.
+- The system config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell config.
+- The cell config describes the device, ports, voltages, currents, related physical parameters, and any variation settings.
 
-Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell YAML plus the configs that use it. `old_style_config/` remains in the repository only as legacy reference material.
+Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell config plus the system configs that use it. `old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 
@@ -129,7 +129,7 @@ Available make targets:
 High-level flow:
 
 1. Parse CLI options.
-2. Load and validate the YAML config and referenced cell file.
+2. Load and validate the system config and referenced cell config.
 3. Build the exploration context.
 4. Explore valid organizations and score results.
 5. Print a console summary and write YAML output.

@@ -1,28 +1,28 @@
-# 2FeFET-TCAM-DSE System Configuration
+# 8T-BCAM-65nm System Configuration
 # CAM array and peripheral circuit settings
 
 design:
   target: CAM
   search_function: EX
-  process_node: 45nm
+  process_node: 65nm
   device_roadmap: HP
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_cell.yaml
-  capacity: 2MB
-  word_width: 512bits
+  cell_file: ./config/8T-BCAM_65nm/8T-BCAM_65nm_cell_config.yaml
+  capacity: 32KB
+  word_width: 32bits
 
 routing:
   type: H-tree
 
 peripherals:
   input:
-    buffer: false
+    buffer: true
     encoder: false
     custom_encoder: false
   output:
-    buffer: false
+    buffer: true
     priority_encoder: false
     accumulator: false
   write_driver: false
@@ -33,7 +33,7 @@ sensing:
   custom_sense_amp: false
 
 optimization:
-  target: WriteLatency  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
+  target: Area  # options: ReadLatency, WriteLatency, ReadDynamicEnergy, WriteDynamicEnergy, ReadEDP, WriteEDP, LeakagePower, Area, Exploration
   buffer_design: latency    # options: latency, area, balance
   row_driver: latency
   priority_encoder: latency
@@ -49,5 +49,14 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 
-matchline:
-  additional_cap: 0fF
+organization:
+  banks:
+    total: [1, 1]    # AxB
+    active: [1, 1]   # CxD
+  mats:
+    total: [8, 8]
+    active: [8, 8]
+  mux:
+    sense_amp: 1
+    output_level1: 1  # for write only
+    output_level2: 32  # for write only
