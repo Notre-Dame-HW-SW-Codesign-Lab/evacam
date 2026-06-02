@@ -3,18 +3,10 @@
 #include "typedef.h"
 #include "macros.h"
 #include <math.h>
-/*
-   OutputDriver::OutputDriver() : FunctionUnit(){
-   initialized = false;
-   invalid = false;
-   }
 
-   OutputDriver::~OutputDriver() {
-}
- */
-void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _outputCap, double _outputRes,
-        bool _inv, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent, 
-        std::shared_ptr<EvaCamConfig> _config) {
+void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _outputCap,
+        double _outputRes, bool _inv, BufferDesignTarget _areaOptimizationLevel,
+        double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config) {
 
     if (initialized)
         _config->logger.Verbose() << "[Output Driver] Warning: Already initialized!";
@@ -25,15 +17,19 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
     outputRes = _outputRes;
     inv = _inv;
     areaOptimizationLevel = _areaOptimizationLevel;
+    BufferDesignTarget effectiveDesignTarget = areaOptimizationLevel;
     minDriverCurrent = _minDriverCurrent;
     config = _config;
 
-    double minNMOSDriverWidth = minDriverCurrent / config->technology.tech->currentOnNmos()[config->input.temperature - 300];
-    minNMOSDriverWidth = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(), minNMOSDriverWidth);
+    double minNMOSDriverWidth = minDriverCurrent
+            / config->technology.tech->currentOnNmos()[config->input.temperature - 300];
+    minNMOSDriverWidth = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(),
+            minNMOSDriverWidth);
 
     if (minNMOSDriverWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
         invalid = true;
-        std::cout << "Too large minNMOSDriverWidth" << std::endl;
+        config->logger.Verbose()
+                << "[Output Driver] Warning: minNMOSDriverWidth exceeds maximum NMOS size.";
         return;
     }
 
@@ -48,64 +44,85 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
 
         if (optimalNumStage > MAX_INV_CHAIN_LEN) {/* Exceed maximum stages */
             if (WARNING)
-                        config->logger.Verbose() << "[WARNING] Exceed maximum inverter chain length!";
+                config->logger.Verbose()
+                        << "[Output Driver] Warning: Exceed maximum inverter chain length!";
             optimalNumStage = MAX_INV_CHAIN_LEN;
         }
 
         numStage = optimalNumStage;
 
-        double f = pow(F, 1.0 / (optimalNumStage + 1));	/* Logic effort per stage */
-        double inputCapLast = outputCap / f;
+        /* A non-inverting latency-first driver can choose zero stages even when
+         * minDriverCurrent is nonzero. Confirm whether the current requirement
+         * should force a real final driver stage before changing this behavior. */
+        if (numStage > 0) {
+            double f = pow(F, 1.0 / (optimalNumStage + 1));	/* Logic effort per stage */
+            double inputCapLast = outputCap / f;
 
-        widthNMOS[optimalNumStage-1] = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(),
-                inputCapLast / CalculateGateCap(1/*meter*/, *config->technology.tech) / (1.0 + config->technology.tech->pnSizeRatio()));
+            widthNMOS[optimalNumStage-1] = MAX(
+                    MIN_NMOS_SIZE * config->technology.tech->featureSize(),
+                    inputCapLast / CalculateGateCap(1/*meter*/, *config->technology.tech)
+                            / (1.0 + config->technology.tech->pnSizeRatio()));
 
-        if (widthNMOS[optimalNumStage-1] > config->input.maxNmosSize * config->technology.tech->featureSize()) {
-            if (WARNING)
-                std::cout << "[WARNING] Exceed maximum NMOS size!" << std::endl;
-            widthNMOS[optimalNumStage-1] = config->input.maxNmosSize * config->technology.tech->featureSize();
-            /* re-Calculate the logic effort */
-            double capLastStage = CalculateGateCap((1 + config->technology.tech->pnSizeRatio()) * config->input.maxNmosSize * config->technology.tech->featureSize(), *config->technology.tech);
-            F = logicEffort * capLastStage / inputCap;
-            f =	pow(F, 1.0 / (optimalNumStage));
-        }
+            if (widthNMOS[optimalNumStage-1]
+                    > config->input.maxNmosSize * config->technology.tech->featureSize()) {
+                if (WARNING)
+                    config->logger.Verbose()
+                            << "[Output Driver] Warning: Exceed maximum NMOS size!";
+                widthNMOS[optimalNumStage-1] =
+                        config->input.maxNmosSize * config->technology.tech->featureSize();
+                /* re-Calculate the logic effort */
+                double capLastStage = CalculateGateCap(
+                        (1 + config->technology.tech->pnSizeRatio())
+                                * config->input.maxNmosSize
+                                * config->technology.tech->featureSize(),
+                        *config->technology.tech);
+                F = logicEffort * capLastStage / inputCap;
+                f =	pow(F, 1.0 / (optimalNumStage));
+            }
 
-        if (widthNMOS[optimalNumStage-1] < minNMOSDriverWidth) {
-            /* the last level Inv can not provide minimum current so that the Inv chain can't only decided by Logic Effort */
-            areaOptimizationLevel = latency_area_trade_off;
-        } else {
-            widthPMOS[optimalNumStage-1] = widthNMOS[optimalNumStage-1] * config->technology.tech->pnSizeRatio();
+            if (widthNMOS[optimalNumStage-1] < minNMOSDriverWidth) {
+                /* The last Inv cannot provide minimum current, so logic effort
+                 * alone cannot determine the chain. */
+                effectiveDesignTarget = latency_area_trade_off;
+            } else {
+                widthPMOS[optimalNumStage-1] = widthNMOS[optimalNumStage-1]
+                        * config->technology.tech->pnSizeRatio();
 
-            for (int i = optimalNumStage-2; i >= 0; i--) {
-                widthNMOS[i] = widthNMOS[i+1] / f;
-                if (widthNMOS[i] < MIN_NMOS_SIZE * config->technology.tech->featureSize()) {
-                    if (WARNING)
-                        config->logger.Verbose() << "[WARNING] Exceed minimum NMOS size!";
-                    widthNMOS[i] = MIN_NMOS_SIZE * config->technology.tech->featureSize();
+                for (int i = optimalNumStage-2; i >= 0; i--) {
+                    widthNMOS[i] = widthNMOS[i+1] / f;
+                    if (widthNMOS[i] < MIN_NMOS_SIZE * config->technology.tech->featureSize()) {
+                        if (WARNING)
+                            config->logger.Verbose()
+                                    << "[Output Driver] Warning: Exceed minimum NMOS size!";
+                        widthNMOS[i] = MIN_NMOS_SIZE * config->technology.tech->featureSize();
+                    }
+                    widthPMOS[i] = widthNMOS[i] * config->technology.tech->pnSizeRatio();
                 }
-                widthPMOS[i] = widthNMOS[i] * config->technology.tech->pnSizeRatio();
             }
         }
     }
 
-    if (areaOptimizationLevel == latency_area_trade_off){
-        double newOutputCap = CalculateGateCap(minNMOSDriverWidth, *config->technology.tech) * (1.0 + config->technology.tech->pnSizeRatio());
+    if (effectiveDesignTarget == latency_area_trade_off) {
+        double newOutputCap = CalculateGateCap(minNMOSDriverWidth, *config->technology.tech)
+                * (1.0 + config->technology.tech->pnSizeRatio());
         double F = MAX(1, logicEffort * newOutputCap / inputCap);	/* Total logic effort */
         optimalNumStage = MAX(0, (int)(log(F) / log(OPT_F) + 0.5) - 1);
 
         if (!((optimalNumStage % 2) ^ inv))	/* If even, add 1 */
             optimalNumStage += 1;
 
-        if (optimalNumStage > MAX_INV_CHAIN_LEN) {/* Exceed maximum stages */
+        if (optimalNumStage >= MAX_INV_CHAIN_LEN) {/* Exceed maximum stages */
             if (WARNING)
-                std::cout << "[WARNING] Exceed maximum inverter chain length!" << std::endl;
-            optimalNumStage = MAX_INV_CHAIN_LEN;
+                config->logger.Verbose()
+                        << "[Output Driver] Warning: Exceed maximum inverter chain length!";
+            optimalNumStage = MAX_INV_CHAIN_LEN - 1;
         }
 
         numStage = optimalNumStage + 1;
 
         widthNMOS[optimalNumStage] = minNMOSDriverWidth;
-        widthPMOS[optimalNumStage] = widthNMOS[optimalNumStage] * config->technology.tech->pnSizeRatio();
+        widthPMOS[optimalNumStage] = widthNMOS[optimalNumStage]
+                * config->technology.tech->pnSizeRatio();
 
         double f = pow(F, 1.0 / (optimalNumStage + 1));	/* Logic effort per stage */
 
@@ -113,29 +130,29 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
             widthNMOS[i] = widthNMOS[i+1] / f;
             if (widthNMOS[i] < MIN_NMOS_SIZE * config->technology.tech->featureSize()) {
                 if (WARNING)
-                    std::cout << "[WARNING] Exceed minimum NMOS size!" << std::endl;
+                    config->logger.Verbose()
+                            << "[Output Driver] Warning: Exceed minimum NMOS size!";
                 widthNMOS[i] = MIN_NMOS_SIZE * config->technology.tech->featureSize();
             }
             widthPMOS[i] = widthNMOS[i] * config->technology.tech->pnSizeRatio();
         }
-    } else if (areaOptimizationLevel == area_first) {
+    } else if (effectiveDesignTarget == area_first) {
         optimalNumStage = 1;
         numStage = 1;
-        widthNMOS[optimalNumStage - 1] = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(), minNMOSDriverWidth);
-        if (widthNMOS[optimalNumStage - 1] > AREA_OPT_CONSTRAIN * config->input.maxNmosSize * config->technology.tech->featureSize()) {
+        widthNMOS[optimalNumStage - 1] = MAX(
+                MIN_NMOS_SIZE * config->technology.tech->featureSize(),
+                minNMOSDriverWidth);
+        if (widthNMOS[optimalNumStage - 1]
+                > AREA_OPT_CONSTRAIN * config->input.maxNmosSize
+                        * config->technology.tech->featureSize()) {
             invalid = true;
-            std::cout << "invalid widthNMOS" << std::endl;
+            config->logger.Verbose()
+                    << "[Output Driver] Warning: widthNMOS exceeds area optimization constraint.";
             return;
         }
-        widthPMOS[optimalNumStage - 1] = widthNMOS[optimalNumStage - 1] * config->technology.tech->pnSizeRatio();
-    } else {
-        //TODO: Added this else to prevent unitialized value errors, actually calculate things
-        //for now picked to ingore and hard code if it doesn't exist
-        //widthNMOS[0] = config->technology.tech->featureSize();
+        widthPMOS[optimalNumStage - 1] = widthNMOS[optimalNumStage - 1]
+                * config->technology.tech->pnSizeRatio();
     }
-
-    /* Restore the original buffer design style */
-    areaOptimizationLevel = _areaOptimizationLevel;
 
     initialized = true;
     CalculateRC();
@@ -152,7 +169,9 @@ void OutputDriver::CalculateArea() {
         double totalWidth = 0;
         double h, w;
         for (int i = 0; i < numStage; i++) {
-            CalculateGateArea(INV, 1, widthNMOS[i], widthPMOS[i], config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w, config->peripherals.useUpdatedLib);
+            CalculateGateArea(INV, 1, widthNMOS[i], widthPMOS[i],
+                    config->technology.tech->featureSize()*40, *config->technology.tech,
+                    &h, &w, config->peripherals.useUpdatedLib);
             totalHeight = MAX(totalHeight, h);
             totalWidth += w;
         }
@@ -172,14 +191,15 @@ void OutputDriver::CalculateRC() {
         capOutput[0] = 0;
     } else {
         for (int i = 0; i < numStage; i++) {
-            CalculateGateCapacitance(INV, 1, widthNMOS[i], widthPMOS[i], config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &(capInput[i]), &(capOutput[i]));
+            CalculateGateCapacitance(INV, 1, widthNMOS[i], widthPMOS[i],
+                    config->technology.tech->featureSize() * MAX_TRANSISTOR_HEIGHT,
+                    *config->technology.tech, &(capInput[i]), &(capOutput[i]));
         }
     }
 }
 
 void OutputDriver::CalculateLatency(double _rampInput) {
     if (!initialized) {
-        // TODO: Decide whether these are runtime errors or warnings
         ThrowInitializationError("[Output Driver]");
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
@@ -193,10 +213,9 @@ void OutputDriver::CalculateLatency(double _rampInput) {
         double temp;
         readLatency = 0;
 
-        //std::cout << "numStage = " << numStage << std::endl;
-
         for (int i = 0; i < numStage - 1; i++) {
-            resPullDown = CalculateOnResistance(widthNMOS[i], NMOS, config->input.temperature, *config->technology.tech);
+            resPullDown = CalculateOnResistance(widthNMOS[i], NMOS,
+                    config->input.temperature, *config->technology.tech);
             capLoad = capOutput[i] + capInput[i+1];
             tr = resPullDown * capLoad;
             gm = CalculateTransconductance(widthNMOS[i], NMOS, *config->technology.tech);
@@ -206,24 +225,16 @@ void OutputDriver::CalculateLatency(double _rampInput) {
         }
         /* Last level inverter */
 
-        //int tmpNumStage = numStage ? numStage > 0 : 1;
         if (numStage != 0) {
-            resPullDown = CalculateOnResistance(widthNMOS[/*tmpN*/numStage-1], NMOS, config->input.temperature, *config->technology.tech);
-            capLoad = capOutput[/*tmpN*/numStage-1] + outputCap;
-
-            //std::cout << capLoad << std::endl;
-
-            //std::cout << resPullDown << std::endl;
-            //std::cout << outputCap << std::endl;
-            //std::cout << outputRes << std::endl;
+            resPullDown = CalculateOnResistance(widthNMOS[numStage-1], NMOS,
+                    config->input.temperature, *config->technology.tech);
+            capLoad = capOutput[numStage-1] + outputCap;
 
             tr = resPullDown * capLoad + outputCap * outputRes / 2;
-            gm = CalculateTransconductance(widthNMOS[/*tmpN*/numStage-1], NMOS, *config->technology.tech);
+            gm = CalculateTransconductance(widthNMOS[numStage-1], NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
             readLatency += horowitz(tr, beta, rampInput, &rampOutput);
             rampInput = _rampInput;
-
-            //std::cout << "OD rampOutput " << rampOutput << std::endl;
         }
 
         writeLatency = readLatency;
@@ -241,20 +252,25 @@ void OutputDriver::CalculatePower() {
 
         for (int i = 0; i < numStage; i++) {
             leakage += CalculateGateLeakage(INV, 1, widthNMOS[i], widthPMOS[i], 
-                    config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
+                    config->input.temperature, *config->technology.tech)
+                    * config->technology.tech->vdd();
         }
         /* Dynamic energy */
         readDynamicEnergy = 0;
         double capLoad;
         for (int i = 0; i < numStage - 1; i++) {
             capLoad = capOutput[i] + capInput[i+1];
-            readDynamicEnergy += capLoad * config->technology.tech->vdd() * config->technology.tech->vdd();
+            readDynamicEnergy += capLoad * config->technology.tech->vdd()
+                    * config->technology.tech->vdd();
         }
 
-        int tmpNumStage = numStage ? numStage > 0 : 1;
-
-        capLoad = capOutput[tmpNumStage-1] + outputCap;	/* outputCap here means the final load capacitance */
-        readDynamicEnergy += capLoad * config->technology.tech->vdd() * config->technology.tech->vdd();
+        if (numStage > 0) {
+            capLoad = capOutput[numStage - 1] + outputCap;
+        } else {
+            capLoad = outputCap;
+        }
+        readDynamicEnergy += capLoad * config->technology.tech->vdd()
+                * config->technology.tech->vdd();
         writeDynamicEnergy = readDynamicEnergy;
     }
 }
@@ -263,36 +279,4 @@ void OutputDriver::PrintProperty() {
     std::cout << "Output Driver Properties:" << std::endl;
     FunctionUnit::PrintProperty();
     std::cout << "Number of inverter stage: " << numStage << std::endl;
-}
-
-OutputDriver & OutputDriver::operator=(const OutputDriver &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    resetLatency = rhs.resetLatency;
-    setLatency = rhs.setLatency;
-    resetDynamicEnergy = rhs.resetDynamicEnergy;
-    setDynamicEnergy = rhs.setDynamicEnergy;
-    cellReadEnergy = rhs.cellReadEnergy;
-    cellSetEnergy = rhs.cellSetEnergy;
-    cellResetEnergy = rhs.cellResetEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    invalid = rhs.invalid;
-    logicEffort = rhs.logicEffort;
-    inputCap = rhs.inputCap;
-    outputCap = rhs.outputCap;
-    outputRes = rhs.outputRes;
-    inv = rhs.inv;
-    numStage = rhs.numStage;
-    areaOptimizationLevel = rhs.areaOptimizationLevel;
-    minDriverCurrent = rhs.minDriverCurrent;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-
-    return *this;
 }

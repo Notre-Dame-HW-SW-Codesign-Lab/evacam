@@ -12,7 +12,7 @@ class OutputDriver: public FunctionUnit {
             initialized = false;
             invalid = false;
         }
-        OutputDriver(const OutputDriver&) {}
+        OutputDriver(const OutputDriver&) = delete;
         virtual ~OutputDriver() {}
 
         /* Functions */
@@ -24,18 +24,17 @@ class OutputDriver: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        OutputDriver & operator=(const OutputDriver &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */
-        bool invalid;      /*Invalidatio flag */
+        bool invalid;      /* Invalidation flag */
         double logicEffort;	/* The logic effort of the gate that needs this driver */
         double inputCap;	/* Input capacitance, unit: F */
         double outputCap;	/* Output capacitance, unit: F */
         double outputRes;	/* Output resistance, unit: ohm */
         bool inv;			/* Whether the invert chain causes a flip */
         int numStage;		/* Number of inverter chain stages */
-        BufferDesignTarget areaOptimizationLevel; /* 0 for latency, 2 for area */
+        BufferDesignTarget areaOptimizationLevel; /* Buffer design target */
         double minDriverCurrent; /* Minimum driving current should be provided */
         double widthNMOS[MAX_INV_CHAIN_LEN];
         double widthPMOS[MAX_INV_CHAIN_LEN];
