@@ -137,7 +137,7 @@ The port connectivity declared in the cell config determines what extra capacita
 - diode-style connections add both gate and drain contributions
 - FeFET cells use the FeFET technology object for these calculations when applicable
 
-This is why the `ports` section matters electrically: it determines both the topology and the parasitic load seen by the peripheral circuits and the matchline.
+The `ports` section matters electrically because it determines both the topology and the parasitic load seen by the peripheral circuits and the matchline.
 
 ### Current Capability and Minimum Mux Width
 

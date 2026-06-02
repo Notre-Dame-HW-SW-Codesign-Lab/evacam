@@ -30,6 +30,7 @@ TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
 TEST_WIRE_BIN=WireCopyTest
+TEST_MATCH_BIN=MatchTest
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
 UML_SLIDE_TEX=docs/repo_uml_slide.tex
@@ -48,6 +49,7 @@ RESULT_BASE=$(patsubst %_config,%,$(patsubst %-config,%,$(CONFIG_STEM)))
 
 RES_YAML=$(RES_DIR)/$(RESULT_BASE)_results.yaml
 RUN_LOG=$(RES_DIR)/$(RESULT_BASE)_run.log
+MATCH_CONFIG_FILE ?= config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
 
 all: $(BIN)
 
@@ -60,7 +62,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(DEPS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -103,6 +105,11 @@ test-wire: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_WIRE_BIN).d -MT $(TEST_WIRE_BIN) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_WIRE_BIN)
 
+test-match: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MATCH_BIN).d -MT $(TEST_MATCH_BIN) -o $(TEST_MATCH_BIN) tests/MatchTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_MATCH_BIN) $(MATCH_CONFIG_FILE)
+
 uml:
 	@if ! command -v pdflatex >/dev/null 2>&1; then \
 		echo "pdflatex not found"; \
@@ -133,6 +140,7 @@ clean:
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
 		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
+		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
 		tests/tmp_top_level_cell_config.yaml tests/tmp_top_level_system_config.yaml \
 		tests/tmp_cell_loader_cell_config.yaml tests/tmp_cell_loader_missing.yaml \

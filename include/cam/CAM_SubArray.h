@@ -16,7 +16,6 @@
 #include "CAM_InputEncoder.h"
 #include "CAM_OutputAccumulator.h"
 #include "CAM_PriorityEncoder.h"
-//#include "CAM_RefCircuit.h"
 #include "CAM_Controller.h"
 #include "RowDecoder.h"
 #include "Mux.h"
