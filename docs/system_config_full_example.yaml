@@ -1,110 +1,143 @@
 # WARNING: REFERENCE INPUT ONLY.
-# This file intentionally contains nonsense/example values that do NOT map to a real device.
+# This file intentionally contains nonsense/example values that do NOT map to a real design.
 # DO NOT run EvaCAM with this file for any legitimate analysis or published results.
-# This file exists only to show supported/expected input fields in one place.
+# This file exists only to show supported/expected system input fields in one place.
+#
+# "Required" means required by the YAML parser. Some parsed values are still
+# rejected by runtime validation when the current CAM model does not support them.
 
-design: # map
-  target: CAM # enum: CAM
-  search_function: EX # enum: EX | BE | TH
-  process_node: 40nm # units: m | cm | mm | um | nm
-  device_roadmap: HP # enum: HP | LSTP | LOP | FEFET | LP
-  temperature: 350K # units: K
+# Required section. Required keys: target, search_function, process_node,
+# device_roadmap, temperature.
+design:
+  target: CAM # required enum; currently only CAM is supported
+  search_function: EX # required enum: EX | BE | TH
+  process_node: 40nm # required; authoritative modeled technology node today; practical units: um | nm
+  device_roadmap: HP # required enum: HP | LSTP | LOP | FEFET | LP
+  temperature: 350K # required; units: K
 
-memory: # map
-  cell_file: ./config/example/example_full_cell_config.yaml # string path
-  capacity: 8KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb); may be exact scalar auto only with organization.subarray.dimensions
-  word_width: 256bits # units: bit | bits
+# Required section. Required keys: cell_file, word_width.
+# capacity is parser-optional, but runtime-required unless fixed subarray dimensions derive it.
+memory:
+  cell_file: ./config/example/example_full_cell_config.yaml # required string path
+  capacity: 8KB # optional only with organization.subarray.dimensions; units: B | Byte | KB | MB | GB
+  word_width: 256bits # required; units: bit | bits
 
-routing: # map
-  type: H-tree # enum: H-tree | non_h_tree
+# Required section. Required keys: type.
+routing:
+  type: H-tree # required enum: H-tree | non_h_tree; non_h_tree parses but is rejected today
 
-peripherals: # map
-  input: # map
-    buffer: true # bool
-    encoder: false # bool
-    custom_encoder: false # bool
-  output: # map
-    buffer: true # bool
-    priority_encoder: true # bool
-    accumulator: false # bool
-  write_driver: true # bool
+# Required section. Required keys: input, output, write_driver.
+peripherals:
+  input:
+    buffer: true # required bool
+    encoder: false # required bool
+    custom_encoder: false # required bool; true is parsed but rejected today
+  output:
+    buffer: true # required bool
+    priority_encoder: true # required bool
+    accumulator: false # required bool
+  write_driver: true # required bool
 
-sensing: # map
-  internal: true # bool
-  amplifier_type: nvsim_vol # enum: nvsim_vol | nvsim_cur | self_clock | dual_the | discharge
-  custom_sense_amp: false # bool
+# Required section. Required keys: internal, amplifier_type, custom_sense_amp.
+sensing:
+  internal: true # required bool; external sensing is only supported for SRAM CAM cells
+  amplifier_type: nvsim_vol # required enum: nvsim_vol | nvsim_cur | self_clock | dual_the | discharge; CAM currently supports nvsim_vol, nvsim_cur, discharge
+  custom_sense_amp: false # required bool; true requires advanced.custom_sa_input_file
 
-optimization: # map
-  target: ReadLatency # enum: ReadLatency | WriteLatency | ReadDynamicEnergy | WriteDynamicEnergy | ReadEDP | WriteEDP | LeakagePower | Area | SearchLatency | SearchEnergy | SearchEDP | Exploration
-  deep_exploration: false # bool
-  buffer_design: latency # enum: latency | area | balance
-  row_driver: latency # enum: latency | area | balance
-  priority_encoder: latency # enum: latency | area | balance
+# Required section. Required keys: target, buffer_design, row_driver, priority_encoder.
+optimization:
+  target: ReadLatency # required enum: ReadLatency | WriteLatency | ReadDynamicEnergy | WriteDynamicEnergy | ReadEDP | WriteEDP | LeakagePower | Area | SearchLatency | SearchEnergy | SearchEDP | Exploration
+  deep_exploration: false # optional bool; expands default exploration domains when explicit organization pinning is omitted
+  buffer_design: latency # required enum: latency | area | balance
+  row_driver: latency # required enum: latency | area | balance
+  priority_encoder: latency # required enum: latency | area | balance
 
-wires: # map
-  local: # map
-    type: LocalAggressive # enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
-    repeater: RepeatedNone # enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
-    low_swing: false # bool
-  global: # map
-    type: GlobalAggressive # enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
-    repeater: RepeatedNone # enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
-    low_swing: false # bool
+# Required section. Required keys: local, global.
+# Each wire subsection requires: type, repeater, low_swing.
+wires:
+  local:
+    type: LocalAggressive # required enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
+    repeater: RepeatedNone # required enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
+    low_swing: false # required bool; true is only supported with RepeatedNone
+  global:
+    type: GlobalAggressive # required enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
+    repeater: RepeatedNone # required enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
+    low_swing: false # required bool; true is only supported with RepeatedNone
 
-organization: # optional map
-  # If omitted, EvaCAM uses default exploration ranges.
-  # optimization.deep_exploration widens those defaults.
-  banks: # map
-    total: [1, 1] # [int, int]
-    active: [1, 1] # [int, int]
-  mats: # map
-    total: [1, 8] # [int, int]
-    active: [1, 8] # [int, int]
-  subarray: # optional map; fixed physical subarray dimensions, non-DSE only
-    dimensions: [32, 256] # [rows, columns]; requires banks/mats and derives or validates memory.capacity
-  mux: # map
-    sense_amp: 1 # int
-    output_level1: 8 # int
-    output_level2: 1 # int
+# Optional parsed section. The top-level key array: is also accepted as a legacy
+# alias for organization:.
+# If this section is omitted, EvaCAM uses default exploration ranges. If
+# optimization.deep_exploration is true, those default ranges are wider.
+organization:
+  # Optional unless subarray.dimensions is present. If banks is present, total
+  # and active are required.
+  banks:
+    total: [1, 1] # [row mats, column mats]
+    active: [1, 1] # [active mats per column, active mats per row]
+  # Optional unless subarray.dimensions is present. If mats is present, total
+  # and active are required.
+  mats:
+    total: [1, 8] # [row subarrays, column subarrays]
+    active: [1, 8] # [active subarrays per column, active subarrays per row]
+  # Optional fixed physical subarray dimensions. Only supported for fixed
+  # non-DSE configs, so not with optimization.target: Exploration or
+  # optimization.deep_exploration: true.
+  subarray:
+    dimensions: [32, 256] # [rows, columns]; requires banks and mats; derives or validates memory.capacity
+  # Optional. Each mux field is optional if mux is present.
+  mux:
+    sense_amp: 1 # optional int
+    output_level1: 8 # optional int
+    output_level2: 1 # optional int
 
-matchline: # optional map
+# Optional parsed section. Required if matchline is present: additional_cap.
+matchline:
   additional_cap: 0fF # units: F | mF | uF | nF | pF | fF
 
-# Optional reference-only fields for extended/legacy compatibility discussions.
-constraints: # optional map (proposed)
-  enabled: false # bool
-  read_latency: 1e41s # units: s | ms | us | ns | ps | fs
-  write_latency: 1e41s # units: s | ms | us | ns | ps | fs
-  read_dynamic_energy: 1e41J # units: J | mJ | uJ | nJ | pJ | fJ
-  write_dynamic_energy: 1e41J # units: J | mJ | uJ | nJ | pJ | fJ
-  leakage: 1e41W # units: W | mW | uW | nW | pW
-  area: 1e41m^2 # units: m^2 (proposed)
-  read_edp: 1e41 # scalar (proposed)
-  write_edp: 1e41 # scalar (proposed)
+# Optional parsed section. All fields are optional. Setting any limit enables
+# constraints; enabled: true alone uses the default very-loose limits.
+constraints:
+  enabled: false # optional bool
+  read_latency: 1e41s # optional; units: s | ms | us | ns | ps | fs
+  write_latency: 1e41s # optional; units: s | ms | us | ns | ps | fs
+  read_dynamic_energy: 1e41J # optional; units: J | mJ | uJ | nJ | pJ | fJ
+  write_dynamic_energy: 1e41J # optional; units: J | mJ | uJ | nJ | pJ | fJ
+  leakage: 1e41W # optional; units: W | mW | uW | nW | pW
+  area: 1e41 # optional scalar area limit
+  read_edp: 1e41 # optional scalar
+  write_edp: 1e41 # optional scalar
 
-advanced: # optional map (proposed)
-  max_nmos_size: 10F # units: F (feature-size multiple)
-  use_cacti_assumption: false # bool
-  enable_pruning: false # bool
-  bit_serial_width: 256bits # units: bit | bits
-  custom_sa_input_file: ./models/custom_sa.yaml # string path
-  use_updated_lib: false # bool
-  exclude_precharge_latency: false # bool
-  include_leakage: false # bool
-  scaled_voltage: 1.0 # scalar
+# Optional parsed section.
+advanced:
+  max_nmos_size: 10F # optional; units: F (feature-size multiple)
+  use_cacti_assumption: false # optional bool; overrides several organization defaults when true
+  enable_pruning: false # optional bool; used with optimization.target: Exploration
+  bit_serial_width: 256bits # optional; units: bit | bits
+  input_encoder_type: encoding_two_bit # optional enum; currently only encoding_two_bit is supported
+  custom_sa_input_file: ./models/custom_sa.yaml # optional path; required when sensing.custom_sense_amp is true
+  use_updated_lib: false # optional bool
+  exclude_precharge_latency: false # optional bool
+  include_leakage: false # optional bool
+  scaled_voltage: 1.0 # optional scalar; >0 scales dynamic energy by voltage squared
 
-cache: # optional map (proposed)
-  associativity: 1 # int
-  access_mode: normal # enum: normal | fast | sequential
-  write_scheme: normal_write # enum: normal_write | set_before_reset | reset_before_set | erase_before_set | erase_before_reset | write_and_verify
+# Optional parsed section. These are NVSim knobs for caches; design.target currently
+# only supports CAM, so access_mode mainly remains for compatibility. write_scheme
+# still affects supported NVM write modeling paths.
+cache:
+  associativity: 1 # optional int; current CAM bank path uses effective associativity 1
+  access_mode: normal # optional enum: normal | fast | sequential
+  write_scheme: normal_write # optional enum: normal_write | set_before_reset | reset_before_set | erase_before_set | erase_before_reset | write_and_verify
 
-flash: # optional map (proposed)
-  page_size: 4KB # units: B | Byte | KB | MB | GB
-  block_size: 256KB # units: B | Byte | KB | MB | GB
+# Optional parsed section. System-level NAND flash organization, distinct from
+# cell-level flash device parameters.
+flash:
+  page_size: 4KB # optional; units: B | Byte | KB | MB | GB
+  block_size: 256KB # optional; units: B | Byte | KB | MB | GB
 
-extra: # optional map
-  real_capacity: 9KB # units: B | Byte | KB | MB | GB (also b/byte/kb/mb/gb)
-  output_yaml_file: results/example_results.yaml # string path
-  output_file_prefix: output # string
-  worst_case_sense_margin: 30mV # units: V | mV
-  max_driver_current: 0uA # units: A | mA | uA | nA | pA
+# Optional parsed section. All fields are optional.
+extra:
+  real_capacity: 9KB # optional; required when memory.word_width is not a power of two; units: B | Byte | KB | MB | GB
+  output_yaml_file: results/example_results.yaml # optional string path; overrides default results YAML path
+  output_file_prefix: output # optional string; affects exploration CSV naming
+  worst_case_sense_margin: 30mV # optional; units: V | mV
+  max_driver_current: 0uA # optional; units: A | mA | uA | nA | pA

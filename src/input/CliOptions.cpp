@@ -43,6 +43,11 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
             continue;
         }
 
+        if (arg == "--no-variation-plots") {
+            options.variationPlots = false;
+            continue;
+        }
+
         if (!arg.empty() && arg.front() == '-') {
             throw std::invalid_argument("Unknown option: " + std::string(arg));
         }
@@ -66,5 +71,6 @@ void CliOptionsParser::PrintUsage(std::ostream &os) {
     os << "Options:" << std::endl;
     os << "  -t, --threads N           Number of parallel threads (default: all cores)" << std::endl;
     os << "  -v, --verbose             Enable verbose output" << std::endl;
+    os << "      --no-variation-plots  Skip Monte Carlo variation histogram SVG generation" << std::endl;
     os << "  -h, --help                Show this help and exit" << std::endl;
 }

@@ -19,6 +19,7 @@ ROOT_DIR=$(shell pwd)
 SRC_DIR=$(ROOT_DIR)/src
 OBJ_DIR=$(ROOT_DIR)/obj
 RES_DIR=$(ROOT_DIR)/results
+TEST_DEP_DIR=$(OBJ_DIR)/tests
 
 BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
@@ -61,37 +62,45 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 .PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
-	$(CC) $(CPP_FLAGS) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_YAML_BIN)
 
 test-top-level-parser: $(OBJECTS_NO_MAIN)
-	$(CC) $(CPP_FLAGS) -o $(TEST_TOP_LEVEL_BIN) tests/TopLevelConfigParserTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_TOP_LEVEL_BIN).d -MT $(TEST_TOP_LEVEL_BIN) -o $(TEST_TOP_LEVEL_BIN) tests/TopLevelConfigParserTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_TOP_LEVEL_BIN)
 
 test-cell-loader: $(OBJECTS_NO_MAIN)
-	$(CC) $(CPP_FLAGS) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CELL_LOADER_BIN).d -MT $(TEST_CELL_LOADER_BIN) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_CELL_LOADER_BIN)
 
 test-input-validation: $(OBJECTS_NO_MAIN)
-	$(CC) $(CPP_FLAGS) -o $(TEST_INPUT_VALIDATION_BIN) tests/InputValidationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_INPUT_VALIDATION_BIN).d -MT $(TEST_INPUT_VALIDATION_BIN) -o $(TEST_INPUT_VALIDATION_BIN) tests/InputValidationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_INPUT_VALIDATION_BIN)
 
 test-exploration:
-	$(CC) $(CPP_FLAGS) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_EXPLORATION_BIN).d -MT $(TEST_EXPLORATION_BIN) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
 		src/config/IntValueDomain.cpp src/config/ExplorationSpec.cpp src/config/ExplorationSpaceResolver.cpp $(LD_LIBS)
 	./$(TEST_EXPLORATION_BIN)
 
 test-variation:
-	$(CC) $(CPP_FLAGS) -o $(TEST_VARIATION_BIN) tests/VariationSamplerTest.cpp \
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_VARIATION_BIN).d -MT $(TEST_VARIATION_BIN) -o $(TEST_VARIATION_BIN) tests/VariationSamplerTest.cpp \
 		src/model/VariationSampler.cpp $(LD_LIBS)
 	./$(TEST_VARIATION_BIN)
 
 test-montecarlo: $(BIN) $(OBJECTS_NO_MAIN)
-	$(CC) $(CPP_FLAGS) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MONTECARLO_BIN).d -MT $(TEST_MONTECARLO_BIN) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_MONTECARLO_BIN)
 
 test-wire: $(OBJECTS_NO_MAIN)
-	$(CC) $(CPP_FLAGS) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_WIRE_BIN).d -MT $(TEST_WIRE_BIN) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_WIRE_BIN)
 
 uml:
@@ -117,7 +126,7 @@ open-uml: uml
 
 .PHONY: clean
 clean:
-	@rm -rf $(OBJ_DIR) $(RES_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
+	@rm -rf $(OBJ_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
 		$(TEST_TOP_LEVEL_BIN) $(TEST_TOP_LEVEL_BIN).d \
 		$(TEST_CELL_LOADER_BIN) $(TEST_CELL_LOADER_BIN).d \
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \

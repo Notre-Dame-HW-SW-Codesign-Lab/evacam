@@ -61,6 +61,7 @@ class EvaCamConfig {
         ConstraintConfig constraints;
         bool useCactiAssumption = false;		/* Use the CACTI assumptions on the array organization */
         bool requestDeepExploration = false;
+        bool variationPlots = true;
 
         RuntimeSizingConfig runtimeSizing;
 

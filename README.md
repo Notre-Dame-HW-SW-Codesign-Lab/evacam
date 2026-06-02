@@ -76,6 +76,7 @@ Options:
 
 - `-t, --threads N`: number of OpenMP threads; default is all available cores
 - `-v, --verbose`: enable verbose logging
+- `--no-variation-plots`: skip Monte Carlo variation histogram SVG generation
 - `-d, --deep-exploration`: test a wider set of design options during optimization
 - `-o, --output FILE`: write YAML results to a custom path
 - `-h, --help`: print usage and exit

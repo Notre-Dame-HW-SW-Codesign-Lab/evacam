@@ -86,7 +86,7 @@ Default example:
 ```text
 results/2FeFET_TCAM_results.yaml
 results/2FeFET_TCAM_variation_samples.csv
-results/2FeFET_TCAM_variation_samples_histograms.svg
+results/2FeFET_TCAM_variation_histograms.svg
 ```
 
 The CSV columns are:
@@ -95,7 +95,12 @@ The CSV columns are:
 sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
 ```
 
-EvaCAM writes the plot automatically. To regenerate it manually, run:
+EvaCAM writes the plot automatically with the matplotlib-based Python plotter.
+If `python3` or matplotlib is unavailable, EvaCAM prints a warning and still
+writes the YAML results and variation sample CSV; the YAML omits `plot_file`
+when no plot was generated.
+Use `--no-variation-plots` to skip SVG generation intentionally.
+To regenerate the plot manually, run:
 
 ```bash
 python3 scripts/plot_variation_histograms.py results/2FeFET_TCAM_variation_samples.csv

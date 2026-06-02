@@ -8,6 +8,7 @@ struct CliOptions {
     std::string inputFileName;
     int threads = 0;
     bool verbose = false;
+    bool variationPlots = true;
     bool showHelp = false;
 };
 

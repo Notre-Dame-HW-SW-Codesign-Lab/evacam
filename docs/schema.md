@@ -42,6 +42,7 @@ Useful optional keys:
 - `constraints.*`: result limits; setting any value enables constraints
 - `optimization.deep_exploration`: expands the default exploration search space when explicit `organization.*` pinning is omitted
 - `advanced.enable_pruning`, `advanced.bit_serial_width`, `advanced.use_cacti_assumption`
+- `advanced.input_encoder_type`: currently `encoding_two_bit`
 - `cache.associativity`, `cache.access_mode`, `cache.write_scheme`
 - `extra.real_capacity`: required when `memory.word_width` is not a power of two
 - `extra.output_yaml_file`: overrides the default results YAML path
@@ -80,5 +81,15 @@ Important notes:
 - `variation.mode: nominal` is not a supported input; disable variation instead.
 - `variation.samples` is required for `monte_carlo` and must be greater than 1.
 - `variation.seed` is an optional cell-level override intended for reproducible testing; otherwise the variation seed is derived from the current time.
+- `multilevel.enabled` appears in some shipped legacy configs but is not currently parsed.
+- `flash.mlc` is not a parsed cell key; MLC/SLC behavior comes from `cell.type`.
+- `read.wordline_boost_ratio` and `read.read_floating` are parsed but currently have no model effect.
+- `mcam.*` fields are parsed but currently have no model effect; `mcam.resistance_state` and `mcam.state_variation` accept either sequences or maps keyed by integer state index.
 - `ports.row` and `ports.column` are maps keyed by integer index.
 - `docs/system_config_full_example.yaml` and `docs/cell_config_full_example.yaml` include reference-only non-sensical numbers. They also may contain conflicting fields.
+
+System config notes:
+
+- `design.process_node` is currently the authoritative modeled technology node, even though `cell.process_node` is also parsed.
+- `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
+- `cache.access_mode` is retained for cache-era compatibility; `design.target` currently supports only `CAM`.

@@ -23,6 +23,7 @@ EvaCamContext EvaCamContextBuilder::Build(const CliOptions &options) {
         config->logger.SetVerbose(true);
         config->logger.Verbose() << "Verbose output enabled";
     }
+    config->variationPlots = options.variationPlots;
 
     config->logger.Verbose() << "User-defined configuration file (" << options.inputFileName << ") is loaded";
     config->logger.Verbose();

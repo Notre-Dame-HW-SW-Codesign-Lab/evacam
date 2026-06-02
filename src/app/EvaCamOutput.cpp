@@ -1,10 +1,12 @@
 #include "EvaCamOutput.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 
 #include "CAM_Result.h"
@@ -12,7 +14,6 @@
 #include "Logger.h"
 #include "config/DerivedValueHelpers.h"
 #include "config/OutputPathBuilder.h"
-#include "output/VariationHistogramSvg.h"
 #include "output/ResultsYaml.h"
 #include "output/VariationSamplesCsv.h"
 
@@ -106,17 +107,46 @@ void WriteVariationSamplesFile(const CAM_Result &result, const std::string &path
     WriteVariationSamplesCsv(csvOut, result);
 }
 
-void WriteVariationHistogramFile(const CAM_Result &result, const std::string &path) {
-    std::filesystem::path outPath(path);
+std::string ShellQuote(const std::string &value) {
+    std::string quoted = "'";
+    for (char c : value) {
+        if (c == '\'') {
+            quoted += "'\\''";
+        } else {
+            quoted += c;
+        }
+    }
+    quoted += "'";
+    return quoted;
+}
+
+bool WriteVariationHistogramFile(const std::string &samplesPath, const std::string &plotPath) {
+    const std::filesystem::path scriptPath = "scripts/plot_variation_histograms.py";
+    if (!std::filesystem::exists(scriptPath)) {
+        std::cerr << "[Output] Warning: variation histogram plotter not found: "
+                  << scriptPath.string() << std::endl;
+        return false;
+    }
+
+    std::filesystem::path outPath(plotPath);
     if (!outPath.parent_path().empty()) {
         std::filesystem::create_directories(outPath.parent_path());
     }
 
-    std::ofstream svgOut(path);
-    if (!svgOut) {
-        throw std::runtime_error("Failed to open variation histogram SVG file: " + path);
+    const std::string command = "python3 "
+        + ShellQuote(scriptPath.string())
+        + " "
+        + ShellQuote(samplesPath)
+        + " -o "
+        + ShellQuote(plotPath)
+        + " >/dev/null 2>&1";
+    const int rc = std::system(command.c_str());
+    if (rc != 0 || !std::filesystem::exists(plotPath)) {
+        std::cerr << "[Output] Warning: failed to generate variation histogram SVG with matplotlib: "
+                  << plotPath << std::endl;
+        return false;
     }
-    WriteVariationHistogramSvg(svgOut, result);
+    return true;
 }
 
 }  // namespace
@@ -259,9 +289,10 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
                     OptimizationTargetName(result->optimizationTarget));
             const std::string plotPath = OutputPathBuilder::VariationHistogramsSvgPath(samplePath);
             WriteVariationSamplesFile(*result, samplePath);
-            WriteVariationHistogramFile(*result, plotPath);
             variationSamplesFiles[result->optimizationTarget] = samplePath;
-            variationPlotFiles[result->optimizationTarget] = plotPath;
+            if (config.variationPlots && WriteVariationHistogramFile(samplePath, plotPath)) {
+                variationPlotFiles[result->optimizationTarget] = plotPath;
+            }
         }
 
         std::ofstream yamlOut(outputYamlFileName);
@@ -277,7 +308,9 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
             variationSamplesFile = OutputPathBuilder::VariationSamplesCsvPath(outputYamlFileName);
             variationPlotFile = OutputPathBuilder::VariationHistogramsSvgPath(variationSamplesFile);
             WriteVariationSamplesFile(*result, variationSamplesFile);
-            WriteVariationHistogramFile(*result, variationPlotFile);
+            if (!config.variationPlots || !WriteVariationHistogramFile(variationSamplesFile, variationPlotFile)) {
+                variationPlotFile.clear();
+            }
         }
 
         std::ofstream yamlOut(outputYamlFileName);

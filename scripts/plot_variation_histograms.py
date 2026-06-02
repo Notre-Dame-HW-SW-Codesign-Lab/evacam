@@ -3,8 +3,6 @@
 
 import argparse
 import csv
-import html
-import math
 from pathlib import Path
 
 
@@ -38,123 +36,58 @@ def column_values(rows, column, scale):
     return values
 
 
-def histogram(values, bins):
-    lo = min(values)
-    hi = max(values)
-    if math.isclose(lo, hi):
-        pad = abs(lo) * 0.05 or 1.0
-        lo -= pad
-        hi += pad
-
-    width = (hi - lo) / bins
-    counts = [0] * bins
-    for value in values:
-        index = min(int((value - lo) / width), bins - 1)
-        counts[index] += 1
-    return lo, hi, counts
-
-
-def fmt(value):
-    if value == 0:
-        return "0"
-    if abs(value) >= 1000 or abs(value) < 0.01:
-        return f"{value:.2e}"
-    return f"{value:.3g}"
-
-
-def svg_text(x, y, text, size=13, anchor="start", weight="normal"):
-    return (
-        f'<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor}" '
-        f'font-family="Arial, sans-serif" font-weight="{weight}">'
-        f"{html.escape(text)}</text>"
-    )
-
-
-def panel_svg(x, y, width, height, title, unit, values, bins):
-    margin_left = 74
-    margin_right = 54
-    margin_top = 52
-    margin_bottom = 58
-    plot_x = x + margin_left
-    plot_y = y + margin_top
-    plot_w = width - margin_left - margin_right
-    plot_h = height - margin_top - margin_bottom
-
-    lo, hi, counts = histogram(values, bins)
-    max_count = max(counts) or 1
-    bar_w = plot_w / bins
-
-    parts = [
-        svg_text(x + 18, y + 30, title, size=15, weight="bold"),
-    ]
-
-    for i, count in enumerate(counts):
-        bar_h = max(plot_h * count / max_count - 1, 0)
-        bx = plot_x + i * bar_w + 1
-        by = plot_y + plot_h - 1 - bar_h
-        parts.append(
-            f'<rect x="{bx:.2f}" y="{by:.2f}" width="{max(bar_w - 2, 1):.2f}" '
-            f'height="{bar_h:.2f}" fill="#4f7cac"/>'
-        )
-
-    parts.extend([
-        f'<line x1="{plot_x}" y1="{plot_y + plot_h}" x2="{plot_x + plot_w}" y2="{plot_y + plot_h}" stroke="#24292f"/>',
-        f'<line x1="{plot_x}" y1="{plot_y}" x2="{plot_x}" y2="{plot_y + plot_h}" stroke="#24292f"/>',
-        svg_text(plot_x, plot_y + plot_h + 22, fmt(lo), size=11, anchor="middle"),
-        svg_text(plot_x + plot_w, plot_y + plot_h + 22, fmt(hi), size=11, anchor="middle"),
-        svg_text(plot_x + plot_w / 2, y + height - 16, unit, size=12, anchor="middle"),
-        svg_text(plot_x - 10, plot_y + 4, str(max_count), size=11, anchor="end"),
-        svg_text(plot_x - 10, plot_y + plot_h + 4, "0", size=11, anchor="end"),
-    ])
-    return "\n".join(parts)
-
-
-def build_svg(rows, bins, include_internal=False):
-    available = []
+def available_metrics(rows, include_internal):
     metrics = METRICS + (INTERNAL_METRICS if include_internal else [])
+    available = []
     for column, title, unit, scale in metrics:
         values = column_values(rows, column, scale)
         if values:
             available.append((title, unit, values))
-
     if not available:
         raise RuntimeError("No known EvaCAM variation metric columns found.")
+    return available
 
-    panel_w = 500
-    panel_h = 320
-    gap = 28
-    page_margin = 36
-    card_padding = 38
-    header_h = 72
+
+def plot_histograms(rows, output_path, bins, include_internal=False):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
+
+    metrics = available_metrics(rows, include_internal)
     cols = 2
-    panel_rows = (len(available) + cols - 1) // cols
-    grid_w = cols * panel_w + (cols - 1) * gap
-    grid_h = panel_rows * panel_h + (panel_rows - 1) * gap
-    card_w = grid_w + 2 * card_padding
-    card_h = header_h + grid_h + 2 * card_padding
-    width = card_w
-    height = card_h
-    card_x = 0
-    card_y = 0
-    grid_x = card_x + card_padding
-    grid_y = card_y + card_padding + header_h
+    panel_rows = (len(metrics) + cols - 1) // cols
+    fig, axes = plt.subplots(
+        panel_rows,
+        cols,
+        figsize=(10.6, 3.7 * panel_rows),
+        squeeze=False,
+        constrained_layout=True,
+    )
 
-    parts = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
-        f'<rect x="0" y="0" width="{width}" height="{height}" fill="#ffffff"/>',
-        svg_text(width / 2, card_y + 34, "EvaCAM Monte Carlo Variation Histograms", size=20, anchor="middle", weight="bold"),
-        svg_text(width / 2, card_y + 58, f"{len(rows)} samples", size=13, anchor="middle"),
-    ]
+    fig.suptitle("EvaCAM Monte Carlo Variation Histograms", fontsize=15, fontweight="bold")
+    fig.text(0.5, 0.945, f"{len(rows)} samples", ha="center", fontsize=10)
 
-    for index, (title, unit, values) in enumerate(available):
-        col = index % cols
-        row = index // cols
-        x = grid_x + col * (panel_w + gap)
-        y = grid_y + row * (panel_h + gap)
-        parts.append(panel_svg(x, y, panel_w, panel_h, title, unit, values, bins))
+    for index, (title, unit, values) in enumerate(metrics):
+        ax = axes[index // cols][index % cols]
+        ax.hist(values, bins=bins, color="#4f7cac", edgecolor="white", linewidth=0.7)
+        ax.set_title(title, loc="center", fontsize=11, fontweight="bold")
+        ax.set_xlabel(unit)
+        ax.set_ylabel("Samples")
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(axis="y", color="#d8dee4", linewidth=0.8, alpha=0.8)
+        ax.set_axisbelow(True)
 
-    parts.append("</svg>")
-    return "\n".join(parts) + "\n"
+    for index in range(len(metrics), panel_rows * cols):
+        axes[index // cols][index % cols].set_visible(False)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, format="svg")
+    plt.close(fig)
 
 
 def default_output_path(csv_path):
@@ -188,7 +121,7 @@ def main():
 
     output_path = args.output or default_output_path(args.csv_file)
     samples = read_samples(args.csv_file)
-    output_path.write_text(build_svg(samples, args.bins, args.include_internal))
+    plot_histograms(samples, output_path, args.bins, args.include_internal)
     print(f"Wrote {output_path}")
 
 
