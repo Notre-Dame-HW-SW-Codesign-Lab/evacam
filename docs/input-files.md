@@ -32,7 +32,7 @@ Representative fields:
 
 - `design.target`: design target such as `CAM`
 - `design.search_function`: search mode
-- `design.process_node`: process node with units, for example `45nm`
+- `design.system_process_node`: system-level process node used for technology, wire, and peripheral modeling, with units, for example `45nm`
 - `design.device_roadmap`: roadmap such as `HP`
 - `design.temperature`: temperature with units, for example `350K`
 - `memory.cell_file`: path to the cell config
@@ -68,7 +68,7 @@ The shipped cell configs use these top-level sections:
 Representative fields:
 
 - `cell.type`
-- `cell.process_node`
+- `cell.cell_process_node`
 - `cell.area`
 - `read.mode`
 - `read.voltage`

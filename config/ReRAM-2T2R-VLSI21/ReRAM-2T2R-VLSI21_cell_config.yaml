@@ -5,7 +5,7 @@ cell:
   name: ReRAM-2T2R-VLSI21
   cam_type: TCAM
   type: memristor
-  process_node: 40nm
+  cell_process_node: 40nm
   area: 157F^2
   aspect_ratio: 2
 access_device:

@@ -6,12 +6,12 @@
 # "Required" means required by the YAML parser. Some parsed values are still
 # rejected by runtime validation when the current CAM model does not support them.
 
-# Required section. Required keys: target, search_function, process_node,
+# Required section. Required keys: target, search_function, system_process_node,
 # device_roadmap, temperature.
 design:
   target: CAM # required enum; currently only CAM is supported
   search_function: EX # required enum: EX | BE | TH
-  process_node: 40nm # required; authoritative modeled technology node today; practical units: um | nm
+  system_process_node: 40nm # required; authoritative modeled technology node today; practical units: um | nm
   device_roadmap: HP # required enum: HP | LSTP | LOP | FEFET | LP
   temperature: 350K # required; units: K
 

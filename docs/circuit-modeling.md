@@ -38,7 +38,7 @@ The circuit model is driven by both the system config YAML and the referenced ce
 
 Important top-level inputs include:
 
-- `design.process_node`
+- `design.system_process_node`
 - `design.device_roadmap`
 - `design.temperature`
 - `design.search_function`

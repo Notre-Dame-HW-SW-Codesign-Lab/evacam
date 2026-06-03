@@ -144,7 +144,7 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
         std::cout << "Page Size  : " << input.pageSize / 8 << "Bytes" << std::endl;
         std::cout << "Block Size : " << input.flashBlockSize / 8 / 1024 << "KB" << std::endl;
     }
-    std::cout << "Process Node: " << input.processNode << "nm" << std::endl;
+    std::cout << "System Process Node: " << input.processNode << "nm" << std::endl;
     std::cout << "Device Roadmap: " << ToString(input.deviceRoadmap) << std::endl;
     std::cout << "Temperature: " << input.temperature << "K" << std::endl;
     std::cout << "Memory Cell: " << ToString(technology.cell->memCellType) << std::endl;

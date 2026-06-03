@@ -6,13 +6,13 @@
 # "Required" means required by the YAML parser. Some optional fields default to 0 or
 # another legacy value, so omitting them can still make a physically meaningless run.
 
-# Required section. Required keys: type, process_node, area, aspect_ratio.
+# Required section. Required keys: type, cell_process_node, area, aspect_ratio.
 # Optional keys: name, cam_type.
 cell:
   name: Example-Full # optional string
   type: memristor # required enum: SRAM | DRAM | eDRAM | MRAM | PCRAM | ReRAM/memristor | FBRAM | SLCNAND | MLCNAND | FEFETRAM
   cam_type: TCAM # optional enum: TCAM | BCAM | MCAM | ACAM; defaults/inferred to TCAM if omitted
-  process_node: 40nm # required; practical units: um | nm
+  cell_process_node: 40nm # required; practical units: um | nm
   area: 157F^2 # required; units: F^2
   aspect_ratio: 2.0 # required scalar
 

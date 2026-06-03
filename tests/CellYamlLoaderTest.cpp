@@ -18,7 +18,7 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "  name: TestCell\n"
         "  type: SRAM\n"
         "  cam_type: TCAM\n"
-        "  process_node: 45nm\n"
+        "  cell_process_node: 45nm\n"
         "  area: 300F^2\n"
         "  aspect_ratio: 2.0\n"
         "access_device:\n"
@@ -176,7 +176,7 @@ void TestMissingRequiredCellFieldThrows() {
             "cell:\n"
             "  name: TestCell\n"
             "  type: SRAM\n"
-            "  process_node: 45nm\n"
+            "  cell_process_node: 45nm\n"
             "  area: 300F^2\n";
     }
 

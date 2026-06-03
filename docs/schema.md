@@ -28,7 +28,7 @@ Common required keys:
 
 - `design.target`: currently only `CAM`
 - `design.search_function`: `EX`, `BE`, or `TH`
-- `design.process_node`: for example `45nm`
+- `design.system_process_node`: system-level process node used for technology, wire, and peripheral modeling, for example `45nm`
 - `design.device_roadmap`: `HP`, `LSTP`, `LOP`, `FEFET`, or `LP`
 - `memory.cell_file`, `memory.word_width`
 - `memory.capacity`: required unless fixed `organization.subarray.dimensions` is supplied; may be exact scalar `auto` only with fixed subarray dimensions
@@ -52,7 +52,7 @@ Useful optional keys:
 
 Required section:
 
-- `cell` with `type`, `process_node`, `area`, and `aspect_ratio`
+- `cell` with `type`, `cell_process_node`, `area`, and `aspect_ratio`
 
 Common implemented optional sections:
 
@@ -90,6 +90,6 @@ Important notes:
 
 System config notes:
 
-- `design.process_node` is currently the authoritative modeled technology node, even though `cell.process_node` is also parsed.
+- `design.system_process_node` is the authoritative modeled technology node. `cell.cell_process_node` records the process node associated with the cell definition.
 - `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
 - `cache.access_mode` is retained for cache-era compatibility; `design.target` currently supports only `CAM`.

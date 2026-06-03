@@ -5,7 +5,7 @@ cell:
   name: 2FeFET-TCAM-DSE
   cam_type: TCAM
   type: FEFETRAM
-  process_node: 45nm
+  cell_process_node: 45nm
   area: 300F^2
   aspect_ratio: 1.76
 access_device:

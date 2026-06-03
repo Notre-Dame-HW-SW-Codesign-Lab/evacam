@@ -3,7 +3,7 @@
 design:
   target: CAM
   search_function: BE
-  process_node: 45nm
+  system_process_node: 45nm
   device_roadmap: HP
   temperature: 350K
 

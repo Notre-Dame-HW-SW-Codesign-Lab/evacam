@@ -5,7 +5,7 @@ cell:
   name: 8T-BCAM-65nm
   cam_type: BCAM
   type: SRAM
-  process_node: 65nm
+  cell_process_node: 65nm
   area: 369F^2
   aspect_ratio: 4
 access_device:

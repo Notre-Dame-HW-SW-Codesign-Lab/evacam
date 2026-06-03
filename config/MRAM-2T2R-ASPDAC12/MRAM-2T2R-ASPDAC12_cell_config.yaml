@@ -5,7 +5,7 @@ cell:
   name: MRAM-2T2R-ASPDAC12
   cam_type: TCAM
   type: MRAM
-  process_node: 140nm
+  cell_process_node: 140nm
   area: 127.55F^2
   aspect_ratio: 1.6
 access_device:

@@ -40,7 +40,7 @@ void ReadDesignSection(const YAML::Node &root, EvaCamConfig &config) {
     config.input.searchFunction = YamlHelpers::read_enum_required<SearchFunction>(design, "search_function");
 
     const double processNodeM = YamlHelpers::read_quantity_required(
-            design, "process_node", YamlHelpers::LengthUnits(), 1e-9, "process_node");
+            design, "system_process_node", YamlHelpers::LengthUnits(), 1e-9, "system_process_node");
     config.input.processNode = (int)std::lround(processNodeM / 1e-9);
 
     constexpr std::array<int, 9> supportedProcessNodes = {7, 10, 14, 22, 32, 45, 90, 120, 200};

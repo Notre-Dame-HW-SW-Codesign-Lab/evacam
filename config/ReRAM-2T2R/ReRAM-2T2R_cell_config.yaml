@@ -5,7 +5,7 @@ cell:
   name: ReRAM-2T2R
   cam_type: TCAM
   type: ReRAM
-  process_node: 40nm
+  cell_process_node: 40nm
   area: 150F^2
   aspect_ratio: 2
 access_device:

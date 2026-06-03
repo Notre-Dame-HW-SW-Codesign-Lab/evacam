@@ -164,7 +164,7 @@ void parse_ports(const YAML::Node& ports, CAMPort camPort[2][MAX_PORT], int& num
 void ReadCellSection(MemCell& cell, const YAML::Node& cellNode, const std::string& inputFile) {
     cell.memCellType = YamlHelpers::read_enum_required<MemCellType>(cellNode, "type", false);
     cell.processNode = (int)std::lround(YamlHelpers::read_quantity_required(
-            cellNode, "process_node", YamlHelpers::LengthUnits(), 1e-9, "cell.process_node") / 1e-9);
+            cellNode, "cell_process_node", YamlHelpers::LengthUnits(), 1e-9, "cell.cell_process_node") / 1e-9);
     cell.area = YamlHelpers::read_quantity_required(cellNode, "area", YamlHelpers::FeatureAreaUnits(), 1.0, "cell.area");
     cell.aspectRatio = YamlHelpers::read_required<double>(cellNode, "aspect_ratio");
     cell.heightInFeatureSize = sqrt(cell.area * cell.aspectRatio);

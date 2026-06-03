@@ -5,7 +5,7 @@ cell:
   name: SRAM-16T-ESSCIRC15
   cam_type: TCAM
   type: SRAM
-  process_node: 28nm
+  cell_process_node: 28nm
   area: 1210F^2
   aspect_ratio: 3.51
 access_device:

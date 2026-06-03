@@ -4,7 +4,7 @@
 design:
   target: CAM
   search_function: TH
-  process_node: 22nm
+  system_process_node: 22nm
   device_roadmap: HP
   temperature: 350K
 
