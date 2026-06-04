@@ -1,11 +1,15 @@
 #ifndef EVACAM_MATCH_H_
 #define EVACAM_MATCH_H_
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "EvaCAMMatchResult.h"
+#include "Wire.h"
+
+class Bank;
+class EvaCamConfig;
 
 class EvaCAM_Match {
     public:
@@ -22,8 +26,16 @@ class EvaCAM_Match {
         size_t word_width() const;
 
     private:
-        class Impl;
-        std::unique_ptr<Impl> impl_;
+        void InitializeConfiguredBank();
+        void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
+        Wire CreateLocalWire() const;
+        Wire CreateGlobalWire() const;
+
+        std::shared_ptr<EvaCamConfig> config;
+        std::shared_ptr<Bank> bank;
+        Wire localWire;
+        Wire globalWire;
+        CAM_Opt camOpt{};
 };
 
 #endif /* EVACAM_MATCH_H_ */

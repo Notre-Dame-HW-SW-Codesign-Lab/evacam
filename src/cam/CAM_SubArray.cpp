@@ -1394,7 +1394,6 @@ void CAM_SubArray::PrintProperty() {
 
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const {
     const auto &cell = *config->technology.cell;
-    const auto &tech = *config->technology.tech;
     const auto &input = config->input;
     const auto &peripherals = config->peripherals;
 
@@ -1419,37 +1418,51 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
             mismatchCount++;
     }
 
-    double effectiveMatchlineDelay = referDelay;
-    double effectiveSearchLatency = searchLatency - matchlineDelay + referDelay;
-    double effectiveSenseMargin = senseMargin;
-    double effectiveSearchEnergy = searchDynamicEnergy;
+    const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
+    auto matchlineTau = [&](int mismatches) {
+        if (mismatches == 0) {
+            double resMatch = resMemCellOff / CAM_opt.BitSerialWidth;
+            return resMatch * (Col[indexMatchline].cap
+                        + ColMux[indexMatchline]->capForPreviousDelayCalculation)
+                + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                        + Col[indexMatchline].cap / 2);
+        }
 
-    if (mismatchCount > 0) {
-        double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
-        double resTemp = (resMemCellOn * resMemCellOff)
-            / ((CAM_opt.BitSerialWidth - mismatchCount) * resMemCellOn + resMemCellOff * mismatchCount);
-        double tauTemp = resTemp * (capTotalCellTemp
-                + ColMux[indexMatchline]->capForPreviousDelayCalculation
-                + peripherals.addCapOnML
-                + precharger->capOutputBitlinePrecharger
-                + senseAmp->capLoad)
+        double resMismatch = (resMemCellOn * resMemCellOff)
+            / ((CAM_opt.BitSerialWidth - mismatches) * resMemCellOn
+                    + resMemCellOff * mismatches);
+        return resMismatch * (capTotalCellTemp
+                    + ColMux[indexMatchline]->capForPreviousDelayCalculation
+                    + peripherals.addCapOnML
+                    + precharger->capOutputBitlinePrecharger
+                    + senseAmp->capLoad)
             + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
                     + peripherals.addCapOnML
                     + precharger->capOutputBitlinePrecharger
                     + senseAmp->capLoad
                     + Col[indexMatchline].cap / 2);
+    };
 
-        double gm = CalculateTransconductance(
-                Col[indexMatchline].CellPort.widthCmos * tech.featureSize(),
-                NMOS, tech);
-        double beta = 1 / gm / resTemp;
-        double rampTemp = 0;
-        effectiveMatchlineDelay = horowitz(tauTemp, beta, RowDriver[0]->rampOutput, &rampTemp);
+    const double tauAllMatch = matchlineTau(0);
+    const double tauOneMiss = matchlineTau(1);
+    const double oneMissDelay = tauOneMiss * log(2);
+    const double senseTime = oneMissDelay;
+    const double allMatchVoltage = voltagePrecharge * exp(-senseTime / tauAllMatch);
+    const double oneMissVoltage = voltagePrecharge * exp(-senseTime / tauOneMiss);
+
+    double effectiveMatchlineDelay = oneMissDelay;
+    double effectiveSearchLatency = searchLatency - matchlineDelay + oneMissDelay;
+    double effectiveSenseMargin = allMatchVoltage - oneMissVoltage;
+    double effectiveSearchEnergy = searchDynamicEnergy;
+
+    if (mismatchCount > 0) {
+        double tauTemp = matchlineTau(mismatchCount);
+
+        effectiveMatchlineDelay = tauTemp * log(2);
         effectiveSearchLatency = searchLatency - matchlineDelay + effectiveMatchlineDelay;
 
-        // Evaluate the miss voltage at the all-match sensing instant to expose a per-query margin.
-        double actualMatchlineVoltage = voltagePrecharge * exp(-referDelay / tauTemp);
-        effectiveSenseMargin = voltagePrecharge / 2 - actualMatchlineVoltage;
+        double mismatchVoltage = voltagePrecharge * exp(-senseTime / tauTemp);
+        effectiveSenseMargin = allMatchVoltage - mismatchVoltage;
 
         // Approximate extra discharge energy from deeper ML discharge as mismatches increase.
         double missRatio = static_cast<double>(mismatchCount) / static_cast<double>(CAM_opt.BitSerialWidth);
@@ -1457,7 +1470,7 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
     }
 
     EvaCAMMatchResult result{};
-    result.hit = (mismatchCount == 0) && (senseMargin >= senseVoltage);
+    result.hit = (mismatchCount == 0) && (effectiveSenseMargin >= senseVoltage);
     result.searchLatency = effectiveSearchLatency;
     result.searchDynamicEnergy = effectiveSearchEnergy;
     result.matchlineDelay = effectiveMatchlineDelay;

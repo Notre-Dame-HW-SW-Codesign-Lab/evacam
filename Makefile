@@ -49,7 +49,7 @@ RESULT_BASE=$(patsubst %_config,%,$(patsubst %-config,%,$(CONFIG_STEM)))
 
 RES_YAML=$(RES_DIR)/$(RESULT_BASE)_results.yaml
 RUN_LOG=$(RES_DIR)/$(RESULT_BASE)_run.log
-MATCH_CONFIG_FILE ?= config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
+MATCH_CONFIG_FILE ?= config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml
 
 all: $(BIN)
 
