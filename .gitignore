@@ -14,6 +14,9 @@ ExplorationDomainTest
 VariationSamplerTest
 MonteCarloRegressionTest
 WireCopyTest
+MatchTest
+PybindMatchPersistenceTest
+evacam_py*.so
 
 # Generated results
 results/

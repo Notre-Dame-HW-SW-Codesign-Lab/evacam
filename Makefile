@@ -31,6 +31,10 @@ TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
 TEST_WIRE_BIN=WireCopyTest
 TEST_MATCH_BIN=MatchTest
+PYBIND_MODULE_BASE=evacam_py
+PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
+PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
+PYBIND_CPP_FLAGS=$(CPP_FLAGS) $(shell python3-config --includes) -fPIC
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
 UML_SLIDE_TEX=docs/repo_uml_slide.tex
@@ -41,7 +45,9 @@ SOURCES=$(shell find $(SRC_DIR) -type f -name '*.cpp' | sort)
 # Create corresponding OBJ file paths in the object directory
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 OBJECTS_NO_MAIN=$(filter-out $(OBJ_DIR)/app/main.o, $(OBJECTS))
+PYBIND_OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(PYBIND_OBJ_DIR)/%.o, $(filter-out $(SRC_DIR)/app/main.cpp, $(SOURCES)))
 DEPS=$(OBJECTS:.o=.d)
+PYBIND_DEPS=$(PYBIND_OBJECTS:.o=.d)
 
 
 CONFIG_STEM=$(basename $(notdir $(CONFIG_FILE)))
@@ -61,8 +67,16 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CC) $(CPP_FLAGS) -c $< -o $@
 
 -include $(DEPS)
+-include $(PYBIND_DEPS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match uml uml-slide open-uml
+$(PYBIND_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CC) $(PYBIND_CPP_FLAGS) -c $< -o $@
+
+$(PYBIND_MODULE): bindings/EvaCAM_Pybind.cpp $(PYBIND_OBJECTS)
+	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
+
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match test-pybind-match uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -110,6 +124,9 @@ test-match: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MATCH_BIN).d -MT $(TEST_MATCH_BIN) -o $(TEST_MATCH_BIN) tests/MatchTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_MATCH_BIN) $(MATCH_CONFIG_FILE)
 
+test-pybind-match: $(PYBIND_MODULE)
+	python3 tests/test_pybind_match.py $(MATCH_CONFIG_FILE)
+
 uml:
 	@if ! command -v pdflatex >/dev/null 2>&1; then \
 		echo "pdflatex not found"; \
@@ -141,6 +158,7 @@ clean:
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
 		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
 		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
+		$(PYBIND_MODULE_BASE)*.so \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
 		tests/tmp_top_level_cell_config.yaml tests/tmp_top_level_system_config.yaml \
 		tests/tmp_cell_loader_cell_config.yaml tests/tmp_cell_loader_missing.yaml \

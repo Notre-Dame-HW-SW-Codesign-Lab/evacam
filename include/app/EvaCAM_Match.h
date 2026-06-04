@@ -27,6 +27,8 @@ class EvaCAM_Match {
 
     private:
         void InitializeConfiguredBank();
+        void BuildMismatchLut();
+        int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
         Wire CreateLocalWire() const;
         Wire CreateGlobalWire() const;
@@ -36,6 +38,7 @@ class EvaCAM_Match {
         Wire localWire;
         Wire globalWire;
         CAM_Opt camOpt{};
+        std::vector<EvaCAMMatchResult> mismatchResults;
 };
 
 #endif /* EVACAM_MATCH_H_ */

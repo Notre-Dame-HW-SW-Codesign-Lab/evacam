@@ -740,7 +740,6 @@ void CAM_SubArray::CalculateArea() {
 
 void CAM_SubArray::CalculateLatency(double _rampInput) {
     const auto &cell = *config->technology.cell;
-    const auto &tech = *config->technology.tech;
     const auto &input = config->input;
     const auto &peripherals = config->peripherals;
     auto &logger = config->logger;
@@ -770,13 +769,11 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
         // those NAND merges the WL and SL signal
         double maxRowDriver = 0;
-        int indexMaxRowDriver = 0;
         for (int i=0; i<cell.camNumRow; i++) {
             RowDriver[i]->CalculateLatency(MAX(inputEnc->rampOutput, RowDecMergeNand->rampOutput));
 
             if (RowDriver[i]->readLatency > maxRowDriver) {
                 maxRowDriver = RowDriver[i]->readLatency;
-                indexMaxRowDriver = i;
             }
         }
 
@@ -797,38 +794,24 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
          *****************************************************************************/
 
         if (cell.camType == TCAM) {
-            double tau, gm, beta;
+            double tau;
             // Estimate the ML latency for 1-miss case
 
-            resTotalCell = (resMemCellOn * resMemCellOff) / ((CAM_opt.BitSerialWidth-1)*resMemCellOn + resMemCellOff);
+            resTotalCell = EffectiveMatchlineCellResistance(1, resMemCellOn, resMemCellOff);
             capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
-            tau = resTotalCell 
-                * (capTotalCell 
-                        + ColMux[indexMatchline]->capForPreviousDelayCalculation 
-                        + peripherals.addCapOnML 
-                        + precharger->capOutputBitlinePrecharger 
-                        + senseAmp->capLoad) 
-                + matchlineWireRes 
-                * (ColMux[indexMatchline]->capForPreviousDelayCalculation 
-                        + peripherals.addCapOnML 
-                        + precharger->capOutputBitlinePrecharger 
-                        + senseAmp->capLoad 
-                        + Col[indexMatchline].cap / 2);
+            tau = MatchlineDischargeTau(resTotalCell, matchlineWireRes);
 
             // tau = resTotalCell * capTotalCell + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation);
             // referDelay = tau * log((voltagePrecharge) / (config->technology.cell->readVoltage)); // Too hard for user to provide read voltage
             // referDelay = tau * log(2);
             // beta = resMemCellOff / CAM_opt->BitSerialWidth / resTotalCell;
-            gm = CalculateTransconductance(Col[indexMatchline].CellPort.widthCmos*tech.featureSize(), NMOS, tech);
-            beta = 1 / gm / resTotalCell;
-            matchlineDelay = horowitz(tau, beta, RowDriver[indexMaxRowDriver]->rampOutput, &matchlineRamp);
+            matchlineDelay = MatchlineHorowitzDelay(tau, resTotalCell, &matchlineRamp);
             logger.Verbose() << "matchlineDelay = " << matchlineDelay * 1e12 << " ps";
 
             // Estimate the ML latency for all-match case
             resTotalCell = resMemCellOff / CAM_opt.BitSerialWidth;//  
-            tau = resTotalCell * (Col[indexMatchline].cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
-                + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline].cap / 2);
+            tau = MatchlineAllMatchTau(resMemCellOff, matchlineWireRes);
             //TODO: Need to get referDelay to be an expected value, took the following line from a commented out line above
             referDelay = tau * log(2);
             volMatchDrop = voltagePrecharge - voltagePrecharge * exp(-referDelay * tau);
@@ -915,24 +898,17 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             if (input.searchFunction == BE || input.searchFunction == TH) {
                 for (int k = 1; k < CAM_opt.BitSerialWidth; k++) {
 
-                    double resTemp0 = (resMemCellOn * resMemCellOff) / ((CAM_opt.BitSerialWidth-k)*resMemCellOn + resMemCellOff*k);
-                    double resTemp1 = (resMemCellOn * resMemCellOff) / ((CAM_opt.BitSerialWidth-k-1)*resMemCellOn + resMemCellOff*(k+1));
+                    double resTemp0 = EffectiveMatchlineCellResistance(k, resMemCellOn, resMemCellOff);
+                    double resTemp1 = EffectiveMatchlineCellResistance(k + 1, resMemCellOn, resMemCellOff);
 
                     capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
-                    double tauTemp0 = resTemp0 * (capTotalCell + ColMux[indexMatchline]->capForPreviousDelayCalculation + peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad)
-                        + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad + Col[indexMatchline].cap / 2);
-                    double tauTemp1 = resTemp1 * (capTotalCell + ColMux[indexMatchline]->capForPreviousDelayCalculation + peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad)
-                        + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + peripherals.addCapOnML + precharger->capOutputBitlinePrecharger + senseAmp->capLoad + Col[indexMatchline].cap / 2);
-
-                    gm = CalculateTransconductance(Col[indexMatchline].CellPort.widthCmos*tech.featureSize(), NMOS, tech);
-
-                    double beta0 = 1 / gm / resTemp0;
-                    double beta1 = 1 / gm / resTemp1;
+                    double tauTemp0 = MatchlineDischargeTau(resTemp0, matchlineWireRes);
+                    double tauTemp1 = MatchlineDischargeTau(resTemp1, matchlineWireRes);
                     double matchlineRamptemp;
 
-                    double delayTemp0 = horowitz(tauTemp0, beta0, RowDriver[indexMaxRowDriver]->rampOutput, &matchlineRamp);
-                    double delayTemp1 = horowitz(tauTemp1, beta1, RowDriver[indexMaxRowDriver]->rampOutput, &matchlineRamptemp);
+                    double delayTemp0 = MatchlineHorowitzDelay(tauTemp0, resTemp0, &matchlineRamp);
+                    double delayTemp1 = MatchlineHorowitzDelay(tauTemp1, resTemp1, &matchlineRamptemp);
 
                     if (delayTemp0 - delayTemp1 >= peripherals.matchlineSenseMargin) {
                         matchlineDelayForApprox[k] = delayTemp0;
@@ -1392,10 +1368,100 @@ void CAM_SubArray::PrintProperty() {
     std::cout << "errors exist here!" << std::endl;
 }
 
+int CAM_SubArray::CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const {
+    int mismatches = 0;
+    for (size_t i = 0; i < stored.size(); i++) {
+        if (stored[i] != query[i])
+            mismatches++;
+    }
+    return mismatches;
+}
+
+double CAM_SubArray::EffectiveMatchlineCellResistance(
+        int mismatches,
+        double cellResOn,
+        double cellResOff) const {
+    if (mismatches <= 0) {
+        return cellResOff / CAM_opt.BitSerialWidth;
+    }
+
+    return (cellResOn * cellResOff)
+        / ((CAM_opt.BitSerialWidth - mismatches) * cellResOn
+                + cellResOff * mismatches);
+}
+
+double CAM_SubArray::MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const {
+    const auto &peripherals = config->peripherals;
+    const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
+
+    return effectiveCellRes * (capTotalCellTemp
+                + ColMux[indexMatchline]->capForPreviousDelayCalculation
+                + peripherals.addCapOnML
+                + precharger->capOutputBitlinePrecharger
+                + senseAmp->capLoad)
+        + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                + peripherals.addCapOnML
+                + precharger->capOutputBitlinePrecharger
+                + senseAmp->capLoad
+                + Col[indexMatchline].cap / 2);
+}
+
+double CAM_SubArray::MatchlineAllMatchTau(double cellResOff, double mlWireRes) const {
+    const double effectiveCellRes = cellResOff / CAM_opt.BitSerialWidth;
+    return effectiveCellRes * (Col[indexMatchline].cap
+                + ColMux[indexMatchline]->capForPreviousDelayCalculation)
+        + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                + Col[indexMatchline].cap / 2);
+}
+
+double CAM_SubArray::MatchlineBeta(double effectiveCellRes, int activeDischargePaths) const {
+    const auto &tech = *config->technology.tech;
+    const int parallelPaths = std::max(1, activeDischargePaths);
+    const double gm = CalculateTransconductance(
+            Col[indexMatchline].CellPort.widthCmos * tech.featureSize(),
+            NMOS,
+            tech) * parallelPaths;
+    return 1 / gm / effectiveCellRes;
+}
+
+double CAM_SubArray::MatchlineHorowitzDelay(
+        double tau,
+        double effectiveCellRes,
+        double *ramp,
+        int activeDischargePaths) const {
+    const double beta = MatchlineBeta(effectiveCellRes, activeDischargePaths);
+    int maxRowDriverIndex = 0;
+    double maxRowDriverLatency = 0;
+    const int rowDriverCount = config->technology.cell->camNumRow;
+    for (int i = 0; i < rowDriverCount; i++) {
+        if (RowDriver[i]->readLatency > maxRowDriverLatency) {
+            maxRowDriverLatency = RowDriver[i]->readLatency;
+            maxRowDriverIndex = i;
+        }
+    }
+
+    return horowitz(
+            tau,
+            beta,
+            RowDriver[maxRowDriverIndex]->rampOutput,
+            ramp);
+}
+
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const {
+    if (CAM_opt.BitSerialWidth <= 0)
+        throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
+    if (stored.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)
+            || query.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)) {
+        throw std::invalid_argument("[CAM_SubArray] Error: binary match vectors must match BitSerialWidth.");
+    }
+
+    const int mismatchCount = CountMismatches(stored, query);
+    return EvaluateBinaryMatchByMismatches(mismatchCount);
+}
+
+EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCount) const {
     const auto &cell = *config->technology.cell;
     const auto &input = config->input;
-    const auto &peripherals = config->peripherals;
 
     if (!initialized)
         throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
@@ -1407,58 +1473,49 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
         throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports TCAM only.");
     if (CAM_opt.BitSerialWidth <= 0)
         throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
-    if (stored.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)
-            || query.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)) {
-        throw std::invalid_argument("[CAM_SubArray] Error: binary match vectors must match BitSerialWidth.");
-    }
+    if (mismatchCount < 0 || mismatchCount > CAM_opt.BitSerialWidth)
+        throw std::invalid_argument("[CAM_SubArray] Error: mismatch count is out of range.");
 
-    int mismatchCount = 0;
-    for (size_t i = 0; i < stored.size(); i++) {
-        if (stored[i] != query[i])
-            mismatchCount++;
-    }
-
-    const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
     auto matchlineTau = [&](int mismatches) {
         if (mismatches == 0) {
-            double resMatch = resMemCellOff / CAM_opt.BitSerialWidth;
-            return resMatch * (Col[indexMatchline].cap
-                        + ColMux[indexMatchline]->capForPreviousDelayCalculation)
-                + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                        + Col[indexMatchline].cap / 2);
+            return MatchlineAllMatchTau(resMemCellOff, matchlineWireRes);
         }
 
-        double resMismatch = (resMemCellOn * resMemCellOff)
-            / ((CAM_opt.BitSerialWidth - mismatches) * resMemCellOn
-                    + resMemCellOff * mismatches);
-        return resMismatch * (capTotalCellTemp
-                    + ColMux[indexMatchline]->capForPreviousDelayCalculation
-                    + peripherals.addCapOnML
-                    + precharger->capOutputBitlinePrecharger
-                    + senseAmp->capLoad)
-            + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                    + peripherals.addCapOnML
-                    + precharger->capOutputBitlinePrecharger
-                    + senseAmp->capLoad
-                    + Col[indexMatchline].cap / 2);
+        const double effectiveCellRes = EffectiveMatchlineCellResistance(
+                mismatches,
+                resMemCellOn,
+                resMemCellOff);
+        return MatchlineDischargeTau(effectiveCellRes, matchlineWireRes);
     };
 
     const double tauAllMatch = matchlineTau(0);
     const double tauOneMiss = matchlineTau(1);
-    const double oneMissDelay = tauOneMiss * log(2);
+    const double oneMissRes = EffectiveMatchlineCellResistance(1, resMemCellOn, resMemCellOff);
+    double oneMissRamp = 0;
+    const double oneMissDelay = MatchlineHorowitzDelay(tauOneMiss, oneMissRes, &oneMissRamp);
     const double senseTime = oneMissDelay;
     const double allMatchVoltage = voltagePrecharge * exp(-senseTime / tauAllMatch);
     const double oneMissVoltage = voltagePrecharge * exp(-senseTime / tauOneMiss);
+    const double allMatchDelay = tauAllMatch * log(2);
 
-    double effectiveMatchlineDelay = oneMissDelay;
-    double effectiveSearchLatency = searchLatency - matchlineDelay + oneMissDelay;
+    double effectiveMatchlineDelay = allMatchDelay;
+    double effectiveSearchLatency = searchLatency - matchlineDelay + allMatchDelay;
     double effectiveSenseMargin = allMatchVoltage - oneMissVoltage;
     double effectiveSearchEnergy = searchDynamicEnergy;
 
     if (mismatchCount > 0) {
         double tauTemp = matchlineTau(mismatchCount);
+        const double effectiveCellRes = EffectiveMatchlineCellResistance(
+                mismatchCount,
+                resMemCellOn,
+                resMemCellOff);
+        double mismatchRamp = 0;
 
-        effectiveMatchlineDelay = tauTemp * log(2);
+        effectiveMatchlineDelay = MatchlineHorowitzDelay(
+                tauTemp,
+                effectiveCellRes,
+                &mismatchRamp,
+                mismatchCount);
         effectiveSearchLatency = searchLatency - matchlineDelay + effectiveMatchlineDelay;
 
         double mismatchVoltage = voltagePrecharge * exp(-senseTime / tauTemp);
@@ -1540,8 +1597,6 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
 
     const auto &variation = config->variation;
     const auto &cell = *config->technology.cell;
-    const auto &tech = *config->technology.tech;
-    const auto &peripherals = config->peripherals;
 
     monteCarloSummary = CAMMonteCarloSummary{};
     monteCarloSamples.clear();
@@ -1552,46 +1607,23 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
         const CAMResistanceSample sample = BuildResistanceSample(0);
         const double searchBase = searchLatency - matchlineDelay;
         const double readBase = readLatency - matchlineDelay;
-        int indexMaxRowDriver = 0;
         double maxRowDriverLatency = 0;
         for (int i = 0; i < cell.camNumRow; i++) {
             if (RowDriver[i]->readLatency > maxRowDriverLatency) {
                 maxRowDriverLatency = RowDriver[i]->readLatency;
-                indexMaxRowDriver = i;
             }
         }
 
-        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         const double sampleResTotalCell =
-                (sample.cellResOn * sample.cellResOff)
-                / ((CAM_opt.BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
-        const double sampleTau =
-                sampleResTotalCell * (sampleCapTotalCell
-                        + ColMux[indexMatchline]->capForPreviousDelayCalculation
-                        + peripherals.addCapOnML
-                        + precharger->capOutputBitlinePrecharger
-                        + senseAmp->capLoad)
-                + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                        + peripherals.addCapOnML
-                        + precharger->capOutputBitlinePrecharger
-                        + senseAmp->capLoad
-                        + Col[indexMatchline].cap / 2);
-        const double gm = CalculateTransconductance(
-                Col[indexMatchline].CellPort.widthCmos * tech.featureSize(),
-                NMOS,
-                tech);
-        const double beta = 1 / gm / sampleResTotalCell;
+                EffectiveMatchlineCellResistance(1, sample.cellResOn, sample.cellResOff);
+        const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
         double sampleRamp = 0;
-        double sampleMatchlineDelay = horowitz(
+        double sampleMatchlineDelay = MatchlineHorowitzDelay(
                 sampleTau,
-                beta,
-                RowDriver[indexMaxRowDriver]->rampOutput,
+                sampleResTotalCell,
                 &sampleRamp);
 
-        const double sampleAllMatchRes = sample.cellResOff / CAM_opt.BitSerialWidth;
-        const double sampleAllMatchTau =
-                sampleAllMatchRes * (Col[indexMatchline].cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
-                + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline].cap / 2);
+        const double sampleAllMatchTau = MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
         const double sampleReferDelay = sampleAllMatchTau * log(2);
         const double sampleVolMatchDrop = voltagePrecharge - voltagePrecharge * exp(-sampleReferDelay * sampleAllMatchTau);
         const double sampleSenseMargin = voltagePrecharge / 2 - sampleVolMatchDrop;
@@ -1632,48 +1664,25 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
 
     const double searchBase = searchLatency - matchlineDelay;
     const double readBase = readLatency - matchlineDelay;
-    int indexMaxRowDriver = 0;
     double maxRowDriverLatency = 0;
     for (int i = 0; i < cell.camNumRow; i++) {
         if (RowDriver[i]->readLatency > maxRowDriverLatency) {
             maxRowDriverLatency = RowDriver[i]->readLatency;
-            indexMaxRowDriver = i;
         }
     }
 
     for (int sampleIndex = 0; sampleIndex < variation.samples; sampleIndex++) {
         const CAMResistanceSample sample = BuildResistanceSample(sampleIndex);
-        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         const double sampleResTotalCell =
-                (sample.cellResOn * sample.cellResOff)
-                / ((CAM_opt.BitSerialWidth - 1) * sample.cellResOn + sample.cellResOff);
-        const double sampleTau =
-                sampleResTotalCell * (sampleCapTotalCell
-                        + ColMux[indexMatchline]->capForPreviousDelayCalculation
-                        + peripherals.addCapOnML
-                        + precharger->capOutputBitlinePrecharger
-                        + senseAmp->capLoad)
-                + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                        + peripherals.addCapOnML
-                        + precharger->capOutputBitlinePrecharger
-                        + senseAmp->capLoad
-                        + Col[indexMatchline].cap / 2);
-        const double gm = CalculateTransconductance(
-                Col[indexMatchline].CellPort.widthCmos * tech.featureSize(),
-                NMOS,
-                tech);
-        const double beta = 1 / gm / sampleResTotalCell;
+                EffectiveMatchlineCellResistance(1, sample.cellResOn, sample.cellResOff);
+        const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
         double sampleRamp = 0;
-        double sampleMatchlineDelay = horowitz(
+        double sampleMatchlineDelay = MatchlineHorowitzDelay(
                 sampleTau,
-                beta,
-                RowDriver[indexMaxRowDriver]->rampOutput,
+                sampleResTotalCell,
                 &sampleRamp);
 
-        const double sampleAllMatchRes = sample.cellResOff / CAM_opt.BitSerialWidth;
-        const double sampleAllMatchTau =
-                sampleAllMatchRes * (Col[indexMatchline].cap + ColMux[indexMatchline]->capForPreviousDelayCalculation)
-                + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation + Col[indexMatchline].cap / 2);
+        const double sampleAllMatchTau = MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
         const double sampleReferDelay = sampleAllMatchTau * log(2);
         const double sampleVolMatchDrop = voltagePrecharge - voltagePrecharge * exp(-sampleReferDelay * sampleAllMatchTau);
         const double sampleSenseMargin = voltagePrecharge / 2 - sampleVolMatchDrop;

@@ -37,7 +37,11 @@ EvaCAMMatchResult EvaCAM_Match::evaluate(const std::vector<int> &stored, const s
     ValidateBinaryVector(stored, "stored");
     ValidateBinaryVector(query, "query");
 
-    return bank->mat->subarray->EvaluateBinaryMatch(stored, query);
+    const int mismatches = CountMismatches(stored, query);
+    if (mismatches < 0 || static_cast<size_t>(mismatches) >= mismatchResults.size()) {
+        throw std::runtime_error("[EvaCAM_Match] Error: mismatch lookup table is not initialized.");
+    }
+    return mismatchResults[static_cast<size_t>(mismatches)];
 }
 
 size_t EvaCAM_Match::word_width() const {
@@ -90,6 +94,31 @@ void EvaCAM_Match::InitializeConfiguredBank() {
     if (bank->invalid) {
         throw std::runtime_error("[EvaCAM_Match] Error: configured bank is invalid for matching.");
     }
+
+    BuildMismatchLut();
+}
+
+void EvaCAM_Match::BuildMismatchLut() {
+    if (!bank || !bank->mat || !bank->mat->subarray) {
+        throw std::runtime_error("[EvaCAM_Match] Error: matcher is not initialized.");
+    }
+
+    mismatchResults.clear();
+    mismatchResults.reserve(word_width() + 1);
+    for (size_t mismatches = 0; mismatches <= word_width(); mismatches++) {
+        mismatchResults.push_back(bank->mat->subarray->EvaluateBinaryMatchByMismatches(
+                static_cast<int>(mismatches)));
+    }
+}
+
+int EvaCAM_Match::CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const {
+    int mismatches = 0;
+    for (size_t i = 0; i < stored.size(); i++) {
+        if (stored[i] != query[i]) {
+            mismatches++;
+        }
+    }
+    return mismatches;
 }
 
 void EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const char *name) const {

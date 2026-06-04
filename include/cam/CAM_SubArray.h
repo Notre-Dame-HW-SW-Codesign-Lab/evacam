@@ -111,11 +111,23 @@ class CAM_SubArray: public FunctionUnit {
         void CalculateLatency(double _rampInput);
         void CalculatePower();
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
+        EvaCAMMatchResult EvaluateBinaryMatchByMismatches(int mismatchCount) const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
         double EffectiveDeviceResistanceStdev() const;
         void UpdateMonteCarloTimingSummary();
         void UpdateMonteCarloPowerSummary();
+
+    private:
+        int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
+        double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
+        double MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const;
+        double MatchlineAllMatchTau(double cellResOff, double mlWireRes) const;
+        double MatchlineBeta(double effectiveCellRes, int activeDischargePaths = 1) const;
+        double MatchlineHorowitzDelay(double tau, double effectiveCellRes, double *ramp,
+                int activeDischargePaths = 1) const;
+
+    public:
         /* Properties */
         std::unique_ptr<CAM_DataBuffer> inputBuf;
         std::unique_ptr<CAM_DataBuffer> outputBuf;
