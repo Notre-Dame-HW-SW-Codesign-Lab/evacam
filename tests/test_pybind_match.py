@@ -49,6 +49,8 @@ def main():
     assert_close(first_match, second_match)
 
     previous_delay = first_match.matchline_delay
+    batch_rows = [stored]
+    expected_batch_results = [first_match]
     for mismatches in range(1, width + 1):
         query = mismatched_query(width, mismatches)
         shifted_query = mismatched_query(width, mismatches, offset=7)
@@ -63,10 +65,20 @@ def main():
         assert_close(result, shifted_result)
         assert result.matchline_delay <= previous_delay
         previous_delay = result.matchline_delay
+        batch_rows.append(query)
+        expected_batch_results.append(result)
+
+    batch_results = matcher.evaluate_rows(batch_rows, stored)
+    assert len(batch_results) == len(expected_batch_results)
+    for actual, expected in zip(batch_results, expected_batch_results):
+        assert_close(actual, expected)
 
     assert_raises(ValueError, lambda: matcher.evaluate(stored[:-1], stored))
     assert_raises(ValueError, lambda: matcher.evaluate(stored, stored + [0]))
     assert_raises(ValueError, lambda: matcher.evaluate(stored, [2] * width))
+    assert_raises(ValueError, lambda: matcher.evaluate_rows([stored[:-1]], stored))
+    assert_raises(ValueError, lambda: matcher.evaluate_rows([stored], stored + [0]))
+    assert_raises(ValueError, lambda: matcher.evaluate_rows([[2] * width], stored))
 
     print("Pybind match test passed")
 

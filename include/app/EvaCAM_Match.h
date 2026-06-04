@@ -23,6 +23,9 @@ class EvaCAM_Match {
 
         bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate(const std::vector<int> &stored, const std::vector<int> &query) const;
+        std::vector<EvaCAMMatchResult> evaluate_rows(
+                const std::vector<std::vector<int>> &storedRows,
+                const std::vector<int> &query) const;
         size_t word_width() const;
 
     private:

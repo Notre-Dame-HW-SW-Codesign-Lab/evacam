@@ -44,6 +44,29 @@ EvaCAMMatchResult EvaCAM_Match::evaluate(const std::vector<int> &stored, const s
     return mismatchResults[static_cast<size_t>(mismatches)];
 }
 
+std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_rows(
+        const std::vector<std::vector<int>> &storedRows,
+        const std::vector<int> &query) const {
+    if (!bank || !bank->mat || !bank->mat->subarray) {
+        throw std::runtime_error("[EvaCAM_Match] Error: matcher is not initialized.");
+    }
+
+    ValidateBinaryVector(query, "query");
+
+    std::vector<EvaCAMMatchResult> results;
+    results.reserve(storedRows.size());
+    for (const auto &stored : storedRows) {
+        ValidateBinaryVector(stored, "stored row");
+
+        const int mismatches = CountMismatches(stored, query);
+        if (mismatches < 0 || static_cast<size_t>(mismatches) >= mismatchResults.size()) {
+            throw std::runtime_error("[EvaCAM_Match] Error: mismatch lookup table is not initialized.");
+        }
+        results.push_back(mismatchResults[static_cast<size_t>(mismatches)]);
+    }
+    return results;
+}
+
 size_t EvaCAM_Match::word_width() const {
     return static_cast<size_t>(config->input.wordWidth);
 }

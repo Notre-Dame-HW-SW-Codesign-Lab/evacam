@@ -20,5 +20,6 @@ PYBIND11_MODULE(evacam_py, module) {
         .def(py::init<const std::string &>(), py::arg("config_path"))
         .def("match", &EvaCAM_Match::match, py::arg("stored"), py::arg("query"))
         .def("evaluate", &EvaCAM_Match::evaluate, py::arg("stored"), py::arg("query"))
+        .def("evaluate_rows", &EvaCAM_Match::evaluate_rows, py::arg("stored_rows"), py::arg("query"))
         .def("word_width", &EvaCAM_Match::word_width);
 }
