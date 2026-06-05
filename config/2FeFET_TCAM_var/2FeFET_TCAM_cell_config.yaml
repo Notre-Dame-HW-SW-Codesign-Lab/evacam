@@ -38,12 +38,11 @@ multilevel:
   enabled: false
 variation:
   with_variation: true
-  lut_file: ./config/2FeFET_TCAM_var/variation_lut.csv
   memory_device_resistance_on_stdev: 5%
   memory_device_resistance_off_stdev: 5%
   matchline_wire_resistance_stdev: 0%
   device_access_resistance_stdev: 0%
-  device_match_resistance_stdev: 3%
+  device_match_resistance_stdev: 0%
 match:
   cmos_width: 3F
 ports:

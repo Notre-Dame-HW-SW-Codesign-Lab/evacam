@@ -3,6 +3,7 @@
 
 import argparse
 import csv
+import math
 from pathlib import Path
 
 
@@ -48,6 +49,16 @@ def available_metrics(rows, include_internal):
     return available
 
 
+def metric_stats(values):
+    mean = sum(values) / len(values)
+    variance = sum((value - mean) ** 2 for value in values) / len(values)
+    return mean, math.sqrt(variance)
+
+
+def format_stat(value, unit):
+    return f"{value:.3g} {unit}"
+
+
 def plot_histograms(rows, output_path, bins, include_internal=False):
     import matplotlib
 
@@ -71,10 +82,26 @@ def plot_histograms(rows, output_path, bins, include_internal=False):
 
     for index, (title, unit, values) in enumerate(metrics):
         ax = axes[index // cols][index % cols]
+        mean, stddev = metric_stats(values)
         ax.hist(values, bins=bins, color="#4f7cac", edgecolor="white", linewidth=0.7)
         ax.set_title(title, loc="center", fontsize=11, fontweight="bold")
         ax.set_xlabel(unit)
         ax.set_ylabel("Samples")
+        ax.text(
+            0.98,
+            0.94,
+            f"mean: {format_stat(mean, unit)}\nstddev: {format_stat(stddev, unit)}",
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=8.5,
+            bbox={
+                "boxstyle": "round,pad=0.28",
+                "facecolor": "white",
+                "edgecolor": "#d0d7de",
+                "alpha": 0.9,
+            },
+        )
         ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
         ax.yaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
         ax.spines["top"].set_visible(False)

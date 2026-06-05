@@ -117,6 +117,7 @@ class CAM_SubArray: public FunctionUnit {
         double EffectiveDeviceResistanceStdev() const;
         void UpdateMonteCarloTimingSummary();
         void UpdateMonteCarloPowerSummary();
+        double SampleCellReadEnergy(const CAMResistanceSample &sample, double sampleMatchlineDelay) const;
 
     private:
         int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;

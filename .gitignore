@@ -21,6 +21,9 @@ evacam_py*.so
 # Generated results
 results/
 
+# Generated Monte Carlo sweep inputs
+config/2FeFET_TCAM_var/mc_sweep/
+
 # Generated local tooling metadata
 compile_commands.json
 

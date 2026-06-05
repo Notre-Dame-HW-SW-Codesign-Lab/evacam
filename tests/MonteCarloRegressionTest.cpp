@@ -50,12 +50,17 @@ bool Near(double a, double b, double relTol = 1e-12, double absTol = 1e-18) {
     return diff <= relTol * std::max(std::fabs(a), std::fabs(b));
 }
 
+double ParseLeadingDouble(const YAML::Node &node) {
+    return std::stod(node.as<std::string>());
+}
+
 MonteCarloFixture WriteMonteCarloConfig(
         const std::string &tag,
         bool variationEnabled = true,
         uint32_t seed = 0,
         const std::string &mode = "monte_carlo",
-        int samples = 9) {
+        int samples = 9,
+        bool memoryOnlyVariation = false) {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
     const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml";
     const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
@@ -81,12 +86,21 @@ MonteCarloFixture WriteMonteCarloConfig(
             cellText += "  samples: " + std::to_string(samples) + "\n";
         }
     }
-    cellText +=
-        "  memory_device_resistance_on_stdev: 15%\n"
-        "  memory_device_resistance_off_stdev: 20%\n"
-        "  matchline_wire_resistance_stdev: 10%\n"
-        "  device_access_resistance_stdev: 12%\n"
-        "  device_match_resistance_stdev: 8%\n";
+    if (memoryOnlyVariation) {
+        cellText +=
+            "  memory_device_resistance_on_stdev: 20%\n"
+            "  memory_device_resistance_off_stdev: 20%\n"
+            "  matchline_wire_resistance_stdev: 0%\n"
+            "  device_access_resistance_stdev: 0%\n"
+            "  device_match_resistance_stdev: 0%\n";
+    } else {
+        cellText +=
+            "  memory_device_resistance_on_stdev: 15%\n"
+            "  memory_device_resistance_off_stdev: 20%\n"
+            "  matchline_wire_resistance_stdev: 10%\n"
+            "  device_access_resistance_stdev: 12%\n"
+            "  device_match_resistance_stdev: 8%\n";
+    }
     WriteFile(testCell, cellText);
 
     std::string configText = ReadFile(sourceConfig);
@@ -197,6 +211,31 @@ void test_monte_carlo_output_summary_is_emitted() {
     }
 }
 
+void test_memory_device_variation_affects_matchline_distribution() {
+    const MonteCarloFixture fixture = WriteMonteCarloConfig(
+            "memory_only",
+            true,
+            33333u,
+            "monte_carlo",
+            21,
+            true);
+
+    const std::string command = "./EvaCAM " + fixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
+    const int rc = std::system(command.c_str());
+    assert(rc == 0);
+    assert(std::filesystem::exists(fixture.outputPath));
+
+    const YAML::Node variation = YAML::LoadFile(fixture.outputPath.string())["summary"]["timing"]["variation"];
+    assert(variation);
+
+    const double matchlineStddev = ParseLeadingDouble(variation["matchline_delay"]["stddev"]);
+    const double searchLatencyStddev = ParseLeadingDouble(variation["search_latency"]["stddev"]);
+    const double searchEnergyStddev = ParseLeadingDouble(variation["search_dynamic_energy"]["stddev"]);
+    assert(matchlineStddev > 0.0);
+    assert(searchLatencyStddev > 0.0);
+    assert(searchEnergyStddev > 0.0);
+}
+
 void test_single_point_output_summary_is_emitted() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("single_point", true, 55555u, "single_point");
 
@@ -254,6 +293,7 @@ int main() {
     test_monte_carlo_deterministic_for_fixed_seed();
     test_monte_carlo_changes_with_variation_toggle();
     test_monte_carlo_output_summary_is_emitted();
+    test_memory_device_variation_affects_matchline_distribution();
     test_single_point_output_summary_is_emitted();
     test_variation_output_summary_is_absent_when_disabled();
     std::cout << "Monte Carlo regression tests passed" << std::endl;

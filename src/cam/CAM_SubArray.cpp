@@ -47,6 +47,10 @@ double MatchlineOffCurrent(const CAMPort &cellPort, const Technology &tech, int 
     return offCurrents[temperature - 300];
 }
 
+bool UsesMemoryResistanceInMatchPath(const MemCell &cell) {
+    return cell.isNVMdischarge || cell.memCellType == FEFETRAM;
+}
+
 MatchlineElectricalParams BuildDrainSourceMatchlineParams(
         const CAMPort &cellPort,
         const MemCell &cell,
@@ -65,8 +69,13 @@ MatchlineElectricalParams BuildDrainSourceMatchlineParams(
         params.nominalResCellAccessOff /= 2;
     }
 
-    params.nominalResMatchTranOff = cell.isNVMdischarge ? cell.resistanceOff / 2 : 0;
-    params.resMatchTran = cell.isNVMdischarge ? cell.resistanceOn : 0;
+    const bool includeMemoryResistance = UsesMemoryResistanceInMatchPath(cell);
+    params.nominalResMatchTranOff = includeMemoryResistance
+            ? cell.resistanceOff / cellPort.numCmos
+            : 0;
+    params.resMatchTran = includeMemoryResistance
+            ? cell.resistanceOn / cellPort.numCmos
+            : 0;
 
     const double accessMultiplier = (cellPort.isNMOS == cell.isNVMdischarge) ? cellPort.numCmos : 1;
     params.resCellAccess = CalculateOnResistance(cmosWidth, mosType, temperature, tech) * accessMultiplier;
@@ -101,8 +110,13 @@ MatchlineElectricalParams BuildDiodeMatchlineParams(
         params.nominalResCellAccessOff /= 4;
     }
 
-    params.nominalResMatchTranOff = cell.isNVMdischarge ? cell.resistanceOff / 2 : 0;
-    params.resMatchTran = cell.isNVMdischarge ? cell.resistanceOn : 0;
+    const bool includeMemoryResistance = UsesMemoryResistanceInMatchPath(cell);
+    params.nominalResMatchTranOff = includeMemoryResistance
+            ? cell.resistanceOff / cellPort.numCmos
+            : 0;
+    params.resMatchTran = includeMemoryResistance
+            ? cell.resistanceOn / cellPort.numCmos
+            : 0;
 
     const double accessMultiplier = (cellPort.isNMOS && cell.isNVMdischarge) ? 1 : cellPort.numCmos;
     params.resCellAccess = CalculateOnResistance(cmosWidth, mosType, temperature, tech) * accessMultiplier;
@@ -1729,6 +1743,46 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     }
 }
 
+double CAM_SubArray::SampleCellReadEnergy(
+        const CAMResistanceSample &sample,
+        double sampleMatchlineDelay) const {
+    const auto &cell = *config->technology.cell;
+    const auto &tech = *config->technology.tech;
+    double sampleCellReadEnergy = 0;
+
+    if (cell.readEnergy != 0) {
+        sampleCellReadEnergy = cell.readEnergy * CAM_opt.BitSerialWidth;
+    } else if (cell.readPower != 0) {
+        sampleCellReadEnergy = cell.readPower
+            * CAM_opt.BitSerialWidth
+            * (senseAmp->readLatency + sampleMatchlineDelay);
+    } else if (cell.memCellType == SRAM) {
+        sampleCellReadEnergy = capCellAccess * voltagePrecharge * voltagePrecharge * CAM_opt.BitSerialWidth;
+    } else if (cell.readMode) {
+        if (cell.readVoltage == 0) {
+            sampleCellReadEnergy = tech.vdd() * cell.readCurrent
+                * (senseAmp->readLatency + sampleMatchlineDelay)
+                * CAM_opt.BitSerialWidth;
+        }
+        if (cell.readCurrent == 0) {
+            const double resInSerialForSenseAmp = std::sqrt(sample.cellResOn * sample.cellResOff);
+            const double readVoltage = std::max(0.0, cell.readVoltage - cell.voltageDropAccessDevice);
+            const double maxMatchlineCurrent = readVoltage / (sample.cellResOn + resInSerialForSenseAmp);
+            sampleCellReadEnergy = tech.vdd() * maxMatchlineCurrent
+                * (senseAmp->readLatency + sampleMatchlineDelay)
+                * CAM_opt.BitSerialWidth;
+        }
+    } else {
+        const double readVoltage = std::max(0.0, cell.readVoltage - cell.voltageDropAccessDevice);
+        const double maxMatchlineCurrent = readVoltage / sample.cellResOn;
+        sampleCellReadEnergy = tech.vdd() * maxMatchlineCurrent
+            * (senseAmp->readLatency + sampleMatchlineDelay)
+            * CAM_opt.BitSerialWidth;
+    }
+
+    return sampleCellReadEnergy * numColumn / muxSenseAmp;
+}
+
 void CAM_SubArray::UpdateMonteCarloPowerSummary() {
 
     const auto &cell = *config->technology.cell;
@@ -1771,9 +1825,11 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
             }
         }
 
+        const double sampleMatchlineDelay = monteCarloSummary.matchlineDelay.sample;
         sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
+        sampleSearchDynamicEnergy += SampleCellReadEnergy(sample, sampleMatchlineDelay);
         monteCarloSummary.searchDynamicEnergy = BuildSinglePointMetric(sampleSearchDynamicEnergy, searchDynamicEnergy);
-        searchDynamicEnergy = sampleSearchDynamicEnergy;
+        searchDynamicEnergy = sampleSearchDynamicEnergy - SampleCellReadEnergy(sampledResistance, matchlineDelay);
         return;
     }
 
@@ -1815,12 +1871,17 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
         }
 
         sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
+        double sampleMatchlineDelay = matchlineDelay;
         searchEnergies.push_back(sampleSearchDynamicEnergy);
         if (sampleIndex < static_cast<int>(monteCarloSamples.size())) {
+            sampleMatchlineDelay = monteCarloSamples[sampleIndex].matchlineDelay;
+            sampleSearchDynamicEnergy += SampleCellReadEnergy(sample, sampleMatchlineDelay);
+            searchEnergies.back() = sampleSearchDynamicEnergy;
             monteCarloSamples[sampleIndex].searchDynamicEnergy = sampleSearchDynamicEnergy;
         }
     }
 
     monteCarloSummary.searchDynamicEnergy = BuildMetricStats(searchEnergies, searchDynamicEnergy);
-    searchDynamicEnergy = monteCarloSummary.searchDynamicEnergy.mean;
+    searchDynamicEnergy = monteCarloSummary.searchDynamicEnergy.mean
+        - SampleCellReadEnergy(sampledResistance, matchlineDelay);
 }
