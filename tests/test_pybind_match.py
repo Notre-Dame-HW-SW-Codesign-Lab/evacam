@@ -49,6 +49,7 @@ def main():
     assert_close(first_match, second_match)
 
     previous_delay = first_match.matchline_delay
+    previous_sense_margin = first_match.sense_margin
     batch_rows = [stored]
     expected_batch_results = [first_match]
     for mismatches in range(1, width + 1):
@@ -64,7 +65,12 @@ def main():
         assert_close(result, repeated_result)
         assert_close(result, shifted_result)
         assert result.matchline_delay <= previous_delay
+        if mismatches == 1:
+            assert math.isclose(result.sense_margin, first_match.sense_margin, rel_tol=0.0, abs_tol=1e-18)
+        else:
+            assert result.sense_margin <= previous_sense_margin
         previous_delay = result.matchline_delay
+        previous_sense_margin = result.sense_margin
         batch_rows.append(query)
         expected_batch_results.append(result)
 

@@ -313,9 +313,9 @@ The timing model above produces a nominal subarray-level search latency. EvaCAM 
 For a given mismatch count:
 
 - the effective matchline resistance is recomputed from the mismatch count
-- a mismatch-specific matchline delay is computed
-- the total search latency is adjusted by replacing the nominal matchline delay with the mismatch-specific one
-- the effective sense margin is recomputed from the actual matchline voltage at the all-match sensing instant
+- a mismatch-specific matchline delay is computed, with exact-hit latency reported at the one-mismatch sensing delay
+- the total search latency is adjusted by replacing the nominal matchline delay with the returned per-query matchline delay
+- the effective sense margin is reported as the voltage separation from the previous mismatch-count case at the one-mismatch sensing instant
 - search energy is scaled upward with mismatch ratio as a simple approximation of deeper matchline discharge
 
 This path is intentionally simpler than a full transient simulation. It gives a query-dependent timing and energy estimate using the same RC abstractions as the nominal model, and is intended as a mode to pass values to other tools.

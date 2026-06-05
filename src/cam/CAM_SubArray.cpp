@@ -1496,11 +1496,12 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
     const double senseTime = oneMissDelay;
     const double allMatchVoltage = voltagePrecharge * exp(-senseTime / tauAllMatch);
     const double oneMissVoltage = voltagePrecharge * exp(-senseTime / tauOneMiss);
-    const double allMatchDelay = tauAllMatch * log(2);
 
-    double effectiveMatchlineDelay = allMatchDelay;
-    double effectiveSearchLatency = searchLatency - matchlineDelay + allMatchDelay;
-    double effectiveSenseMargin = allMatchVoltage - oneMissVoltage;
+    double effectiveMatchlineDelay = oneMissDelay;
+    double effectiveSearchLatency = searchLatency - matchlineDelay + oneMissDelay;
+    const double exactMatchSenseMargin = allMatchVoltage - oneMissVoltage;
+
+    double effectiveSenseMargin = exactMatchSenseMargin;
     double effectiveSearchEnergy = searchDynamicEnergy;
 
     if (mismatchCount > 0) {
@@ -1518,8 +1519,10 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
                 mismatchCount);
         effectiveSearchLatency = searchLatency - matchlineDelay + effectiveMatchlineDelay;
 
-        double mismatchVoltage = voltagePrecharge * exp(-senseTime / tauTemp);
-        effectiveSenseMargin = allMatchVoltage - mismatchVoltage;
+        const double mismatchVoltage = voltagePrecharge * exp(-senseTime / tauTemp);
+        const double previousTau = matchlineTau(mismatchCount - 1);
+        const double previousMismatchVoltage = voltagePrecharge * exp(-senseTime / previousTau);
+        effectiveSenseMargin = previousMismatchVoltage - mismatchVoltage;
 
         // Approximate extra discharge energy from deeper ML discharge as mismatches increase.
         double missRatio = static_cast<double>(mismatchCount) / static_cast<double>(CAM_opt.BitSerialWidth);
@@ -1527,7 +1530,7 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
     }
 
     EvaCAMMatchResult result{};
-    result.hit = (mismatchCount == 0) && (effectiveSenseMargin >= senseVoltage);
+    result.hit = (mismatchCount == 0) && (exactMatchSenseMargin >= senseVoltage);
     result.searchLatency = effectiveSearchLatency;
     result.searchDynamicEnergy = effectiveSearchEnergy;
     result.matchlineDelay = effectiveMatchlineDelay;
