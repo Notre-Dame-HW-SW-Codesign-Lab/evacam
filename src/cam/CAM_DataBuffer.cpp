@@ -13,10 +13,7 @@ CAM_DataBuffer::CAM_DataBuffer() {
     rampOutput = 0;
     differential = false;
 }
-/*
-   CAM_DataBuffer::~CAM_DataBuffer() {
-}
- */
+
 void CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
         _config->logger.Verbose() << "[CAM_DataBuffer] Warning: Already initialized!";
