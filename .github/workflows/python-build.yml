@@ -50,6 +50,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install yaml-cpp runtime library
+        # The wheel links yaml-cpp dynamically, so the shared library must be
+        # present at import time (libyaml-cpp-dev pulls in the matching runtime).
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libyaml-cpp-dev
+
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
