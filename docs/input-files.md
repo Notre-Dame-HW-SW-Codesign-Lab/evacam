@@ -6,6 +6,7 @@ EvaCAM expects one system config YAML file. That config file must reference a ce
 
 - `config/<cell-group>/*_system_config.yaml`: system-level configurations grouped by the cell they use
 - `config/<cell-group>/*_cell_config.yaml`: the corresponding cell/device description
+- custom sense-amp YAML files referenced by `advanced.custom_sa_input_file` when `sensing.custom_sense_amp` is true
 
 Example:
 
@@ -123,6 +124,7 @@ The files below are not intended for real runs:
 
 - `docs/system_config_full_example.yaml`
 - `docs/cell_config_full_example.yaml`
+- `docs/custom_sense_amp_full_example.yaml`
 
 See [FULL_INPUT_EXAMPLES_WARNING.md](FULL_INPUT_EXAMPLES_WARNING.md).
 

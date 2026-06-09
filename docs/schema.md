@@ -93,3 +93,4 @@ System config notes:
 - `design.system_process_node` is the authoritative modeled technology node. `cell.cell_process_node` records the process node associated with the cell definition.
 - `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
 - `cache.access_mode` is retained for cache-era compatibility; `design.target` currently supports only `CAM`.
+- `sensing.custom_sense_amp: true` requires `advanced.custom_sa_input_file` to reference a YAML file. The custom sense-amp file uses a `custom_sense_amp` mapping with `latency`, `energy`, `cap_load`, and either `area` or both `height` and `width`; `leakage` is optional.

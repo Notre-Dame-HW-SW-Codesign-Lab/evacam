@@ -355,7 +355,7 @@ If `custom_sense_amp` is false, EvaCAM instantiates the built-in sense-amp model
 - dynamic energy
 - leakage
 
-If `custom_sense_amp` is true, EvaCAM reads these quantities from the custom sense-amp file instead. In that mode, the file becomes the source of truth for the sense amplifier’s modeled area, delay, energy, leakage, and input loading.
+If `custom_sense_amp` is true, EvaCAM reads these quantities from the YAML custom sense-amp file instead. In that mode, the file becomes the source of truth for the sense amplifier’s modeled area, delay, energy, leakage, and input loading. The file is referenced by `advanced.custom_sa_input_file` and uses a `custom_sense_amp` mapping; see `docs/custom_sense_amp_full_example.yaml`.
 
 ### Role in the Matchline Model
 
