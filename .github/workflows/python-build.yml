@@ -67,9 +67,7 @@ jobs:
         run: python -m pip install dist/*.whl
 
       - name: Run pybind smoke test against the installed wheel
-        # Run from a clean directory so `import evacam_py` resolves to the
-        # installed wheel rather than any local build in the source tree.
-        run: |
-          cp tests/test_pybind_match.py "${RUNNER_TEMP}/test_pybind_match.py"
-          cd "${RUNNER_TEMP}"
-          python test_pybind_match.py "${GITHUB_WORKSPACE}/config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml"
+        # Run from the repo root so the configs' relative paths resolve. A fresh
+        # checkout has no evacam_py in the tree (no package dir or .so), so the
+        # import still resolves to the installed wheel, not the source.
+        run: python tests/test_pybind_match.py config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml
