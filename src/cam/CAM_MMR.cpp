@@ -106,26 +106,3 @@ void CAM_MMR::PrintProperty() {
     std::cout << "CAM_MMR Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-
-CAM_MMR & CAM_MMR::operator=(const CAM_MMR &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    resLoad = rhs.resLoad;
-    numInputBits = rhs.numInputBits;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    LookAheadLatency = rhs.LookAheadLatency;
-    foldA = rhs.foldA;
-    foldB = rhs.foldB;
-    numBasicMMR = rhs.numBasicMMR;
-    areaOptimizationLevel = rhs.areaOptimizationLevel;
-    return *this;
-}

@@ -125,26 +125,3 @@ void CAM_LevelShifter::PrintProperty() {
     std::cout << "CAM_LevelShifter Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-
-CAM_LevelShifter & CAM_LevelShifter::operator=(const CAM_LevelShifter &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    resLoad = rhs.resLoad;
-    capNandIn = rhs.capNandIn;
-    capNandOut = rhs.capNandOut;
-    widthNandN = rhs.widthNandN;
-    widthNandP = rhs.widthNandP;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    return *this;
-}

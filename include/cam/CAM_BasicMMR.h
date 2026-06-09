@@ -16,7 +16,8 @@
 class CAM_BasicMMR: public FunctionUnit {
     public:
         CAM_BasicMMR();
-        CAM_BasicMMR(const CAM_BasicMMR&) {}
+        CAM_BasicMMR(const CAM_BasicMMR&) = delete;
+        CAM_BasicMMR& operator=(const CAM_BasicMMR&) = delete;
         virtual ~CAM_BasicMMR() {}
 
         /* Functions */
@@ -27,9 +28,6 @@ class CAM_BasicMMR: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        /* Note that this is a single encoder, not yet multiplied by number of inputs */
-        CAM_BasicMMR & operator=(const CAM_BasicMMR &);
-
         /* Properties */
         bool initialized;	/* Initialization flag */
         int numInputBits;   /* Number of input bits */

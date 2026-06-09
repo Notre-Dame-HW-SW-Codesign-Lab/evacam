@@ -13,7 +13,8 @@
 class CAM_PriorityEncoder: public FunctionUnit {
     public:
         CAM_PriorityEncoder();
-        CAM_PriorityEncoder(const CAM_PriorityEncoder&) {}
+        CAM_PriorityEncoder(const CAM_PriorityEncoder&) = delete;
+        CAM_PriorityEncoder& operator=(const CAM_PriorityEncoder&) = delete;
         virtual ~CAM_PriorityEncoder() {}
 
         /* Functions */
@@ -24,7 +25,6 @@ class CAM_PriorityEncoder: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        CAM_PriorityEncoder & operator=(const CAM_PriorityEncoder &);
         /* Properties */
         bool initialized;	/* Initialization flag */
         int numInputBits;   /* Number of input bits */

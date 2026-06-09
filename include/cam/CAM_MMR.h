@@ -15,7 +15,8 @@
 class CAM_MMR: public FunctionUnit {
     public:
         CAM_MMR();
-        CAM_MMR(const CAM_MMR&) {}
+        CAM_MMR(const CAM_MMR&) = delete;
+        CAM_MMR& operator=(const CAM_MMR&) = delete;
         virtual ~CAM_MMR() {}
 
         /* Functions */
@@ -26,8 +27,6 @@ class CAM_MMR: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        CAM_MMR & operator=(const CAM_MMR &);
-
         /* Properties */
         bool initialized;			/* Initialization flag */
         int numInputBits;  			/* Number of input bits */
