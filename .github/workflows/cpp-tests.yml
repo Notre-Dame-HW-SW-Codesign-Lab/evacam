@@ -1,0 +1,43 @@
+name: cpp-tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-cpp:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      # Run every test even if one fails, so a single failure does not mask the
+      # others.
+      fail-fast: false
+      matrix:
+        target:
+          - test-yaml
+          - test-top-level-parser
+          - test-cell-loader
+          - test-input-validation
+          - test-exploration
+          - test-variation
+          - test-montecarlo
+          - test-wire
+          - test-match
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        # python3-config is used by the Makefile's pybind target.
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++ make libyaml-cpp-dev pybind11-dev
+
+      - name: Run ${{ matrix.target }}
+        run: make ${{ matrix.target }}
