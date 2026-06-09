@@ -18,8 +18,27 @@ PYBIND11_MODULE(evacam_py, module) {
 
     py::class_<EvaCAM_Match>(module, "EvaCAMMatch")
         .def(py::init<const std::string &>(), py::arg("config_path"))
-        .def("match", &EvaCAM_Match::match, py::arg("stored"), py::arg("query"))
-        .def("evaluate", &EvaCAM_Match::evaluate, py::arg("stored"), py::arg("query"))
-        .def("evaluate_rows", &EvaCAM_Match::evaluate_rows, py::arg("stored_rows"), py::arg("query"))
+        .def("evaluate_vector",
+                py::overload_cast<const std::vector<int>&, const std::vector<int>&>(
+                        &EvaCAM_Match::evaluate_vector, py::const_),
+                py::arg("stored"), py::arg("query"))
+        .def("evaluate_vector",
+                py::overload_cast<
+                        const std::vector<std::pair<double, double>>&,
+                        const std::vector<double>&>(
+                        &EvaCAM_Match::evaluate_vector, py::const_),
+                py::arg("stored"), py::arg("query"))
+        .def("evaluate_array",
+                py::overload_cast<
+                        const std::vector<std::vector<int>>&,
+                        const std::vector<int>&>(
+                        &EvaCAM_Match::evaluate_array, py::const_),
+                py::arg("stored_rows"), py::arg("query"))
+        .def("evaluate_array",
+                py::overload_cast<
+                        const std::vector<std::vector<std::pair<double, double>>>&,
+                        const std::vector<double>&>(
+                        &EvaCAM_Match::evaluate_array, py::const_),
+                py::arg("stored_rows"), py::arg("query"))
         .def("word_width", &EvaCAM_Match::word_width);
 }

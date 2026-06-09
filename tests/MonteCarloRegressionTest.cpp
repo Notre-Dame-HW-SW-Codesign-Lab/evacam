@@ -123,8 +123,8 @@ void test_monte_carlo_deterministic_for_fixed_seed() {
 
     std::vector<int> stored(matcherA.word_width(), 1);
     std::vector<int> query(stored);
-    EvaCAMMatchResult resultA = matcherA.evaluate(stored, query);
-    EvaCAMMatchResult resultB = matcherB.evaluate(stored, query);
+    EvaCAMMatchResult resultA = matcherA.evaluate_vector(stored, query);
+    EvaCAMMatchResult resultB = matcherB.evaluate_vector(stored, query);
 
     assert(resultA.hit == resultB.hit);
     assert(Near(resultA.searchLatency, resultB.searchLatency));
@@ -141,8 +141,8 @@ void test_monte_carlo_changes_with_variation_toggle() {
 
     std::vector<int> stored(matcherA.word_width(), 1);
     std::vector<int> query(stored);
-    EvaCAMMatchResult resultA = matcherA.evaluate(stored, query);
-    EvaCAMMatchResult resultB = matcherB.evaluate(stored, query);
+    EvaCAMMatchResult resultA = matcherA.evaluate_vector(stored, query);
+    EvaCAMMatchResult resultB = matcherB.evaluate_vector(stored, query);
 
     const bool anyMetricDiffers =
         !Near(resultA.searchLatency, resultB.searchLatency, 1e-9, 1e-18)
