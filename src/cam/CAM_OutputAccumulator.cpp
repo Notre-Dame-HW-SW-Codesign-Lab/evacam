@@ -12,10 +12,7 @@ CAM_OutputAccumulator::CAM_OutputAccumulator() {
     rampInput = 0;
     rampOutput = 0;
 }
-/*
-   CAM_OutputAccumulator::~CAM_OutputAccumulator() {
-}
- */
+
 void CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)
         _config->logger.Verbose() << "[CAM_OutputAccumulator] Warning: Already initialized!";
@@ -121,27 +118,4 @@ void CAM_OutputAccumulator::CalculatePower() {
 void CAM_OutputAccumulator::PrintProperty() {
     std::cout << "CAM_OutputAccumulator Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-CAM_OutputAccumulator & CAM_OutputAccumulator::operator=(const CAM_OutputAccumulator &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    resLoad = rhs.resLoad;
-    capNandIn = rhs.capNandIn;
-    capNandOut = rhs.capNandOut;
-    widthNandN = rhs.widthNandN;
-    widthNandP = rhs.widthNandP;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    return *this;
 }
