@@ -27,5 +27,11 @@ config/2FeFET_TCAM_var/mc_sweep/
 # Generated local tooling metadata
 compile_commands.json
 
-# Local testing 
+# Local testing
 testing*
+
+# Python packaging build artifacts
+build/
+dist/
+*.egg-info/
+*.whl

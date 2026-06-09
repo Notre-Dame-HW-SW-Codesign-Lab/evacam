@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64", "pybind11>=2.10", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evacam_py"
+version = "0.1.0"
+description = "Python bindings for the EvaCAM CAM-array simulator (pybind11 over the C++ core)"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "Notre Dame HW-SW Codesign Lab" }]
+
+[project.urls]
+Homepage = "https://github.com/Notre-Dame-HW-SW-Codesign-Lab/evacam"
+
+# This project ships a single C++ extension module (evacam_py) and no pure-Python
+# packages. Disable package auto-discovery so setuptools does not try to treat
+# src/, include/, etc. as importable packages.
+[tool.setuptools]
+py-modules = []

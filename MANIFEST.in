@@ -1,0 +1,9 @@
+# Ensure C++ sources and headers are included in source distributions so the
+# extension can be compiled from an sdist (pip install evacam_py).
+recursive-include src *.cpp *.h
+recursive-include include *.h
+recursive-include bindings *.cpp *.h
+recursive-include compat *.h
+include README.md
+include pyproject.toml
+include setup.py
