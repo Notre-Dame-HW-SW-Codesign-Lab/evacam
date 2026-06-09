@@ -815,7 +815,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
             tau = MatchlineDischargeTau(resTotalCell, matchlineWireRes);
-
+            const double oneMissTau = tau;
             // tau = resTotalCell * capTotalCell + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation);
             // referDelay = tau * log((voltagePrecharge) / (config->technology.cell->readVoltage)); // Too hard for user to provide read voltage
             // referDelay = tau * log(2);
@@ -827,11 +827,11 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             resTotalCell = resMemCellOff / CAM_opt.BitSerialWidth;//  
             tau = MatchlineAllMatchTau(resMemCellOff, matchlineWireRes);
             //TODO: Need to get referDelay to be an expected value, took the following line from a commented out line above
-            referDelay = tau * log(2);
-            volMatchDrop = voltagePrecharge - voltagePrecharge * exp(-referDelay * tau);
+            referDelay = matchlineDelay;
+            volMatchDrop = voltagePrecharge - voltagePrecharge * exp(-referDelay / tau);
 
             // Primary sense margin check
-            senseMargin = voltagePrecharge/2 - volMatchDrop;    
+            senseMargin = MatchlineSenseMargin(tau, oneMissTau, referDelay);
             if (senseMargin < senseVoltage) {
                 invalid = true;
                 logger.Verbose() << "[CAM_SubArray] Matchline is too long to be sensed.";
@@ -1428,6 +1428,15 @@ double CAM_SubArray::MatchlineAllMatchTau(double cellResOff, double mlWireRes) c
                 + Col[indexMatchline].cap / 2);
 }
 
+double CAM_SubArray::MatchlineSenseMargin(
+        double tauAllMatch,
+        double tauOneMiss,
+        double senseTime) const {
+    const double allMatchVoltage = voltagePrecharge * exp(-senseTime / tauAllMatch);
+    const double oneMissVoltage = voltagePrecharge * exp(-senseTime / tauOneMiss);
+    return allMatchVoltage - oneMissVoltage;
+}
+
 double CAM_SubArray::MatchlineBeta(double effectiveCellRes, int activeDischargePaths) const {
     const auto &tech = *config->technology.tech;
     const int parallelPaths = std::max(1, activeDischargePaths);
@@ -1641,9 +1650,8 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
                 &sampleRamp);
 
         const double sampleAllMatchTau = MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
-        const double sampleReferDelay = sampleAllMatchTau * log(2);
-        const double sampleVolMatchDrop = voltagePrecharge - voltagePrecharge * exp(-sampleReferDelay * sampleAllMatchTau);
-        const double sampleSenseMargin = voltagePrecharge / 2 - sampleVolMatchDrop;
+        const double sampleReferDelay = sampleMatchlineDelay;
+        const double sampleSenseMargin = MatchlineSenseMargin(sampleAllMatchTau, sampleTau, sampleReferDelay);
 
         double sampleSearchLatency = searchBase + sampleMatchlineDelay;
         if (sampleSenseMargin < senseVoltage) {
@@ -1700,9 +1708,8 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
                 &sampleRamp);
 
         const double sampleAllMatchTau = MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
-        const double sampleReferDelay = sampleAllMatchTau * log(2);
-        const double sampleVolMatchDrop = voltagePrecharge - voltagePrecharge * exp(-sampleReferDelay * sampleAllMatchTau);
-        const double sampleSenseMargin = voltagePrecharge / 2 - sampleVolMatchDrop;
+        const double sampleReferDelay = sampleMatchlineDelay;
+        const double sampleSenseMargin = MatchlineSenseMargin(sampleAllMatchTau, sampleTau, sampleReferDelay);
 
         double sampleSearchLatency = searchBase + sampleMatchlineDelay;
         if (sampleSenseMargin < senseVoltage) {

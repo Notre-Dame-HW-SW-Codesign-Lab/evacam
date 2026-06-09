@@ -124,6 +124,7 @@ class CAM_SubArray: public FunctionUnit {
         double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
         double MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const;
         double MatchlineAllMatchTau(double cellResOff, double mlWireRes) const;
+        double MatchlineSenseMargin(double tauAllMatch, double tauOneMiss, double senseTime) const;
         double MatchlineBeta(double effectiveCellRes, int activeDischargePaths = 1) const;
         double MatchlineHorowitzDelay(double tau, double effectiveCellRes, double *ramp,
                 int activeDischargePaths = 1) const;

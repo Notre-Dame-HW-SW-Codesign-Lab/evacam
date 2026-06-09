@@ -31,9 +31,11 @@ TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
 TEST_WIRE_BIN=WireCopyTest
 TEST_MATCH_BIN=MatchTest
+TEST_PYBIND_MATCH_PERSISTENCE_BIN=PybindMatchPersistenceTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
 PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
+PYBIND_BINDING_OBJECT=$(PYBIND_OBJ_DIR)/bindings/EvaCAM_Pybind.o
 PYBIND_CPP_FLAGS=$(CPP_FLAGS) $(shell python3-config --includes) -fPIC
 UML_TEX=docs/repo_uml.tex
 UML_PDF=repo_uml.pdf
@@ -47,7 +49,7 @@ OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 OBJECTS_NO_MAIN=$(filter-out $(OBJ_DIR)/app/main.o, $(OBJECTS))
 PYBIND_OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(PYBIND_OBJ_DIR)/%.o, $(filter-out $(SRC_DIR)/app/main.cpp, $(SOURCES)))
 DEPS=$(OBJECTS:.o=.d)
-PYBIND_DEPS=$(PYBIND_OBJECTS:.o=.d)
+PYBIND_DEPS=$(PYBIND_OBJECTS:.o=.d) $(PYBIND_BINDING_OBJECT:.o=.d)
 
 
 CONFIG_STEM=$(basename $(notdir $(CONFIG_FILE)))
@@ -73,7 +75,11 @@ $(PYBIND_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(PYBIND_CPP_FLAGS) -c $< -o $@
 
-$(PYBIND_MODULE): bindings/EvaCAM_Pybind.cpp $(PYBIND_OBJECTS)
+$(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
+	@mkdir -p $(dir $@)
+	$(CC) $(PYBIND_CPP_FLAGS) -c $< -o $@
+
+$(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
 .PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match test-pybind-match uml uml-slide open-uml
@@ -158,7 +164,8 @@ clean:
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
 		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
 		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
-		$(PYBIND_MODULE_BASE)*.so \
+		$(TEST_PYBIND_MATCH_PERSISTENCE_BIN) $(TEST_PYBIND_MATCH_PERSISTENCE_BIN).d \
+		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
 		tests/tmp_top_level_cell_config.yaml tests/tmp_top_level_system_config.yaml \
 		tests/tmp_cell_loader_cell_config.yaml tests/tmp_cell_loader_missing.yaml \
