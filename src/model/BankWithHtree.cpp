@@ -6,6 +6,307 @@ BankWithHtree::BankWithHtree() {
     invalid = false;
 }
 
+void BankWithHtree::MarkInvalid(const char *reason) {
+    invalid = true;
+    config->logger.Verbose() << reason;
+}
+
+void BankWithHtree::MarkInvalidInitialized(const char *reason) {
+    MarkInvalid(reason);
+    initialized = true;
+}
+
+int BankWithHtree::TotalHorizontalBits(int level) const {
+    return horizontalLevels[level].addressBits
+        + horizontalLevels[level].dataDistributeBits
+        + horizontalLevels[level].dataBroadcastBits;
+}
+
+int BankWithHtree::TotalVerticalBits(int level) const {
+    return verticalLevels[level].addressBits
+        + verticalLevels[level].dataDistributeBits
+        + verticalLevels[level].dataBroadcastBits;
+}
+
+BankWithHtree::WireAreaModel BankWithHtree::GetWireAreaModel() const {
+    WireAreaModel model;
+    if (globalWire.wireRepeaterType == repeated_none) {
+        model.sharingWidth = 1;
+        model.effectivePitch = 0;
+    } else {
+        model.sharingWidth = (int)floor(globalWire.repeaterSpacing / globalWire.repeaterHeight);
+        model.effectivePitch = globalWire.repeatedWirePitch;
+    }
+    return model;
+}
+
+void BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
+        int totalBits, int beta) {
+    double latency;
+    double energy;
+    double leakageWire;
+
+    globalWire.CalculateLatencyAndPower(level.length, &latency, &energy, &leakageWire);
+    readLatency += latency * 2;						/* 2 due to in/out */
+    writeLatency += latency;						/* only in */
+    resetLatency += latency;
+    setLatency += latency;
+
+    /* Read and write energy for H-tree should be the same; each wire is
+     * activated on exactly one way.
+     */
+    readDynamicEnergy += energy * level.activeWireGroups * totalBits;
+    writeDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
+    resetDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
+    setDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
+    leakage += leakageWire * level.totalWireGroups * totalBits;
+
+    if (config->input.designTarget == CAM_chip) {
+        if (!config->peripherals.noPrechargeInc)
+            searchLatency += latency * 2;
+        searchDynamicEnergy += mat->subarray->searchDynamicEnergy
+            + energy * level.activeWireGroups * totalBits;
+    }
+}
+
+bool BankWithHtree::HasRoutableBits(const RoutingState &state) const {
+    return state.dataDistributeBitsToRoute + state.dataBroadcastBitsToRoute != 0
+        && state.addressBitsToRoute != 0;
+}
+
+BankWithHtree::RoutingState BankWithHtree::CreateInitialRoutingState() const {
+    RoutingState state;
+    state.horizontalLevelsRemaining = levelHorizontal;
+    state.verticalLevelsRemaining = levelVertical;
+    state.activeRowsRemaining = numActiveMatPerColumn;
+    state.activeColumnsRemaining = numActiveMatPerRow;
+    state.addressBitsToRoute = numAddressBit;
+    state.dataDistributeBitsToRoute = numDataDistributeBit;
+    state.dataBroadcastBitsToRoute = numDataBroadcastBit;
+    return state;
+}
+
+bool BankWithHtree::InitializeFirstHorizontalLevel(RoutingState &state) {
+    if (state.horizontalLevelsRemaining <= 0) {
+        return true;
+    }
+    if (!HasRoutableBits(state)) {
+        MarkInvalidInitialized("H>0");
+        return false;
+    }
+
+    horizontalLevels[0].addressBits = state.addressBitsToRoute;
+    horizontalLevels[0].dataDistributeBits = state.dataDistributeBitsToRoute;
+    horizontalLevels[0].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+    horizontalLevels[0].wireGroups = 1;
+    horizontalLevels[0].totalWireGroups = 1;
+    horizontalLevels[0].activeWireGroups = 1;
+    state.horizontalLevelsRemaining--;
+    return true;
+}
+
+bool BankWithHtree::ReduceExtraHorizontalLevels(RoutingState &state) {
+    while (state.horizontalLevelsRemaining > state.verticalLevelsRemaining) {
+        if (!HasRoutableBits(state)) {
+            MarkInvalidInitialized("H>V");
+            return false;
+        }
+
+        int level = levelHorizontal - state.horizontalLevelsRemaining;
+        if (state.activeColumnsRemaining > 1) {
+            state.dataDistributeBitsToRoute /= 2;
+            state.activeColumnsRemaining /= 2;
+            horizontalLevels[level].activeWireGroups =
+                2 * horizontalLevels[level - 1].activeWireGroups;
+        } else {
+            state.addressBitsToRoute--;
+            horizontalLevels[level].activeWireGroups = horizontalLevels[level - 1].activeWireGroups;
+        }
+
+        horizontalLevels[level].addressBits = state.addressBitsToRoute;
+        horizontalLevels[level].dataDistributeBits = state.dataDistributeBitsToRoute;
+        horizontalLevels[level].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        horizontalLevels[level].wireGroups = 1;
+        horizontalLevels[level].totalWireGroups = 2 * horizontalLevels[level - 1].totalWireGroups;
+        state.horizontalLevelsRemaining--;
+        state.verticalWireTier *= 2;
+    }
+    return true;
+}
+
+bool BankWithHtree::ReduceExtraVerticalLevels(RoutingState &state) {
+    while (state.verticalLevelsRemaining > state.horizontalLevelsRemaining) {
+        if (!HasRoutableBits(state)) {
+            MarkInvalidInitialized("V>H");
+            return false;
+        }
+
+        int level = levelVertical - state.verticalLevelsRemaining;
+        if (state.activeRowsRemaining > 1) {
+            state.dataDistributeBitsToRoute /= 2;
+            state.activeRowsRemaining /= 2;
+            if (state.verticalLevelsRemaining == levelVertical) {
+                verticalLevels[0].activeWireGroups = 2;
+            } else {
+                verticalLevels[level].activeWireGroups =
+                    2 * verticalLevels[level - 1].activeWireGroups;
+            }
+        } else {
+            state.addressBitsToRoute--;
+            if (state.verticalLevelsRemaining == levelVertical) {
+                verticalLevels[0].activeWireGroups = 1;
+            } else {
+                verticalLevels[level].activeWireGroups = verticalLevels[level - 1].activeWireGroups;
+            }
+        }
+
+        verticalLevels[level].addressBits = state.addressBitsToRoute;
+        verticalLevels[level].dataDistributeBits = state.dataDistributeBitsToRoute;
+        verticalLevels[level].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        verticalLevels[level].wireGroups = 1;
+        if (state.verticalLevelsRemaining == levelVertical) {
+            verticalLevels[0].totalWireGroups = 2;
+        } else {
+            verticalLevels[level].totalWireGroups = 2 * verticalLevels[level - 1].totalWireGroups;
+        }
+        state.verticalLevelsRemaining--;
+        state.horizontalWireTier *= 2;
+    }
+    return true;
+}
+
+bool BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state) {
+    while (state.horizontalLevelsRemaining > 0) {
+        if (!HasRoutableBits(state)) {
+            MarkInvalidInitialized("Reduce H an V to zero");
+            return false;
+        }
+
+        int horizontalLevel = levelHorizontal - state.horizontalLevelsRemaining;
+        int verticalLevel = levelVertical - state.verticalLevelsRemaining;
+
+        if (state.activeColumnsRemaining > 1) {
+            state.dataDistributeBitsToRoute /= 2;
+            state.activeColumnsRemaining /= 2;
+            if (state.verticalLevelsRemaining == levelVertical) {
+                horizontalLevels[horizontalLevel].activeWireGroups =
+                    2 * horizontalLevels[horizontalLevel - 1].activeWireGroups;
+            } else {
+                horizontalLevels[horizontalLevel].activeWireGroups =
+                    2 * verticalLevels[verticalLevel - 1].activeWireGroups;
+            }
+        } else {
+            state.addressBitsToRoute--;
+            if (state.verticalLevelsRemaining == levelVertical) {
+                horizontalLevels[horizontalLevel].activeWireGroups =
+                    horizontalLevels[horizontalLevel - 1].activeWireGroups;
+            } else {
+                horizontalLevels[horizontalLevel].activeWireGroups =
+                    verticalLevels[verticalLevel - 1].activeWireGroups;
+            }
+        }
+
+        horizontalLevels[horizontalLevel].addressBits = state.addressBitsToRoute;
+        horizontalLevels[horizontalLevel].dataDistributeBits = state.dataDistributeBitsToRoute;
+        horizontalLevels[horizontalLevel].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        horizontalLevels[horizontalLevel].wireGroups = state.horizontalWireTier;
+
+        if (state.verticalLevelsRemaining == levelVertical) {
+            horizontalLevels[horizontalLevel].totalWireGroups =
+                2 * horizontalLevels[horizontalLevel - 1].totalWireGroups;
+        } else {
+            horizontalLevels[horizontalLevel].totalWireGroups =
+                2 * verticalLevels[verticalLevel - 1].totalWireGroups;
+        }
+
+        if (!HasRoutableBits(state)) {
+            MarkInvalidInitialized("numDataDistributeBitToRoute + "
+                    "numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0");
+            return false;
+        }
+
+        if (state.activeRowsRemaining > 1) {
+            state.dataDistributeBitsToRoute /= 2;
+            state.activeRowsRemaining /= 2;
+            verticalLevels[verticalLevel].activeWireGroups =
+                2 * horizontalLevels[horizontalLevel].activeWireGroups;
+        } else {
+            state.addressBitsToRoute--;
+            verticalLevels[verticalLevel].activeWireGroups =
+                horizontalLevels[horizontalLevel].activeWireGroups;
+        }
+
+        verticalLevels[verticalLevel].addressBits = state.addressBitsToRoute;
+        verticalLevels[verticalLevel].dataDistributeBits = state.dataDistributeBitsToRoute;
+        verticalLevels[verticalLevel].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        if (levelHorizontal == 2) {
+            verticalLevels[verticalLevel].wireGroups = state.verticalWireTier;
+        } else {
+            verticalLevels[verticalLevel].wireGroups = 2 * state.verticalWireTier;
+        }
+        verticalLevels[verticalLevel].totalWireGroups =
+            2 * horizontalLevels[horizontalLevel].totalWireGroups;
+
+        state.horizontalLevelsRemaining--;
+        state.verticalLevelsRemaining--;
+        state.horizontalWireTier *= 2;
+        state.verticalWireTier *= 2;
+    }
+    return true;
+}
+
+bool BankWithHtree::FinalizeMatRoutingBits(RoutingState &state) {
+    if (!HasRoutableBits(state)) {
+        MarkInvalidInitialized("numDataDistributeBitToRoute");
+        return false;
+    }
+
+    if (state.activeColumnsRemaining > 1) {
+        state.dataDistributeBitsToRoute /= 2;
+        state.activeColumnsRemaining /= 2;
+    } else if (levelHorizontal > 0) {
+        state.addressBitsToRoute--;
+    }
+
+    return true;
+}
+
+bool BankWithHtree::DetermineMatRouting(const RoutingState &state, MatRouting &matRouting) {
+    if (memoryType == mem_data) {
+        if (numRowPerSet > (int)pow(2, state.dataBroadcastBitsToRoute)) {
+            MarkInvalidInitialized("no multiple rows");
+            return false;
+        }
+
+        matRouting.blockSize = state.dataDistributeBitsToRoute;
+        matRouting.numWay = (int)pow(2, state.dataBroadcastBitsToRoute);
+
+        int numWayPerRow = matRouting.numWay / numRowPerSet;
+        if (numWayPerRow > 1) {
+            int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
+            if (config->technology.cell->memCellType == DRAM
+                    || config->technology.cell->memCellType == eDRAM) {
+                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 2);
+                int extraMuxOutputLev1 = numWayPerRow / extraMuxOutputLev2;
+                muxOutputLev1 *= extraMuxOutputLev1;
+                muxOutputLev2 *= extraMuxOutputLev2;
+            } else {
+                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 3);
+                int extraMuxOutputLev1 = extraMuxOutputLev2;
+                int extraMuxSenseAmp = numWayPerRow / extraMuxOutputLev1 / extraMuxOutputLev2;
+                muxSenseAmp *= extraMuxSenseAmp;
+                muxOutputLev1 *= extraMuxOutputLev1;
+                muxOutputLev2 *= extraMuxOutputLev2;
+            }
+        }
+    } else {
+        matRouting.blockSize = state.dataBroadcastBitsToRoute;
+        matRouting.numWay = 1;
+    }
+
+    return true;
+}
+
 void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
         long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1,
@@ -25,18 +326,12 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     }
 
     if (!_internalSenseAmp) {
-        invalid = true;
-        config->logger.Verbose() << "[Bank] Htree organization does not support external sense amplification scheme";
+        MarkInvalid("[Bank] Htree organization does not support external sense "
+                "amplification scheme");
         return;
     }
     if (initialized)
         config->logger.Verbose() << "[Bank] Warning: Already initialized!";
-
-    // if (capacity ==0 || blockSize ==0 || associativity == 0) {
-    // 	invalid = true;
-    // 	std::cout << "[Bank] Unsuccessful initialization." << std::endl;
-    // 	return;
-    // }
 
     numRowMat = _numRowMat;
     numColumnMat = _numColumnMat;
@@ -51,9 +346,6 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     searchFunction = _searchFunction;
     CAM_opt = _CAM_opt;
 
-    int numWay = 1;	/* default value for non-cache design */
-
-    // std::cout << __FILE__ << ": " << __LINE__ << ": " << capacity << ":" << blockSize << ":" << associativity << std::endl;
     /* Calculate the physical signals that are required in routing */
     numAddressBit = (int)(log2((double)capacity / blockSize / associativity) + 0.1);
 
@@ -61,42 +353,54 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     if (memoryType == mem_data) {
         numDataDistributeBit = blockSize;
         numDataBroadcastBit = (int)(log2(associativity));	/* TODO: this is not the only way */
+
     } else {	/* CAM */
         numDataDistributeBit = 0;
         numDataBroadcastBit = blockSize;
     }
 
     if (_numActiveMatPerRow > numColumnMat) {
-        config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << "[Bank] Warning: The number of active subarray "
+            "per row is larger than the number of subarray per row!";
         config->logger.Log() << _numActiveMatPerRow << " > " << numColumnMat;
         numActiveMatPerRow = numColumnMat;
+
     } else {
         numActiveMatPerRow = _numActiveMatPerRow;
     }
+
     if (_numActiveMatPerColumn > numRowMat) {
-        config->logger.Log() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << "[Bank] Warning: The number of active subarray "
+            "per column is larger than the number of subarray per column!";
         config->logger.Log() << _numActiveMatPerColumn << " > " << numRowMat;
         numActiveMatPerColumn = numRowMat;
+
     } else {
         numActiveMatPerColumn = _numActiveMatPerColumn;
     }
+
     muxSenseAmp = _muxSenseAmp;
     muxOutputLev1 = _muxOutputLev1;
     muxOutputLev2 = _muxOutputLev2;
-
     numRowSubarray = _numRowSubarray;
     numColumnSubarray = _numColumnSubarray;
+
     if (_numActiveSubarrayPerRow > numColumnSubarray) {
-        config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log() << "[Bank] Warning: The number of active subarray "
+            "per row is larger than the number of subarray per row!";
         config->logger.Log() << _numActiveSubarrayPerRow << " > " << numColumnSubarray;
         numActiveSubarrayPerRow = numColumnSubarray;
+
     } else {
         numActiveSubarrayPerRow = _numActiveSubarrayPerRow;
     }
+
     if (_numActiveSubarrayPerColumn > numRowSubarray) {
-        config->logger.Log() << "[Bank] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log() << "[Bank] Warning: The number of active subarray "
+            "per column is larger than the number of subarray per column!";
         config->logger.Log() << _numActiveSubarrayPerColumn << " > " << numRowSubarray;
         numActiveSubarrayPerColumn = numRowSubarray;
+
     } else {
         numActiveSubarrayPerColumn = _numActiveSubarrayPerColumn;
     }
@@ -105,249 +409,37 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     levelVertical = (int)(log2(numRowMat)+0.1);
 
     if (levelHorizontal > 0) {
-        numHorizontalAddressBitToRoute.resize(levelHorizontal);
-        numHorizontalDataDistributeBitToRoute.resize(levelHorizontal);
-        numHorizontalDataBroadcastBitToRoute.resize(levelHorizontal);
-        numHorizontalWire.resize(levelHorizontal);
-        numSumHorizontalWire.resize(levelHorizontal);
-        numActiveHorizontalWire.resize(levelHorizontal);
-        lengthHorizontalWire.resize(levelHorizontal);
+        horizontalLevels.resize(levelHorizontal);
     }
+
     if (levelVertical > 0) {
-        numVerticalAddressBitToRoute.resize(levelVertical);
-        numVerticalDataDistributeBitToRoute.resize(levelVertical);
-        numVerticalDataBroadcastBitToRoute.resize(levelVertical);		
-        numVerticalWire.resize(levelVertical);		
-        numSumVerticalWire.resize(levelVertical);		
-        numActiveVerticalWire.resize(levelVertical);		
-        lengthVerticalWire.resize(levelVertical);	
+        verticalLevels.resize(levelVertical);	
     }
 
-    /* When H > V */
-    int h = levelHorizontal;
-    int v = levelVertical;
-    int rowToActive = numActiveMatPerColumn;
-    int columnToActive = numActiveMatPerRow;
-    int numAddressBitToRoute = numAddressBit;
-    int numDataDistributeBitToRoute = numDataDistributeBit;
-    int numDataBroadcastBitToRoute = numDataBroadcastBit;
-
-    /* Always route H as the first step, TODO: this constraint is not valid */
-    if (h > 0) {
-        if (numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0) {
-            invalid = true;
-            config->logger.Verbose() << "H>0";
-            initialized = true;
-            return;
-        }
-        numHorizontalAddressBitToRoute[0] = numAddressBitToRoute;
-        numHorizontalDataDistributeBitToRoute[0] = numDataDistributeBitToRoute;
-        numHorizontalDataBroadcastBitToRoute[0] = numDataBroadcastBitToRoute;
-        numHorizontalWire[0] = 1;
-        numSumHorizontalWire[0] = 1;
-        numActiveHorizontalWire[0] = 1;
-        h--;
-    }
-
-    int hTemp, vTemp;
-    hTemp = 1;
-    vTemp = 1;
-    /* If H is larger than V, then reduce H to V */
-    while (h > v) {
-        if (numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0) {
-            invalid = true;
-            config->logger.Verbose() << "H>V";
-            initialized = true;
-            return;
-        }
-        /* If there is possibility to reduce the mem_data bits */
-        if (columnToActive > 1) {
-            numDataDistributeBitToRoute /= 2;
-            columnToActive /= 2;
-            numActiveHorizontalWire[levelHorizontal - h] = 2 * numActiveHorizontalWire[levelHorizontal - h - 1];
-        } else {
-            numAddressBitToRoute--;
-            numActiveHorizontalWire[levelHorizontal - h] = numActiveHorizontalWire[levelHorizontal - h - 1];
-        }
-        numHorizontalAddressBitToRoute[levelHorizontal - h] = numAddressBitToRoute;
-        numHorizontalDataDistributeBitToRoute[levelHorizontal - h] = numDataDistributeBitToRoute;
-        numHorizontalDataBroadcastBitToRoute[levelHorizontal - h] = numDataBroadcastBitToRoute;
-        numHorizontalWire[levelHorizontal - h] = 1;
-        numSumHorizontalWire[levelHorizontal - h] = 2 * numSumHorizontalWire[levelHorizontal - h - 1];
-        h--;
-        vTemp *= 2;
-    }
-    /* If V is larger than H, then reduce V to H */
-    while (v > h) {
-        if (numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0) {
-            invalid = true;
-            config->logger.Verbose() << "V>H";
-            initialized = true;
-            return;
-        }
-        /* If there is possibility to reduce the mem_data bits on vertical */
-        if (rowToActive > 1) {
-            numDataDistributeBitToRoute /= 2;
-            rowToActive /= 2;
-            if (v == levelVertical) {
-                numActiveVerticalWire[0] = 2;
-            } else {
-                numActiveVerticalWire[levelVertical - v] = 2 * numActiveVerticalWire[levelVertical - v - 1];
-            }
-        } else {
-            numAddressBitToRoute--;
-            if (v == levelVertical) {
-                numActiveVerticalWire[0] = 1;
-            } else {
-                numActiveVerticalWire[levelVertical - v] = numActiveVerticalWire[levelVertical - v - 1];
-            }
-        }
-        numVerticalAddressBitToRoute[levelVertical - v] = numAddressBitToRoute;
-        numVerticalDataDistributeBitToRoute[levelVertical - v] = numDataDistributeBitToRoute;
-        numVerticalDataBroadcastBitToRoute[levelVertical - v] = numDataBroadcastBitToRoute;
-        numVerticalWire[levelVertical - v] = 1;
-        if (v == levelVertical) {
-            numSumVerticalWire[0] = 2;
-        } else {
-            numSumVerticalWire[levelVertical - v] = 2 * numSumVerticalWire[levelVertical - v - 1];
-        }
-        v--;
-        hTemp *= 2;
-    }
-    /* Reduce H an V to zero */
-    while (h > 0) {
-        if (numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0) {
-            invalid = true;
-            config->logger.Verbose() << "Reduce H an V to zero";
-            initialized = true;
-            return;
-        }
-        /* If there is possibility to reduce the mem_data bits */
-        if (columnToActive > 1) {
-            numDataDistributeBitToRoute /= 2;
-            columnToActive /= 2;
-            if (v == levelVertical) {
-                numActiveHorizontalWire[levelHorizontal - h] = 2 * numActiveHorizontalWire[levelHorizontal - h - 1];
-            } else {
-                numActiveHorizontalWire[levelHorizontal - h] = 2 * numActiveVerticalWire[levelVertical - v - 1];
-            }
-        } else {
-            numAddressBitToRoute--;
-            if (v == levelVertical) {
-                numActiveHorizontalWire[levelHorizontal - h] = numActiveHorizontalWire[levelHorizontal - h - 1];
-            } else {
-                numActiveHorizontalWire[levelHorizontal - h] = numActiveVerticalWire[levelVertical - v - 1];
-            }
-        }
-        numHorizontalAddressBitToRoute[levelHorizontal - h] = numAddressBitToRoute;
-        numHorizontalDataDistributeBitToRoute[levelHorizontal - h] = numDataDistributeBitToRoute;
-        numHorizontalDataBroadcastBitToRoute[levelHorizontal - h] = numDataBroadcastBitToRoute;
-        numHorizontalWire[levelHorizontal - h] = hTemp;
-        if (v == levelVertical) {
-            numSumHorizontalWire[levelHorizontal - h] = 2 * numSumHorizontalWire[levelHorizontal - h - 1];
-        } else {
-            numSumHorizontalWire[levelHorizontal - h] = 2 * numSumVerticalWire[levelVertical - v - 1];
-        }
-        if (numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0) {
-            invalid = true;
-            config->logger.Verbose() << "numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0";
-            initialized = true;
-            return;
-        }
-        /* If there is possibility to reduce the mem_data bits on vertical */
-        if (rowToActive > 1) {
-            numDataDistributeBitToRoute /= 2;
-            rowToActive /= 2;
-            numActiveVerticalWire[levelVertical - v] = 2 * numActiveHorizontalWire[levelHorizontal - h];
-        } else {
-            numAddressBitToRoute--;
-            numActiveVerticalWire[levelVertical - v] = numActiveHorizontalWire[levelHorizontal - h];
-        }
-        numVerticalAddressBitToRoute[levelVertical - v] = numAddressBitToRoute;
-        numVerticalDataDistributeBitToRoute[levelVertical - v] = numDataDistributeBitToRoute;
-        numVerticalDataBroadcastBitToRoute[levelVertical - v] = numDataBroadcastBitToRoute;
-        if (levelHorizontal == 2) {
-            numVerticalWire[levelVertical - v] = vTemp;
-        } else {
-            numVerticalWire[levelVertical - v] = 2 * vTemp;
-        }
-        numSumVerticalWire[levelVertical - v] = 2 * numSumHorizontalWire[levelHorizontal - h];
-        h--;
-        v--;
-        hTemp *= 2;
-        vTemp *= 2;
-    }
-
-    if (numDataDistributeBitToRoute + numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0) {
-        invalid = true;
-        config->logger.Verbose() << "numDataDistributeBitToRoute";
-        initialized = true;
+    RoutingState state = CreateInitialRoutingState();
+    if (!InitializeFirstHorizontalLevel(state)
+            || !ReduceExtraHorizontalLevels(state)
+            || !ReduceExtraVerticalLevels(state)
+            || !ReducePairedHorizontalAndVerticalLevels(state)
+            || !FinalizeMatRoutingBits(state)) {
         return;
     }
-    if (columnToActive > 1) {
-        numDataDistributeBitToRoute /= 2;
-        columnToActive /= 2;
-    } else {
-        if (levelHorizontal > 0) {
-            numAddressBitToRoute--;
-        }
-    }
 
-    /* If this mat is cache mem_data array, determine if the number of cache ways assigned to this mat is legal */
-    if (memoryType == mem_data) {
-        if (numRowPerSet > (int)pow(2, numDataBroadcastBitToRoute)) {
-            /* There is no enough ways to distribute into multiple rows */
-            invalid = true;
-            config->logger.Verbose() << "no multiple rows";
-            initialized = true;
-            return;
-        }
-    }
-
-    /* Determine the number of columns in a mat */
-    long matBlockSize;
-    if (memoryType == mem_data) {		/* Data array */
-        /* numDataDistributeBit is the bits in a mem_data word that is assigned to this mat */
-        matBlockSize = numDataDistributeBitToRoute;
-        numWay = (int)pow(2, numDataBroadcastBitToRoute);
-        /* Consider the case if each mat is a cache mem_data array that contains multiple ways */
-        int numWayPerRow = numWay / numRowPerSet;	/* At least 1, otherwise it is invalid, and returned already */
-        if (numWayPerRow > 1) {		/* multiple ways per row, needs extra mux level */
-            /* Do mux level recalculation to contain the multiple ways */
-            if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
-                /* for DRAM, mux before sense amp has to be 1, only mux output1 and mux output2 can be used */
-                int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
-                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 2);
-                int extraMuxOutputLev1 = numWayPerRow / extraMuxOutputLev2;
-                muxOutputLev1 *= extraMuxOutputLev1;
-                muxOutputLev2 *= extraMuxOutputLev2;
-            } else {
-                /* for non-DRAM, all mux levels can be used */
-                int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
-                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 3);
-                int extraMuxOutputLev1 = extraMuxOutputLev2;
-                int extraMuxSenseAmp = numWayPerRow / extraMuxOutputLev1 / extraMuxOutputLev2;
-                muxSenseAmp *= extraMuxSenseAmp;
-                muxOutputLev1 *= extraMuxOutputLev1;
-                muxOutputLev2 *= extraMuxOutputLev2;
-            }
-        }
-    } else {						/* CAM */
-        matBlockSize = numDataBroadcastBitToRoute;
-        numWay = 1;
+    MatRouting matRouting;
+    if (!DetermineMatRouting(state, matRouting)) {
+        return;
     }
 
     mat = std::make_unique<Mat>();
-    mat->Initialize(numRowSubarray, numColumnSubarray, numAddressBitToRoute, matBlockSize,
-            numWay, numRowPerSet, false, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
+    mat->Initialize(numRowSubarray, numColumnSubarray, state.addressBitsToRoute,
+            matRouting.blockSize, matRouting.numWay, numRowPerSet, false,
+            numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
             muxSenseAmp, internalSenseAmp, muxOutputLev1, muxOutputLev2, areaOptimizationLevel, 
             memoryType, camType, searchFunction, config, localWire, CAM_opt);
 
     /* Check if mat is under a legal configuration */
     if (mat->invalid) {
-        invalid = true;
-        config->logger.Verbose() << "[Bank] invalid mat configurations!";
-        initialized = true;
+        MarkInvalidInitialized("[Bank] invalid mat configurations!");
         return;
     }
 
@@ -357,49 +449,39 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     muxOutputLev2 = _muxOutputLev2;
 
     initialized = true;
-    CalculateLatencyAndPower();
-    CalculateRC();
     CalculateArea();
+    CalculateLatencyAndPower();
 }
 
 void BankWithHtree::CalculateArea() {
-    /* Make this happen on initilization 
-    if (!initialized) {
-       ThrowInitializationError("[Bank]");
-       } else */
     if (invalid) {
         height = width = area = 1e41;
     } else {
-        //mat->CalculateArea();
         height = mat->height * numRowMat;
         width = mat->width * numColumnMat;
 
-        /* Add wire area */
-        int numWireSharingWidth;
-        double effectivePitch;
-        if (globalWire.wireRepeaterType == repeated_none) {
-            numWireSharingWidth = 1;
-            effectivePitch = 0;		/* assume that the wire is built on another metal layer, there does not cause silicon area */
-            //effectivePitch = globalWire.wirePitch;
-        } else {
-            numWireSharingWidth = (int)floor(globalWire.repeaterSpacing / globalWire.repeaterHeight);
-            effectivePitch = globalWire.repeatedWirePitch;
-        }
+        WireAreaModel wireArea = GetWireAreaModel();
+
         for (int i = 0; i < levelHorizontal; i++) {
-            height += ceil((double)(numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i] +
-                        numHorizontalDataBroadcastBitToRoute[i]) * numHorizontalWire[i] / numWireSharingWidth) * effectivePitch ;
+            height += ceil((double)TotalHorizontalBits(i)
+                    * horizontalLevels[i].wireGroups / wireArea.sharingWidth)
+                * wireArea.effectivePitch ;
         }
+
         for (int i = 0; i < levelVertical; i++) {
-            width += ceil((double)(numVerticalAddressBitToRoute[i] + numVerticalDataDistributeBitToRoute[i] +
-                        numVerticalDataBroadcastBitToRoute[i]) * numVerticalWire[i] / numWireSharingWidth) * effectivePitch;
+            width += ceil((double)TotalVerticalBits(i)
+                    * verticalLevels[i].wireGroups / wireArea.sharingWidth)
+                * wireArea.effectivePitch;
         }
+
         /* Determine if the aspect ratio meets the constraint */
         if (memoryType == mem_data)
-            if (height / width > CONSTRAINT_ASPECT_RATIO_BANK || width / height > CONSTRAINT_ASPECT_RATIO_BANK) {
+            if (height / width > CONSTRAINT_ASPECT_RATIO_BANK
+                    || width / height > CONSTRAINT_ASPECT_RATIO_BANK) {
                 /* illegal */
-                invalid = true;
-                config->logger.Verbose() << "aspect ratio doesn't meet the constraint";
-                config->logger.Verbose() << "height / width = " << height / width << "|| width / height = " << width / height;
+                MarkInvalid("aspect ratio doesn't meet the constraint");
+                config->logger.Verbose() << "height / width = " << height / width
+                    << "|| width / height = " << width / height;
                 height = width = area = 1e41;
                 return;
             }
@@ -411,48 +493,52 @@ void BankWithHtree::CalculateArea() {
         int v = levelVertical - 1;
         while (v > h) {
             if (v == levelVertical - 1)
-                lengthVerticalWire[v] = mat->height / 2;
+                verticalLevels[v].length = mat->height / 2;
             else
-                lengthVerticalWire[v] = lengthVerticalWire[v + 1] * 2;
+                verticalLevels[v].length = verticalLevels[v + 1].length * 2;
             v--;
         }
 
         double numHorizontalBitToRoute = 0;
         double numVerticalBitToRoute = 0;
+
         while (v >= 0) {
             if (v == levelVertical - 1) {
-                lengthVerticalWire[v] = mat->height / 2;
+                verticalLevels[v].length = mat->height / 2;
             } else {
                 if (h == levelHorizontal - 1)
-                    lengthVerticalWire[v] = lengthVerticalWire[v + 1] * 2;
+                    verticalLevels[v].length = verticalLevels[v + 1].length * 2;
                 else {
-                    numHorizontalBitToRoute = numHorizontalAddressBitToRoute[h + 1]
-                        + numHorizontalDataDistributeBitToRoute[h + 1] + numHorizontalDataBroadcastBitToRoute[h + 1];
-                    lengthVerticalWire[v] = lengthVerticalWire[v + 1] * 2
-                        + ceil((double)numHorizontalBitToRoute / numWireSharingWidth) * effectivePitch / 2;
+                    numHorizontalBitToRoute = TotalHorizontalBits(h + 1);
+                    verticalLevels[v].length = verticalLevels[v + 1].length * 2
+                        + ceil((double)numHorizontalBitToRoute / wireArea.sharingWidth)
+                        * wireArea.effectivePitch / 2;
                 }
             }
+
             if (h == levelHorizontal - 1) {
-                lengthHorizontalWire[h] = mat->width;
+                horizontalLevels[h].length = mat->width;
                 for (int i = v; i < levelVertical; i++) {
-                    numVerticalBitToRoute = numVerticalAddressBitToRoute[i]
-                        + numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i];
-                    lengthHorizontalWire[h] += ceil((double)numVerticalBitToRoute / numWireSharingWidth) * effectivePitch / 2;
+                    numVerticalBitToRoute = TotalVerticalBits(i);
+                    horizontalLevels[h].length += ceil((double)numVerticalBitToRoute
+                            / wireArea.sharingWidth) * wireArea.effectivePitch / 2;
                 }
             } else {
-                numVerticalBitToRoute = numVerticalAddressBitToRoute[v]
-                    + numVerticalDataDistributeBitToRoute[v] + numVerticalDataBroadcastBitToRoute[v];
-                lengthHorizontalWire[h] = lengthHorizontalWire[h + 1] * 2
-                    + ceil((double)numVerticalBitToRoute / numWireSharingWidth) * effectivePitch / 2;
+                numVerticalBitToRoute = TotalVerticalBits(v);
+                horizontalLevels[h].length = horizontalLevels[h + 1].length * 2
+                    + ceil((double)numVerticalBitToRoute / wireArea.sharingWidth)
+                    * wireArea.effectivePitch / 2;
             }
+
             v--;
             h--;
         }
+
         while (h >=  0) {
             if (h == levelHorizontal - 1)
-                lengthHorizontalWire[h] = mat->width;
+                horizontalLevels[h].length = mat->width;
             else
-                lengthHorizontalWire[h] = lengthHorizontalWire[h + 1] * 2;
+                horizontalLevels[h].length = horizontalLevels[h + 1].length * 2;
             h--;
         }
     }
@@ -462,25 +548,31 @@ void BankWithHtree::CalculateRC() {
     if (!initialized) {
         throw std::runtime_error("[Bank] Error: Require initialization first!");
     } else if (!invalid) {
-        //mat->CalculateRC();
+        /* No bank-level RC model is required for H-tree banks.
+         * Mat RC is calculated during Mat::Initialize(), and H-tree wire
+         * effects are handled by Wire::CalculateLatencyAndPower().
+         */
     } else { 
         // If this happens, the size parameters provided from the loop were invalid and skipped.
-        config->logger.Verbose() << "[Bank] Error: Cannot calculate RC while initialized and invalid.";
+        config->logger.Verbose()
+            << "[Bank] Error: Cannot calculate RC while initialized and invalid.";
     }
 }
 
 void BankWithHtree::CalculateLatencyAndPower() {
     if (!initialized) {
         throw std::runtime_error("[Bank] Error: Require initialization first!");
+
     } else if (invalid) {
         readLatency = writeLatency = 1e41;
         readDynamicEnergy = writeDynamicEnergy = 1e41;
         leakage = 1e41;
+
     } else {
-        double latency;
-        double energy;
-        double leakageWire;
-        int beta = 1;	/* Default value is 1. For fast access mode cache, this value is equal to associativity, which means only 1/beta interconnect wires are activated */
+        /* For fast access mode cache, beta is equal to associativity, which
+         * means only 1/beta interconnect wires are activated.
+         */
+        int beta = 1;
 
         mat->CalculateLatency(1e41 /* means Inf */);
         mat->CalculatePower();
@@ -502,88 +594,44 @@ void BankWithHtree::CalculateLatencyAndPower() {
         setDynamicEnergy = mat->setDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
 
         if (config->input.designTarget == CAM_chip) {
+
             if (config->peripherals.noPrechargeInc) {
                 searchLatency = mat->subarray->matchlineDelay
                     + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
                     + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
 
                 if (config->peripherals.withOutputAcc || mat->muxSenseAmp > 1) {
-                    config->logger.Verbose() << "[Bank] Warning: Bit serial or Mux on SA design, but latency only shows a single sense.";
+                    config->logger.Verbose()
+                        << "[Bank] Warning: Bit serial or Mux on SA design, "
+                        << "but latency only shows a single sense.";
                 }
-            } else {
-                //std::cout << "mat->subarray->searchLatency: " << mat->subarray->searchLatency << std::endl;
-                //std::cout << "mat->muxSenseAmp: " << mat->muxSenseAmp << std::endl;
-                //std::cout << "mat->subarray->inputBuf->readLatency: " 
-                //<< mat->subarray->inputBuf->readLatency << std::endl;
 
+            } else {
                 searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
                     - (mat->subarray->inputBuf->readLatency) * (mat->muxSenseAmp - 1);
-                //std::cout << "[BankWithHtree] searchLatency: " << searchLatency << std::endl;
                 if (config->peripherals.withOutputAcc) {
                     searchLatency *= config->input.wordWidth / CAM_opt.BitSerialWidth;
                 }
             }
 
             searchDynamicEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
-                - (mat->subarray->inputBuf->readDynamicEnergy + mat->subarray->inputEnc->readDynamicEnergy) * (mat->muxSenseAmp - 1);
+                - (mat->subarray->inputBuf->readDynamicEnergy
+                        + mat->subarray->inputEnc->readDynamicEnergy)
+                * (mat->muxSenseAmp - 1);
+
             if (config->peripherals.withOutputAcc) {
                 searchDynamicEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
             }
+
             numBitSerial = CAM_opt.BitSerialWidth;
         }
 
         for (int i = 0; i < levelHorizontal; i++) {
-            globalWire.CalculateLatencyAndPower(lengthHorizontalWire[i], &latency, &energy, &leakageWire);
-            readLatency += latency * 2;						/* 2 due to in/out */
-            writeLatency += latency;						/* only in */
-            resetLatency += latency;
-            setLatency += latency;
-            /* Read and write energy for H-tree should be the same, each wire is activated on exactly one way */
-            readDynamicEnergy += energy * numActiveHorizontalWire[i] *
-                (numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i] + numHorizontalDataBroadcastBitToRoute[i]);
-            writeDynamicEnergy += energy * numActiveHorizontalWire[i] *
-                (numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i] + numHorizontalDataBroadcastBitToRoute[i]) / beta;
-            resetDynamicEnergy += energy * numActiveHorizontalWire[i] *
-                (numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i] + numHorizontalDataBroadcastBitToRoute[i]) / beta;
-            setDynamicEnergy += energy * numActiveHorizontalWire[i] *
-                (numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i] + numHorizontalDataBroadcastBitToRoute[i]) / beta;
-            leakage += leakageWire * numSumHorizontalWire[i] * (numHorizontalAddressBitToRoute[i] +
-                    numHorizontalDataDistributeBitToRoute[i] + numHorizontalDataBroadcastBitToRoute[i]);
-
-            if (config->input.designTarget == CAM_chip) {
-                if (!config->peripherals.noPrechargeInc)
-                    searchLatency += latency * 2;
-                searchDynamicEnergy += mat->subarray->searchDynamicEnergy + energy * numActiveHorizontalWire[i] *
-                    (numHorizontalAddressBitToRoute[i] + numHorizontalDataDistributeBitToRoute[i]
-                     + numHorizontalDataBroadcastBitToRoute[i]);
-            }
+            AccumulateHtreeLevelLatencyAndPower(horizontalLevels[i], TotalHorizontalBits(i), beta);
         }
+
         for (int i = 0; i < levelVertical; i++) {
-            globalWire.CalculateLatencyAndPower(lengthVerticalWire[i], &latency, &energy, &leakageWire);
-            readLatency += latency * 2;						/* 2 due to in/out */
-            writeLatency += latency;						/* only in */
-            resetLatency += latency;
-            setLatency += latency;
-            readDynamicEnergy += energy * numActiveVerticalWire[i] *
-                (numVerticalAddressBitToRoute[i] + numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i]);
-            writeDynamicEnergy += energy * numActiveVerticalWire[i] *
-                (numVerticalAddressBitToRoute[i] + numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i]) / beta;
-            resetDynamicEnergy += energy * numActiveVerticalWire[i] *
-                (numVerticalAddressBitToRoute[i] + numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i]) / beta;
-            setDynamicEnergy += energy * numActiveVerticalWire[i] *
-                (numVerticalAddressBitToRoute[i] + numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i]) / beta;
-            leakage += leakageWire * numSumVerticalWire[i] * (numVerticalAddressBitToRoute[i] +
-                    numVerticalDataDistributeBitToRoute[i] + numVerticalDataBroadcastBitToRoute[i]);
-
-            if (config->input.designTarget == CAM_chip) {
-                if (!config->peripherals.noPrechargeInc)
-                    searchLatency += latency * 2;
-
-                searchDynamicEnergy += mat->subarray->searchDynamicEnergy + energy * numActiveVerticalWire[i] *
-                    (numVerticalAddressBitToRoute[i] + numVerticalDataDistributeBitToRoute[i]
-                     + numVerticalDataBroadcastBitToRoute[i]);
-            }
+            AccumulateHtreeLevelLatencyAndPower(verticalLevels[i], TotalVerticalBits(i), beta);
         }
     }
-    //std::cout << searchLatency << std::endl;
 }
