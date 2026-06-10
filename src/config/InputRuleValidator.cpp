@@ -1,12 +1,13 @@
 #include "config/InputRuleValidator.h"
 
 #include <cctype>
-#include <fstream>
 #include <limits>
 #include <stdexcept>
 #include <string>
 
 #include "EvaCamConfig.h"
+#include "SenseAmp.h"
+#include "input/CustomSenseAmpYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
 
 namespace {
@@ -150,39 +151,12 @@ void ValidateCustomSenseAmpFile(const std::string &filePath) {
                 "[Input] Error: sensing.custom_sense_amp requires advanced.custom_sa_input_file.");
     }
 
-    std::ifstream input(filePath);
-    if (!input) {
+    try {
+        SenseAmp customSenseAmp;
+        YamlHelpers::ReadCustomSenseAmpFromYaml(customSenseAmp, filePath, 1.0);
+    } catch (const YAML::BadFile &) {
         throw std::runtime_error(
                 "[Input] Error: custom sense amp file cannot be found: " + filePath);
-    }
-
-    bool hasHeight = false;
-    bool hasWidth = false;
-    bool hasArea = false;
-    bool hasLatency = false;
-    bool hasEnergy = false;
-    bool hasCapLoad = false;
-    std::string line;
-
-    while (std::getline(input, line)) {
-        if (line.rfind("-Height", 0) == 0) {
-            hasHeight = true;
-        } else if (line.rfind("-Width", 0) == 0) {
-            hasWidth = true;
-        } else if (line.rfind("-Area", 0) == 0) {
-            hasArea = true;
-        } else if (line.rfind("-Latency", 0) == 0) {
-            hasLatency = true;
-        } else if (line.rfind("-Energy", 0) == 0) {
-            hasEnergy = true;
-        } else if (line.rfind("-CapLoad", 0) == 0) {
-            hasCapLoad = true;
-        }
-    }
-
-    if (!(hasArea || (hasHeight && hasWidth)) || !hasLatency || !hasEnergy || !hasCapLoad) {
-        throw std::runtime_error(
-                "[Input] Error: custom sense amp file is missing required fields.");
     }
 }
 

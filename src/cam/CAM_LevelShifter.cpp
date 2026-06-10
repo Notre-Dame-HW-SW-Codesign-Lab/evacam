@@ -12,10 +12,6 @@ CAM_LevelShifter::CAM_LevelShifter() {
     rampInput = 0;
     rampOutput = 0;
 }
-/*
-   CAM_LevelShifter::~CAM_LevelShifter() {
-}
- */
 void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config){
     if (initialized)
         _config->logger.Verbose() << "[CAM_LevelShifter] Warning: Already initialized!";
@@ -124,27 +120,4 @@ void CAM_LevelShifter::CalculatePower() {
 void CAM_LevelShifter::PrintProperty() {
     std::cout << "CAM_LevelShifter Properties:" << std::endl;
     FunctionUnit::PrintProperty();
-}
-
-CAM_LevelShifter & CAM_LevelShifter::operator=(const CAM_LevelShifter &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    resLoad = rhs.resLoad;
-    capNandIn = rhs.capNandIn;
-    capNandOut = rhs.capNandOut;
-    widthNandN = rhs.widthNandN;
-    widthNandP = rhs.widthNandP;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    return *this;
 }

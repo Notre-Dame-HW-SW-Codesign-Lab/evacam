@@ -12,7 +12,8 @@
 class CAM_LevelShifter: public FunctionUnit {
     public:
         CAM_LevelShifter();
-        CAM_LevelShifter(const CAM_LevelShifter&) {}
+        CAM_LevelShifter(const CAM_LevelShifter&) = delete;
+        CAM_LevelShifter& operator=(const CAM_LevelShifter&) = delete;
         virtual ~CAM_LevelShifter() {}
 
         /* Functions */
@@ -22,9 +23,6 @@ class CAM_LevelShifter: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        /* Note that this is a single latch, not yet multiplied by number of inputs */
-        CAM_LevelShifter & operator=(const CAM_LevelShifter &);
-
         /* Properties */
         bool initialized;	/* Initialization flag */
         double capLoad;		/* Load capacitance, Unit: F */

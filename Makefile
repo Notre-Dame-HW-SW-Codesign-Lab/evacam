@@ -25,6 +25,7 @@ BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
 TEST_TOP_LEVEL_BIN=TopLevelConfigParserTest
 TEST_CELL_LOADER_BIN=CellYamlLoaderTest
+TEST_CUSTOM_SA_LOADER_BIN=CustomSenseAmpYamlLoaderTest
 TEST_INPUT_VALIDATION_BIN=InputValidationTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
@@ -82,7 +83,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match test-pybind-match uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match test-pybind-match uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -97,6 +98,11 @@ test-cell-loader: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CELL_LOADER_BIN).d -MT $(TEST_CELL_LOADER_BIN) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_CELL_LOADER_BIN)
+
+test-custom-sa-loader: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CUSTOM_SA_LOADER_BIN).d -MT $(TEST_CUSTOM_SA_LOADER_BIN) -o $(TEST_CUSTOM_SA_LOADER_BIN) tests/CustomSenseAmpYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_CUSTOM_SA_LOADER_BIN)
 
 test-input-validation: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
@@ -159,6 +165,7 @@ clean:
 	@rm -rf $(OBJ_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
 		$(TEST_TOP_LEVEL_BIN) $(TEST_TOP_LEVEL_BIN).d \
 		$(TEST_CELL_LOADER_BIN) $(TEST_CELL_LOADER_BIN).d \
+		$(TEST_CUSTOM_SA_LOADER_BIN) $(TEST_CUSTOM_SA_LOADER_BIN).d \
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
@@ -169,7 +176,9 @@ clean:
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
 		tests/tmp_top_level_cell_config.yaml tests/tmp_top_level_system_config.yaml \
 		tests/tmp_cell_loader_cell_config.yaml tests/tmp_cell_loader_missing.yaml \
+		tests/tmp_custom_sense_amp_loader.yaml tests/tmp_custom_sense_amp_loader_missing.yaml \
 		tests/tmp_input_validation_cell_config.yaml tests/tmp_input_validation_system_config.yaml \
+		tests/tmp_input_validation_custom_sa.yaml \
 		tests/tmp_explicit_subarray_system_config.yaml tests/tmp_organization_system_config.yaml \
 		$(UML_PDF) $(UML_SLIDE_PDF) \
 		repo_uml.aux repo_uml.log repo_uml_slide.aux repo_uml_slide.log

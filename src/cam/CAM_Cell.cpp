@@ -56,10 +56,6 @@ CAM_MemCell::CAM_MemCell() {
     camWidthMatchTran = 0.0;
 
 }
-/*
-CAM_MemCell::~CAM_MemCell() {
-}
- */
 void CAM_MemCell::ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd) {
     designTarget = _designTarget;
     vdd = _vdd;

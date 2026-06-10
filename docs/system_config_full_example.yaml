@@ -114,7 +114,7 @@ advanced:
   enable_pruning: false # optional bool; used with optimization.target: Exploration
   bit_serial_width: 256bits # optional; units: bit | bits
   input_encoder_type: encoding_two_bit # optional enum; currently only encoding_two_bit is supported
-  custom_sa_input_file: ./models/custom_sa.yaml # optional path; required when sensing.custom_sense_amp is true
+  custom_sa_input_file: ./models/custom_sa.yaml # optional YAML path; required when sensing.custom_sense_amp is true
   use_updated_lib: false # optional bool
   exclude_precharge_latency: false # optional bool
   include_leakage: false # optional bool

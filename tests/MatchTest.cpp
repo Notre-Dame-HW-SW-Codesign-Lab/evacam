@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
         size_t minSenseMarginMismatches = 0;
         for (size_t mismatches = 0; mismatches <= matcher.word_width(); mismatches++) {
             const std::vector<int> query = QueryWithMismatches(stored, mismatches);
-            const EvaCAMMatchResult result = matcher.evaluate(stored, query);
+            const EvaCAMMatchResult result = matcher.evaluate_vector(stored, query);
             std::cout << std::setw(10) << mismatches
                       << std::setw(8) << result.hit
                       << std::setw(14) << result.searchLatency * 1e12

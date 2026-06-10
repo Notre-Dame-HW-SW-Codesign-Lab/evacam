@@ -15,10 +15,6 @@ CAM_InputEncoder::CAM_InputEncoder() {
     rampInput = 0;
     rampOutput = 0;
 }
-/*
-   CAM_InputEncoder::~CAM_InputEncoder() {
-}
- */
 void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCustom, double _capLoad, 
         double _resLoad, std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)

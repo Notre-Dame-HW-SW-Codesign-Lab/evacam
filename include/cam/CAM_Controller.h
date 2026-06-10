@@ -9,7 +9,8 @@
 class CAM_Controller: public FunctionUnit {
     public:
         CAM_Controller() {}
-        CAM_Controller(const CAM_Controller&) {}
+        CAM_Controller(const CAM_Controller&) = delete;
+        CAM_Controller& operator=(const CAM_Controller&) = delete;
         virtual ~CAM_Controller() {}
 
         /* Functions */
@@ -19,7 +20,6 @@ class CAM_Controller: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        CAM_Controller & operator=(const CAM_Controller &);
         /* Note that this is a single write controller, not yet multiplied by number of columns */
 
         /* Properties */

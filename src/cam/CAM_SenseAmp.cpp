@@ -1,9 +1,8 @@
 #include "CAM_SenseAmp.h"
 #include "EvaCamConfig.h"
 #include "formula.h"
+#include "input/CustomSenseAmpYamlLoader.h"
 
-#include <cstdio>
-#include <cstring>
 #include <iostream>
 #include <stdexcept>
 
@@ -52,56 +51,8 @@ void CAM_SenseAmp::Initialize(
     }
     if (isCustom) {
         customSA = std::make_unique<SenseAmp>();
-        FILE *fp = fopen(fileCustomSA.c_str(), "r");
-        char line[5000];
-
-        if (!fp) {
-            throw std::runtime_error("[CAM_SenseAmp] Error: custom SA file cannot be found: " + fileCustomSA);
-        }
-
-        while (fscanf(fp, "%[^\n]\n", line) != EOF) {
-            double tmp;
-            if (!strncmp("-Height", line, strlen("-Height"))) {
-                sscanf(line, "-Height (F): %lf", &tmp);
-                customSA->height = tmp * config->technology.tech->featureSize();
-                continue;
-            }
-            if (!strncmp("-Width", line, strlen("-Width"))) {
-                sscanf(line, "-Width (F): %lf", &tmp);
-                customSA->width = tmp * config->technology.tech->featureSize();
-                continue;
-            }
-            if (!strncmp("-Area", line, strlen("-Area"))) {
-                sscanf(line, "-Area (um): %lf", &tmp);
-                customSA->area = tmp / 1e12;
-                continue;
-            }
-            if (!strncmp("-Latency", line, strlen("-Latency"))) {
-                sscanf(line, "-Latency (ps): %lf", &tmp);
-                customSA->readLatency = tmp / 1e12;
-                continue;
-            }
-            if (!strncmp("-Energy", line, strlen("-Energy"))) {
-                sscanf(line, "-Energy (pJ): %lf", &tmp);
-                customSA->readDynamicEnergy = tmp / 1e12;
-                continue;
-            }
-            if (!strncmp("-Leakage", line, strlen("-Leakage"))) {
-                sscanf(line, "-Leakage (pW): %lf", &tmp);
-                customSA->leakage = tmp / 1e12;
-                continue;
-            }
-            if (!strncmp("-CapLoad", line, strlen("-CapLoad"))) {
-                sscanf(line, "-CapLoad (fF): %lf", &tmp);
-                customSA->setLatency = tmp / 1e15;
-                continue;
-            }
-        }
-        fclose(fp);
-        if (customSA->area == 0) {
-            customSA->area = customSA->height * customSA->width;
-        }
-
+        YamlHelpers::ReadCustomSenseAmpFromYaml(
+                *customSA, fileCustomSA, config->technology.tech->featureSize());
     }
     initialized = true;
     CalculateArea();
@@ -153,9 +104,9 @@ void CAM_SenseAmp::CalculateRC() {
     } else if (invalid) {
         capLoad = 1e41;
     } else {
-        if (isCustom && customSA->setLatency > 0) {
+        if (isCustom && customSA->capLoad > 0) {
             // custom design
-            capLoad = customSA->setLatency;
+            capLoad = customSA->capLoad;
         }
         else if (typeSA == nvsim_voltage_sense || typeSA == nvsim_current_sense || typeSA == discharge) {
             //normalSenseAmp->CalculateRC();

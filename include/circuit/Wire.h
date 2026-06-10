@@ -17,15 +17,33 @@ class Wire {
 
         /* Functions */
         void PrintProperty();
-        void Initialize(int _featureSizeInNano, WireType _wireType, WireRepeaterType _wireRepeaterType,
-                int _temperature, bool _isLowSwing, std::shared_ptr<EvaCamConfig> _config);
-        void CalculateLatencyAndPower(double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+        void Initialize(
+                int _featureSizeInNano,
+                WireType _wireType,
+                WireRepeaterType _wireRepeaterType,
+                int _temperature,
+                bool _isLowSwing,
+                std::shared_ptr<EvaCamConfig> _config);
+        void CalculateLatencyAndPower(
+                double _wireLength,
+                double *delay,
+                double *dynamicEnergy,
+                double *leakagePower);
         void findOptimalRepeater();
         void findPenalizedRepeater(double _penalty);
         double getRepeatedWireUnitDelay();				/* Return delay per unit, Unit: s/m */
         double getRepeatedWireUnitDynamicEnergy();		/* Return dynamic energy per unit, Unit: J/m */
         double getRepeatedWireUnitLeakage();			/* Return leakage power per unit, Unit: W/m */
 
+    private:
+        void CalculateLowSwingLatencyAndPower(
+                double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+        void CalculatePassiveLatencyAndPower(
+                double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+        void CalculateRepeatedLatencyAndPower(
+                double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+
+    public:
         /* Properties */
         bool initialized;	/* Initialization flag */
         int featureSizeInNano; /* Process feature size, Unit: nm */
@@ -44,10 +62,10 @@ class Wire {
         double wireThickness;			/* Unit: m */
         double wireSpacing;				/* Unit: m */
 
-        double repeaterSize;			/* For repeated wire only, non-repeated wire = 0, Unit: minimum driver size*/
+        double repeaterSize;			/* For repeated wire only, non-repeated wire = 0 */
         double repeaterSpacing;			/* For repeated wire only, non-repeated wire = inf, Unit: m */
         double repeaterHeight, repeaterWidth;	/* Unit: m */
-        double repeatedWirePitch;		/* For repeated wire only, translate the repeaterSize into meter, Unit: m */
+        double repeatedWirePitch;		/* Repeated wire pitch translated to meter, Unit: m */
 
         double resWirePerUnit;			/* Unit: ohm/m */
         double capWirePerUnit;			/* Unit: F/m */

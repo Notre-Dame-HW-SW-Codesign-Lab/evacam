@@ -89,28 +89,3 @@ void CAM_PriorityEncoder::PrintProperty() {
     std::cout << "CAM_MMR Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-
-CAM_PriorityEncoder & CAM_PriorityEncoder::operator=(const CAM_PriorityEncoder &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    capLoad = rhs.capLoad;
-    resLoad = rhs.resLoad;
-    numInputBits = rhs.numInputBits;
-    rampInput = rhs.rampInput;
-    rampOutput = rhs.rampOutput;
-    areaOptimizationLevel = rhs.areaOptimizationLevel;
-    widthNorN = rhs.widthNorN;
-    widthNorP = rhs.widthNorP;
-    capNorInput = rhs.capNorInput;
-    capNorOutput = rhs.capNorOutput;
-    return *this;
-}
-
-

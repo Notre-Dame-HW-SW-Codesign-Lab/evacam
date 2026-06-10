@@ -11,7 +11,7 @@ namespace {
 
 const char *kCellPath = "tests/tmp_input_validation_cell_config.yaml";
 const char *kConfigPath = "tests/tmp_input_validation_system_config.yaml";
-const char *kCustomSaPath = "tests/tmp_input_validation_custom_sa.txt";
+const char *kCustomSaPath = "tests/tmp_input_validation_custom_sa.yaml";
 
 void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         const std::string &camType = "TCAM",
@@ -88,8 +88,9 @@ void WriteMinimalCellFile(const std::string &cellType = "SRAM",
 void WriteInvalidCustomSenseAmpFile() {
     std::ofstream out(kCustomSaPath);
     out <<
-        "-Height (F): 10\n"
-        "-Width (F): 4\n";
+        "custom_sense_amp:\n"
+        "  height: 10F\n"
+        "  width: 4F\n";
 }
 
 void WriteCellFileWithoutRowPorts() {
@@ -636,7 +637,7 @@ void TestMissingCustomSenseAmpFileThrows() {
         "    repeater: RepeatedOpt\n"
         "    low_swing: false\n"
             "advanced:\n"
-            "  custom_sa_input_file: tests/does_not_exist_sa.txt\n";
+            "  custom_sa_input_file: tests/does_not_exist_sa.yaml\n";
     }
 
     assert(LoadThrowsWithMessage("custom sense amp file cannot be found"));
@@ -688,7 +689,7 @@ void TestInvalidCustomSenseAmpFileThrows() {
         "    repeater: RepeatedOpt\n"
         "    low_swing: false\n"
             "advanced:\n"
-            "  custom_sa_input_file: tests/tmp_input_validation_custom_sa.txt\n";
+            "  custom_sa_input_file: tests/tmp_input_validation_custom_sa.yaml\n";
     }
 
     assert(LoadThrowsWithMessage("custom sense amp file is missing required fields"));

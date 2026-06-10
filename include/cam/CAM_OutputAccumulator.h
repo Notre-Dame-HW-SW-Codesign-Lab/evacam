@@ -8,7 +8,8 @@
 class CAM_OutputAccumulator: public FunctionUnit {
     public:
         CAM_OutputAccumulator();
-        CAM_OutputAccumulator(const CAM_OutputAccumulator&) {}
+        CAM_OutputAccumulator(const CAM_OutputAccumulator&) = delete;
+        CAM_OutputAccumulator& operator=(const CAM_OutputAccumulator&) = delete;
         virtual ~CAM_OutputAccumulator() {}
 
         /* Functions */
@@ -18,9 +19,6 @@ class CAM_OutputAccumulator: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        /* Note that this is a single accumulator, not yet multiplied by number of inputs */
-        CAM_OutputAccumulator & operator=(const CAM_OutputAccumulator &);
-
         /* Properties */
         bool initialized;	/* Initialization flag */
         double capLoad;		/* Load capacitance, Unit: F */
