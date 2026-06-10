@@ -15,60 +15,13 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
         const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt) {
 
+    config = _config;
     localWire = _localWire;
     globalWire = _globalWire;
 
     if (initialized) {
-        /* Reset the class for re-initialization */
-        // TODO: ensure this still has the expected behavior
-        /*
-           if (numHorizontalAddressBitToRoute)
-           delete [] numHorizontalAddressBitToRoute;
-           if (numHorizontalDataDistributeBitToRoute)
-           delete [] numHorizontalDataDistributeBitToRoute;
-           if (numHorizontalDataBroadcastBitToRoute)
-           delete [] numHorizontalDataBroadcastBitToRoute;
-           if (numHorizontalWire)
-           delete [] numHorizontalWire;
-           if (numSumHorizontalWire)
-           delete [] numSumHorizontalWire;
-           if (numActiveHorizontalWire)
-           delete [] numActiveHorizontalWire;
-           if (lengthHorizontalWire)
-           delete [] lengthHorizontalWire;
-           if (numVerticalAddressBitToRoute)
-           delete [] numVerticalAddressBitToRoute;
-           if (numVerticalDataDistributeBitToRoute)
-           delete [] numVerticalDataDistributeBitToRoute;
-           if (numVerticalDataBroadcastBitToRoute)
-           delete [] numVerticalDataBroadcastBitToRoute;
-           if (numVerticalWire)
-           delete [] numVerticalWire;
-           if (numSumVerticalWire)
-           delete [] numSumVerticalWire;
-           if (numActiveVerticalWire)
-           delete [] numActiveVerticalWire;
-           if (lengthVerticalWire)
-           delete [] lengthVerticalWire;
-         */
         initialized = false;
         invalid = false;
-        /*
-           numHorizontalAddressBitToRoute = NULL;  // The number of horizontal bits to route on level x 
-           numHorizontalDataDistributeBitToRoute = NULL;   // The number of horizontal mem_data-in bits to route on level x 
-           numHorizontalDataBroadcastBitToRoute = NULL;  // The number of horizontal mem_data-out bits to route on level x 
-           numHorizontalWire = NULL;		// The number of horizontal wires on level x 
-           numSumHorizontalWire = NULL;	// The number of total horizontal wires on level x 
-           numActiveHorizontalWire = NULL;	// The number of active horizontal wires on level x 
-           lengthHorizontalWire = NULL;	// The length of horizontal wires on level x, Unit: m 
-           numVerticalAddressBitToRoute = NULL;	// The number of vertical address bits to route on level x 
-           numVerticalDataDistributeBitToRoute = NULL;  // The number of vertical mem_data-in bits to route on level x 
-           numVerticalDataBroadcastBitToRoute = NULL; // The number of vertical mem_data-out bits to route on level x 
-           numVerticalWire = NULL;			// The number of vertical wires on level x 
-           numSumVerticalWire = NULL;		// The number of total vertical wires on level x 
-           numActiveVerticalWire = NULL;	// The number of active vertical wires on level x 
-           lengthVerticalWire = NULL;		// The length of vertical wires on level 2, Unit: m
-         */
     }
 
     if (!_internalSenseAmp) {
@@ -96,7 +49,6 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     memoryType = _memoryType;
     camType = _camType;
     searchFunction = _searchFunction;
-    config = _config;
     CAM_opt = _CAM_opt;
 
     int numWay = 1;	/* default value for non-cache design */
