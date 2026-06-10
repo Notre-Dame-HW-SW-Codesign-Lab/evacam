@@ -17,11 +17,13 @@ jobs:
           - test-yaml
           - test-top-level-parser
           - test-cell-loader
+          - test-cli-options
           - test-input-validation
           - test-exploration
           - test-variation
           - test-montecarlo
           - test-wire
+          - test-formula
           - test-match
 
     steps:
