@@ -89,6 +89,14 @@ Examples:
 ./EvaCAM -d config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_system_config.yaml
 ```
 
+## Python API
+
+Python bindings are available for match evaluation through the `evacam_py` module.
+
+More detail:
+
+- [Python API](docs/python-api.md)
+
 ## Input Files
 
 EvaCAM consumes a system config file and a separate cell config file.
