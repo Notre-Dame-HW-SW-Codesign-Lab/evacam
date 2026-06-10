@@ -74,6 +74,10 @@ if system == "Darwin":
     # Apple clang/libc++ has no <bits/stdc++.h>; use the in-repo shim, and pull
     # OpenMP from Homebrew's libomp.
     include_dirs.append("compat")
+    # std::filesystem in libc++ requires a deployment target >= 10.15. The
+    # isolated build env does not always inherit one, so set it explicitly.
+    extra_compile_args += ["-mmacosx-version-min=10.15"]
+    extra_link_args += ["-mmacosx-version-min=10.15"]
     extra_compile_args += ["-Xpreprocessor", "-fopenmp"]
     extra_link_args += ["-lomp"]
     libomp = _run(["brew", "--prefix", "libomp"])
