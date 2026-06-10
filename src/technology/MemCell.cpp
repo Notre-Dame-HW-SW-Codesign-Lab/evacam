@@ -4,7 +4,9 @@
 #include "input/CellYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
 #include <math.h>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <stdexcept>
+#include <string>
 
 MemCell::MemCell() {
     memCellType         = PCRAM;
