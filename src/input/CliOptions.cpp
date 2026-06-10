@@ -43,6 +43,20 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
             continue;
         }
 
+        if (arg == "-o" || arg == "--output") {
+            if (i + 1 >= argc) {
+                throw std::invalid_argument("Missing output YAML file after " + std::string(arg));
+            }
+            if (!options.outputYamlFileName.empty()) {
+                throw std::invalid_argument("Only one output YAML file may be provided.");
+            }
+            options.outputYamlFileName = argv[++i];
+            if (options.outputYamlFileName.empty()) {
+                throw std::invalid_argument("Output YAML file must not be empty.");
+            }
+            continue;
+        }
+
         if (arg == "--no-variation-plots") {
             options.variationPlots = false;
             continue;
@@ -70,6 +84,7 @@ void CliOptionsParser::PrintUsage(std::ostream &os) {
     os << std::endl << "Usage: ./EvaCAM [OPTIONS] <cfg_file>" << std::endl << std::endl;
     os << "Options:" << std::endl;
     os << "  -t, --threads N           Number of parallel threads (default: all cores)" << std::endl;
+    os << "  -o, --output FILE         Write YAML results to FILE" << std::endl;
     os << "  -v, --verbose             Enable verbose output" << std::endl;
     os << "      --no-variation-plots  Skip Monte Carlo variation histogram SVG generation" << std::endl;
     os << "  -h, --help                Show this help and exit" << std::endl;

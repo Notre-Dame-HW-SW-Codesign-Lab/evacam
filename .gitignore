@@ -9,11 +9,13 @@ EvaCAM
 YamlHelpersTest
 TopLevelConfigParserTest
 CellYamlLoaderTest
+CliOptionsTest
 InputValidationTest
 ExplorationDomainTest
 VariationSamplerTest
 MonteCarloRegressionTest
 WireCopyTest
+FormulaTest
 MatchTest
 PybindMatchPersistenceTest
 evacam_py*.so

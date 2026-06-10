@@ -12,7 +12,7 @@ bool isPow2(int n);
 
 int intLog2(int n);
 
-/* calculate the gate capacitance */
+// Calculate the gate capacitance.
 double CalculateGateCap(double width, const Technology &tech);
 
 double CalculateGateArea(
@@ -21,7 +21,7 @@ double CalculateGateArea(
         double heightTransistorRegion, const Technology &tech,
         double *height, double *width, bool UseUpdatedWidth);
 
-/* calculate the capacitance of a gate */
+// Calculate the capacitance of a gate.
 void CalculateGateCapacitance(
         int gateType, int numInput,
         double widthNMOS, double widthPMOS,
@@ -32,11 +32,7 @@ double CalculateDrainCap(
         double width, int type,
         double heightTransistorRegion, const Technology &tech);
 
-double CAM_CalculateSourceCap(
-        double width, int type,
-        double heightTransistorRegion, const Technology &tech);
-
-/* calculate the capacitance of a FBRAM */
+// Calculate the capacitance of a FBRAM.
 double CalculateFBRAMGateCap(double width, double thicknessFactor, const Technology &tech);
 
 double CalculateFBRAMDrainCap(double width, const Technology &tech);
@@ -58,8 +54,8 @@ double CalculateWireResistance(
 
 double CalculateWireCapacitance(
         double permittivity, double wireWidth, double wireThickness, double wireSpacing,
-        double ildThickness, double millarValue, double horizontalDielectric,
-        double verticalDielectic, double fringeCap);
+        double ildThickness, double millerValue, double horizontalDielectric,
+        double verticalDielectric, double fringeCap);
 
 
-#endif /* FORMULA_H_ */
+#endif // FORMULA_H_

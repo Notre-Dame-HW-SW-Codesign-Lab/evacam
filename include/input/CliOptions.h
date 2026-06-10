@@ -6,6 +6,7 @@
 
 struct CliOptions {
     std::string inputFileName;
+    std::string outputYamlFileName;
     int threads = 0;
     bool verbose = false;
     bool variationPlots = true;

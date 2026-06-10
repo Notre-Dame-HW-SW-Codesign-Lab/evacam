@@ -33,7 +33,10 @@ EvaCamContext EvaCamContextBuilder::Build(const CliOptions &options) {
     EvaCamContext context;
     context.config = config;
     context.inputFileName = options.inputFileName;
-    context.outputYamlFileName = config->input.outputYamlFileName;
+    context.outputYamlFileName = options.outputYamlFileName;
+    if (context.outputYamlFileName.empty()) {
+        context.outputYamlFileName = config->input.outputYamlFileName;
+    }
     if (context.outputYamlFileName.empty()) {
         context.outputYamlFileName = OutputPathBuilder::DefaultResultsYamlPath(context.inputFileName);
     }

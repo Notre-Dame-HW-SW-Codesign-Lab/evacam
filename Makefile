@@ -25,12 +25,14 @@ BIN=EvaCAM
 TEST_YAML_BIN=YamlHelpersTest
 TEST_TOP_LEVEL_BIN=TopLevelConfigParserTest
 TEST_CELL_LOADER_BIN=CellYamlLoaderTest
+TEST_CLI_OPTIONS_BIN=CliOptionsTest
 TEST_CUSTOM_SA_LOADER_BIN=CustomSenseAmpYamlLoaderTest
 TEST_INPUT_VALIDATION_BIN=InputValidationTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
 TEST_WIRE_BIN=WireCopyTest
+TEST_FORMULA_BIN=FormulaTest
 TEST_MATCH_BIN=MatchTest
 TEST_PYBIND_MATCH_PERSISTENCE_BIN=PybindMatchPersistenceTest
 PYBIND_MODULE_BASE=evacam_py
@@ -83,7 +85,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-match test-pybind-match uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-formula test-match test-pybind-match uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -98,6 +100,11 @@ test-cell-loader: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CELL_LOADER_BIN).d -MT $(TEST_CELL_LOADER_BIN) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_CELL_LOADER_BIN)
+
+test-cli-options:
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CLI_OPTIONS_BIN).d -MT $(TEST_CLI_OPTIONS_BIN) -o $(TEST_CLI_OPTIONS_BIN) tests/CliOptionsTest.cpp src/input/CliOptions.cpp $(LD_LIBS)
+	./$(TEST_CLI_OPTIONS_BIN)
 
 test-custom-sa-loader: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
@@ -130,6 +137,11 @@ test-wire: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_WIRE_BIN).d -MT $(TEST_WIRE_BIN) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_WIRE_BIN)
+
+test-formula: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_FORMULA_BIN).d -MT $(TEST_FORMULA_BIN) -o $(TEST_FORMULA_BIN) tests/FormulaTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_FORMULA_BIN)
 
 test-match: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
@@ -165,11 +177,13 @@ clean:
 	@rm -rf $(OBJ_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
 		$(TEST_TOP_LEVEL_BIN) $(TEST_TOP_LEVEL_BIN).d \
 		$(TEST_CELL_LOADER_BIN) $(TEST_CELL_LOADER_BIN).d \
+		$(TEST_CLI_OPTIONS_BIN) $(TEST_CLI_OPTIONS_BIN).d \
 		$(TEST_CUSTOM_SA_LOADER_BIN) $(TEST_CUSTOM_SA_LOADER_BIN).d \
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
 		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
+		$(TEST_FORMULA_BIN) $(TEST_FORMULA_BIN).d \
 		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
 		$(TEST_PYBIND_MATCH_PERSISTENCE_BIN) $(TEST_PYBIND_MATCH_PERSISTENCE_BIN).d \
 		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
