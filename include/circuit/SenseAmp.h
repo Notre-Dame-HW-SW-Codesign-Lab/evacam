@@ -9,7 +9,6 @@ class SenseAmp: public FunctionUnit {
             initialized = false;
             invalid = false;
         }
-        SenseAmp(const SenseAmp&) {}
         virtual ~SenseAmp() {}
 
         /* Functions */
@@ -20,7 +19,6 @@ class SenseAmp: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        SenseAmp & operator=(const SenseAmp &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */

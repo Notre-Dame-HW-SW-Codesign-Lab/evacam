@@ -7,7 +7,6 @@
 class Mux: public FunctionUnit {
     public:
         Mux();
-        Mux(const Mux&) {}
         virtual ~Mux() {}
         /* Functions */
         void PrintProperty();
@@ -17,7 +16,6 @@ class Mux: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        Mux & operator=(const Mux &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */

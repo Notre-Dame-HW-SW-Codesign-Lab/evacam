@@ -92,10 +92,6 @@ MemCell::MemCell() {
     gateCouplingRatio = 0;
 
 }
-/*
-MemCell::~MemCell() {
-}
- */
 
 void MemCell::ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd) {
     designTarget = _designTarget;

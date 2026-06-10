@@ -162,30 +162,3 @@ void SenseAmp::PrintProperty() {
     std::cout << "Sense Amplifier Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-
-SenseAmp & SenseAmp::operator=(const SenseAmp &rhs) {
-    height = rhs.height;
-    width = rhs.width;
-    area = rhs.area;
-    readLatency = rhs.readLatency;
-    writeLatency = rhs.writeLatency;
-    readDynamicEnergy = rhs.readDynamicEnergy;
-    writeDynamicEnergy = rhs.writeDynamicEnergy;
-    resetLatency = rhs.resetLatency;
-    setLatency = rhs.setLatency;
-    resetDynamicEnergy = rhs.resetDynamicEnergy;
-    setDynamicEnergy = rhs.setDynamicEnergy;
-    cellReadEnergy = rhs.cellReadEnergy;
-    cellSetEnergy = rhs.cellSetEnergy;
-    cellResetEnergy = rhs.cellResetEnergy;
-    leakage = rhs.leakage;
-    initialized = rhs.initialized;
-    invalid = rhs.invalid;
-    numColumn = rhs.numColumn;
-    currentSense = rhs.currentSense;
-    senseVoltage = rhs.senseVoltage;
-    capLoad = rhs.capLoad;
-    pitchSenseAmp = rhs.pitchSenseAmp;
-
-    return *this;
-}

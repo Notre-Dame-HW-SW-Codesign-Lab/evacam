@@ -12,7 +12,6 @@ class Comparator: public FunctionUnit {
             capLoad = 0;
             rampOutput = 1e40;
         }
-        Comparator(const Comparator&) {}
         virtual ~Comparator() {}
 
         /* Functions */
@@ -22,7 +21,6 @@ class Comparator: public FunctionUnit {
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
-        Comparator & operator=(const Comparator &);
 
         /* Properties */
         bool initialized;	/* Initialization flag */
