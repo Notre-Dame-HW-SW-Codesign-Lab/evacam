@@ -44,6 +44,12 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_vector(const std::vector<int> &stored, 
     throw std::runtime_error("[EvaCAM_Match] Error: unsupported search function.");
 }
 
+EvaCAMMatchResult EvaCAM_Match::evaluate_mismatches(int mismatches) const {
+    EnsureInitialized();
+    ValidateMismatchCount(mismatches);
+    return LookupMismatchResult(mismatches);
+}
+
 EvaCAMMatchResult EvaCAM_Match::evaluate_vector(
         const std::vector<std::pair<double, double>> &stored,
         const std::vector<double> &query) const {
@@ -63,6 +69,17 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_vector(
     }
 
     throw std::runtime_error("[EvaCAM_Match] Error: unsupported search function.");
+}
+
+std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(const std::vector<int> &mismatchCounts) const {
+    EnsureInitialized();
+
+    std::vector<EvaCAMMatchResult> results;
+    results.reserve(mismatchCounts.size());
+    for (int mismatches : mismatchCounts) {
+        results.push_back(evaluate_mismatches(mismatches));
+    }
+    return results;
 }
 
 std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
@@ -241,7 +258,7 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateExactTcamVector(
     ValidateTcamStoredVector(stored, "stored");
     ValidateBinaryVector(query, "query");
 
-    return LookupMismatchResult(CountTcamMismatches(stored, query));
+    return evaluate_mismatches(CountTcamMismatches(stored, query));
 }
 
 EvaCAMMatchResult EvaCAM_Match::EvaluateExactAcamVector(
@@ -286,6 +303,18 @@ int EvaCAM_Match::CountTcamMismatches(const std::vector<int> &stored, const std:
         }
     }
     return mismatches;
+}
+
+void EvaCAM_Match::ValidateMismatchCount(int mismatches) const {
+    if (config->technology.cell->camType != TCAM) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: mismatch-count evaluation is only valid for TCAM.");
+    }
+    if (config->input.searchFunction != EX) {
+        throw std::runtime_error("[EvaCAM_Match] Error: mismatch-count evaluation currently supports exact search only.");
+    }
+    if (mismatches < 0 || static_cast<size_t>(mismatches) > word_width()) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: mismatch count is out of range.");
+    }
 }
 
 void EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const char *name) const {

@@ -1,3 +1,5 @@
+#include <cassert>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <limits>
@@ -6,6 +8,18 @@
 #include "EvaCAM_Match.h"
 
 bool verbose = false;
+
+void AssertNear(double lhs, double rhs) {
+    assert(std::fabs(lhs - rhs) <= 1e-18);
+}
+
+void AssertSameResult(const EvaCAMMatchResult &lhs, const EvaCAMMatchResult &rhs) {
+    assert(lhs.hit == rhs.hit);
+    AssertNear(lhs.searchLatency, rhs.searchLatency);
+    AssertNear(lhs.searchDynamicEnergy, rhs.searchDynamicEnergy);
+    AssertNear(lhs.matchlineDelay, rhs.matchlineDelay);
+    AssertNear(lhs.senseMargin, rhs.senseMargin);
+}
 
 void PrintResult(const char *label, const EvaCAMMatchResult &result) {
     std::cout << std::left << std::setw(14) << label
@@ -48,9 +62,15 @@ int main(int argc, char *argv[]) {
 
         double minSenseMargin = std::numeric_limits<double>::infinity();
         size_t minSenseMarginMismatches = 0;
+        std::vector<int> mismatchCounts;
+        std::vector<EvaCAMMatchResult> expectedMismatchResults;
         for (size_t mismatches = 0; mismatches <= matcher.word_width(); mismatches++) {
             const std::vector<int> query = QueryWithMismatches(stored, mismatches);
             const EvaCAMMatchResult result = matcher.evaluate_vector(stored, query);
+            const EvaCAMMatchResult mismatchResult = matcher.evaluate_mismatches(static_cast<int>(mismatches));
+            AssertSameResult(result, mismatchResult);
+            mismatchCounts.push_back(static_cast<int>(mismatches));
+            expectedMismatchResults.push_back(result);
             std::cout << std::setw(10) << mismatches
                       << std::setw(8) << result.hit
                       << std::setw(14) << result.searchLatency * 1e12
@@ -62,6 +82,23 @@ int main(int argc, char *argv[]) {
                 minSenseMargin = result.senseMargin;
                 minSenseMarginMismatches = mismatches;
             }
+        }
+
+        const std::vector<EvaCAMMatchResult> mismatchArrayResults = matcher.evaluate_array(mismatchCounts);
+        assert(mismatchArrayResults.size() == expectedMismatchResults.size());
+        for (size_t i = 0; i < mismatchArrayResults.size(); i++) {
+            AssertSameResult(mismatchArrayResults[i], expectedMismatchResults[i]);
+        }
+
+        try {
+            matcher.evaluate_mismatches(-1);
+            assert(false);
+        } catch (const std::invalid_argument&) {
+        }
+        try {
+            matcher.evaluate_mismatches(static_cast<int>(matcher.word_width()) + 1);
+            assert(false);
+        } catch (const std::invalid_argument&) {
         }
 
         std::cout << "\nMinimum sweep sense separation: " << minSenseMargin * 1e3

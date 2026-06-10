@@ -28,6 +28,13 @@ PYBIND11_MODULE(evacam_py, module) {
                         const std::vector<double>&>(
                         &EvaCAM_Match::evaluate_vector, py::const_),
                 py::arg("stored"), py::arg("query"))
+        .def("evaluate_mismatches",
+                &EvaCAM_Match::evaluate_mismatches,
+                py::arg("mismatches"))
+        .def("evaluate_array",
+                py::overload_cast<const std::vector<int>&>(
+                        &EvaCAM_Match::evaluate_array, py::const_),
+                py::arg("mismatch_counts"))
         .def("evaluate_array",
                 py::overload_cast<
                         const std::vector<std::vector<int>>&,

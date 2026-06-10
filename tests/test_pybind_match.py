@@ -79,15 +79,19 @@ def main():
     previous_sense_margin = first_match.sense_margin
     batch_rows = [stored, wildcard_stored]
     expected_batch_results = [first_match, wildcard_match]
+    mismatch_counts = [0]
+    expected_mismatch_results = [first_match]
     for mismatches in range(1, width + 1):
         query = mismatched_query(width, mismatches)
         shifted_query = mismatched_query(width, mismatches, offset=7)
 
         result = matcher.evaluate_vector(stored, query)
+        mismatch_result = matcher.evaluate_mismatches(mismatches)
         repeated_result = matcher.evaluate_vector(stored, query)
         shifted_result = matcher.evaluate_vector(stored, shifted_query)
 
         assert not result.hit
+        assert_close(result, mismatch_result)
         assert_close(result, repeated_result)
         assert_close(result, shifted_result)
         assert result.matchline_delay <= previous_delay
@@ -99,12 +103,22 @@ def main():
         previous_sense_margin = result.sense_margin
         batch_rows.append(query)
         expected_batch_results.append(result)
+        mismatch_counts.append(mismatches)
+        expected_mismatch_results.append(result)
 
     batch_results = matcher.evaluate_array(batch_rows, stored)
     assert len(batch_results) == len(expected_batch_results)
     for actual, expected in zip(batch_results, expected_batch_results):
         assert_close(actual, expected)
 
+    mismatch_batch_results = matcher.evaluate_array(mismatch_counts)
+    assert len(mismatch_batch_results) == len(expected_mismatch_results)
+    for actual, expected in zip(mismatch_batch_results, expected_mismatch_results):
+        assert_close(actual, expected)
+
+    assert_raises(ValueError, lambda: matcher.evaluate_mismatches(-1))
+    assert_raises(ValueError, lambda: matcher.evaluate_mismatches(width + 1))
+    assert_raises(ValueError, lambda: matcher.evaluate_array([0, width + 1]))
     assert_raises(ValueError, lambda: matcher.evaluate_vector(stored[:-1], stored))
     assert_raises(ValueError, lambda: matcher.evaluate_vector(stored, stored + [0]))
     assert_raises(ValueError, lambda: matcher.evaluate_vector(stored, [2] * width))
@@ -136,6 +150,16 @@ def main():
         "best TCAM vector evaluation is not implemented",
         lambda: tcam_be_matcher.evaluate_array([tcam_be_stored], tcam_be_stored),
     )
+    assert_raises_message(
+        RuntimeError,
+        "mismatch-count evaluation currently supports exact search only",
+        lambda: tcam_be_matcher.evaluate_mismatches(0),
+    )
+    assert_raises_message(
+        RuntimeError,
+        "mismatch-count evaluation currently supports exact search only",
+        lambda: tcam_be_matcher.evaluate_array([0]),
+    )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         tcam_source = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml"
@@ -161,6 +185,11 @@ def main():
             RuntimeError,
             "exact MCAM vector evaluation is not implemented",
             lambda: mcam_ex_matcher.evaluate_vector(mcam_ex_stored, mcam_ex_stored),
+        )
+        assert_raises_message(
+            ValueError,
+            "mismatch-count evaluation is only valid for TCAM",
+            lambda: mcam_ex_matcher.evaluate_mismatches(0),
         )
 
         mcam_be_matcher = evacam_py.EvaCAMMatch(

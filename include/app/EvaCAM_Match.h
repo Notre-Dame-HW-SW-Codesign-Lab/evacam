@@ -24,9 +24,11 @@ class EvaCAM_Match {
 
         bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate_vector(const std::vector<int> &stored, const std::vector<int> &query) const;
+        EvaCAMMatchResult evaluate_mismatches(int mismatches) const;
         EvaCAMMatchResult evaluate_vector(
                 const std::vector<std::pair<double, double>> &stored,
                 const std::vector<double> &query) const;
+        std::vector<EvaCAMMatchResult> evaluate_array(const std::vector<int> &mismatchCounts) const;
         std::vector<EvaCAMMatchResult> evaluate_array(
                 const std::vector<std::vector<int>> &storedRows,
                 const std::vector<int> &query) const;
@@ -54,6 +56,7 @@ class EvaCAM_Match {
                 const std::vector<double> &query) const;
         EvaCAMMatchResult LookupMismatchResult(int mismatches) const;
         int CountTcamMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
+        void ValidateMismatchCount(int mismatches) const;
         void ValidateVectorLength(size_t size, const char *name) const;
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
         void ValidateTcamStoredVector(const std::vector<int> &value, const char *name) const;
