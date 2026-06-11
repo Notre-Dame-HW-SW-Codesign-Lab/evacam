@@ -46,7 +46,7 @@ void CAM_LevelShifter::CalculateArea(){
         double hlow, /* hlatch,*/  hhigh, wlow, wlatch, whigh; // TODO: why is hlatch unused?
         CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hlow, &wlow, config->peripherals.useUpdatedLib);
         CalculateGateArea(NAND, 2, widthNandN*3, widthNandP*3, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hhigh, &whigh, config->peripherals.useUpdatedLib);
-        double hLS = MAX(hlow, hhigh);
+        double hLS = std::max(hlow, hhigh);
 
         //TODO: figure out what this is supposed to be initialized to
         wlatch = 0; 

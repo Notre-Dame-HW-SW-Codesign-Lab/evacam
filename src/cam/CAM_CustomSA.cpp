@@ -37,9 +37,9 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         tempParallelWidth += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
         CalculateGateArea(INV, 1, W_ref_n * tech.featureSize(), 0, widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempParallelWidth += tempWidth;
-        tempParallelHeight = MAX(tempParallelHeight, tempHeight);
+        tempParallelHeight = std::max(tempParallelHeight, tempHeight);
 
-        width = MAX(width, tempParallelWidth);
+        width = std::max(width, tempParallelWidth);
         height += tempParallelHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
@@ -48,7 +48,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         // Mrefpre (30<47)
         height += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
         CalculateGateArea(INV, 1, 0, W_refpre_p * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
 
         // Mpre + Mampp (20+2<47) x2
@@ -60,9 +60,9 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         tempParallelWidth += MIN_GAP_BET_SAME_TYPE_DIFFS * tech.featureSize();
         CalculateGateArea(INV, 1, 0, W_amp_p * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempParallelWidth += tempWidth;
-        tempParallelHeight = MAX(tempParallelHeight, tempHeight);
+        tempParallelHeight = std::max(tempParallelHeight, tempHeight);
 
-        width = MAX(width, tempParallelWidth);
+        width = std::max(width, tempParallelWidth);
         height += tempParallelHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
@@ -80,9 +80,9 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         tempParallelWidth += MIN_GAP_BET_SAME_TYPE_DIFFS * tech.featureSize();
         CalculateGateArea(INV, 1, W_amp_n * tech.featureSize(), 0, widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempParallelWidth += tempWidth;
-        tempParallelHeight = MAX(tempParallelHeight, tempHeight);
+        tempParallelHeight = std::max(tempParallelHeight, tempHeight);
 
-        width = MAX(width, tempParallelWidth);
+        width = std::max(width, tempParallelWidth);
         height += tempParallelHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
@@ -91,18 +91,18 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         // W_amppre_p (40<47)
         height += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
         CalculateGateArea(INV, 1, 0, W_amppre_p * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
 
         // W_ampen_n (30<47)
         height += MIN_GAP_BET_SAME_TYPE_DIFFS * tech.featureSize();
         CalculateGateArea(INV, 1, W_ampen_n * tech.featureSize(), 0, widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
 
         // second amplifier with inv x2 & MUX all in horizental
         CalculateGateArea(INV, 1, 1 * tech.featureSize(), 2 * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
     }
 
@@ -121,7 +121,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         // Mrefp + Mrefn (20+20<47), horizental
         CalculateGateArea(INV, 1, 0, W_ref_P * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempParallelWidth += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
@@ -135,7 +135,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         CalculateGateArea(INV, 1, 1 * tech.featureSize(), 0, widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempWidth *= 3;
         tempWidth += MIN_GAP_BET_SAME_TYPE_DIFFS * tech.featureSize();
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
@@ -146,7 +146,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         CalculateGateArea(INV, 1, 1 * tech.featureSize(), 2 * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempWidth *= 4;
         tempWidth += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");
@@ -157,7 +157,7 @@ void CalcAreaForCostomSA(int designNum, double widthTransistorRegion, const Tech
         CalculateGateArea(INV, 1, 1 * tech.featureSize(), 2 * tech.featureSize(), widthTransistorRegion, tech, &tempWidth, &tempHeight, UseUpdatedLib);
         tempWidth *= 2;
         tempWidth += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
         if(width > widthTransistorRegion) {
             throw std::runtime_error("[Custom SA] Area calculation exceeds the width constraint and needs folding.");

@@ -75,7 +75,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             initialized = true;
             return;
         }
-        maxBitlineCurrent = MAX(config->technology.cell->resetCurrent, config->technology.cell->setCurrent) + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
+        maxBitlineCurrent = std::max(config->technology.cell->resetCurrent, config->technology.cell->setCurrent) + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
     }
 
     if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor) {
@@ -88,7 +88,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 initialized = true;
                 return;
             }
-            maxBitlineCurrent = MAX(config->technology.cell->resetCurrent, config->technology.cell->setCurrent) + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
+            maxBitlineCurrent = std::max(config->technology.cell->resetCurrent, config->technology.cell->setCurrent) + config->technology.cell->leakageCurrentAccessDevice * (numRow - 1);
         } else { //non-CMOS access
             /* Write half select problem limit the array size */
             double resetCurrent;
@@ -120,7 +120,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
     }
 
     double minBitlineMuxWidth = maxBitlineCurrent / config->technology.tech->currentOnNmos()[config->input.temperature - 300];
-    minBitlineMuxWidth = MAX(MIN_NMOS_SIZE * config->technology.tech->featureSize(), minBitlineMuxWidth);
+    minBitlineMuxWidth = std::max(MIN_NMOS_SIZE * config->technology.tech->featureSize(), minBitlineMuxWidth);
     if (minBitlineMuxWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
         invalid = true;
         config->logger.Verbose() << "[Subarray] minBitlineMuxWidth exceeds max supported NMOS size.";
@@ -154,7 +154,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
     } else if (config->technology.cell->memCellType == SLCNAND){
         /* suppose the reference voltage is 0.5Vdd, the initial bitline voltage is 0.6Vdd
          * if the bitline drops to 0.4Vdd, the senseamp can tell which mem_data is stored */
-        senseVoltage = MAX(config->technology.cell->minSenseVoltage, 0.2 * config->technology.tech->vdd());
+        senseVoltage = std::max(config->technology.cell->minSenseVoltage, 0.2 * config->technology.tech->vdd());
     } else {
         /* TODO: different memory config->technology might have different values here */
         senseVoltage = config->technology.cell->minSenseVoltage;
@@ -213,7 +213,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 voltageMemCellOff = config->technology.cell->readCurrent * resMemCellOff;
                 voltageMemCellOn = config->technology.cell->readCurrent * resMemCellOn;
                 voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-                voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+                voltagePrecharge = std::min(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
                 if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                     invalid = true;
                     config->logger.Verbose() << "[Subarray] Read current does not allow a reasonable precharge voltage.";
@@ -226,7 +226,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 voltageMemCellOff = config->technology.cell->readVoltage * resMemCellOff / (resMemCellOff + resInSerialForSenseAmp);
                 voltageMemCellOn = config->technology.cell->readVoltage * resMemCellOn / (resMemCellOn + resInSerialForSenseAmp);
                 voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-                voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+                voltagePrecharge = std::min(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
                 if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                     invalid = true;
                     config->logger.Verbose() << "[Subarray] Read voltage does not allow a reasonable precharge voltage.";
@@ -256,14 +256,14 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
                 throw std::runtime_error("[Subarray] Error: diode access does not support voltage-input voltage sensing.");
                 }
                 }
-                capCellAccess = MAX(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
-                capWordline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numColumn;
-                capBitline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numRow;      */
+                capCellAccess = std::max(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
+                capWordline += std::max(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numColumn;
+                capBitline += std::max(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numRow;      */
     } else { // none_access || diode_access
              // resCellAccess = 0;
-             // capCellAccess = MAX(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
-             // capWordline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numColumn;  //TODO: choose the right capacitance
-             // capBitline += MAX(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numRow;      //TODO: choose the right capacitance
+             // capCellAccess = std::max(config->technology.cell->capacitanceOn, config->technology.cell->capacitanceOff);
+             // capWordline += std::max(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numColumn;  //TODO: choose the right capacitance
+             // capBitline += std::max(config->technology.cell->capacitanceOff, config->technology.cell->capacitanceOn) * numRow;      //TODO: choose the right capacitance
     }
     resMemCellOff = resCellAccess + config->technology.cell->resistanceOff;
     resMemCellOn = resCellAccess + config->technology.cell->resistanceOn;
@@ -272,7 +272,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             voltageMemCellOff = config->technology.cell->readCurrent * resMemCellOff;
             voltageMemCellOn = config->technology.cell->readCurrent * resMemCellOn;
             voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-            voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+            voltagePrecharge = std::min(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
             if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                 invalid = true;
                 config->logger.Verbose() << "[Subarray] Read current does not allow a reasonable precharge voltage.";
@@ -285,7 +285,7 @@ void SubArray::Initialize(long long _numRow, long long _numColumn, bool _multipl
             voltageMemCellOff = config->technology.cell->readVoltage * resMemCellOff / (resMemCellOff + resInSerialForSenseAmp);
             voltageMemCellOn = config->technology.cell->readVoltage * resMemCellOn / (resMemCellOn + resInSerialForSenseAmp);
             voltagePrecharge = (voltageMemCellOff + voltageMemCellOn) / 2;
-            voltagePrecharge = MIN(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
+            voltagePrecharge = std::min(config->technology.tech->vdd(), voltagePrecharge);  /* TODO: we can have charge bump to increase SA working point */
             if ((voltagePrecharge - voltageMemCellOn) <= senseVoltage) {
                 invalid = true;
                 config->logger.Verbose() << "[Subarray] Read voltage does not allow a reasonable precharge voltage.";
@@ -436,11 +436,11 @@ void SubArray::CalculateArea() {
         addHeight += senseAmpMuxLev2->height;
 
         bitlineMuxDecoder->CalculateArea();
-        addWidth = MAX(addWidth, bitlineMuxDecoder->width);
+        addWidth = std::max(addWidth, bitlineMuxDecoder->width);
         senseAmpMuxLev1Decoder->CalculateArea();
-        addWidth = MAX(addWidth, senseAmpMuxLev1Decoder->width);
+        addWidth = std::max(addWidth, senseAmpMuxLev1Decoder->width);
         senseAmpMuxLev2Decoder->CalculateArea();
-        addWidth = MAX(addWidth, senseAmpMuxLev2Decoder->width);
+        addWidth = std::max(addWidth, senseAmpMuxLev2Decoder->width);
 
         width += addWidth;
         height += addHeight;
@@ -459,8 +459,8 @@ void SubArray::CalculateLatency(double _rampInput) {
         bitlineMuxDecoder->CalculateLatency(_rampInput);
         senseAmpMuxLev1Decoder->CalculateLatency(_rampInput);
         senseAmpMuxLev2Decoder->CalculateLatency(_rampInput);
-        columnDecoderLatency = MAX(MAX(bitlineMuxDecoder->readLatency, senseAmpMuxLev1Decoder->readLatency), senseAmpMuxLev2Decoder->readLatency);
-        double decoderLatency = MAX(rowDecoder->readLatency, columnDecoderLatency);
+        columnDecoderLatency = std::max(std::max(bitlineMuxDecoder->readLatency, senseAmpMuxLev1Decoder->readLatency), senseAmpMuxLev2Decoder->readLatency);
+        double decoderLatency = std::max(rowDecoder->readLatency, columnDecoderLatency);
         /*need a second thought on this equation*/
         double capPassTransistor = bitlineMux->capNMOSPassTransistor +
             senseAmpMuxLev1->capNMOSPassTransistor + senseAmpMuxLev2->capNMOSPassTransistor;
@@ -522,7 +522,7 @@ void SubArray::CalculateLatency(double _rampInput) {
                     tau = resMemCellOff * (capCellAccess + capBitline + bitlineMux->capForPreviousDelayCalculation)
                         + resBitline * (bitlineMux->capForPreviousDelayCalculation + capBitline / 2);  /* time constant of HRS */
                     bitlineDelayOff = tau * log((voltageMemCellOff - voltagePrecharge)/(voltageMemCellOff - voltagePrecharge - senseVoltage));
-                    bitlineDelay = MAX(bitlineDelayOn, bitlineDelayOff);
+                    bitlineDelay = std::max(bitlineDelayOn, bitlineDelayOff);
                 } else {   /*Voltage-in voltage sensing */
                     double tau = resEquivalentOn * (capCellAccess + capBitline + bitlineMux->capForPreviousDelayCalculation)
                         + resBitline * (bitlineMux->capForPreviousDelayCalculation + capBitline / 2); /* time constant of LRS */
@@ -531,7 +531,7 @@ void SubArray::CalculateLatency(double _rampInput) {
                     tau = resEquivalentOff * (capCellAccess + capBitline + bitlineMux->capForPreviousDelayCalculation)
                         + resBitline * (bitlineMux->capForPreviousDelayCalculation + capBitline / 2);  /* time constant of HRS */
                     bitlineDelayOff = tau * log((voltageMemCellOff - voltagePrecharge)/(voltageMemCellOff - voltagePrecharge - senseVoltage));
-                    bitlineDelay = MAX(bitlineDelayOn, bitlineDelayOff);
+                    bitlineDelay = std::max(bitlineDelayOn, bitlineDelayOff);
                 }
             }
             bitlineMux->CalculateLatency(bitlineRamp);
@@ -550,29 +550,29 @@ void SubArray::CalculateLatency(double _rampInput) {
                 if (config->input.writeScheme == write_and_verify) {
                     /*TODO: write and verify programming */
                 } else {
-                    writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);	/* TODO: why not directly use precharger latency? */
+                    writeLatency = std::max(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);	/* TODO: why not directly use precharger latency? */
                     resetLatency = writeLatency + config->technology.cell->resetPulse;
                     setLatency = writeLatency + config->technology.cell->setPulse;
-                    writeLatency += MAX(config->technology.cell->resetPulse, config->technology.cell->setPulse);
+                    writeLatency += std::max(config->technology.cell->resetPulse, config->technology.cell->setPulse);
                 }
             } else if (config->technology.cell->memCellType == FBRAM) {
-                writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
+                writeLatency = std::max(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
                 resetLatency = writeLatency + config->technology.cell->resetPulse;
                 setLatency = writeLatency + config->technology.cell->setPulse;
-                writeLatency += MAX(config->technology.cell->resetPulse, config->technology.cell->setPulse);
+                writeLatency += std::max(config->technology.cell->resetPulse, config->technology.cell->setPulse);
             } else { //memristor and MRAM
                 if (config->technology.cell->accessType == diode_access || config->technology.cell->accessType == none_access) {
                     if (config->input.writeScheme == erase_before_reset || config->input.writeScheme == erase_before_set)
-                        writeLatency = MAX(rowDecoder->writeLatency, chargeLatency);
+                        writeLatency = std::max(rowDecoder->writeLatency, chargeLatency);
                     else
-                        writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
+                        writeLatency = std::max(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
                     writeLatency += chargeLatency;
                     writeLatency += config->technology.cell->resetPulse + config->technology.cell->setPulse;
                 } else { // CMOS or Bipolar access
-                    writeLatency = MAX(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
+                    writeLatency = std::max(rowDecoder->writeLatency, columnDecoderLatency + chargeLatency);
                     resetLatency = writeLatency + config->technology.cell->resetPulse;
                     setLatency = writeLatency + config->technology.cell->setPulse;
-                    writeLatency += MAX(config->technology.cell->resetPulse, config->technology.cell->setPulse);
+                    writeLatency += std::max(config->technology.cell->resetPulse, config->technology.cell->setPulse);
                 }
             }
         } else if (config->technology.cell->memCellType == SLCNAND) {
@@ -591,7 +591,7 @@ void SubArray::CalculateLatency(double _rampInput) {
             double bitlineRamp = 0;
             bitlineDelay = horowitz(tau, beta, rowDecoder->rampOutput, &bitlineRamp);
             /* to correct unnecessary horowitz calculation, TODO: need to revisit */
-            bitlineDelay = MAX(bitlineDelay, tau * 20);
+            bitlineDelay = std::max(bitlineDelay, tau * 20);
             bitlineMux->CalculateLatency(bitlineRamp);
             if (internalSenseAmp) {
                 senseAmp->CalculateLatency(bitlineMuxDecoder->rampOutput);
@@ -604,9 +604,9 @@ void SubArray::CalculateLatency(double _rampInput) {
             readLatency = decoderLatency + bitlineDelay + bitlineMux->readLatency + senseAmp->readLatency
                 + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency;
             /* calculate the erase time, a.k.a. reset here */
-            resetLatency = MAX(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->technology.cell->flashEraseTime;
+            resetLatency = std::max(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->technology.cell->flashEraseTime;
             /* calculate the programming time, a.k.a. set here */
-            setLatency = MAX(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->technology.cell->flashProgramTime;
+            setLatency = std::max(rowDecoder->readLatency, columnDecoderLatency + chargeLatency) + config->technology.cell->flashProgramTime;
             /* use the programming latency as the write latency for SLC NAND*/
             writeLatency = setLatency;
         } else {	/* MLC NAND */
@@ -698,14 +698,14 @@ void SubArray::CalculatePower() {
                     cellSetEnergy = setEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                     cellResetEnergy /= SHAPER_EFFICIENCY_CONSERVATIVE;
                     cellSetEnergy /= SHAPER_EFFICIENCY_CONSERVATIVE;  /* Due to the shaper inefficiency */
-                    writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
+                    writeDynamicEnergy = std::max(cellResetEnergy, cellSetEnergy);
                 }
             } else if (config->technology.cell->memCellType == FBRAM){ //FBRAM write energy
                 cellResetEnergy = resetEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                 cellSetEnergy = setEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                 cellResetEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;
                 cellSetEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;  /* Due to the shaper inefficiency */
-                writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
+                writeDynamicEnergy = std::max(cellResetEnergy, cellSetEnergy);
             } else { //MRAM and memristor write energy
                 if (config->technology.cell->accessType == diode_access || config->technology.cell->accessType == none_access) {
                     if (config->input.writeScheme == erase_before_reset || config->input.writeScheme == erase_before_set) {
@@ -715,12 +715,12 @@ void SubArray::CalculatePower() {
                     } else { /* write scheme = set_before_reset or reset_before_set */
                         cellResetEnergy = resetEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                         cellSetEnergy = setEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
-                        writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
+                        writeDynamicEnergy = std::max(cellResetEnergy, cellSetEnergy);
                     }
                 } else {
                     cellResetEnergy = resetEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
                     cellSetEnergy = setEnergyPerBit * numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
-                    writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
+                    writeDynamicEnergy = std::max(cellResetEnergy, cellSetEnergy);
                 }
                 cellResetEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;
                 cellSetEnergy /= SHAPER_EFFICIENCY_AGGRESSIVE;  /* Due to the shaper inefficiency */

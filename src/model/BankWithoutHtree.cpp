@@ -313,7 +313,7 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                     }
                     // TODO: cap calculation needs further consideration
                 } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM || config->technology.cell->memCellType == FEFETRAM) {
-                    double vWrite = MAX(fabs(config->technology.cell->resetVoltage), fabs(config->technology.cell->setVoltage));
+                    double vWrite = std::max(fabs(config->technology.cell->resetVoltage), fabs(config->technology.cell->setVoltage));
                     double tau, latencyOff, latencyOn;
                     double vPre = mat->subarray->voltagePrecharge;
                     double vOn = mat->subarray->voltageMemCellOn;

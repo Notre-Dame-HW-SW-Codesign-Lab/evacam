@@ -83,9 +83,9 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
         const auto bitlineCurrent = [&]() {
             double current = cell.setMode ? cell.setVoltage / cell.resistanceOff : cell.setCurrent;
             if (cell.resetMode) {
-                current = MAX(current, cell.resetVoltage / cell.resistanceOn);
+                current = std::max(current, cell.resetVoltage / cell.resistanceOn);
             } else {
-                current = MAX(current, cell.setCurrent);
+                current = std::max(current, cell.setCurrent);
             }
             current += cell.leakageCurrentAccessDevice * (numCell - 1);
             return current;
@@ -98,8 +98,8 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
             // for search operation: worst case, search all-0 or all-1
             // TODO: replace Vp to Vdd for coding convenience
             // TODO: the current is toooo large, have no idea, make it smaller
-            current = MAX(current, tech.vdd() / accessOnResistance);
-            current = MAX(current, MAX(CellPort.volSearch0, CellPort.volSearch1) / accessOnResistance);
+            current = std::max(current, tech.vdd() / accessOnResistance);
+            current = std::max(current, std::max(CellPort.volSearch0, CellPort.volSearch1) / accessOnResistance);
             return current;
         };
 
@@ -146,14 +146,14 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
                         maxCurrent = cell.setCurrent;
                     }
                     if (cell.resetMode) {
-                        maxCurrent = MAX(maxCurrent, cell.resetVoltage / cell.resistanceOn);
+                        maxCurrent = std::max(maxCurrent, cell.resetVoltage / cell.resistanceOn);
                     }
                 }
                 break;
         }
 
         const double maxCurrentBitline = (CellPort.Type == Matchline_Bitline) ? bitlineCurrent() : 0;
-        maxCurrent = MAX(maxCurrentBitline, maxCurrent);
+        maxCurrent = std::max(maxCurrentBitline, maxCurrent);
     }
 
     minMuxWidth = isRow ? 0 : maxCurrent/ tech.currentOnNmos()[config->input.temperature - 300];

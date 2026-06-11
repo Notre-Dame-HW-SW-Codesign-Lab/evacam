@@ -34,13 +34,13 @@ void Comparator::CalculateArea() {
         for (int i = 0; i < COMPARATOR_INV_CHAIN_LEN; i++) {
             CalculateGateArea(INV, 1, widthNMOSInv[i], widthPMOSInv[i], config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w,
                     config->peripherals.useUpdatedLib);
-            totalHeight = MAX(totalHeight, h);
+            totalHeight = std::max(totalHeight, h);
             totalWidth += w;
         }
         CalculateGateArea(NAND, 2, widthNMOSComp, 0, config->technology.tech->featureSize()*40, *config->technology.tech, &h, &w,
                 config->peripherals.useUpdatedLib);
         totalHeight += h;
-        totalWidth = MAX(totalWidth, numTagBits * w);
+        totalWidth = std::max(totalWidth, numTagBits * w);
         height = totalHeight * 1; // 4 quarter comparators can have different placement, here assumes 1*4
         width = totalWidth * 4;
         area = height * width;

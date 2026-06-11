@@ -62,7 +62,7 @@ void CAM_BasicEncoder::CalculateArea() {
             CalculateGateArea(INV, 1, widthN, widthP, config->technology.tech->featureSize()*40, *config->technology.tech, &hTRI, &wTRI, 
                     config->peripherals.useUpdatedLib);
             // TODO: a better layout
-            width = MAX(MAX(wNOR, wNAND), wTRI);
+            width = std::max(std::max(wNOR, wNAND), wTRI);
             height = hTRI + hNAND + hNOR * 2;
             height *= 3;
             area = height * width;

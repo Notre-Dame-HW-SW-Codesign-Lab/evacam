@@ -63,7 +63,7 @@ void CAM_InputEncoder::CalculateArea(){
             double hNand, wNand;
             CalculateGateArea(NAND, 2, widthNandN, widthNandP, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hNand, &wNand, config->peripherals.useUpdatedLib);
             width += wNand;
-            height = MAX(height, hNand * numInputBits * 2);
+            height = std::max(height, hNand * numInputBits * 2);
             area = height * width;
         }
         else {

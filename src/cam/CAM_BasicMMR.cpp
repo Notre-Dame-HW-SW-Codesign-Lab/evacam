@@ -73,21 +73,21 @@ void CAM_BasicMMR::CalculateArea(){
 
             CalculateGateArea(NOR, 8, widthN*2, 0, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hLAout, &wLAout, config->peripherals.useUpdatedLib);
             hLAout += hInv;
-            wLAout =MAX(wLAout, wInv);
+            wLAout = std::max(wLAout, wInv);
             // the LA for internal, dynamic logic for 4-input NOR
             CalculateGateArea(NOR, 4, widthN*2, 0, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hLAintra, &wLAintra, config->peripherals.useUpdatedLib);
             hLAintra += hInv;
-            wLAintra =MAX(wLAintra, wInv);
+            wLAintra = std::max(wLAintra, wInv);
             // the mem_data line: 2/3/4/5-input NAND dynamic logic
             for(int i=0;i<4;i++){
                 CalculateGateArea(NAND, i+2, widthN*(i+3), 0, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, hD+i, wD+i, config->peripherals.useUpdatedLib);
                 hD[i] += hInv;
-                wD[i] =MAX(wD[i], wInv);
+                wD[i] = std::max(wD[i], wInv);
                 area += (hD[i]*wD[i]);
             }
             // TODO: a better layout
             double wDSum = wD[0] + wD[1] + wD[2] + wD[3];
-            height = MAX(hLAout, wDSum);
+            height = std::max(hLAout, wDSum);
             // inverter used as differential input signal, input LA and internal LA
             area += ( hLAout*wLAout + hLAintra*wLAintra + hInv*wInv * (8+1+1) );
             width = area / height;

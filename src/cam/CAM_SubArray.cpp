@@ -526,7 +526,7 @@ void CAM_SubArray::Initialize(
     // Model the shared column-decoder merge line against the worst-case column mux width.
     double maxColumnMuxWidth = 0.0;
     for (int i = 0; i < cell.camNumCol; i++) {
-        maxColumnMuxWidth = MAX(maxColumnMuxWidth, Col[i].minMuxWidth);
+        maxColumnMuxWidth = std::max(maxColumnMuxWidth, Col[i].minMuxWidth);
     }
 
     Row[cell.camNumRow].Initialize(lenRow, numColumn, maxColumnMuxWidth, config, localWire);
@@ -787,7 +787,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         // those NAND merges the WL and SL signal
         double maxRowDriver = 0;
         for (int i=0; i<cell.camNumRow; i++) {
-            RowDriver[i]->CalculateLatency(MAX(inputEnc->rampOutput, RowDecMergeNand->rampOutput));
+            RowDriver[i]->CalculateLatency(std::max(inputEnc->rampOutput, RowDecMergeNand->rampOutput));
 
             if (RowDriver[i]->readLatency > maxRowDriver) {
                 maxRowDriver = RowDriver[i]->readLatency;
@@ -803,8 +803,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         senseAmpMuxLev1Nand->CalculateLatency(_rampInput);
         senseAmpMuxLev2Nand->CalculateLatency(_rampInput);
 
-        columnDecoderLatency = MAX(MAX(ColDecMergeNand->readLatency, senseAmpMuxLev1Nand->readLatency), senseAmpMuxLev2Nand->readLatency);
-        decoderLatency = MAX(RowDecMergeNand->readLatency + maxRowDriver, columnDecoderLatency);
+        columnDecoderLatency = std::max(std::max(ColDecMergeNand->readLatency, senseAmpMuxLev1Nand->readLatency), senseAmpMuxLev2Nand->readLatency);
+        decoderLatency = std::max(RowDecMergeNand->readLatency + maxRowDriver, columnDecoderLatency);
 
         /*****************************************************************************
          * Calculate matchline latency
@@ -881,7 +881,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             //         + outputBuf->readLatency;
 
             searchLatency = inputBuf->readLatency 
-                + MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
+                + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
                 + matchlineDelay
                 + ColMux[indexMatchline]->readLatency 
                 + senseAmp->readLatency 
@@ -896,7 +896,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             senseAmpLatency = senseAmp->readLatency;
 
             readLatency = inputBuf->readLatency 
-                + MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
+                + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
                 + matchlineDelay
                 + ColMux[indexMatchline]->readLatency 
                 + senseAmp->readLatency 
@@ -930,7 +930,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                     if (delayTemp0 - delayTemp1 >= peripherals.matchlineSenseMargin) {
                         matchlineDelayForApprox[k] = delayTemp0;
                         MaxDetectCellNumber = k;
-                        searchLatencyForApprox[k] = inputBuf->readLatency + MAX(precharger->readLatency, decoderLatency + inputEnc->readLatency) + matchlineDelayForApprox[k]
+                        searchLatencyForApprox[k] = inputBuf->readLatency + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) + matchlineDelayForApprox[k]
                             + ColMux[indexMatchline]->readLatency + senseAmp->readLatency + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency
                             + outputAcc->readLatency + priorityEnc->readLatency + outputBuf->readLatency;
                         continue;
@@ -973,14 +973,14 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             for (int i=0; i<cell.camNumCol; i++) {
                 if (WriteDriver[i]->initialized) {
                     WriteDriver[i]->CalculateLatency(1e20);
-                    WriteDriverLatency = MAX(WriteDriver[i]->writeLatency, WriteDriverLatency);
+                    WriteDriverLatency = std::max(WriteDriver[i]->writeLatency, WriteDriverLatency);
                 }
             }
         }
-        writeLatency = MAX(decoderLatency, columnDecoderLatency + WriteDriverLatency + chargeLatency);
+        writeLatency = std::max(decoderLatency, columnDecoderLatency + WriteDriverLatency + chargeLatency);
         resetLatency = (writeLatency + cell.resetPulse)*numColumn*2 * muxSenseAmp * muxOutputLev1 * muxOutputLev2;
         setLatency = (writeLatency + cell.setPulse)*numColumn*2 * muxSenseAmp * muxOutputLev1 * muxOutputLev2;
-        writeLatency += MAX(cell.resetPulse, cell.setPulse);
+        writeLatency += std::max(cell.resetPulse, cell.setPulse);
     }
 }
 
@@ -1218,7 +1218,7 @@ void CAM_SubArray::CalculatePower() {
             }
             leakage = 0;                       //TODO: cell leaks during read/write operation
         }
-        writeDynamicEnergy = MAX(cellResetEnergy, cellSetEnergy);
+        writeDynamicEnergy = std::max(cellResetEnergy, cellSetEnergy);
         cellResetEnergy *= numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
         cellSetEnergy *= numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;
         writeDynamicEnergy *= numColumn / muxSenseAmp / muxOutputLev1 / muxOutputLev2;

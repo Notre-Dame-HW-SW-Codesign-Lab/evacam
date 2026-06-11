@@ -40,21 +40,21 @@ void SenseAmp::CalculateArea() {
 
         CalculateGateArea(INV, 1, 0, W_SENSE_P * config->technology.tech->featureSize(),
                 pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += 2 * tempHeight;
         CalculateGateArea(INV, 1, 0, W_SENSE_ISO * config->technology.tech->featureSize(),
                 pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
         height += 2 * MIN_GAP_BET_SAME_TYPE_DIFFS * config->technology.tech->featureSize();
 
         CalculateGateArea(INV, 1, W_SENSE_N * config->technology.tech->featureSize(), 0,
                 pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += 2 * tempHeight;
         CalculateGateArea(INV, 1, W_SENSE_EN * config->technology.tech->featureSize(), 0,
                 pitchSenseAmp, *config->technology.tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
-        width = MAX(width, tempWidth);
+        width = std::max(width, tempWidth);
         height += tempHeight;
         height += 2 * MIN_GAP_BET_SAME_TYPE_DIFFS * config->technology.tech->featureSize();
 

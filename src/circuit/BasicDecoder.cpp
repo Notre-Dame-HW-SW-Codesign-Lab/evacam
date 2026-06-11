@@ -60,7 +60,7 @@ void BasicDecoder::CalculateArea() {
         else {
             double hNand, wNand;
             CalculateGateArea(NAND, numNandInput, widthNandN, widthNandP, config->technology.tech->featureSize()*40, *config->technology.tech, &hNand, &wNand, config->peripherals.useUpdatedLib);
-            height = MAX(hNand, outputDriver.height);
+            height = std::max(hNand, outputDriver.height);
             width = wNand + outputDriver.width;
             height *= numNandGate;
         }

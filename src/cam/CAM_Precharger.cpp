@@ -107,9 +107,9 @@ void CAM_Precharger::CalculateArea() {
 
         // CAM precharge excludes the equalization device, so width tracks only the two precharge PMOS devices.
         width = 2 * wBitlinePrecharger;
-        width = MAX(width, wInverter);
+        width = std::max(width, wInverter);
         width *= numColumn;
-        width = MAX(width, outputDriver.width);
+        width = std::max(width, outputDriver.width);
 
         // Height excludes equalization-device footprint for the same reason.
         height = hBitlinePrecharger;

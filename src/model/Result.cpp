@@ -520,10 +520,10 @@ void Result::printAsCache(Result &tagResult, CacheAccessMode cacheAccessMode) {
         if (cacheAccessMode == normal_access_mode) {
             /* Calculate latencies */
             cacheMissLatency = tagResult.bank->readLatency;		/* only the tag access latency */
-            cacheHitLatency = MAX(tagResult.bank->readLatency, bank->mat->readLatency);	/* access tag and activate mem_data row in parallel */
+            cacheHitLatency = std::max(tagResult.bank->readLatency, bank->mat->readLatency);	/* access tag and activate mem_data row in parallel */
             cacheHitLatency += bank->mat->subarray->columnDecoderLatency;		/* add column decoder latency after hit signal arrives */
             cacheHitLatency += bank->readLatency - bank->mat->readLatency;	/* H-tree in and out latency */
-            cacheWriteLatency = MAX(tagResult.bank->writeLatency, bank->writeLatency);	/* Data and tag are written in parallel */
+            cacheWriteLatency = std::max(tagResult.bank->writeLatency, bank->writeLatency);	/* Data and tag are written in parallel */
             /* Calculate power */
             cacheMissDynamicEnergy = tagResult.bank->readDynamicEnergy;	/* no matter what tag is always accessed */
             cacheMissDynamicEnergy += bank->readDynamicEnergy;	/* mem_data is also partially accessed, TODO: not accurate here */
@@ -532,8 +532,8 @@ void Result::printAsCache(Result &tagResult, CacheAccessMode cacheAccessMode) {
         } else if (cacheAccessMode == fast_access_mode) {
             /* Calculate latencies */
             cacheMissLatency = tagResult.bank->readLatency;
-            cacheHitLatency = MAX(tagResult.bank->readLatency, bank->readLatency);
-            cacheWriteLatency = MAX(tagResult.bank->writeLatency, bank->writeLatency);
+            cacheHitLatency = std::max(tagResult.bank->readLatency, bank->readLatency);
+            cacheWriteLatency = std::max(tagResult.bank->writeLatency, bank->writeLatency);
             /* Calculate power */
             cacheMissDynamicEnergy = tagResult.bank->readDynamicEnergy;	/* no matter what tag is always accessed */
             cacheMissDynamicEnergy += bank->readDynamicEnergy;	/* mem_data is also partially accessed, TODO: not accurate here */
@@ -543,7 +543,7 @@ void Result::printAsCache(Result &tagResult, CacheAccessMode cacheAccessMode) {
             /* Calculate latencies */
             cacheMissLatency = tagResult.bank->readLatency;
             cacheHitLatency = tagResult.bank->readLatency + bank->readLatency;
-            cacheWriteLatency = MAX(tagResult.bank->writeLatency, bank->writeLatency);
+            cacheWriteLatency = std::max(tagResult.bank->writeLatency, bank->writeLatency);
             /* Calculate power */
             cacheMissDynamicEnergy = tagResult.bank->readDynamicEnergy;	/* no matter what tag is always accessed */
             cacheHitDynamicEnergy = tagResult.bank->readDynamicEnergy + bank->readDynamicEnergy;
@@ -738,10 +738,10 @@ void Result::printAsCacheToCsvFile(Result &tagResult, CacheAccessMode cacheAcces
         if (cacheAccessMode == normal_access_mode) {
             /* Calculate latencies */
             cacheMissLatency = tagResult.bank->readLatency;		/* only the tag access latency */
-            cacheHitLatency = MAX(tagResult.bank->readLatency, bank->mat->readLatency);	/* access tag and activate mem_data row in parallel */
+            cacheHitLatency = std::max(tagResult.bank->readLatency, bank->mat->readLatency);	/* access tag and activate mem_data row in parallel */
             cacheHitLatency += bank->mat->subarray->columnDecoderLatency;		/* add column decoder latency after hit signal arrives */
             cacheHitLatency += bank->readLatency - bank->mat->readLatency;	/* H-tree in and out latency */
-            cacheWriteLatency = MAX(tagResult.bank->writeLatency, bank->writeLatency);	/* Data and tag are written in parallel */
+            cacheWriteLatency = std::max(tagResult.bank->writeLatency, bank->writeLatency);	/* Data and tag are written in parallel */
             /* Calculate power */
             cacheMissDynamicEnergy = tagResult.bank->readDynamicEnergy;	/* no matter what tag is always accessed */
             cacheMissDynamicEnergy += bank->readDynamicEnergy;	/* mem_data is also partially accessed, TODO: not accurate here */
@@ -750,8 +750,8 @@ void Result::printAsCacheToCsvFile(Result &tagResult, CacheAccessMode cacheAcces
         } else if (cacheAccessMode == fast_access_mode) {
             /* Calculate latencies */
             cacheMissLatency = tagResult.bank->readLatency;
-            cacheHitLatency = MAX(tagResult.bank->readLatency, bank->readLatency);
-            cacheWriteLatency = MAX(tagResult.bank->writeLatency, bank->writeLatency);
+            cacheHitLatency = std::max(tagResult.bank->readLatency, bank->readLatency);
+            cacheWriteLatency = std::max(tagResult.bank->writeLatency, bank->writeLatency);
             /* Calculate power */
             cacheMissDynamicEnergy = tagResult.bank->readDynamicEnergy;	/* no matter what tag is always accessed */
             cacheMissDynamicEnergy += bank->readDynamicEnergy;	/* mem_data is also partially accessed, TODO: not accurate here */
@@ -761,7 +761,7 @@ void Result::printAsCacheToCsvFile(Result &tagResult, CacheAccessMode cacheAcces
             /* Calculate latencies */
             cacheMissLatency = tagResult.bank->readLatency;
             cacheHitLatency = tagResult.bank->readLatency + bank->readLatency;
-            cacheWriteLatency = MAX(tagResult.bank->writeLatency, bank->writeLatency);
+            cacheWriteLatency = std::max(tagResult.bank->writeLatency, bank->writeLatency);
             /* Calculate power */
             cacheMissDynamicEnergy = tagResult.bank->readDynamicEnergy;	/* no matter what tag is always accessed */
             cacheHitDynamicEnergy = tagResult.bank->readDynamicEnergy + bank->readDynamicEnergy;

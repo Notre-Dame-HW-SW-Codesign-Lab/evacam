@@ -240,8 +240,8 @@ void Wire::CalculateLowSwingLatencyAndPower(
     double resWire = resWirePerUnit * wireLength;
     double resDriver = ((-8) * delayFO4 / ( log(0.5) * capWire)) / RES_ADJ;
     double widthNmosDriver = resPullDown * widthNmos / resDriver;
-    widthNmosDriver = MIN(widthNmosDriver, MAX_NMOS_SIZE * techFeatureSize);
-    widthNmosDriver = MAX(widthNmosDriver, MIN_NMOS_SIZE * techFeatureSize);
+    widthNmosDriver = std::min(widthNmosDriver, MAX_NMOS_SIZE * techFeatureSize);
+    widthNmosDriver = std::max(widthNmosDriver, MIN_NMOS_SIZE * techFeatureSize);
 
     if (resWire * capWire > 8 * delayFO4) {
         widthNmosDriver = config->input.maxNmosSize * techFeatureSize;
@@ -266,7 +266,7 @@ void Wire::CalculateLowSwingLatencyAndPower(
             driverTransistorHeight, tech, &capInput, &capOutput);
 
     double sizeInverter = reqCin / capInput;
-    sizeInverter = MAX(sizeInverter, 1);
+    sizeInverter = std::max(sizeInverter, 1.0);
 
     /* nand gate delay */
 

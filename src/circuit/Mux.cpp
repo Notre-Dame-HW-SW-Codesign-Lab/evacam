@@ -57,11 +57,11 @@ void Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _
             if (widthNMOSPassTransistor > maxNMOSWidth) {
                 widthNMOSPassTransistor = maxNMOSWidth;
             }
-            widthNMOSPassTransistor = MAX(
-                    MAX(widthNMOSPassTransistor, minNMOSWidth),
+            widthNMOSPassTransistor = std::max(
+                    std::max(widthNMOSPassTransistor, minNMOSWidth),
                     6 * MIN_NMOS_SIZE * featureSize);
         } else {
-            widthNMOSPassTransistor = MAX(6 * MIN_NMOS_SIZE * featureSize, minNMOSWidth);
+            widthNMOSPassTransistor = std::max(6 * MIN_NMOS_SIZE * featureSize, minNMOSWidth);
         }
     }
 
