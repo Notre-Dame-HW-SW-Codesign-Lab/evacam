@@ -9,6 +9,7 @@ struct CliOptions {
     std::string outputYamlFileName;
     int threads = 0;
     bool verbose = false;
+    bool stdoutOutput = true;
     bool variationPlots = true;
     bool showHelp = false;
 };

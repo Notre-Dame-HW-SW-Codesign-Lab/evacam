@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <yaml-cpp/yaml.h>
 
 #include "input/CliOptions.h"
@@ -8,6 +9,33 @@
 #include "EvaCamExplorer.h"
 #include "EvaCamOutput.h"
 #include "config/OutputFileLock.h"
+
+namespace {
+
+class ScopedStdoutRedirect {
+    public:
+        explicit ScopedStdoutRedirect(bool enabled) : enabled_(enabled) {
+            if (enabled_) {
+                previous_ = std::cout.rdbuf(buffer_.rdbuf());
+            }
+        }
+
+        ~ScopedStdoutRedirect() {
+            if (enabled_) {
+                std::cout.rdbuf(previous_);
+            }
+        }
+
+        ScopedStdoutRedirect(const ScopedStdoutRedirect&) = delete;
+        ScopedStdoutRedirect& operator=(const ScopedStdoutRedirect&) = delete;
+
+    private:
+        bool enabled_;
+        std::ostringstream buffer_;
+        std::streambuf *previous_ = nullptr;
+};
+
+}  // namespace
 
 int main(int argc, char *argv[]) {
     std::setw(10);
@@ -20,6 +48,7 @@ int main(int argc, char *argv[]) {
             return 0;
         }
 
+        ScopedStdoutRedirect stdoutRedirect(!cliOptions.stdoutOutput);
         EvaCamContext context = EvaCamContextBuilder::Build(cliOptions);
         auto config = context.config;
         std::string outputYamlFileName = context.outputYamlFileName;

@@ -85,7 +85,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-formula test-match test-pybind-match uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-formula test-match test-pybind-match test-pybind-run uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -150,6 +150,9 @@ test-match: $(OBJECTS_NO_MAIN)
 
 test-pybind-match: $(PYBIND_MODULE)
 	python3 tests/test_pybind_match.py $(MATCH_CONFIG_FILE)
+
+test-pybind-run: $(PYBIND_MODULE)
+	python3 tests/test_pybind_run.py $(MATCH_CONFIG_FILE)
 
 uml:
 	@if ! command -v pdflatex >/dev/null 2>&1; then \

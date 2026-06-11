@@ -70,4 +70,6 @@ jobs:
         # Run from the repo root so the configs' relative paths resolve. A fresh
         # checkout has no evacam_py in the tree (no package dir or .so), so the
         # import still resolves to the installed wheel, not the source.
-        run: python tests/test_pybind_match.py config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml
+        run: |
+          python tests/test_pybind_match.py config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml
+          python tests/test_pybind_run.py config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml

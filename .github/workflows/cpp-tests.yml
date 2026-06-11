@@ -25,6 +25,7 @@ jobs:
           - test-wire
           - test-formula
           - test-match
+          - test-pybind-run
 
     steps:
       - name: Checkout

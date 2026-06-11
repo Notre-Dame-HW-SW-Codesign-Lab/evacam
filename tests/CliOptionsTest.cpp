@@ -45,6 +45,7 @@ void TestOutputOptionLongForm() {
             "EvaCAM",
             "--output", "/tmp/evacam.yaml",
             "--threads", "2",
+            "--quiet",
             "--no-variation-plots",
             "config/input.yaml",
     });
@@ -52,7 +53,19 @@ void TestOutputOptionLongForm() {
     assert(options.inputFileName == "config/input.yaml");
     assert(options.outputYamlFileName == "/tmp/evacam.yaml");
     assert(options.threads == 2);
+    assert(!options.stdoutOutput);
     assert(!options.variationPlots);
+}
+
+void TestQuietOptionShortForm() {
+    const CliOptions options = Parse({
+            "EvaCAM",
+            "-q",
+            "config/input.yaml",
+    });
+
+    assert(options.inputFileName == "config/input.yaml");
+    assert(!options.stdoutOutput);
 }
 
 void TestOutputOptionValidation() {
@@ -70,6 +83,7 @@ void TestUsageIncludesOutputOption() {
 
     const std::string usage = os.str();
     assert(usage.find("-o, --output FILE") != std::string::npos);
+    assert(usage.find("-q, --quiet") != std::string::npos);
 }
 
 }  // namespace
@@ -77,6 +91,7 @@ void TestUsageIncludesOutputOption() {
 int main() {
     TestOutputOptionShortForm();
     TestOutputOptionLongForm();
+    TestQuietOptionShortForm();
     TestOutputOptionValidation();
     TestUsageIncludesOutputOption();
 

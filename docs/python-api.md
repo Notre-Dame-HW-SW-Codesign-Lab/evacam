@@ -1,6 +1,6 @@
 # Python API
 
-EvaCAM provides Python bindings through the `evacam_py` module. The Python API wraps the C++ match-evaluation interface and returns the same timing, energy, and sensing metrics as `EvaCAM_Match`.
+EvaCAM provides Python bindings through the `evacam_py` module. The Python API can run the simulator and return structured full-run results, and it also wraps the C++ match-evaluation interface for per-query match modeling.
 
 ## Build
 
@@ -19,6 +19,78 @@ Run Python from the repository root, or make sure the built extension is on `PYT
 ```python
 import evacam_py
 ```
+
+## Full Simulator Run
+
+Use `evacam_py.run()` to execute the same simulator path used by the CLI and return raw SI-valued metrics to Python.
+
+```python
+result = evacam_py.run(
+    "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml",
+    threads=1,
+    output_yaml_path=None,
+    write_yaml=False,
+    stdout=False,
+    verbose=False,
+    variation_plots=False,
+)
+```
+
+Signature:
+
+```python
+evacam_py.run(
+    config_path: str,
+    *,
+    threads: int = 1,
+    output_yaml_path: str | None = None,
+    write_yaml: bool = False,
+    stdout: bool = False,
+    verbose: bool = False,
+    variation_plots: bool = False,
+) -> EvaCAMRunResult
+```
+
+Arguments:
+
+- `config_path`: required system YAML path.
+- `threads`: number of exploration threads. Values less than or equal to zero fall back to one thread.
+- `output_yaml_path`: optional YAML output path. If omitted with `write_yaml=True`, EvaCAM uses the same default output path logic as the CLI.
+- `write_yaml`: when true, writes the existing EvaCAM results YAML format.
+- `stdout`: when false, suppresses C++ stdout from the run. This defaults to false for Python embedding and modeling workflows.
+- `verbose`: enables the existing EvaCAM verbose logger. If `stdout=False`, verbose output is still suppressed from stdout.
+- `variation_plots`: enables Monte Carlo variation histogram SVG generation when YAML/sample files are written.
+
+The return object has:
+
+- `num_solutions`: number of valid solutions found.
+- `exploration_csv_path`: path to the exploration CSV for full-exploration runs, or an empty string.
+- `output_yaml_path`: YAML path used when `write_yaml=True`, or an empty string.
+- `best_results`: dictionary keyed by optimization target name.
+
+Example:
+
+```python
+result = evacam_py.run(
+    "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml",
+    write_yaml=True,
+    output_yaml_path="results/python_run.yaml",
+)
+
+search = result.best_results["SearchLatency"]
+print(search.summary["timing.search_latency_s"])
+print(search.summary["energy.search_dynamic_j"])
+print(search.breakdown["search_latency.matchline_s"])
+print(search.geometry["bit_serial_width"])
+```
+
+`EvaCAMDesignResult` fields:
+
+- `optimization_target`: target name, for example `SearchLatency`.
+- `summary`: raw SI-valued top-level metrics keyed by dotted names.
+- `breakdown`: raw SI-valued component breakdown metrics keyed by dotted names.
+- `geometry`: selected raw geometry and design settings.
+- `variation`: Monte Carlo summary and sample data when variation is enabled.
 
 ## EvaCAMMatch
 

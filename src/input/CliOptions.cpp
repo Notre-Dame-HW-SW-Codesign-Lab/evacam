@@ -43,6 +43,11 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
             continue;
         }
 
+        if (arg == "-q" || arg == "--quiet") {
+            options.stdoutOutput = false;
+            continue;
+        }
+
         if (arg == "-o" || arg == "--output") {
             if (i + 1 >= argc) {
                 throw std::invalid_argument("Missing output YAML file after " + std::string(arg));
@@ -86,6 +91,7 @@ void CliOptionsParser::PrintUsage(std::ostream &os) {
     os << "  -t, --threads N           Number of parallel threads (default: all cores)" << std::endl;
     os << "  -o, --output FILE         Write YAML results to FILE" << std::endl;
     os << "  -v, --verbose             Enable verbose output" << std::endl;
+    os << "  -q, --quiet               Suppress normal stdout output" << std::endl;
     os << "      --no-variation-plots  Skip Monte Carlo variation histogram SVG generation" << std::endl;
     os << "  -h, --help                Show this help and exit" << std::endl;
 }
