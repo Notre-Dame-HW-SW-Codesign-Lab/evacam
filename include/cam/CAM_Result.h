@@ -12,7 +12,6 @@ class CAM_Result : public Result{
         /* Functions */
         void print();
         //void printAsCache(Result &tagBank, CacheAccessMode cacheAccessMode);
-        void reset();
         //void printToCsvFile(ofstream &outputFile);
         //void printAsCacheToCsvFile(Result &tagBank, CacheAccessMode cacheAccessMode, ofstream &outputFile);
         void compareAndUpdate(std::shared_ptr<Result> newResult);

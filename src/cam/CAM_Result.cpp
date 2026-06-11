@@ -9,19 +9,6 @@ CAM_Result::~CAM_Result() {
     //if (bank) delete bank;
 }
 
-void CAM_Result::reset() {
-    bank->readLatency = 1e41;
-    bank->writeLatency = 1e41;
-    bank->readDynamicEnergy = 1e41;
-    bank->writeDynamicEnergy = 1e41;
-    bank->leakage = 1e41;
-    bank->height = 1e41;
-    bank->width = 1e41;
-    bank->area = 1e41;
-    bank->searchLatency = 1e41;
-    bank->searchDynamicEnergy = 1e41;
-}
-
 void CAM_Result::compareAndUpdate(std::shared_ptr<Result> newResult) {
     // Test to ensure the bank initialized right
     if (newResult->bank->readLatency <= limitReadLatency 

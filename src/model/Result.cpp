@@ -46,6 +46,7 @@ void Result::reset() {
     bank->writeLatency = 1e41;
     bank->readDynamicEnergy = 1e41;
     bank->writeDynamicEnergy = 1e41;
+    bank->searchLatency = 1e41;
     bank->searchDynamicEnergy = 1e41;
     bank->leakage = 1e41;
     bank->height = 1e41;
