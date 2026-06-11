@@ -1,6 +1,3 @@
-#ifndef BASIC_DECODER_CPP
-#define BASIC_DECODER_CPP
-
 #include "BasicDecoder.h"
 #include "formula.h"
 
@@ -145,5 +142,3 @@ void BasicDecoder::PrintProperty() {
     std::cout << numNandInput << " to " << numNandGate << " Decoder Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }
-
-#endif

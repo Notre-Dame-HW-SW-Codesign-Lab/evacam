@@ -1,7 +1,6 @@
 #include "OutputDriver.h"
 #include "formula.h"
 #include "typedef.h"
-#include "macros.h"
 #include <math.h>
 
 void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _outputCap,

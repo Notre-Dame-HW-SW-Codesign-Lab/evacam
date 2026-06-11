@@ -7,7 +7,6 @@
 #include "constant.h"
 #include "CAM_Line.h"
 #include "MemCell.h"
-#include "macros.h"
 
 #include <algorithm>
 #include <math.h>

@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "macros.h"
+#include "UnitFormatter.h"
 
 namespace {
 
@@ -41,25 +41,25 @@ namespace {
 
     std::string fmt_second(double x) {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(3) << TO_SECOND(x);
+        oss << std::fixed << std::setprecision(3) << ToSecond(x);
         return oss.str();
     }
 
     std::string fmt_bps(double x) {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(3) << TO_BPS(x);
+        oss << std::fixed << std::setprecision(3) << ToBps(x);
         return oss.str();
     }
 
     std::string fmt_joule(double x) {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(3) << TO_JOULE(x);
+        oss << std::fixed << std::setprecision(3) << ToJoule(x);
         return oss.str();
     }
 
     std::string fmt_watt(double x) {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(3) << TO_WATT(x);
+        oss << std::fixed << std::setprecision(3) << ToWatt(x);
         return oss.str();
     }
 
@@ -71,13 +71,13 @@ namespace {
 
     std::string fmt_meter(double x) {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(3) << TO_METER(x);
+        oss << std::fixed << std::setprecision(3) << ToMeter(x);
         return oss.str();
     }
 
     std::string fmt_sqm(double x) {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(3) << TO_SQM(x);
+        oss << std::fixed << std::setprecision(3) << ToSquareMeter(x);
         return oss.str();
     }
 

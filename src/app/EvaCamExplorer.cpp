@@ -26,7 +26,6 @@
 #include "config/OutputPathBuilder.h"
 #include "factories/BankFactory.h"
 #include "factories/WireFactory.h"
-#include "macros.h"
 
 namespace {
 

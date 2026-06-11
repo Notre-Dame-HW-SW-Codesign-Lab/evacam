@@ -1,6 +1,6 @@
 #include "MemCell.h"
 #include "formula.h"
-#include "macros.h"
+#include "UnitFormatter.h"
 #include "input/CellYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
 #include <math.h>
@@ -314,7 +314,7 @@ void MemCell::PrintCell()
             std::cout << "Reset Mode: Current" << std::endl;
             std::cout << "  - Reset Current: " << resetCurrent * 1e6 << "uA" << std::endl;
         }
-        std::cout << "  - Reset Pulse: " << TO_SECOND(resetPulse) << std::endl;
+        std::cout << "  - Reset Pulse: " << ToSecond(resetPulse) << std::endl;
 
         if (setMode) {
             std::cout << "Set Mode: Voltage" << std::endl;
@@ -323,7 +323,7 @@ void MemCell::PrintCell()
             std::cout << "Set Mode: Current" << std::endl;
             std::cout << "  - Set Current: " << setCurrent * 1e6 << "uA" << std::endl;
         }
-        std::cout << "  - Set Pulse: " << TO_SECOND(setPulse) << std::endl;
+        std::cout << "  - Set Pulse: " << ToSecond(setPulse) << std::endl;
 
         switch (accessType) {
             case CMOS_access:
@@ -346,8 +346,8 @@ void MemCell::PrintCell()
         std::cout << "Pass Voltage       : " << flashPassVoltage << "V" << std::endl;
         std::cout << "Programming Voltage: " << flashProgramVoltage << "V" << std::endl;
         std::cout << "Erase Voltage      : " << flashEraseVoltage << "V" << std::endl;
-        std::cout << "Programming Time   : " << TO_SECOND(flashProgramTime) << std::endl;
-        std::cout << "Erase Time         : " << TO_SECOND(flashEraseTime) << std::endl;
+        std::cout << "Programming Time   : " << ToSecond(flashProgramTime) << std::endl;
+        std::cout << "Erase Time         : " << ToSecond(flashEraseTime) << std::endl;
         std::cout << "Gate Coupling Ratio: " << gateCouplingRatio << std::endl;
     }
     std::cout << "===========   For CAM  ==============" << std::endl;
