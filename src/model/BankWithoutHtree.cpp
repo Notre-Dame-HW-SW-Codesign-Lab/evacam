@@ -146,8 +146,6 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         return;
     }
 
-    mat->CalculateArea();
-
     if (!internalSenseAmp) {
         bool voltageSense = true;
         double senseVoltage;
@@ -173,9 +171,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
             initialized = true;
             return;
         }
-        globalSenseAmp->CalculateRC();
         globalBitlineMux->Initialize(numRowMat * numColumnMat / numActiveMatPerColumn / numActiveMatPerRow, numSenseAmp, globalSenseAmp->capLoad, globalSenseAmp->capLoad, 0, config);
-        globalBitlineMux->CalculateRC();
     }
 
     /* Reset the mux values for correct printing */
@@ -185,7 +181,6 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 
     initialized = true;
     CalculateArea();
-    CalculateRC();
 }
 
 void BankWithoutHtree::CalculateArea() {

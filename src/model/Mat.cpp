@@ -238,7 +238,6 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
             Log2Rounded(muxOutputLev2), capLoadMuxPredecoder, config);
 
     initialized = true;
-    CalculateRC();
     CalculateArea();
 }
 

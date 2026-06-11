@@ -74,6 +74,7 @@ class CAM_SubArray: public FunctionUnit {
         CAM_SubArray() {
             initialized = false;
             invalid = false;
+            latencyCalculated = false;
             // TODO: Figure out how to calculate this if it doesn't go in the correct if statement
             matchlineDelay = 0;
             matchlineWireRes = 0;
@@ -162,6 +163,7 @@ class CAM_SubArray: public FunctionUnit {
 
         bool initialized;	/* Initialization flag */
         bool invalid;		/* Indicate that the current configuration is not valid, pass down to all the sub-components */
+        bool latencyCalculated; /* CalculatePower depends on latency-derived fields. */
 
         // structure
         long long numRow;			/* Number of rows, number of words*/

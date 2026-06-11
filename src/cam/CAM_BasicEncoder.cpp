@@ -48,7 +48,6 @@ void CAM_BasicEncoder::CalculateArea() {
     if (!initialized) {
         ThrowInitializationError("[CAM_BasicEncoder]");
     } else {
-        outputDriver.CalculateArea();
         if (numInputBit == 8) {
             outputDriver.CalculateArea();
             // 4-input OR is 2 NOR2 + 1 NAND2

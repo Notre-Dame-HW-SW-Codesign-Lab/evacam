@@ -245,6 +245,7 @@ void CAM_SubArray::Initialize(
 
     numRow = _numRow;
     numColumn = _numColumn;
+    latencyCalculated = false;
     multipleRowPerSet = _multipleRowPerSet;
     split = _split;
     muxSenseAmp = _muxSenseAmp;
@@ -762,8 +763,12 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
     if (!initialized) {
         throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
-    } else if (invalid) {
+    }
+
+    latencyCalculated = false;
+    if (invalid) {
         searchLatency = readLatency = writeLatency = 1e41;
+        return;
     } else {
         if (withInputBuf) {
             inputBuf->CalculateLatency(_rampInput);
@@ -981,6 +986,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         setLatency = (writeLatency + cell.setPulse)*numColumn*2 * muxSenseAmp * muxOutputLev1 * muxOutputLev2;
         writeLatency += std::max(cell.resetPulse, cell.setPulse);
     }
+    latencyCalculated = true;
 }
 
 
@@ -989,6 +995,9 @@ void CAM_SubArray::CalculatePower() {
             ThrowInitializationError("[CAM_SubArray]");
         } else if (invalid) {
             readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
+        } else if (!latencyCalculated) {
+            throw std::runtime_error(
+                    "[CAM_SubArray] Error: CalculateLatency must be called before CalculatePower.");
         } else {
 
             const auto &cell = *config->technology.cell;
