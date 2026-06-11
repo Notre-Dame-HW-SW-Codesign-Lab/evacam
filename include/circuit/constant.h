@@ -1,8 +1,6 @@
 #ifndef CONSTANT_H_
 #define CONSTANT_H_
 
-#define WARNING	0
-
 #define INV		0
 #define NOR		1
 #define NAND	2

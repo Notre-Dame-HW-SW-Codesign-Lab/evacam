@@ -42,9 +42,8 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
             optimalNumStage += 1;
 
         if (optimalNumStage > MAX_INV_CHAIN_LEN) {/* Exceed maximum stages */
-            if (WARNING)
-                config->logger.Verbose()
-                        << "[Output Driver] Warning: Exceed maximum inverter chain length!";
+            config->logger.Verbose()
+                    << "[Output Driver] Warning: Exceed maximum inverter chain length!";
             optimalNumStage = MAX_INV_CHAIN_LEN;
         }
 
@@ -64,9 +63,8 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
 
             if (widthNMOS[optimalNumStage-1]
                     > config->input.maxNmosSize * config->technology.tech->featureSize()) {
-                if (WARNING)
-                    config->logger.Verbose()
-                            << "[Output Driver] Warning: Exceed maximum NMOS size!";
+                config->logger.Verbose()
+                        << "[Output Driver] Warning: Exceed maximum NMOS size!";
                 widthNMOS[optimalNumStage-1] =
                         config->input.maxNmosSize * config->technology.tech->featureSize();
                 /* re-Calculate the logic effort */
@@ -90,9 +88,8 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
                 for (int i = optimalNumStage-2; i >= 0; i--) {
                     widthNMOS[i] = widthNMOS[i+1] / f;
                     if (widthNMOS[i] < MIN_NMOS_SIZE * config->technology.tech->featureSize()) {
-                        if (WARNING)
-                            config->logger.Verbose()
-                                    << "[Output Driver] Warning: Exceed minimum NMOS size!";
+                        config->logger.Verbose()
+                                << "[Output Driver] Warning: Exceed minimum NMOS size!";
                         widthNMOS[i] = MIN_NMOS_SIZE * config->technology.tech->featureSize();
                     }
                     widthPMOS[i] = widthNMOS[i] * config->technology.tech->pnSizeRatio();
@@ -111,9 +108,8 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
             optimalNumStage += 1;
 
         if (optimalNumStage >= MAX_INV_CHAIN_LEN) {/* Exceed maximum stages */
-            if (WARNING)
-                config->logger.Verbose()
-                        << "[Output Driver] Warning: Exceed maximum inverter chain length!";
+            config->logger.Verbose()
+                    << "[Output Driver] Warning: Exceed maximum inverter chain length!";
             optimalNumStage = MAX_INV_CHAIN_LEN - 1;
         }
 
@@ -128,9 +124,8 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
         for (int i = optimalNumStage - 1; i >= 0; i--) {
             widthNMOS[i] = widthNMOS[i+1] / f;
             if (widthNMOS[i] < MIN_NMOS_SIZE * config->technology.tech->featureSize()) {
-                if (WARNING)
-                    config->logger.Verbose()
-                            << "[Output Driver] Warning: Exceed minimum NMOS size!";
+                config->logger.Verbose()
+                        << "[Output Driver] Warning: Exceed minimum NMOS size!";
                 widthNMOS[i] = MIN_NMOS_SIZE * config->technology.tech->featureSize();
             }
             widthPMOS[i] = widthNMOS[i] * config->technology.tech->pnSizeRatio();
