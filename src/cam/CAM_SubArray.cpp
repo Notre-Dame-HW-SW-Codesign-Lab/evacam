@@ -368,13 +368,12 @@ void CAM_SubArray::Initialize(
     resMatchTran = 0;
     nominalResCellAccessOff = 0;
     nominalResMatchTranOff = 0;
+    double totalMatchlineCellCap = 0;
 
     for (int i = 0; i < cell.camNumCol; i++) {
         const auto &cellPort = Col[i].CellPort;
 
         if (cellPort.Type == Matchline || cellPort.Type == Matchline_Bitline) {
-            indexMatchline = i;
-
             if (cellPort.ConnectedRegion == gate) {
                 invalid = true;
                 logger.Log() << "[Warning]: Impractical matchline connection (gate).";
@@ -394,17 +393,20 @@ void CAM_SubArray::Initialize(
                 return;
             }
 
-            nominalResCellAccessOff = params.nominalResCellAccessOff;
-            nominalResMatchTranOff = params.nominalResMatchTranOff;
-            resMemCellOff = params.resMemCellOff;
-            resCellAccess = params.resCellAccess;
-            resMatchTran = params.resMatchTran;
-            resMemCellOn = params.resMemCellOn;
-            capCellAccess = params.capCellAccess;
-            break;
+            totalMatchlineCellCap += params.capCellAccess;
+
+            if (indexMatchline < 0) {
+                indexMatchline = i;
+                nominalResCellAccessOff = params.nominalResCellAccessOff;
+                nominalResMatchTranOff = params.nominalResMatchTranOff;
+                resMemCellOff = params.resMemCellOff;
+                resCellAccess = params.resCellAccess;
+                resMatchTran = params.resMatchTran;
+                resMemCellOn = params.resMemCellOn;
+            }
 
             // need to account for other cases for some variables to be initialized
-        } else if (cellPort.Type == Bitline) {
+        } else if (cellPort.Type == Bitline && indexMatchline < 0) {
             invalid = true;
             logger.Verbose() << "[CAM_SubArray] Unsupported column bitline topology before matchline modeling is established.";
             return;
@@ -417,6 +419,7 @@ void CAM_SubArray::Initialize(
         return;
     }
 
+    capCellAccess = totalMatchlineCellCap;
     nominalMatchlineWireRes = Col[indexMatchline].res;
     nominalResCellAccess    = resCellAccess;
     nominalResMatchTran     = resMatchTran;
@@ -943,7 +946,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             } else {
                 logger.Log() << "Warning: 2FeFET MCAM design is not properly supported and will return inaccurate results for some metrics.";
                 // TODO: fix this placeholder
-                capTotalCell = 0.001;
+                capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
                 searchLatency = 0.001;
                 senseAmpLatency = 0.001;
             }
