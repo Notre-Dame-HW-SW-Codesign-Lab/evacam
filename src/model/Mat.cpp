@@ -1,12 +1,86 @@
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+
 #include "Mat.h"
 #include "formula.h"
-void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddressBit, long _numDataBit,
+
+namespace {
+constexpr double kInvalidResult = 1e41;
+constexpr int kMaxAddressBitsPerPredecoderBlock = 3;
+
+int Log2Rounded(int value) {
+    return static_cast<int>(std::log2(value) + 0.1);
+}
+
+void MarkInvalid(Mat &mat, const char *message) {
+    mat.invalid = true;
+    mat.config->logger.Verbose() << message;
+    mat.initialized = true;
+}
+
+void SplitPredecoderAddressBits(int &block1AddressBits, int &block2AddressBits) {
+    block2AddressBits = 0;
+    if (block1AddressBits > kMaxAddressBitsPerPredecoderBlock) {
+        block2AddressBits = block1AddressBits / 2;
+        block1AddressBits -= block2AddressBits;
+    }
+}
+
+void InitializePredecoderPair(std::unique_ptr<PredecodeBlock> &block1,
+        std::unique_ptr<PredecodeBlock> &block2, int addressBits, double capLoad,
+        const std::shared_ptr<EvaCamConfig> &config) {
+    int block1AddressBits = addressBits;
+    int block2AddressBits = 0;
+    SplitPredecoderAddressBits(block1AddressBits, block2AddressBits);
+
+    block1 = std::make_unique<PredecodeBlock>();
+    block2 = std::make_unique<PredecodeBlock>();
+    block1->Initialize(block1AddressBits, capLoad, 0 /* TODO */, config);
+    block2->Initialize(block2AddressBits, capLoad, 0 /* TODO */, config);
+}
+
+template <typename Operation>
+void ForEachPredecoderBlock(Mat &mat, Operation operation) {
+    operation(*mat.rowPredecoderBlock1);
+    operation(*mat.rowPredecoderBlock2);
+    operation(*mat.bitlineMuxPredecoderBlock1);
+    operation(*mat.bitlineMuxPredecoderBlock2);
+    operation(*mat.senseAmpMuxLev1PredecoderBlock1);
+    operation(*mat.senseAmpMuxLev1PredecoderBlock2);
+    operation(*mat.senseAmpMuxLev2PredecoderBlock1);
+    operation(*mat.senseAmpMuxLev2PredecoderBlock2);
+}
+
+double SumPredecoderMetric(const Mat &mat, double FunctionUnit::*metric) {
+    return mat.rowPredecoderBlock1.get()->*metric
+        + mat.rowPredecoderBlock2.get()->*metric
+        + mat.bitlineMuxPredecoderBlock1.get()->*metric
+        + mat.bitlineMuxPredecoderBlock2.get()->*metric
+        + mat.senseAmpMuxLev1PredecoderBlock1.get()->*metric
+        + mat.senseAmpMuxLev1PredecoderBlock2.get()->*metric
+        + mat.senseAmpMuxLev2PredecoderBlock1.get()->*metric
+        + mat.senseAmpMuxLev2PredecoderBlock2.get()->*metric;
+}
+
+double MaxPairReadLatency(const std::unique_ptr<PredecodeBlock> &block1,
+        const std::unique_ptr<PredecodeBlock> &block2) {
+    return std::max(block1->readLatency, block2->readLatency);
+}
+} // namespace
+
+void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddressBit,
+        long _numDataBit,
         int _numWay, int _numRowPerSet, bool _split, int _numActiveSubarrayPerRow, 
         int _numActiveSubarrayPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
         int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
         MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
         std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire,
         const CAM_Opt &_CAM_opt) {
+    config = _config;
+
     if (initialized)
         config->logger.Verbose() << "[Mat] Warning: Already initialized!";
 
@@ -19,22 +93,23 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     split = _split;
     internalSenseAmp = _internalSenseAmp;
     areaOptimizationLevel = _areaOptimizationLevel;
-    memoryType =_memoryType;
+    memoryType = _memoryType;
     camType = _camType;
     searchFunction = _searchFunction;
-    config = _config;
     localWire = _localWire;
     CAM_opt = _CAM_opt;
 
     if (_numActiveSubarrayPerRow > numColumnSubarray) {
-        config->logger.Log() << "[Mat] Warning: The number of active subarray per row is larger than the number of subarray per row!";
+        config->logger.Log()
+            << "[Mat] Warning: Active subarrays per row exceeds subarrays per row!";
         config->logger.Log() << _numActiveSubarrayPerRow << " > " << numColumnSubarray;
         numActiveSubarrayPerRow = numColumnSubarray;
     } else {
         numActiveSubarrayPerRow = _numActiveSubarrayPerRow;
     }
     if (_numActiveSubarrayPerColumn > numRowSubarray) {
-        config->logger.Log() << "[Mat] Warning: The number of active subarray per column is larger than the number of subarray per column!";
+        config->logger.Log()
+            << "[Mat] Warning: Active subarrays per column exceeds subarrays per column!";
         config->logger.Log() << _numActiveSubarrayPerColumn << " > " << numRowSubarray;
         numActiveSubarrayPerColumn = numRowSubarray;
     } else {
@@ -49,13 +124,13 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     long long numColumn = 0;	/* Number of columns in a subarray */
 
     /* The number of address bits that are used to power gate inactive subarrays */
-    int numAddressForGating = (int)(log2(numRowSubarray * numColumnSubarray / numActiveSubarrayPerColumn / numActiveSubarrayPerRow)+0.1);
-    _numAddressBit -= numAddressForGating;	/* Only use the effective address bits in the following calculation */
+    int numAddressForGating = Log2Rounded(numRowSubarray * numColumnSubarray
+            / numActiveSubarrayPerColumn / numActiveSubarrayPerRow);
+    /* Only use the effective address bits in the following calculation */
+    _numAddressBit -= numAddressForGating;
     if (_numAddressBit <= 0) {
         /* too aggressive partitioning */
-        invalid = true;
-        config->logger.Verbose() << "[Mat]: number of address bit error.";
-        initialized = true;
+        MarkInvalid(*this, "[Mat]: number of address bit error.");
         return;
     }
 
@@ -68,14 +143,10 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         numRow = 1 << _numAddressBit;
     }
     if (numRow < 16) {
-        invalid = true;
-        config->logger.Verbose() << "[Mat]: Word width is impractically small.";
-        initialized = true;
+        MarkInvalid(*this, "[Mat]: Word width is impractically small.");
         return;
     } else if (numRow > 512) {
-        invalid = true;
-        config->logger.Verbose() << "[Mat]: Word width is impractically large.";
-        initialized = true;
+        MarkInvalid(*this, "[Mat]: Word width is impractically large.");
         return;
     }
     // TODO
@@ -83,7 +154,8 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
 
     if (!config->runtimeSizing.hasFixedSubarrayDimensions) {
         // modified for EvaCAM
-        numColumn = (long long)numDataBit / (numActiveSubarrayPerRow * numActiveSubarrayPerColumn);	/* Adjust the number of columns depending on the access types */
+        numColumn = (long long)numDataBit
+            / (numActiveSubarrayPerRow * numActiveSubarrayPerColumn);
     }
 
 
@@ -95,14 +167,10 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     // }
 
     if (numColumn < 8) {
-        invalid = true;
-        config->logger.Verbose() << "[Mat]: Column width is too small.";
-        initialized = true;
+        MarkInvalid(*this, "[Mat]: Column width is too small.");
         return;
     } else if (numColumn > 512) {
-        invalid = true;
-        config->logger.Verbose() << "[Mat]: Column width is too big.";
-        initialized = true;
+        MarkInvalid(*this, "[Mat]: Column width is too big.");
         return;
     }
 
@@ -111,13 +179,13 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
             numRow, 
             numColumn, 
             numRowPerSet > 1, 
-            true /* TODO: need to correct */,		
+            split,
             muxSenseAmp, 
             internalSenseAmp, 
             muxOutputLev1, 
-            muxOutputLev2,			
+            muxOutputLev2,
             areaOptimizationLevel, 
-            (BufferDesignTarget)CAM_opt.RowDriver,		
+            (BufferDesignTarget)CAM_opt.RowDriver,
             config->peripherals.withInputEnc, 
             config->peripherals.typeInputEnc,  
             config->peripherals.customInputEnc,
@@ -137,72 +205,37 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
             CAM_opt);
 
     if (subarray->invalid) {
-        invalid = true;
-        config->logger.Verbose() << "[Mat]: Subarray is invalid.";
-        initialized = true;
+        MarkInvalid(*this, "[Mat]: Subarray is invalid.");
         return;
     }
-    //subarray->CalculateArea();	/* the area needs to be calculated during the initialization because the size dimension needs to be called by others */
+    /* Subarray dimensions are used by the predecoder setup below. */
 
-    int numAddressRowPredecoderBlock1 = _numAddressBit - (int)(log2(muxSenseAmp * muxOutputLev1 * muxOutputLev2)+0.1);	/* The address bit on row decodeing */
+    int numAddressRowPredecoder = _numAddressBit
+        - Log2Rounded(muxSenseAmp * muxOutputLev1 * muxOutputLev2);
 
-    if( config->input.designTarget == CAM_chip) {
-        numAddressRowPredecoderBlock1 = _numAddressBit - (int)(log2(muxSenseAmp)+0.1);	/* The address bit on row decodeing */
+    if (config->input.designTarget == CAM_chip) {
+        numAddressRowPredecoder = _numAddressBit - Log2Rounded(muxSenseAmp);
     }
 
 
-    if (numAddressRowPredecoderBlock1 < 0) {
-        invalid = true;
-        config->logger.Verbose() << "numAddressRowPrecoderBlock1 < 0";
-        initialized = true;
+    if (numAddressRowPredecoder < 0) {
+        MarkInvalid(*this, "numAddressRowPredecoder < 0");
         return;
-    }
-    int numAddressRowPredecoderBlock2 = 0;
-    if (numAddressRowPredecoderBlock1 > 3) {	/* Block 2 is needed */
-        numAddressRowPredecoderBlock2 = numAddressRowPredecoderBlock1 / 2;
-        numAddressRowPredecoderBlock1 = numAddressRowPredecoderBlock1 - numAddressRowPredecoderBlock2;
     }
     double capLoadRowPredecoder = subarray->height * localWire.capWirePerUnit * numRowSubarray / 2
-        + subarray->width * localWire.capWirePerUnit * numColumnSubarray / 2;	/* Assume the predecoder is at the center */
-    rowPredecoderBlock1 = std::make_unique<PredecodeBlock>();
-    rowPredecoderBlock2 = std::make_unique<PredecodeBlock>();
-    rowPredecoderBlock1->Initialize(numAddressRowPredecoderBlock1, capLoadRowPredecoder, 0 /* TODO */, config);
-    rowPredecoderBlock2->Initialize(numAddressRowPredecoderBlock2, capLoadRowPredecoder, 0 /* TODO */, config);
+        + subarray->width * localWire.capWirePerUnit * numColumnSubarray / 2;
+    InitializePredecoderPair(rowPredecoderBlock1, rowPredecoderBlock2,
+            numAddressRowPredecoder, capLoadRowPredecoder, config);
 
-    double capLoadMuxPredecoder = std::max(0.0, subarray->height * localWire.capWirePerUnit * (numRowSubarray - 2) / 2)
+    double capLoadMuxPredecoder = std::max(0.0,
+            subarray->height * localWire.capWirePerUnit * (numRowSubarray - 2) / 2)
         + std::max(0.0, subarray->width * localWire.capWirePerUnit * (numColumnSubarray - 2) / 2);
-    int numAddressBitlineMuxPredecoderBlock1 = (int)(log2(muxSenseAmp) + 0.1);
-    int numAddressBitlineMuxPredecoderBlock2 = 0;
-    if (numAddressBitlineMuxPredecoderBlock1 > 3) {		/* Block 2 is needed */
-        numAddressBitlineMuxPredecoderBlock2 = numAddressBitlineMuxPredecoderBlock1 / 2;
-        numAddressBitlineMuxPredecoderBlock1 = numAddressBitlineMuxPredecoderBlock1 - numAddressBitlineMuxPredecoderBlock2;
-    }
-    bitlineMuxPredecoderBlock1 = std::make_unique<PredecodeBlock>();
-    bitlineMuxPredecoderBlock2 = std::make_unique<PredecodeBlock>();
-    bitlineMuxPredecoderBlock1->Initialize(numAddressBitlineMuxPredecoderBlock1, capLoadMuxPredecoder, 0 /* TODO */, config);
-    bitlineMuxPredecoderBlock2->Initialize(numAddressBitlineMuxPredecoderBlock2, capLoadMuxPredecoder, 0 /* TODO */, config);
-
-    int numAddressSenseAmpMuxLev1PredecoderBlock1 = (int)(log2(muxOutputLev1) + 0.1);
-    int numAddressSenseAmpMuxLev1PredecoderBlock2 = 0;
-    if (numAddressSenseAmpMuxLev1PredecoderBlock1 > 3) { /* Block 2 is needed */
-        numAddressSenseAmpMuxLev1PredecoderBlock2 = numAddressSenseAmpMuxLev1PredecoderBlock1 / 2;
-        numAddressSenseAmpMuxLev1PredecoderBlock1 = numAddressSenseAmpMuxLev1PredecoderBlock1 - numAddressSenseAmpMuxLev1PredecoderBlock2;
-    }
-    senseAmpMuxLev1PredecoderBlock1 = std::make_unique<PredecodeBlock>();
-    senseAmpMuxLev1PredecoderBlock2 = std::make_unique<PredecodeBlock>();
-    senseAmpMuxLev1PredecoderBlock1->Initialize(numAddressSenseAmpMuxLev1PredecoderBlock1, capLoadMuxPredecoder, 0 /* TODO */, config);
-    senseAmpMuxLev1PredecoderBlock2->Initialize(numAddressSenseAmpMuxLev1PredecoderBlock2, capLoadMuxPredecoder, 0 /* TODO */, config);
-
-    int numAddressSenseAmpMuxLev2PredecoderBlock1 = (int)(log2(muxOutputLev2) + 0.1);
-    int numAddressSenseAmpMuxLev2PredecoderBlock2 = 0;
-    if (numAddressSenseAmpMuxLev2PredecoderBlock1 > 3) { /* Block 2 is needed */
-        numAddressSenseAmpMuxLev2PredecoderBlock2 = numAddressSenseAmpMuxLev2PredecoderBlock1 / 2;
-        numAddressSenseAmpMuxLev2PredecoderBlock1 = numAddressSenseAmpMuxLev2PredecoderBlock1 - numAddressSenseAmpMuxLev2PredecoderBlock2;
-    }
-    senseAmpMuxLev2PredecoderBlock1 = std::make_unique<PredecodeBlock>();
-    senseAmpMuxLev2PredecoderBlock2 = std::make_unique<PredecodeBlock>();
-    senseAmpMuxLev2PredecoderBlock1->Initialize(numAddressSenseAmpMuxLev2PredecoderBlock1, capLoadMuxPredecoder, 0 /* TODO */, config);
-    senseAmpMuxLev2PredecoderBlock2->Initialize(numAddressSenseAmpMuxLev2PredecoderBlock2, capLoadMuxPredecoder, 0 /* TODO */, config);
+    InitializePredecoderPair(bitlineMuxPredecoderBlock1, bitlineMuxPredecoderBlock2,
+            Log2Rounded(muxSenseAmp), capLoadMuxPredecoder, config);
+    InitializePredecoderPair(senseAmpMuxLev1PredecoderBlock1, senseAmpMuxLev1PredecoderBlock2,
+            Log2Rounded(muxOutputLev1), capLoadMuxPredecoder, config);
+    InitializePredecoderPair(senseAmpMuxLev2PredecoderBlock1, senseAmpMuxLev2PredecoderBlock2,
+            Log2Rounded(muxOutputLev2), capLoadMuxPredecoder, config);
 
     initialized = true;
     CalculateRC();
@@ -213,56 +246,34 @@ void Mat::CalculateArea() {
     if (!initialized) {
         throw std::runtime_error("[Mat] Error: Require initialization first!");
     } else if (invalid) {
-        height = width = area = 1e41;
+        height = width = area = kInvalidResult;
     } else {
         /* subarray CalculateArea() is already called during the initialization */
-        rowPredecoderBlock1->CalculateArea();
-        rowPredecoderBlock2->CalculateArea();
-        bitlineMuxPredecoderBlock1->CalculateArea();
-        bitlineMuxPredecoderBlock2->CalculateArea();
-        senseAmpMuxLev1PredecoderBlock1->CalculateArea();
-        senseAmpMuxLev1PredecoderBlock2->CalculateArea();
-        senseAmpMuxLev2PredecoderBlock1->CalculateArea();
-        senseAmpMuxLev2PredecoderBlock2->CalculateArea();
+        ForEachPredecoderBlock(*this, [](PredecodeBlock &block) { block.CalculateArea(); });
 
-        areaAllPredecoderBlocks = rowPredecoderBlock1->area + rowPredecoderBlock2->area
-            + bitlineMuxPredecoderBlock1->area + bitlineMuxPredecoderBlock2->area
-            + senseAmpMuxLev1PredecoderBlock1->area + senseAmpMuxLev1PredecoderBlock2->area
-            + senseAmpMuxLev2PredecoderBlock1->area + senseAmpMuxLev2PredecoderBlock2->area;
+        areaAllPredecoderBlocks = SumPredecoderMetric(*this, &FunctionUnit::area);
         width = subarray->width * numColumnSubarray;
         height = subarray->height * numRowSubarray;
 
         area = height * width + areaAllPredecoderBlocks;
         /* Add the predecoders' area */
         if (width > height){
-            width += sqrt(areaAllPredecoderBlocks); // we don't want to have too much white space here.
+            width += sqrt(areaAllPredecoderBlocks);
             height = area / width;
 
         } else {
             height += sqrt(areaAllPredecoderBlocks);
             width = area / height;
         }
-        //TODO confusing expression
-        // area = subarray->area + areaAllPredecoderBlocks;
-        // height = subarray->area / width;
-        // area = width * height + areaAllPredecoderBlocks;
-        // area = height * width;
     }
 }
 
 void Mat::CalculateRC() {
     if (!initialized) {
         throw std::runtime_error("[Mat] Error: Require initialization first!");
-    } else if (!invalid){
-        /* subarray does not have CalculateRC() function, since it is integrated as a part of initialization */
-        rowPredecoderBlock1->CalculateRC();
-        rowPredecoderBlock2->CalculateRC();
-        bitlineMuxPredecoderBlock1->CalculateRC();
-        bitlineMuxPredecoderBlock2->CalculateRC();
-        senseAmpMuxLev1PredecoderBlock1->CalculateRC();
-        senseAmpMuxLev1PredecoderBlock2->CalculateRC();
-        senseAmpMuxLev2PredecoderBlock1->CalculateRC();
-        senseAmpMuxLev2PredecoderBlock2->CalculateRC();
+    } else if (!invalid) {
+        /* Subarray RC is integrated into initialization. */
+        ForEachPredecoderBlock(*this, [](PredecodeBlock &block) { block.CalculateRC(); });
     }
 }
 
@@ -270,30 +281,25 @@ void Mat::CalculateLatency(double _rampInput) {
     if (!initialized) {
         throw std::runtime_error("[Mat] Error: Require initialization first!");
     } else if (invalid) {
-        readLatency = writeLatency = 1e41;
+        readLatency = writeLatency = kInvalidResult;
     } else {
         /* Calculate the predecoder blocks latency */
-        rowPredecoderBlock1->CalculateLatency(_rampInput);
-        rowPredecoderBlock2->CalculateLatency(_rampInput);
-        bitlineMuxPredecoderBlock1->CalculateLatency(_rampInput);
-        bitlineMuxPredecoderBlock2->CalculateLatency(_rampInput);
-        senseAmpMuxLev1PredecoderBlock1->CalculateLatency(_rampInput);
-        senseAmpMuxLev1PredecoderBlock2->CalculateLatency(_rampInput);
-        senseAmpMuxLev2PredecoderBlock1->CalculateLatency(_rampInput);
-        senseAmpMuxLev2PredecoderBlock2->CalculateLatency(_rampInput);
+        ForEachPredecoderBlock(*this,
+                [_rampInput](PredecodeBlock &block) { block.CalculateLatency(_rampInput); });
 
-        double rowPredecoderLatency = std::max(rowPredecoderBlock1->readLatency, rowPredecoderBlock2->readLatency);
-        double bitlineMuxPredecoderLatency = std::max(bitlineMuxPredecoderBlock1->readLatency,
-                bitlineMuxPredecoderBlock2->readLatency);
-        double senseAmpMuxLev1PredecoderLatency = std::max(senseAmpMuxLev1PredecoderBlock1->readLatency,
-                senseAmpMuxLev1PredecoderBlock2->readLatency);
-        double senseAmpMuxLev2PredecoderLatency = std::max(senseAmpMuxLev2PredecoderBlock1->readLatency,
-                senseAmpMuxLev2PredecoderBlock2->readLatency);
+        double rowPredecoderLatency = MaxPairReadLatency(rowPredecoderBlock1, rowPredecoderBlock2);
+        double bitlineMuxPredecoderLatency = MaxPairReadLatency(bitlineMuxPredecoderBlock1,
+                bitlineMuxPredecoderBlock2);
+        double senseAmpMuxLev1PredecoderLatency = MaxPairReadLatency(
+                senseAmpMuxLev1PredecoderBlock1, senseAmpMuxLev1PredecoderBlock2);
+        double senseAmpMuxLev2PredecoderLatency = MaxPairReadLatency(
+                senseAmpMuxLev2PredecoderBlock1, senseAmpMuxLev2PredecoderBlock2);
         predecoderLatency = std::max(std::max(rowPredecoderLatency, bitlineMuxPredecoderLatency),
                 std::max(senseAmpMuxLev1PredecoderLatency, senseAmpMuxLev2PredecoderLatency));
 
-        /* Caluclate subarray latency */
-        subarray->CalculateLatency(std::min(rowPredecoderBlock1->rampOutput, rowPredecoderBlock2->rampOutput));
+        /* Calculate subarray latency */
+        subarray->CalculateLatency(std::min(rowPredecoderBlock1->rampOutput,
+                rowPredecoderBlock2->rampOutput));
         /* Add them together */
         readLatency = predecoderLatency + subarray->readLatency;
         writeLatency = predecoderLatency + subarray->writeLatency;
@@ -308,54 +314,26 @@ void Mat::CalculatePower() {
     if (!initialized) {
         throw std::runtime_error("[Mat] Error: Require initialization first!");
     } else if (invalid) {
-        readDynamicEnergy = writeDynamicEnergy = leakage = 1e41;
+        readDynamicEnergy = writeDynamicEnergy = leakage = kInvalidResult;
     } else {
-        rowPredecoderBlock1->CalculatePower();
-        rowPredecoderBlock2->CalculatePower();
-        bitlineMuxPredecoderBlock1->CalculatePower();
-        bitlineMuxPredecoderBlock2->CalculatePower();
-        senseAmpMuxLev1PredecoderBlock1->CalculatePower();
-        senseAmpMuxLev1PredecoderBlock2->CalculatePower();
-        senseAmpMuxLev2PredecoderBlock1->CalculatePower();
-        senseAmpMuxLev2PredecoderBlock2->CalculatePower();
+        ForEachPredecoderBlock(*this, [](PredecodeBlock &block) { block.CalculatePower(); });
         subarray->CalculatePower();
 
-        readDynamicEnergy = rowPredecoderBlock1->readDynamicEnergy 
-            + rowPredecoderBlock2->readDynamicEnergy
-            + bitlineMuxPredecoderBlock1->readDynamicEnergy 
-            + bitlineMuxPredecoderBlock2->readDynamicEnergy
-            + senseAmpMuxLev1PredecoderBlock1->readDynamicEnergy 
-            + senseAmpMuxLev1PredecoderBlock2->readDynamicEnergy
-            + senseAmpMuxLev2PredecoderBlock1->readDynamicEnergy 
-            + senseAmpMuxLev2PredecoderBlock2->readDynamicEnergy;
+        readDynamicEnergy = SumPredecoderMetric(*this, &FunctionUnit::readDynamicEnergy);
+        writeDynamicEnergy = SumPredecoderMetric(*this, &FunctionUnit::writeDynamicEnergy);
+        leakage = SumPredecoderMetric(*this, &FunctionUnit::leakage);
 
-        writeDynamicEnergy = rowPredecoderBlock1->writeDynamicEnergy 
-            + rowPredecoderBlock2->writeDynamicEnergy
-            + bitlineMuxPredecoderBlock1->writeDynamicEnergy 
-            + bitlineMuxPredecoderBlock2->writeDynamicEnergy
-            + senseAmpMuxLev1PredecoderBlock1->writeDynamicEnergy 
-            + senseAmpMuxLev1PredecoderBlock2->writeDynamicEnergy
-            + senseAmpMuxLev2PredecoderBlock1->writeDynamicEnergy 
-            + senseAmpMuxLev2PredecoderBlock2->writeDynamicEnergy;
-
-        leakage = rowPredecoderBlock1->leakage 
-            + rowPredecoderBlock2->leakage
-            + bitlineMuxPredecoderBlock1->leakage 
-            + bitlineMuxPredecoderBlock2->leakage
-            + senseAmpMuxLev1PredecoderBlock1->leakage 
-            + senseAmpMuxLev1PredecoderBlock2->leakage
-            + senseAmpMuxLev2PredecoderBlock1->leakage 
-            + senseAmpMuxLev2PredecoderBlock2->leakage;
-
-        //std::cout << "[MAT] subarray->readyDyanmicEnergy: " << subarray->readDynamicEnergy << std::endl;
-
-        readDynamicEnergy += subarray->readDynamicEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
+        readDynamicEnergy += subarray->readDynamicEnergy
+            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
         //std::cout << "[Mat] readDynamicEnergy " << readDynamicEnergy << std::endl;
 
         /* energy consumption on cells */
-        cellReadEnergy = subarray->cellReadEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
-        cellSetEnergy = subarray->cellSetEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
-        cellResetEnergy = subarray->cellResetEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
+        cellReadEnergy = subarray->cellReadEnergy
+            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
+        cellSetEnergy = subarray->cellSetEnergy
+            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
+        cellResetEnergy = subarray->cellResetEnergy
+            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
         /* for RESET and SET only */
         resetDynamicEnergy = writeDynamicEnergy 
             + subarray->resetDynamicEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
@@ -364,7 +342,8 @@ void Mat::CalculatePower() {
             + subarray->setDynamicEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
 
         /* total write energy */
-        writeDynamicEnergy += subarray->writeDynamicEnergy * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
+        writeDynamicEnergy += subarray->writeDynamicEnergy
+            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
         leakage += subarray->leakage * numRowSubarray * numColumnSubarray;
     }
 }
