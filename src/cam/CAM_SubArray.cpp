@@ -15,6 +15,7 @@
 #include <string>
 #include <map>
 #include <random>
+#include <sstream>
 #include <stdexcept>
 
 namespace {
@@ -150,6 +151,70 @@ MatchlineElectricalParams BuildFloatingMatchlineParams(
 
 double CombineStdev(double a, double b) {
     return std::sqrt(a * a + b * b);
+}
+
+struct BoundarySelection {
+    bool matchlineWireResHigh = false;
+    bool accessResOnHigh = false;
+    bool accessResOffHigh = false;
+    bool matchResOnHigh = false;
+    bool matchResOffHigh = false;
+    std::string matchlineWireResCorner = "nominal";
+    std::string accessResOnCorner = "nominal";
+    std::string accessResOffCorner = "nominal";
+    std::string matchResOnCorner = "nominal";
+    std::string matchResOffCorner = "nominal";
+    std::string label;
+};
+
+std::string CornerName(bool high) {
+    return high ? "high" : "low";
+}
+
+bool NextBoundaryCorner(unsigned int cornerIndex, int &bit) {
+    return ((cornerIndex >> bit++) & 1u) != 0;
+}
+
+BoundarySelection BuildBoundarySelection(const VariationConfig &variation, unsigned int cornerIndex) {
+    BoundarySelection selection;
+    int bit = 0;
+
+    if (variation.mlWireResMaxVar > 0.0) {
+        selection.matchlineWireResHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.matchlineWireResCorner = CornerName(selection.matchlineWireResHigh);
+    }
+    if (variation.deviceAccessResMaxVar > 0.0) {
+        selection.accessResOnHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.accessResOnCorner = CornerName(selection.accessResOnHigh);
+    }
+    if (variation.deviceAccessResMaxVar > 0.0) {
+        selection.accessResOffHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.accessResOffCorner = CornerName(selection.accessResOffHigh);
+    }
+    if (variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar > 0.0) {
+        selection.matchResOnHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.matchResOnCorner = CornerName(selection.matchResOnHigh);
+    }
+    if (variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar > 0.0) {
+        selection.matchResOffHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.matchResOffCorner = CornerName(selection.matchResOffHigh);
+    }
+
+    std::ostringstream label;
+    label << "ml=" << selection.matchlineWireResCorner
+          << ",access_on=" << selection.accessResOnCorner
+          << ",access_off=" << selection.accessResOffCorner
+          << ",match_on=" << selection.matchResOnCorner
+          << ",match_off=" << selection.matchResOffCorner;
+    selection.label = label.str();
+    return selection;
+}
+
+double ApplyBoundaryVariation(double nominal, double maxVar, bool high) {
+    if (maxVar <= 0.0) {
+        return nominal;
+    }
+    return nominal * (high ? (1.0 + maxVar) : (1.0 - maxVar));
 }
 
 uint32_t MixVariationSeed(uint32_t baseSeed, uint32_t sampleIndex, uint32_t streamOffset) {
@@ -911,7 +976,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 + outputBuf->readLatency 
                 + outputLS->readLatency;
 
-            UpdateMonteCarloTimingSummary();
+            UpdateVariationTimingSummary();
 
 
 
@@ -1152,7 +1217,7 @@ void CAM_SubArray::CalculatePower() {
         }
 
         searchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1)/2;
-        UpdateMonteCarloPowerSummary();
+        UpdateVariationPowerSummary();
 
         readDynamicEnergy = searchDynamicEnergy + inputBufReadEnergy * numRow 
             + inputEncReadEnergy * numRow
@@ -1605,6 +1670,46 @@ CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex
     return sample;
 }
 
+CAMResistanceSample CAM_SubArray::BuildBoundaryResistanceSample(unsigned int cornerIndex) const {
+    const auto &variation = config->variation;
+    const BoundarySelection selection = BuildBoundarySelection(variation, cornerIndex);
+    const double matchResOnMaxVar = variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar;
+    const double matchResOffMaxVar = variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar;
+
+    CAMResistanceSample sample;
+    sample.mlWireRes = ApplyBoundaryVariation(
+            nominalMatchlineWireRes,
+            variation.mlWireResMaxVar,
+            selection.matchlineWireResHigh);
+    sample.accessRes = ApplyBoundaryVariation(
+            nominalResCellAccess,
+            variation.deviceAccessResMaxVar,
+            selection.accessResOnHigh);
+    sample.matchRes = ApplyBoundaryVariation(
+            nominalResMatchTran,
+            matchResOnMaxVar,
+            selection.matchResOnHigh);
+    sample.cellResOn = sample.accessRes + sample.matchRes;
+
+    sample.accessResOff = ApplyBoundaryVariation(
+            nominalResCellAccessOff,
+            variation.deviceAccessResMaxVar,
+            selection.accessResOffHigh);
+    sample.matchResOff = ApplyBoundaryVariation(
+            nominalResMatchTranOff,
+            matchResOffMaxVar,
+            selection.matchResOffHigh);
+    sample.cellResOff = sample.accessResOff + sample.matchResOff;
+    return sample;
+}
+
+CAMResistanceSample CAM_SubArray::BuildVariationResistanceSample(unsigned int sampleIndex) const {
+    if (config->variation.mode == "boundary") {
+        return BuildBoundaryResistanceSample(sampleIndex);
+    }
+    return BuildResistanceSample(sampleIndex);
+}
+
 double CAM_SubArray::SampleVariationResistance(
         double nominal,
         double stdevFrac,
@@ -1627,18 +1732,18 @@ double CAM_SubArray::EffectiveDeviceResistanceStdev() const {
     return CombineStdev(variation.deviceAccessResStdev, variation.deviceMatchResStdev);
 }
 
-void CAM_SubArray::UpdateMonteCarloTimingSummary() {
+void CAM_SubArray::UpdateVariationTimingSummary() {
 
     const auto &variation = config->variation;
     const auto &cell = *config->technology.cell;
 
-    monteCarloSummary = CAMMonteCarloSummary{};
-    monteCarloSamples.clear();
+    variationSummary = CAMVariationSummary{};
+    variationSamples.clear();
     if (!variation.enabled) {
         return;
     }
     if (variation.mode == "single_point") {
-        const CAMResistanceSample sample = BuildResistanceSample(0);
+        const CAMResistanceSample sample = BuildVariationResistanceSample(0);
         const double searchBase = searchLatency - matchlineDelay;
         const double readBase = readLatency - matchlineDelay;
         double maxRowDriverLatency = 0;
@@ -1667,12 +1772,12 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
             sampleSearchLatency = 1e41;
         }
 
-        monteCarloSummary.enabled = true;
-        monteCarloSummary.mode = "single_point";
-        monteCarloSummary.samples = 1;
-        monteCarloSummary.matchlineDelay = BuildSinglePointMetric(sampleMatchlineDelay, matchlineDelay);
-        monteCarloSummary.searchLatency = BuildSinglePointMetric(sampleSearchLatency, searchLatency);
-        monteCarloSummary.senseMargin = BuildSinglePointMetric(sampleSenseMargin, senseMargin);
+        variationSummary.enabled = true;
+        variationSummary.mode = "single_point";
+        variationSummary.samples = 1;
+        variationSummary.matchlineDelay = BuildSinglePointMetric(sampleMatchlineDelay, matchlineDelay);
+        variationSummary.searchLatency = BuildSinglePointMetric(sampleSearchLatency, searchLatency);
+        variationSummary.senseMargin = BuildSinglePointMetric(sampleSenseMargin, senseMargin);
 
         matchlineDelay = sampleMatchlineDelay;
         searchLatency = sampleSearchLatency;
@@ -1681,7 +1786,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
         referDelay = sampleReferDelay;
         return;
     }
-    if (variation.mode != "monte_carlo" || variation.samples <= 1) {
+    if ((variation.mode != "monte_carlo" && variation.mode != "boundary") || variation.samples <= 1) {
         return;
     }
 
@@ -1693,7 +1798,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     searchLatencies.reserve(variation.samples);
     senseMargins.reserve(variation.samples);
     referDelays.reserve(variation.samples);
-    monteCarloSamples.reserve(variation.samples);
+    variationSamples.reserve(variation.samples);
 
     const double searchBase = searchLatency - matchlineDelay;
     const double readBase = readLatency - matchlineDelay;
@@ -1705,7 +1810,7 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
     }
 
     for (int sampleIndex = 0; sampleIndex < variation.samples; sampleIndex++) {
-        const CAMResistanceSample sample = BuildResistanceSample(sampleIndex);
+        const CAMResistanceSample sample = BuildVariationResistanceSample(sampleIndex);
         const double sampleResTotalCell =
                 EffectiveMatchlineCellResistance(1, sample.cellResOn, sample.cellResOff);
         const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
@@ -1729,27 +1834,36 @@ void CAM_SubArray::UpdateMonteCarloTimingSummary() {
         searchLatencies.push_back(sampleSearchLatency);
         senseMargins.push_back(sampleSenseMargin);
         referDelays.push_back(sampleReferDelay);
-        monteCarloSamples.push_back({
-                sampleIndex,
-                sampleMatchlineDelay,
-                sampleSearchLatency,
-                0.0,
-                sampleSenseMargin,
-                sampleReferDelay
-        });
+        CAMVariationSample variationSample;
+        variationSample.sample = sampleIndex;
+        if (variation.mode == "boundary") {
+            const BoundarySelection selection = BuildBoundarySelection(variation, sampleIndex);
+            variationSample.cornerLabel = selection.label;
+            variationSample.matchlineWireResCorner = selection.matchlineWireResCorner;
+            variationSample.accessResOnCorner = selection.accessResOnCorner;
+            variationSample.accessResOffCorner = selection.accessResOffCorner;
+            variationSample.matchResOnCorner = selection.matchResOnCorner;
+            variationSample.matchResOffCorner = selection.matchResOffCorner;
+        }
+        variationSample.matchlineDelay = sampleMatchlineDelay;
+        variationSample.searchLatency = sampleSearchLatency;
+        variationSample.searchDynamicEnergy = 0.0;
+        variationSample.senseMargin = sampleSenseMargin;
+        variationSample.referDelay = sampleReferDelay;
+        variationSamples.push_back(variationSample);
     }
 
-    monteCarloSummary.enabled = true;
-    monteCarloSummary.mode = "monte_carlo";
-    monteCarloSummary.samples = variation.samples;
-    monteCarloSummary.matchlineDelay = BuildMetricStats(matchlineDelays, matchlineDelay);
-    monteCarloSummary.searchLatency = BuildMetricStats(searchLatencies, searchLatency);
-    monteCarloSummary.senseMargin = BuildMetricStats(senseMargins, senseMargin);
+    variationSummary.enabled = true;
+    variationSummary.mode = variation.mode;
+    variationSummary.samples = variation.samples;
+    variationSummary.matchlineDelay = BuildMetricStats(matchlineDelays, matchlineDelay);
+    variationSummary.searchLatency = BuildMetricStats(searchLatencies, searchLatency);
+    variationSummary.senseMargin = BuildMetricStats(senseMargins, senseMargin);
 
-    matchlineDelay = monteCarloSummary.matchlineDelay.mean;
-    searchLatency = monteCarloSummary.searchLatency.mean;
+    matchlineDelay = variationSummary.matchlineDelay.mean;
+    searchLatency = variationSummary.searchLatency.mean;
     readLatency = readBase + matchlineDelay;
-    senseMargin = monteCarloSummary.senseMargin.mean;
+    senseMargin = variationSummary.senseMargin.mean;
     if (!referDelays.empty()) {
         double referDelaySum = 0;
         for (double value : referDelays)
@@ -1798,16 +1912,16 @@ double CAM_SubArray::SampleCellReadEnergy(
     return sampleCellReadEnergy * numColumn / muxSenseAmp;
 }
 
-void CAM_SubArray::UpdateMonteCarloPowerSummary() {
+void CAM_SubArray::UpdateVariationPowerSummary() {
 
     const auto &cell = *config->technology.cell;
 
-    if (!monteCarloSummary.enabled) {
+    if (!variationSummary.enabled) {
         return;
     }
 
-    if (monteCarloSummary.mode == "single_point") {
-        const CAMResistanceSample sample = BuildResistanceSample(0);
+    if (variationSummary.mode == "single_point") {
+        const CAMResistanceSample sample = BuildVariationResistanceSample(0);
         const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         double sampleSearchDynamicEnergy = 0;
 
@@ -1840,19 +1954,19 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
             }
         }
 
-        const double sampleMatchlineDelay = monteCarloSummary.matchlineDelay.sample;
+        const double sampleMatchlineDelay = variationSummary.matchlineDelay.sample;
         sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
         sampleSearchDynamicEnergy += SampleCellReadEnergy(sample, sampleMatchlineDelay);
-        monteCarloSummary.searchDynamicEnergy = BuildSinglePointMetric(sampleSearchDynamicEnergy, searchDynamicEnergy);
+        variationSummary.searchDynamicEnergy = BuildSinglePointMetric(sampleSearchDynamicEnergy, searchDynamicEnergy);
         searchDynamicEnergy = sampleSearchDynamicEnergy - SampleCellReadEnergy(sampledResistance, matchlineDelay);
         return;
     }
 
     std::vector<double> searchEnergies;
-    searchEnergies.reserve(monteCarloSummary.samples);
+    searchEnergies.reserve(variationSummary.samples);
 
-    for (int sampleIndex = 0; sampleIndex < monteCarloSummary.samples; sampleIndex++) {
-        const CAMResistanceSample sample = BuildResistanceSample(sampleIndex);
+    for (int sampleIndex = 0; sampleIndex < variationSummary.samples; sampleIndex++) {
+        const CAMResistanceSample sample = BuildVariationResistanceSample(sampleIndex);
         const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
         double sampleSearchDynamicEnergy = 0;
 
@@ -1888,15 +2002,15 @@ void CAM_SubArray::UpdateMonteCarloPowerSummary() {
         sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
         double sampleMatchlineDelay = matchlineDelay;
         searchEnergies.push_back(sampleSearchDynamicEnergy);
-        if (sampleIndex < static_cast<int>(monteCarloSamples.size())) {
-            sampleMatchlineDelay = monteCarloSamples[sampleIndex].matchlineDelay;
+        if (sampleIndex < static_cast<int>(variationSamples.size())) {
+            sampleMatchlineDelay = variationSamples[sampleIndex].matchlineDelay;
             sampleSearchDynamicEnergy += SampleCellReadEnergy(sample, sampleMatchlineDelay);
             searchEnergies.back() = sampleSearchDynamicEnergy;
-            monteCarloSamples[sampleIndex].searchDynamicEnergy = sampleSearchDynamicEnergy;
+            variationSamples[sampleIndex].searchDynamicEnergy = sampleSearchDynamicEnergy;
         }
     }
 
-    monteCarloSummary.searchDynamicEnergy = BuildMetricStats(searchEnergies, searchDynamicEnergy);
-    searchDynamicEnergy = monteCarloSummary.searchDynamicEnergy.mean
+    variationSummary.searchDynamicEnergy = BuildMetricStats(searchEnergies, searchDynamicEnergy);
+    searchDynamicEnergy = variationSummary.searchDynamicEnergy.mean
         - SampleCellReadEnergy(sampledResistance, matchlineDelay);
 }

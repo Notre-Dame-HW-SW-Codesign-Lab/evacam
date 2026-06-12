@@ -65,7 +65,7 @@ Variation summary keys:
 
 - `summary.timing.variation` is emitted only when variation is enabled
 - `mode` and `samples` describe the aggregation run
-- `sample_file` is emitted for Monte Carlo runs and points to the per-sample CSV
+- `sample_file` is emitted for Monte Carlo and boundary runs and points to the per-sample CSV
 - `plot_file` is emitted for Monte Carlo runs when SVG histogram generation succeeds and is not disabled
 - metric blocks currently include:
   - `matchline_delay`
@@ -75,7 +75,7 @@ Variation summary keys:
 - for `mode: single_point`, each metric block contains:
   - `nominal`
   - `sample`
-- for `mode: monte_carlo`, each metric block contains:
+- for `mode: monte_carlo` and `mode: boundary`, each metric block contains:
   - `nominal`
   - `mean`
   - `stddev`
@@ -95,9 +95,9 @@ Variation summary keys:
 
 These values are useful for debugging which peripheral block dominates a result.
 
-## Monte Carlo Sample CSV
+## Variation Sample CSV
 
-Monte Carlo variation runs also write a per-sample CSV next to the YAML results file.
+Monte Carlo and boundary variation runs also write a per-sample CSV next to the YAML results file.
 For example:
 
 ```text
@@ -106,10 +106,10 @@ results/2FeFET_TCAM_variation_samples.csv
 results/2FeFET_TCAM_variation_samples_histograms.svg
 ```
 
-The CSV uses base SI units and has one row per sample:
+The CSV uses base SI units and has one row per sample or corner:
 
 ```csv
-sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
+sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
 0,...
 ```
 

@@ -70,18 +70,24 @@ EvaCamMetricStatsDto ExtractMetricStats(const CAMMetricStats &stats) {
 
 EvaCamVariationDto ExtractVariation(const CAM_SubArray &subarray) {
     EvaCamVariationDto variation;
-    variation.enabled = subarray.monteCarloSummary.enabled;
-    variation.mode = subarray.monteCarloSummary.mode;
-    variation.samples = subarray.monteCarloSummary.samples;
-    variation.matchlineDelay = ExtractMetricStats(subarray.monteCarloSummary.matchlineDelay);
-    variation.searchLatency = ExtractMetricStats(subarray.monteCarloSummary.searchLatency);
-    variation.searchDynamicEnergy = ExtractMetricStats(subarray.monteCarloSummary.searchDynamicEnergy);
-    variation.senseMargin = ExtractMetricStats(subarray.monteCarloSummary.senseMargin);
+    variation.enabled = subarray.variationSummary.enabled;
+    variation.mode = subarray.variationSummary.mode;
+    variation.samples = subarray.variationSummary.samples;
+    variation.matchlineDelay = ExtractMetricStats(subarray.variationSummary.matchlineDelay);
+    variation.searchLatency = ExtractMetricStats(subarray.variationSummary.searchLatency);
+    variation.searchDynamicEnergy = ExtractMetricStats(subarray.variationSummary.searchDynamicEnergy);
+    variation.senseMargin = ExtractMetricStats(subarray.variationSummary.senseMargin);
 
-    variation.sampleData.reserve(subarray.monteCarloSamples.size());
-    for (const CAMMonteCarloSample &sample : subarray.monteCarloSamples) {
-        EvaCamMonteCarloSampleDto dto;
+    variation.sampleData.reserve(subarray.variationSamples.size());
+    for (const CAMVariationSample &sample : subarray.variationSamples) {
+        EvaCamVariationSampleDto dto;
         dto.sample = sample.sample;
+        dto.cornerLabel = sample.cornerLabel;
+        dto.matchlineWireResCorner = sample.matchlineWireResCorner;
+        dto.accessResOnCorner = sample.accessResOnCorner;
+        dto.accessResOffCorner = sample.accessResOffCorner;
+        dto.matchResOnCorner = sample.matchResOnCorner;
+        dto.matchResOffCorner = sample.matchResOffCorner;
         dto.matchlineDelay = sample.matchlineDelay;
         dto.searchLatency = sample.searchLatency;
         dto.searchDynamicEnergy = sample.searchDynamicEnergy;

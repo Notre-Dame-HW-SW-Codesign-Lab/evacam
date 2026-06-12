@@ -224,7 +224,7 @@ void CAM_Result::print() {
         default:	/* balance */
             std::cout << "Balanced" << std::endl;
     }
-    if (bank->mat->subarray->monteCarloSummary.enabled) {
+    if (bank->mat->subarray->variationSummary.enabled) {
         std::cout << "Variation:" << std::endl;
         std::cout << " - Mode                         : " << config->variation.mode << std::endl;
         std::cout << " - Base Seed                    : " << config->variation.seed << std::endl;

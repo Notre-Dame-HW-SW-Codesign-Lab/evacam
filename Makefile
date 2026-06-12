@@ -31,6 +31,7 @@ TEST_INPUT_VALIDATION_BIN=InputValidationTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
+TEST_BOUNDARY_BIN=BoundaryVariationRegressionTest
 TEST_WIRE_BIN=WireCopyTest
 TEST_FORMULA_BIN=FormulaTest
 TEST_MATCH_BIN=MatchTest
@@ -85,7 +86,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-wire test-formula test-match test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-boundary test-wire test-formula test-match test-pybind-match test-pybind-run uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -132,6 +133,11 @@ test-montecarlo: $(BIN) $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MONTECARLO_BIN).d -MT $(TEST_MONTECARLO_BIN) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_MONTECARLO_BIN)
+
+test-boundary: $(BIN) $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_BOUNDARY_BIN).d -MT $(TEST_BOUNDARY_BIN) -o $(TEST_BOUNDARY_BIN) tests/BoundaryVariationRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_BOUNDARY_BIN)
 
 test-wire: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
@@ -185,6 +191,7 @@ clean:
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
+		$(TEST_BOUNDARY_BIN) $(TEST_BOUNDARY_BIN).d \
 		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
 		$(TEST_FORMULA_BIN) $(TEST_FORMULA_BIN).d \
 		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \

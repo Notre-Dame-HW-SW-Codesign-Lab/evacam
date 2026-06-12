@@ -381,26 +381,26 @@ namespace {
         y.line("read_bandwidth", fmt_bps(read_bandwidth));
         double write_bandwidth = (double)bank->blockSize / (bank->mat->subarray->writeLatency) / 8;
         y.line("write_bandwidth", fmt_bps(write_bandwidth));
-        if (bank->mat->subarray->monteCarloSummary.enabled) {
+        if (bank->mat->subarray->variationSummary.enabled) {
             y.begin_map("variation");
-            y.line("mode", bank->mat->subarray->monteCarloSummary.mode);
-            y.line("samples", std::to_string(bank->mat->subarray->monteCarloSummary.samples));
+            y.line("mode", bank->mat->subarray->variationSummary.mode);
+            y.line("samples", std::to_string(bank->mat->subarray->variationSummary.samples));
             if (!variationSamplesFile.empty()) {
                 y.line("sample_file", variationSamplesFile);
             }
             if (!variationPlotFile.empty()) {
                 y.line("plot_file", variationPlotFile);
             }
-            if (bank->mat->subarray->monteCarloSummary.mode == "single_point") {
-                write_metric_sample(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
-                write_metric_sample(y, "search_latency", bank->mat->subarray->monteCarloSummary.searchLatency, fmt_second);
-                write_metric_sample(y, "search_dynamic_energy", bank->mat->subarray->monteCarloSummary.searchDynamicEnergy, fmt_joule);
-                write_metric_sample(y, "sense_margin", bank->mat->subarray->monteCarloSummary.senseMargin, fmt_voltage);
+            if (bank->mat->subarray->variationSummary.mode == "single_point") {
+                write_metric_sample(y, "matchline_delay", bank->mat->subarray->variationSummary.matchlineDelay, fmt_second);
+                write_metric_sample(y, "search_latency", bank->mat->subarray->variationSummary.searchLatency, fmt_second);
+                write_metric_sample(y, "search_dynamic_energy", bank->mat->subarray->variationSummary.searchDynamicEnergy, fmt_joule);
+                write_metric_sample(y, "sense_margin", bank->mat->subarray->variationSummary.senseMargin, fmt_voltage);
             } else {
-                write_metric_stats(y, "matchline_delay", bank->mat->subarray->monteCarloSummary.matchlineDelay, fmt_second);
-                write_metric_stats(y, "search_latency", bank->mat->subarray->monteCarloSummary.searchLatency, fmt_second);
-                write_metric_stats(y, "search_dynamic_energy", bank->mat->subarray->monteCarloSummary.searchDynamicEnergy, fmt_joule);
-                write_metric_stats(y, "sense_margin", bank->mat->subarray->monteCarloSummary.senseMargin, fmt_voltage);
+                write_metric_stats(y, "matchline_delay", bank->mat->subarray->variationSummary.matchlineDelay, fmt_second);
+                write_metric_stats(y, "search_latency", bank->mat->subarray->variationSummary.searchLatency, fmt_second);
+                write_metric_stats(y, "search_dynamic_energy", bank->mat->subarray->variationSummary.searchDynamicEnergy, fmt_joule);
+                write_metric_stats(y, "sense_margin", bank->mat->subarray->variationSummary.senseMargin, fmt_voltage);
             }
             y.end_map();
         }

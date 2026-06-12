@@ -75,11 +75,13 @@ Example shape:
 output_2048K_512_1_IN_VOL.csv
 ```
 
-## Monte Carlo Variation CSV
+## Variation CSV
 
 When cell-level variation uses `mode: monte_carlo`, EvaCAM also emits a
-per-sample CSV and SVG histogram plot next to the YAML results file. The YAML
-`summary.timing.variation.sample_file` and `plot_file` fields point to these files.
+per-sample CSV and SVG histogram plot next to the YAML results file. When
+variation uses `mode: boundary`, EvaCAM emits a deterministic corner CSV but
+does not emit a histogram plot. The YAML `summary.timing.variation.sample_file`
+and, for Monte Carlo only, `plot_file` fields point to these files.
 
 Default example:
 
@@ -92,10 +94,10 @@ results/2FeFET_TCAM_variation_histograms.svg
 The CSV columns are:
 
 ```csv
-sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
+sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
 ```
 
-EvaCAM writes the plot automatically with the matplotlib-based Python plotter.
+For Monte Carlo mode, EvaCAM writes the plot automatically with the matplotlib-based Python plotter.
 If `python3` or matplotlib is unavailable, EvaCAM prints a warning and still
 writes the YAML results and variation sample CSV; the YAML omits `plot_file`
 when no plot was generated.
@@ -104,6 +106,12 @@ To regenerate the plot manually, run:
 
 ```bash
 python3 scripts/plot_variation_histograms.py results/2FeFET_TCAM_variation_samples.csv
+```
+
+For boundary mode, generate a deterministic corner plot with:
+
+```bash
+python3 scripts/plot_boundary_variation.py results/2FeFET_TCAM_variation_samples.csv
 ```
 
 The default plot excludes internal diagnostic columns such as `reference_delay_s`.

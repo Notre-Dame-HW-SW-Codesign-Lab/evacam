@@ -553,6 +553,11 @@ static void test_memcell_variation_yaml() {
             "  matchline_wire_resistance_stdev: 3%\n"
             "  device_access_resistance_stdev: 2%\n"
             "  device_match_resistance_stdev: 4%\n"
+            "  memory_device_resistance_on_max_var: 11%\n"
+            "  memory_device_resistance_off_max_var: 13%\n"
+            "  matchline_wire_resistance_max_var: 17%\n"
+            "  device_access_resistance_max_var: 19%\n"
+            "  device_match_resistance_max_var: 23%\n"
             "match:\n"
             "  cmos_width: 3F\n"
             "ports:\n"
@@ -593,6 +598,7 @@ static void test_memcell_variation_yaml() {
 
     assert(cell.withVariation == true);
     assert(cell.hasVariationSeed == true);
+    assert(cell.hasVariationSamples == true);
     assert(cell.variationSeed == 12345u);
     assert(cell.variationMode == "monte_carlo");
     assert(cell.variationLutFile == "variation_lut.csv");
@@ -602,6 +608,11 @@ static void test_memcell_variation_yaml() {
     assert(near(cell.matchlineWireResistanceVariation, 0.03));
     assert(near(cell.deviceAccessResistanceVariation, 0.02));
     assert(near(cell.deviceMatchResistanceVariation, 0.04));
+    assert(near(cell.resistanceOnMaxVariation, 0.11));
+    assert(near(cell.resistanceOffMaxVariation, 0.13));
+    assert(near(cell.matchlineWireResistanceMaxVariation, 0.17));
+    assert(near(cell.deviceAccessResistanceMaxVariation, 0.19));
+    assert(near(cell.deviceMatchResistanceMaxVariation, 0.23));
 }
 
 static void test_cell_variation_drives_runtime_config() {
@@ -783,6 +794,29 @@ static void test_variation_builder_rejects_invalid_mode_and_samples() {
     try {
         (void)VariationConfigBuilder::FromCell(cell);
         assert(false && "Expected invalid variation mode to throw");
+    } catch (const std::runtime_error&) {
+    }
+
+    cell.variationMode = "boundary";
+    cell.variationSamples = 1;
+    try {
+        (void)VariationConfigBuilder::FromCell(cell);
+        assert(false && "Expected boundary with no max-var fields to throw");
+    } catch (const std::runtime_error&) {
+    }
+
+    cell.deviceAccessResistanceMaxVariation = 0.05;
+    VariationConfig boundary = VariationConfigBuilder::FromCell(cell);
+    assert(boundary.enabled == true);
+    assert(boundary.mode == "boundary");
+    assert(boundary.samples == 4);
+    assert(std::fabs(boundary.deviceAccessResMaxVar - 0.05) < 1e-18);
+
+    cell.resistanceOnMaxVariation = 0.96;
+    cell.deviceMatchResistanceMaxVariation = 0.04;
+    try {
+        (void)VariationConfigBuilder::FromCell(cell);
+        assert(false && "Expected boundary combined max-var >= 1 to throw");
     } catch (const std::runtime_error&) {
     }
 

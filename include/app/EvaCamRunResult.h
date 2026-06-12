@@ -16,8 +16,14 @@ struct EvaCamMetricStatsDto {
     double p95 = 0;
 };
 
-struct EvaCamMonteCarloSampleDto {
+struct EvaCamVariationSampleDto {
     int sample = 0;
+    std::string cornerLabel;
+    std::string matchlineWireResCorner = "nominal";
+    std::string accessResOnCorner = "nominal";
+    std::string accessResOffCorner = "nominal";
+    std::string matchResOnCorner = "nominal";
+    std::string matchResOffCorner = "nominal";
     double matchlineDelay = 0;
     double searchLatency = 0;
     double searchDynamicEnergy = 0;
@@ -33,7 +39,7 @@ struct EvaCamVariationDto {
     EvaCamMetricStatsDto searchLatency;
     EvaCamMetricStatsDto searchDynamicEnergy;
     EvaCamMetricStatsDto senseMargin;
-    std::vector<EvaCamMonteCarloSampleDto> sampleData;
+    std::vector<EvaCamVariationSampleDto> sampleData;
 };
 
 struct EvaCamDesignResultDto {

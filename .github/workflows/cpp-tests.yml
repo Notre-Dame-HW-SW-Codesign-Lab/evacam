@@ -22,6 +22,7 @@ jobs:
           - test-exploration
           - test-variation
           - test-montecarlo
+          - test-boundary
           - test-wire
           - test-formula
           - test-match

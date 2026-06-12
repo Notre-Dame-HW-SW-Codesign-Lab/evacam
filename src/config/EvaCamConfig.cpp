@@ -65,4 +65,12 @@ void EvaCamConfig::ApplyResultLimits(const ResultLimits &limits,
 void EvaCamConfig::ReadConfigFromFile(const std::string &inputFile) {
     EvaCamYamlLoader::Load(inputFile, *this);
     technology = TechnologyLoader::Load(input, peripherals, &variation);
+    if (variation.enabled && variation.mode == "boundary") {
+        if (variation.hasUserSamples) {
+            logger.Verbose() << "[Input] Warning: variation.samples is ignored because boundary mode is deterministic.";
+        }
+        if (variation.hasUserSeed) {
+            logger.Verbose() << "[Input] Warning: variation.seed is ignored because boundary mode is deterministic.";
+        }
+    }
 }

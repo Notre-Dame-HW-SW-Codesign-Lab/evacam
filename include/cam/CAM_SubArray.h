@@ -50,7 +50,7 @@ struct CAMMetricStats {
     double p95 = 0;
 };
 
-struct CAMMonteCarloSummary {
+struct CAMVariationSummary {
     bool enabled = false;
     std::string mode = "nominal";
     int samples = 0;
@@ -60,8 +60,14 @@ struct CAMMonteCarloSummary {
     CAMMetricStats senseMargin;
 };
 
-struct CAMMonteCarloSample {
+struct CAMVariationSample {
     int sample = 0;
+    std::string cornerLabel;
+    std::string matchlineWireResCorner = "nominal";
+    std::string accessResOnCorner = "nominal";
+    std::string accessResOffCorner = "nominal";
+    std::string matchResOnCorner = "nominal";
+    std::string matchResOffCorner = "nominal";
     double matchlineDelay = 0;
     double searchLatency = 0;
     double searchDynamicEnergy = 0;
@@ -114,10 +120,12 @@ class CAM_SubArray: public FunctionUnit {
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateBinaryMatchByMismatches(int mismatchCount) const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
+        CAMResistanceSample BuildBoundaryResistanceSample(unsigned int cornerIndex) const;
+        CAMResistanceSample BuildVariationResistanceSample(unsigned int sampleIndex) const;
         double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
         double EffectiveDeviceResistanceStdev() const;
-        void UpdateMonteCarloTimingSummary();
-        void UpdateMonteCarloPowerSummary();
+        void UpdateVariationTimingSummary();
+        void UpdateVariationPowerSummary();
         double SampleCellReadEnergy(const CAMResistanceSample &sample, double sampleMatchlineDelay) const;
 
     private:
@@ -267,8 +275,8 @@ class CAM_SubArray: public FunctionUnit {
         double nominalMatchlineWireRes;
         double matchlineWireRes;
         CAMResistanceSample sampledResistance;
-        CAMMonteCarloSummary monteCarloSummary;
-        std::vector<CAMMonteCarloSample> monteCarloSamples;
+        CAMVariationSummary variationSummary;
+        std::vector<CAMVariationSample> variationSamples;
 
         double decoderLatency;
         double bitlineRamp;

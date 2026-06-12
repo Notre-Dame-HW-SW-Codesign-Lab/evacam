@@ -85,13 +85,19 @@ std::string OptimizationTargetName(OptimizationTarget t) {
     return "Unknown";
 }
 
-bool HasMonteCarloSamples(const std::shared_ptr<CAM_Result> &result) {
+bool HasVariationSamples(const std::shared_ptr<CAM_Result> &result) {
     return result
         && result->bank
         && result->bank->mat
         && result->bank->mat->subarray
-        && result->bank->mat->subarray->monteCarloSummary.mode == "monte_carlo"
-        && !result->bank->mat->subarray->monteCarloSamples.empty();
+        && result->bank->mat->subarray->variationSummary.enabled
+        && result->bank->mat->subarray->variationSummary.mode != "single_point"
+        && !result->bank->mat->subarray->variationSamples.empty();
+}
+
+bool HasMonteCarloSamples(const std::shared_ptr<CAM_Result> &result) {
+    return HasVariationSamples(result)
+        && result->bank->mat->subarray->variationSummary.mode == "monte_carlo";
 }
 
 void WriteVariationSamplesFile(const CAM_Result &result, const std::string &path) {
@@ -160,8 +166,8 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
     if (!DerivedValueHelpers::IsFullExploration(config.input)) {
         if (numSolution > 0) {
             bestResults[config.input.optimizationTarget]->print();
-            const CAMMonteCarloSummary &variation =
-                    bestResults[config.input.optimizationTarget]->bank->mat->subarray->monteCarloSummary;
+            const CAMVariationSummary &variation =
+                    bestResults[config.input.optimizationTarget]->bank->mat->subarray->variationSummary;
             if (variation.enabled) {
                 std::cout << std::endl
                           << "========="
@@ -280,17 +286,17 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         std::unordered_map<OptimizationTarget, std::string> variationSamplesFiles;
         std::unordered_map<OptimizationTarget, std::string> variationPlotFiles;
         for (const auto &result : bestResults) {
-            if (!HasMonteCarloSamples(result)) {
+            if (!HasVariationSamples(result)) {
                 continue;
             }
 
             const std::string samplePath = OutputPathBuilder::VariationSamplesCsvPath(
                     outputYamlFileName,
                     OptimizationTargetName(result->optimizationTarget));
-            const std::string plotPath = OutputPathBuilder::VariationHistogramsSvgPath(samplePath);
             WriteVariationSamplesFile(*result, samplePath);
             variationSamplesFiles[result->optimizationTarget] = samplePath;
-            if (config.variationPlots && WriteVariationHistogramFile(samplePath, plotPath)) {
+            const std::string plotPath = OutputPathBuilder::VariationHistogramsSvgPath(samplePath);
+            if (HasMonteCarloSamples(result) && config.variationPlots && WriteVariationHistogramFile(samplePath, plotPath)) {
                 variationPlotFiles[result->optimizationTarget] = plotPath;
             }
         }
@@ -304,12 +310,14 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         const auto &result = bestResults[config.input.optimizationTarget];
         std::string variationSamplesFile;
         std::string variationPlotFile;
-        if (HasMonteCarloSamples(result)) {
+        if (HasVariationSamples(result)) {
             variationSamplesFile = OutputPathBuilder::VariationSamplesCsvPath(outputYamlFileName);
-            variationPlotFile = OutputPathBuilder::VariationHistogramsSvgPath(variationSamplesFile);
             WriteVariationSamplesFile(*result, variationSamplesFile);
-            if (!config.variationPlots || !WriteVariationHistogramFile(variationSamplesFile, variationPlotFile)) {
-                variationPlotFile.clear();
+            if (HasMonteCarloSamples(result)) {
+                variationPlotFile = OutputPathBuilder::VariationHistogramsSvgPath(variationSamplesFile);
+                if (!config.variationPlots || !WriteVariationHistogramFile(variationSamplesFile, variationPlotFile)) {
+                    variationPlotFile.clear();
+                }
             }
         }
 

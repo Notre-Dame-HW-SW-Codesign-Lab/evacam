@@ -105,19 +105,25 @@ flash:
 multilevel:
   enabled: false # ignored
 
-# Optional parsed section. Used by the current variation/Monte Carlo path.
+# Optional parsed section. Used by the current variation path.
 variation:
   with_variation: false # optional bool
-  # Variation sampling uses a fixed bounded-Gaussian model today.
-  mode: single_point # optional enum: single_point | monte_carlo
+  # single_point and monte_carlo use bounded-Gaussian stdev fields.
+  # boundary uses deterministic max_var fields.
+  mode: single_point # optional enum: single_point | monte_carlo | boundary
   lut_file: ./variation_lut.csv # optional path; accepted and propagated but not consumed yet
-  samples: 9 # optional int; required for monte_carlo and must be > 1
-  seed: 12345 # optional uint32; mainly for reproducible testing
+  samples: 9 # optional int; required for monte_carlo and must be > 1; ignored for boundary
+  seed: 12345 # optional uint32; mainly for reproducible testing; ignored for boundary
   memory_device_resistance_on_stdev: 0% # optional; fraction or percent
   memory_device_resistance_off_stdev: 0% # optional; fraction or percent
   matchline_wire_resistance_stdev: 0% # optional; fraction or percent
   device_access_resistance_stdev: 0% # optional; fraction or percent
   device_match_resistance_stdev: 0% # optional; fraction or percent
+  memory_device_resistance_on_max_var: 0% # optional for boundary; fraction or percent
+  memory_device_resistance_off_max_var: 0% # optional for boundary; fraction or percent
+  matchline_wire_resistance_max_var: 0% # optional for boundary; fraction or percent
+  device_access_resistance_max_var: 0% # optional for boundary; fraction or percent
+  device_match_resistance_max_var: 0% # optional for boundary; fraction or percent
 
 # Optional parsed section, but current model code does not use these values.
 mcam:

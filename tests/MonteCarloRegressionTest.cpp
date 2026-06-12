@@ -177,7 +177,7 @@ void test_monte_carlo_output_summary_is_emitted() {
     assert(sampleCsv);
     std::string line;
     assert(std::getline(sampleCsv, line));
-    assert(line == "sample,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s");
+    assert(line == "sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s");
     int rowCount = 0;
     while (std::getline(sampleCsv, line)) {
         assert(!line.empty());

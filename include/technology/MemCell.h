@@ -69,6 +69,7 @@ class MemCell {
 
         bool withVariation;
         bool hasVariationSeed;
+        bool hasVariationSamples;
         uint32_t variationSeed;
         std::string variationMode;
         std::string variationLutFile;
@@ -78,6 +79,11 @@ class MemCell {
         double matchlineWireResistanceVariation;
         double deviceAccessResistanceVariation;
         double deviceMatchResistanceVariation;
+        double resistanceOnMaxVariation;
+        double resistanceOffMaxVariation;
+        double matchlineWireResistanceMaxVariation;
+        double deviceAccessResistanceMaxVariation;
+        double deviceMatchResistanceMaxVariation;
         double resStateVariation[64];
 
         /* Optional properties */

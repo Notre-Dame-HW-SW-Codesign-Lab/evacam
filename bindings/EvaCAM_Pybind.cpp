@@ -69,13 +69,20 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("max", &EvaCamMetricStatsDto::max)
         .def_readonly("p95", &EvaCamMetricStatsDto::p95);
 
-    py::class_<EvaCamMonteCarloSampleDto>(module, "EvaCAMMonteCarloSample")
-        .def_readonly("sample", &EvaCamMonteCarloSampleDto::sample)
-        .def_readonly("matchline_delay", &EvaCamMonteCarloSampleDto::matchlineDelay)
-        .def_readonly("search_latency", &EvaCamMonteCarloSampleDto::searchLatency)
-        .def_readonly("search_dynamic_energy", &EvaCamMonteCarloSampleDto::searchDynamicEnergy)
-        .def_readonly("sense_margin", &EvaCamMonteCarloSampleDto::senseMargin)
-        .def_readonly("reference_delay", &EvaCamMonteCarloSampleDto::referenceDelay);
+    py::class_<EvaCamVariationSampleDto>(module, "EvaCAMVariationSample")
+        .def_readonly("sample", &EvaCamVariationSampleDto::sample)
+        .def_readonly("corner_label", &EvaCamVariationSampleDto::cornerLabel)
+        .def_readonly("matchline_wire_res_corner", &EvaCamVariationSampleDto::matchlineWireResCorner)
+        .def_readonly("access_res_on_corner", &EvaCamVariationSampleDto::accessResOnCorner)
+        .def_readonly("access_res_off_corner", &EvaCamVariationSampleDto::accessResOffCorner)
+        .def_readonly("match_res_on_corner", &EvaCamVariationSampleDto::matchResOnCorner)
+        .def_readonly("match_res_off_corner", &EvaCamVariationSampleDto::matchResOffCorner)
+        .def_readonly("matchline_delay", &EvaCamVariationSampleDto::matchlineDelay)
+        .def_readonly("search_latency", &EvaCamVariationSampleDto::searchLatency)
+        .def_readonly("search_dynamic_energy", &EvaCamVariationSampleDto::searchDynamicEnergy)
+        .def_readonly("sense_margin", &EvaCamVariationSampleDto::senseMargin)
+        .def_readonly("reference_delay", &EvaCamVariationSampleDto::referenceDelay);
+    module.attr("EvaCAMMonteCarloSample") = module.attr("EvaCAMVariationSample");
 
     py::class_<EvaCamVariationDto>(module, "EvaCAMVariation")
         .def_readonly("enabled", &EvaCamVariationDto::enabled)
