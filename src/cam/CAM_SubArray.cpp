@@ -1495,14 +1495,11 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
 
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCount) const {
     const auto &cell = *config->technology.cell;
-    const auto &input = config->input;
 
     if (!initialized)
         throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
     if (invalid)
         throw std::runtime_error("[CAM_SubArray] Error: subarray is invalid.");
-    if (input.searchFunction != EX)
-        throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports exact search only.");
     if (cell.camType != TCAM)
         throw std::runtime_error("[CAM_SubArray] Error: binary matcher currently supports TCAM only.");
     if (CAM_opt.BitSerialWidth <= 0)

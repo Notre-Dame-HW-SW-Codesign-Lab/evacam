@@ -320,6 +320,30 @@ For a given mismatch count:
 
 This path is intentionally simpler than a full transient simulation. It gives a query-dependent timing and energy estimate using the same RC abstractions as the nominal model, and is intended as a mode to pass values to other tools.
 
+### Threshold Match Evaluation
+
+`EvaCAM_Match::evaluate_threshold()` adds an explicit TCAM threshold hit rule on top of the per-query binary match model. The caller supplies an inclusive `maxMismatches` value:
+
+- `maxMismatches = 0` is exact-match behavior
+- `maxMismatches = 2` accepts `0`, `1`, and `2` mismatches
+- `maxMismatches = word_width` accepts all mismatch counts
+
+The physical timing, energy, matchline delay, and sense-margin fields still come from the modeled result for the actual mismatch count. The threshold rule changes only the returned `hit` field.
+
+EvaCAM validates that the threshold can be separated by the modeled sense margin. For inclusive `maxMismatches = N`, the relevant decision boundary is between `N` mismatches and `N + 1` mismatches. If `N < word_width`, the modeled boundary sense margin must meet the cell's minimum sense voltage; otherwise threshold evaluation raises an error. If `N == word_width`, there is no miss boundary to sense.
+
+For `search_function: TH`, plain vector evaluation still requires an explicit threshold. Use `evaluate_threshold(..., maxMismatches)` rather than `evaluate_vector(...)` so the hit rule is unambiguous.
+
+### Best Match Evaluation
+
+TCAM best match is an array-level operation. `EvaCAM_Match::evaluate_array()` evaluates either stored rows plus one query or a list of known mismatch counts. For `search_function: BE`, EvaCAM finds the minimum mismatch count across the supplied rows and marks every row with that count as a hit. All tied best rows are hits; no priority selector or multiple-match resolver is applied.
+
+As with threshold evaluation, timing, energy, matchline delay, and sense-margin fields come from the modeled result for each row's actual mismatch count. Best-match evaluation changes only the returned `hit` field.
+
+EvaCAM validates best-match detectability with the modeled sense margin. If the best mismatch count is outside the maximum detectable mismatch distance, evaluation raises an error. If there is a distinct non-best class, EvaCAM also checks the conservative adjacent boundary between `bestMismatches` and `bestMismatches + 1`. If that boundary cannot be sensed, evaluation raises an error rather than reporting a best match the model cannot distinguish.
+
+Plain scalar vector evaluation is not supported for `search_function: BE` because a single row cannot establish which row is best.
+
 ### Approximate Search Modes
 
 For BE and TH search modes, the code sweeps mismatch counts and compares adjacent mismatch-delay cases. If the delay separation is greater than the configured matchline sensing margin, the mismatch count is considered distinguishable. The results are stored in lookup-like arrays for approximate-search latency estimation.

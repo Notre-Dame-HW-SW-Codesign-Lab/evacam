@@ -1,8 +1,13 @@
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "EvaCAM_Match.h"
@@ -13,12 +18,16 @@ void AssertNear(double lhs, double rhs) {
     assert(std::fabs(lhs - rhs) <= 1e-18);
 }
 
-void AssertSameResult(const EvaCAMMatchResult &lhs, const EvaCAMMatchResult &rhs) {
-    assert(lhs.hit == rhs.hit);
+void AssertSameMetrics(const EvaCAMMatchResult &lhs, const EvaCAMMatchResult &rhs) {
     AssertNear(lhs.searchLatency, rhs.searchLatency);
     AssertNear(lhs.searchDynamicEnergy, rhs.searchDynamicEnergy);
     AssertNear(lhs.matchlineDelay, rhs.matchlineDelay);
     AssertNear(lhs.senseMargin, rhs.senseMargin);
+}
+
+void AssertSameResult(const EvaCAMMatchResult &lhs, const EvaCAMMatchResult &rhs) {
+    assert(lhs.hit == rhs.hit);
+    AssertSameMetrics(lhs, rhs);
 }
 
 void PrintResult(const char *label, const EvaCAMMatchResult &result) {
@@ -30,12 +39,61 @@ void PrintResult(const char *label, const EvaCAMMatchResult &result) {
               << " sep=" << std::setw(9) << result.senseMargin * 1e3 << " mV\n";
 }
 
+void PrintMatchTableHeader(const char *title) {
+    std::cout << "\n" << title << "\n";
+    std::cout << std::right
+              << std::setw(10) << "mismatches"
+              << std::setw(8) << "hit"
+              << std::setw(14) << "search_ps"
+              << std::setw(14) << "ml_ps"
+              << std::setw(14) << "energy_pJ"
+              << std::setw(14) << "sense_sep_mV"
+              << "\n";
+}
+
+void PrintMatchTableRow(int mismatches, const EvaCAMMatchResult &result) {
+    std::cout << std::setw(10) << mismatches
+              << std::setw(8) << result.hit
+              << std::setw(14) << result.searchLatency * 1e12
+              << std::setw(14) << result.matchlineDelay * 1e12
+              << std::setw(14) << result.searchDynamicEnergy * 1e12
+              << std::setw(14) << result.senseMargin * 1e3
+              << "\n";
+}
+
 std::vector<int> QueryWithMismatches(const std::vector<int> &stored, size_t mismatchCount) {
     std::vector<int> query = stored;
     for (size_t i = 0; i < mismatchCount && i < query.size(); i++) {
         query[i] = 1 - query[i];
     }
     return query;
+}
+
+std::string ReadFile(const std::string &path) {
+    std::ifstream input(path);
+    if (!input) {
+        throw std::runtime_error("failed to open " + path);
+    }
+
+    std::ostringstream buffer;
+    buffer << input.rdbuf();
+    return buffer.str();
+}
+
+void WriteFile(const std::string &path, const std::string &content) {
+    std::ofstream output(path);
+    if (!output) {
+        throw std::runtime_error("failed to write " + path);
+    }
+    output << content;
+}
+
+void ReplaceAll(std::string &text, const std::string &from, const std::string &to) {
+    size_t pos = 0;
+    while ((pos = text.find(from, pos)) != std::string::npos) {
+        text.replace(pos, from.size(), to);
+        pos += to.size();
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -84,6 +142,45 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        const size_t thresholdMax = std::min<size_t>(2, matcher.word_width());
+        for (size_t mismatches = 0; mismatches <= std::min<size_t>(thresholdMax + 1, matcher.word_width()); mismatches++) {
+            const std::vector<int> query = QueryWithMismatches(stored, mismatches);
+            const EvaCAMMatchResult thresholdByVector = matcher.evaluate_threshold(
+                    stored, query, static_cast<int>(thresholdMax));
+            const EvaCAMMatchResult thresholdByCount = matcher.evaluate_threshold(
+                    static_cast<int>(mismatches), static_cast<int>(thresholdMax));
+            AssertSameResult(thresholdByVector, thresholdByCount);
+            assert(thresholdByVector.hit == (mismatches <= thresholdMax));
+            assert(thresholdByVector.searchLatency == expectedMismatchResults[mismatches].searchLatency);
+            assert(thresholdByVector.searchDynamicEnergy == expectedMismatchResults[mismatches].searchDynamicEnergy);
+            assert(thresholdByVector.matchlineDelay == expectedMismatchResults[mismatches].matchlineDelay);
+            assert(thresholdByVector.senseMargin == expectedMismatchResults[mismatches].senseMargin);
+        }
+
+        EvaCAMMatchResult exactThresholdMatch = matcher.evaluate_threshold(stored, stored, 0);
+        assert(exactThresholdMatch.hit);
+        EvaCAMMatchResult exactThresholdMiss = matcher.evaluate_threshold(stored, QueryWithMismatches(stored, 1), 0);
+        assert(!exactThresholdMiss.hit);
+        EvaCAMMatchResult allThreshold = matcher.evaluate_threshold(
+                static_cast<int>(matcher.word_width()), static_cast<int>(matcher.word_width()));
+        assert(allThreshold.hit);
+
+        try {
+            matcher.evaluate_threshold(stored, stored, -1);
+            assert(false);
+        } catch (const std::invalid_argument&) {
+        }
+        try {
+            matcher.evaluate_threshold(stored, stored, static_cast<int>(matcher.word_width()) + 1);
+            assert(false);
+        } catch (const std::invalid_argument&) {
+        }
+        try {
+            matcher.evaluate_threshold(-1, 0);
+            assert(false);
+        } catch (const std::invalid_argument&) {
+        }
+
         const std::vector<EvaCAMMatchResult> mismatchArrayResults = matcher.evaluate_array(mismatchCounts);
         assert(mismatchArrayResults.size() == expectedMismatchResults.size());
         for (size_t i = 0; i < mismatchArrayResults.size(); i++) {
@@ -103,6 +200,142 @@ int main(int argc, char *argv[]) {
 
         std::cout << "\nMinimum sweep sense separation: " << minSenseMargin * 1e3
                   << " mV at " << minSenseMarginMismatches << " mismatch(es)\n";
+
+        PrintMatchTableHeader("Threshold match sample (maxMismatches = 2):");
+        for (int mismatches : {0, 1, 2, 3}) {
+            const EvaCAMMatchResult result = matcher.evaluate_threshold(
+                    static_cast<int>(mismatches), 2);
+            PrintMatchTableRow(mismatches, result);
+        }
+
+        const std::string thConfigPath = "/tmp/evacam_match_th_system_config.yaml";
+        std::string thConfig = ReadFile(argv[1]);
+        ReplaceAll(thConfig, "search_function: EX", "search_function: TH");
+        WriteFile(thConfigPath, thConfig);
+
+        EvaCAM_Match thMatcher(thConfigPath);
+        std::vector<int> thStored(thMatcher.word_width(), 1);
+        assert(thMatcher.evaluate_threshold(thStored, thStored, 0).hit);
+        assert(!thMatcher.evaluate_threshold(
+                    thStored, QueryWithMismatches(thStored, 1), 0).hit);
+        assert(thMatcher.evaluate_threshold(
+                    thStored, QueryWithMismatches(thStored, 1), 1).hit);
+        try {
+            thMatcher.evaluate_vector(thStored, thStored);
+            assert(false);
+        } catch (const std::runtime_error &ex) {
+            assert(std::string(ex.what()).find("requires evaluate_threshold") != std::string::npos);
+        }
+
+        const std::string beConfigPath = "/tmp/evacam_match_be_system_config.yaml";
+        std::string beConfig = ReadFile(argv[1]);
+        ReplaceAll(beConfig, "search_function: EX", "search_function: BE");
+        WriteFile(beConfigPath, beConfig);
+
+        EvaCAM_Match beMatcher(beConfigPath);
+        std::vector<int> beQuery(beMatcher.word_width(), 1);
+        std::vector<std::vector<int>> beRows = {
+            QueryWithMismatches(beQuery, 2),
+            beQuery,
+            QueryWithMismatches(beQuery, 1),
+            QueryWithMismatches(beQuery, 3)
+        };
+        std::vector<int> beMismatchCounts = {2, 0, 1, 3};
+        const std::vector<EvaCAMMatchResult> beVectorResults = beMatcher.evaluate_array(beRows, beQuery);
+        const std::vector<EvaCAMMatchResult> beCountResults = beMatcher.evaluate_array(beMismatchCounts);
+        assert(beVectorResults.size() == beMismatchCounts.size());
+        assert(beCountResults.size() == beMismatchCounts.size());
+
+        PrintMatchTableHeader("Best match unique sample (counts = [2, 0, 1, 3]):");
+        for (size_t i = 0; i < beMismatchCounts.size(); i++) {
+            const bool isBest = (beMismatchCounts[i] == 0);
+            assert(beVectorResults[i].hit == isBest);
+            assert(beCountResults[i].hit == isBest);
+            AssertSameResult(beVectorResults[i], beCountResults[i]);
+            AssertSameMetrics(beVectorResults[i], expectedMismatchResults[beMismatchCounts[i]]);
+            PrintMatchTableRow(beMismatchCounts[i], beVectorResults[i]);
+        }
+
+        std::vector<int> tiedBestCounts = {1, 1, 2};
+        const std::vector<EvaCAMMatchResult> tiedBestResults = beMatcher.evaluate_array(tiedBestCounts);
+        assert(tiedBestResults.size() == tiedBestCounts.size());
+        assert(tiedBestResults[0].hit);
+        assert(tiedBestResults[1].hit);
+        assert(!tiedBestResults[2].hit);
+        PrintMatchTableHeader("Best match tied sample (counts = [1, 1, 2]):");
+        for (size_t i = 0; i < tiedBestCounts.size(); i++) {
+            PrintMatchTableRow(tiedBestCounts[i], tiedBestResults[i]);
+        }
+
+        try {
+            beMatcher.evaluate_vector(beQuery, beQuery);
+            assert(false);
+        } catch (const std::runtime_error &ex) {
+            assert(std::string(ex.what()).find("requires evaluate_array") != std::string::npos);
+        }
+        try {
+            beMatcher.evaluate_array(std::vector<int>{});
+            assert(false);
+        } catch (const std::invalid_argument&) {
+        }
+        try {
+            beMatcher.evaluate_array(std::vector<int>{0, static_cast<int>(beMatcher.word_width()) + 1});
+            assert(false);
+        } catch (const std::invalid_argument&) {
+        }
+
+        if (matcher.word_width() >= 2
+                && expectedMismatchResults[2].senseMargin < expectedMismatchResults[1].senseMargin) {
+            const double guardedSenseVoltage = (expectedMismatchResults[1].senseMargin
+                    + expectedMismatchResults[2].senseMargin) / 2.0;
+            std::ostringstream voltage;
+            voltage << std::scientific << guardedSenseVoltage << "V";
+
+            const std::string highSenseCellPath = "/tmp/evacam_match_high_sense_cell_config.yaml";
+            const std::string highSenseConfigPath = "/tmp/evacam_match_high_sense_system_config.yaml";
+            std::string highSenseCell = ReadFile("config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml");
+            ReplaceAll(highSenseCell, "min_sense_voltage: 70mV", "min_sense_voltage: " + voltage.str());
+            WriteFile(highSenseCellPath, highSenseCell);
+
+            std::string highSenseConfig = ReadFile(argv[1]);
+            ReplaceAll(highSenseConfig,
+                    "./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml",
+                    highSenseCellPath);
+            ReplaceAll(highSenseConfig, "search_function: EX", "search_function: TH");
+            WriteFile(highSenseConfigPath, highSenseConfig);
+
+            EvaCAM_Match highSenseMatcher(highSenseConfigPath);
+            assert(highSenseMatcher.evaluate_threshold(0, 0).hit);
+            try {
+                highSenseMatcher.evaluate_threshold(1, 1);
+                assert(false);
+            } catch (const std::runtime_error &ex) {
+                assert(std::string(ex.what()).find("sense-margin capability") != std::string::npos);
+                std::cout << "\nExpected TH sense-margin rejection: " << ex.what() << "\n";
+            }
+
+            ReplaceAll(highSenseConfig, "search_function: TH", "search_function: BE");
+            WriteFile(highSenseConfigPath, highSenseConfig);
+            EvaCAM_Match highSenseBestMatcher(highSenseConfigPath);
+            assert(highSenseBestMatcher.evaluate_array(std::vector<int>{0, 1})[0].hit);
+            const std::vector<EvaCAMMatchResult> allTiedDetectable = highSenseBestMatcher.evaluate_array(
+                    std::vector<int>{1, 1});
+            assert(allTiedDetectable[0].hit && allTiedDetectable[1].hit);
+            try {
+                highSenseBestMatcher.evaluate_array(std::vector<int>{1, 2});
+                assert(false);
+            } catch (const std::runtime_error &ex) {
+                assert(std::string(ex.what()).find("best-match boundary") != std::string::npos);
+                std::cout << "Expected BE boundary rejection: " << ex.what() << "\n";
+            }
+            try {
+                highSenseBestMatcher.evaluate_array(std::vector<int>{2, 3});
+                assert(false);
+            } catch (const std::runtime_error &ex) {
+                assert(std::string(ex.what()).find("best match exceeds") != std::string::npos);
+                std::cout << "Expected BE detectability rejection: " << ex.what() << "\n";
+            }
+        }
 
         return 0;
 

@@ -33,6 +33,14 @@ PYBIND11_MODULE(evacam_py, module) {
         .def("evaluate_mismatches",
                 &EvaCAM_Match::evaluate_mismatches,
                 py::arg("mismatches"))
+        .def("evaluate_threshold",
+                py::overload_cast<const std::vector<int>&, const std::vector<int>&, int>(
+                        &EvaCAM_Match::evaluate_threshold, py::const_),
+                py::arg("stored"), py::arg("query"), py::arg("max_mismatches"))
+        .def("evaluate_threshold",
+                py::overload_cast<int, int>(
+                        &EvaCAM_Match::evaluate_threshold, py::const_),
+                py::arg("mismatches"), py::arg("max_mismatches"))
         .def("evaluate_array",
                 py::overload_cast<const std::vector<int>&>(
                         &EvaCAM_Match::evaluate_array, py::const_),

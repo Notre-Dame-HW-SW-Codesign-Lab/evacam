@@ -1,5 +1,6 @@
 #include "EvaCAM_Match.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 #include "Bank.h"
@@ -50,6 +51,28 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_mismatches(int mismatches) const {
     return LookupMismatchResult(mismatches);
 }
 
+EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(
+        const std::vector<int> &stored,
+        const std::vector<int> &query,
+        int maxMismatches) const {
+    EnsureInitialized();
+    ValidateTcamStoredVector(stored, "stored");
+    ValidateBinaryVector(query, "query");
+
+    return evaluate_threshold(CountTcamMismatches(stored, query), maxMismatches);
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(int mismatches, int maxMismatches) const {
+    EnsureInitialized();
+    ValidateTcamMismatchCount(mismatches);
+    ValidateMaxMismatches(maxMismatches);
+    ValidateThresholdSenseMargin(maxMismatches);
+
+    EvaCAMMatchResult result = LookupMismatchResult(mismatches);
+    result.hit = (mismatches <= maxMismatches);
+    return result;
+}
+
 EvaCAMMatchResult EvaCAM_Match::evaluate_vector(
         const std::vector<std::pair<double, double>> &stored,
         const std::vector<double> &query) const {
@@ -74,6 +97,19 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_vector(
 std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(const std::vector<int> &mismatchCounts) const {
     EnsureInitialized();
 
+    if (config->technology.cell->camType != TCAM) {
+        ValidateTcamMismatchCounts(mismatchCounts);
+    }
+
+    switch (config->input.searchFunction) {
+        case EX:
+            break;
+        case BE:
+            return EvaluateBestTcamArray(mismatchCounts);
+        case TH:
+            throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM array evaluation requires evaluate_threshold(..., maxMismatches).");
+    }
+
     std::vector<EvaCAMMatchResult> results;
     results.reserve(mismatchCounts.size());
     for (int mismatches : mismatchCounts) {
@@ -93,6 +129,21 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
             break;
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value array input.");
+    }
+
+    if (config->technology.cell->camType == TCAM && config->input.searchFunction == BE) {
+        ValidateBinaryVector(query, "query");
+        std::vector<int> mismatchCounts;
+        mismatchCounts.reserve(storedRows.size());
+        for (const auto &stored : storedRows) {
+            ValidateTcamStoredVector(stored, "stored");
+            mismatchCounts.push_back(CountTcamMismatches(stored, query));
+        }
+        return EvaluateBestTcamArray(mismatchCounts);
+    }
+
+    if (config->technology.cell->camType == TCAM && config->input.searchFunction == TH) {
+        throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM array evaluation requires evaluate_threshold(..., maxMismatches).");
     }
 
     std::vector<EvaCAMMatchResult> results;
@@ -180,7 +231,7 @@ void EvaCAM_Match::BuildMismatchLut() {
     }
 
     mismatchResults.clear();
-    if (config->technology.cell->camType != TCAM || config->input.searchFunction != EX) {
+    if (config->technology.cell->camType != TCAM) {
         return;
     }
 
@@ -221,7 +272,7 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateBestVector(
         case TCAM:
             ValidateTcamStoredVector(stored, "stored");
             ValidateBinaryVector(query, "query");
-            throw std::runtime_error("[EvaCAM_Match] Error: best TCAM vector evaluation is not implemented.");
+            throw std::runtime_error("[EvaCAM_Match] Error: best TCAM vector evaluation requires evaluate_array(rows, query).");
         case MCAM:
             ValidateVectorLength(stored.size(), "stored");
             ValidateVectorLength(query.size(), "query");
@@ -240,7 +291,7 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdVector(
         case TCAM:
             ValidateTcamStoredVector(stored, "stored");
             ValidateBinaryVector(query, "query");
-            throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM vector evaluation is not implemented.");
+            throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM vector evaluation requires evaluate_threshold(..., maxMismatches).");
         case MCAM:
             ValidateVectorLength(stored.size(), "stored");
             ValidateVectorLength(query.size(), "query");
@@ -285,6 +336,23 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdAcamVector(
     throw std::runtime_error("[EvaCAM_Match] Error: threshold ACAM vector evaluation is not implemented.");
 }
 
+std::vector<EvaCAMMatchResult> EvaCAM_Match::EvaluateBestTcamArray(
+        const std::vector<int> &mismatchCounts) const {
+    ValidateTcamMismatchCounts(mismatchCounts);
+
+    const int bestMismatches = *std::min_element(mismatchCounts.begin(), mismatchCounts.end());
+    ValidateBestMatchSenseMargin(mismatchCounts, bestMismatches);
+
+    std::vector<EvaCAMMatchResult> results;
+    results.reserve(mismatchCounts.size());
+    for (int mismatches : mismatchCounts) {
+        EvaCAMMatchResult result = LookupMismatchResult(mismatches);
+        result.hit = (mismatches == bestMismatches);
+        results.push_back(result);
+    }
+    return results;
+}
+
 EvaCAMMatchResult EvaCAM_Match::LookupMismatchResult(int mismatches) const {
     if (mismatches < 0 || static_cast<size_t>(mismatches) >= mismatchResults.size()) {
         throw std::runtime_error("[EvaCAM_Match] Error: mismatch lookup table is not initialized.");
@@ -305,15 +373,80 @@ int EvaCAM_Match::CountTcamMismatches(const std::vector<int> &stored, const std:
     return mismatches;
 }
 
-void EvaCAM_Match::ValidateMismatchCount(int mismatches) const {
+int EvaCAM_Match::MaxDetectableMismatches() const {
+    int maxDetectable = 0;
+    const double requiredSenseMargin = bank->mat->subarray->senseVoltage;
+    for (size_t mismatches = 1; mismatches <= word_width(); mismatches++) {
+        if (LookupMismatchResult(static_cast<int>(mismatches)).senseMargin < requiredSenseMargin) {
+            break;
+        }
+        maxDetectable = static_cast<int>(mismatches);
+    }
+    return maxDetectable;
+}
+
+void EvaCAM_Match::ValidateTcamMismatchCounts(const std::vector<int> &mismatchCounts) const {
+    if (mismatchCounts.empty()) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: mismatch-count array must not be empty.");
+    }
+    for (int mismatches : mismatchCounts) {
+        ValidateTcamMismatchCount(mismatches);
+    }
+}
+
+void EvaCAM_Match::ValidateBestMatchSenseMargin(
+        const std::vector<int> &mismatchCounts,
+        int bestMismatches) const {
+    if (bestMismatches > MaxDetectableMismatches()) {
+        throw std::runtime_error("[EvaCAM_Match] Error: best match exceeds sense-margin capability.");
+    }
+
+    const bool allBest = std::all_of(mismatchCounts.begin(), mismatchCounts.end(),
+            [bestMismatches](int mismatches) {
+                return mismatches == bestMismatches;
+            });
+    if (allBest || static_cast<size_t>(bestMismatches) == word_width()) {
+        return;
+    }
+
+    const EvaCAMMatchResult boundary = LookupMismatchResult(bestMismatches + 1);
+    const double requiredSenseMargin = bank->mat->subarray->senseVoltage;
+    if (boundary.senseMargin < requiredSenseMargin) {
+        throw std::runtime_error("[EvaCAM_Match] Error: best-match boundary exceeds sense-margin capability.");
+    }
+}
+
+void EvaCAM_Match::ValidateTcamMismatchCount(int mismatches) const {
     if (config->technology.cell->camType != TCAM) {
         throw std::invalid_argument("[EvaCAM_Match] Error: mismatch-count evaluation is only valid for TCAM.");
     }
+    if (mismatches < 0 || static_cast<size_t>(mismatches) > word_width()) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: mismatch count is out of range.");
+    }
+}
+
+void EvaCAM_Match::ValidateMismatchCount(int mismatches) const {
+    ValidateTcamMismatchCount(mismatches);
     if (config->input.searchFunction != EX) {
         throw std::runtime_error("[EvaCAM_Match] Error: mismatch-count evaluation currently supports exact search only.");
     }
-    if (mismatches < 0 || static_cast<size_t>(mismatches) > word_width()) {
-        throw std::invalid_argument("[EvaCAM_Match] Error: mismatch count is out of range.");
+}
+
+void EvaCAM_Match::ValidateMaxMismatches(int maxMismatches) const {
+    if (maxMismatches < 0 || static_cast<size_t>(maxMismatches) > word_width()) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: maxMismatches is out of range.");
+    }
+}
+
+void EvaCAM_Match::ValidateThresholdSenseMargin(int maxMismatches) const {
+    if (static_cast<size_t>(maxMismatches) == word_width()) {
+        return;
+    }
+
+    const EvaCAMMatchResult boundary = LookupMismatchResult(maxMismatches + 1);
+    const double requiredSenseMargin = bank->mat->subarray->senseVoltage;
+    if (boundary.senseMargin < requiredSenseMargin) {
+        throw std::runtime_error("[EvaCAM_Match] Error: maxMismatches exceeds sense-margin capability.");
     }
 }
 

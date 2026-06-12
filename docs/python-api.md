@@ -161,10 +161,33 @@ The vector length must equal `matcher.word_width()`.
 Current support:
 
 - TCAM `EX`: supported
-- TCAM `BE`: not implemented
-- TCAM `TH`: not implemented
+- TCAM `BE`: supported through array evaluation
+- TCAM `TH`: use explicit threshold evaluation with `max_mismatches`
 - MCAM binary vector paths: not implemented
 - ACAM requires range/value inputs
+
+## Threshold TCAM Evaluation
+
+Use `evaluate_threshold(stored, query, max_mismatches)` when the hit rule should accept up to an inclusive mismatch count.
+
+```python
+stored = [0] * matcher.word_width()
+query = [0] * matcher.word_width()
+
+result = matcher.evaluate_threshold(stored, query, max_mismatches=2)
+```
+
+`max_mismatches=2` means `0`, `1`, or `2` mismatches are hits. The returned timing, energy, matchline delay, and sense margin describe the actual stored/query mismatch count; only `hit` is decided by the threshold rule.
+
+The method is TCAM-only. `max_mismatches` must be between `0` and `matcher.word_width()`, inclusive. EvaCAM also checks the modeled sense margin at the boundary between `max_mismatches` and `max_mismatches + 1`; if that boundary cannot be sensed, the method raises `RuntimeError`. `max_mismatches == matcher.word_width()` accepts every mismatch count and has no miss boundary to check.
+
+The same operation is available from mismatch counts:
+
+```python
+result = matcher.evaluate_threshold(1, max_mismatches=2)
+```
+
+For `search_function: TH`, plain `evaluate_vector(stored, query)` requires an explicit threshold and raises `RuntimeError`; call `evaluate_threshold(...)` instead.
 
 ## Mismatch-Count Evaluation
 
@@ -205,22 +228,36 @@ results = matcher.evaluate_array(rows, query)
 
 `results` is a list of `EvaCAMMatchResult`, one per stored row.
 
+For `search_function: EX`, each row is evaluated independently with exact-match hit semantics.
+
+For `search_function: BE`, the full array is evaluated as one best-match operation:
+
+- the row or rows with the minimum mismatch count are returned with `hit=True`
+- all tied best rows are hits
+- non-best rows are returned with `hit=False`
+- no priority selector or multiple-match resolver is applied
+
+EvaCAM validates that the modeled sense margin can distinguish the best mismatch class from the next mismatch class. If the best mismatch count or best-vs-next boundary is beyond the detectable range, `evaluate_array(...)` raises `RuntimeError`.
+
 ## Mismatch-Count Array Evaluation
 
-For TCAM exact match, use `evaluate_array(mismatch_counts)` to evaluate many rows from known mismatch counts.
+Use `evaluate_array(mismatch_counts)` to evaluate many rows from known mismatch counts.
 
 ```python
 mismatch_counts = [0, 1, 2, 8]
 results = matcher.evaluate_array(mismatch_counts)
 ```
 
-This is equivalent to calling `evaluate_mismatches()` for each count.
+For `search_function: EX`, this is equivalent to calling `evaluate_mismatches()` for each count.
 
-Rules are the same as scalar mismatch-count evaluation:
+For `search_function: BE`, this applies the same best-match array semantics described above, but skips stored/query vector mismatch counting.
+
+Rules:
 
 - TCAM only
-- `search_function: EX` only
+- supported for `search_function: EX` and `BE`
 - each count must be in range
+- the count array must not be empty for `BE`
 
 ## ACAM Range/Value Inputs
 

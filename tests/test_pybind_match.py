@@ -15,6 +15,10 @@ def mismatched_query(width, mismatches, offset=0):
 
 def assert_close(lhs, rhs):
     assert lhs.hit == rhs.hit
+    assert_same_metrics(lhs, rhs)
+
+
+def assert_same_metrics(lhs, rhs):
     assert math.isclose(lhs.search_latency, rhs.search_latency, rel_tol=0.0, abs_tol=1e-18)
     assert math.isclose(lhs.search_dynamic_energy, rhs.search_dynamic_energy, rel_tol=0.0, abs_tol=1e-18)
     assert math.isclose(lhs.matchline_delay, rhs.matchline_delay, rel_tol=0.0, abs_tol=1e-18)
@@ -45,6 +49,26 @@ def write_config_with_search_function(source_config, search_function, tmp_dir):
     path = pathlib.Path(tmp_dir) / f"{source_config.stem}_{search_function}.yaml"
     path.write_text(text)
     return path
+
+
+def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir):
+    repo_root = pathlib.Path(__file__).resolve().parents[1]
+    source_cell = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml"
+    cell_text = source_cell.read_text()
+    cell_text = cell_text.replace("min_sense_voltage: 70mV", f"min_sense_voltage: {sense_voltage:.12e}V")
+    cell_path = pathlib.Path(tmp_dir) / "high_sense_cell_config.yaml"
+    cell_path.write_text(cell_text)
+
+    config_text = source_config.read_text()
+    config_text = config_text.replace(
+        "./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml",
+        str(cell_path),
+    )
+    for token in ("EX", "BE", "TH"):
+        config_text = config_text.replace(f"search_function: {token}", "search_function: TH")
+    config_path = pathlib.Path(tmp_dir) / "high_sense_system_config.yaml"
+    config_path.write_text(config_text)
+    return config_path
 
 
 def main():
@@ -106,6 +130,21 @@ def main():
         mismatch_counts.append(mismatches)
         expected_mismatch_results.append(result)
 
+    for mismatches in range(0, min(3, width) + 1):
+        query = mismatched_query(width, mismatches)
+        threshold_by_vector = matcher.evaluate_threshold(stored, query, 2)
+        threshold_by_count = matcher.evaluate_threshold(mismatches, 2)
+        assert threshold_by_vector.hit == (mismatches <= 2)
+        assert_close(threshold_by_vector, threshold_by_count)
+        assert_same_metrics(threshold_by_vector, expected_mismatch_results[mismatches])
+
+    exact_threshold_match = matcher.evaluate_threshold(stored, stored, 0)
+    assert exact_threshold_match.hit
+    exact_threshold_miss = matcher.evaluate_threshold(stored, mismatched_query(width, 1), 0)
+    assert not exact_threshold_miss.hit
+    all_threshold = matcher.evaluate_threshold(width, width)
+    assert all_threshold.hit
+
     batch_results = matcher.evaluate_array(batch_rows, stored)
     assert len(batch_results) == len(expected_batch_results)
     for actual, expected in zip(batch_results, expected_batch_results):
@@ -118,6 +157,9 @@ def main():
 
     assert_raises(ValueError, lambda: matcher.evaluate_mismatches(-1))
     assert_raises(ValueError, lambda: matcher.evaluate_mismatches(width + 1))
+    assert_raises(ValueError, lambda: matcher.evaluate_threshold(stored, stored, -1))
+    assert_raises(ValueError, lambda: matcher.evaluate_threshold(stored, stored, width + 1))
+    assert_raises(ValueError, lambda: matcher.evaluate_threshold(-1, 0))
     assert_raises(ValueError, lambda: matcher.evaluate_array([0, width + 1]))
     assert_raises(ValueError, lambda: matcher.evaluate_vector(stored[:-1], stored))
     assert_raises(ValueError, lambda: matcher.evaluate_vector(stored, stored + [0]))
@@ -139,26 +181,49 @@ def main():
         str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml")
     )
     tcam_be_width = tcam_be_matcher.word_width()
-    tcam_be_stored = [0] * tcam_be_width
+    tcam_be_query = [0] * tcam_be_width
+    tcam_be_rows = [
+        mismatched_query(tcam_be_width, 2),
+        tcam_be_query,
+        mismatched_query(tcam_be_width, 1),
+        tcam_be_query,
+    ]
+    tcam_be_counts = [2, 0, 1, 0]
+    tcam_be_vector_results = tcam_be_matcher.evaluate_array(tcam_be_rows, tcam_be_query)
+    tcam_be_count_results = tcam_be_matcher.evaluate_array(tcam_be_counts)
+    assert len(tcam_be_vector_results) == len(tcam_be_counts)
+    assert len(tcam_be_count_results) == len(tcam_be_counts)
+    for actual_by_vector, actual_by_count, mismatches in zip(
+        tcam_be_vector_results,
+        tcam_be_count_results,
+        tcam_be_counts,
+    ):
+        expected_hit = mismatches == 0
+        assert actual_by_vector.hit == expected_hit
+        assert actual_by_count.hit == expected_hit
+        assert_close(actual_by_vector, actual_by_count)
+        assert_same_metrics(actual_by_vector, expected_mismatch_results[mismatches])
+
+    tied_best_results = tcam_be_matcher.evaluate_array([1, 1, 2])
+    assert tied_best_results[0].hit
+    assert tied_best_results[1].hit
+    assert not tied_best_results[2].hit
+
     assert_raises_message(
         RuntimeError,
-        "best TCAM vector evaluation is not implemented",
-        lambda: tcam_be_matcher.evaluate_vector(tcam_be_stored, tcam_be_stored),
+        "best TCAM vector evaluation requires evaluate_array",
+        lambda: tcam_be_matcher.evaluate_vector(tcam_be_query, tcam_be_query),
     )
     assert_raises_message(
-        RuntimeError,
-        "best TCAM vector evaluation is not implemented",
-        lambda: tcam_be_matcher.evaluate_array([tcam_be_stored], tcam_be_stored),
+        ValueError,
+        "mismatch-count array must not be empty",
+        lambda: tcam_be_matcher.evaluate_array([]),
     )
+    assert_raises(ValueError, lambda: tcam_be_matcher.evaluate_array([0, tcam_be_width + 1]))
     assert_raises_message(
         RuntimeError,
         "mismatch-count evaluation currently supports exact search only",
         lambda: tcam_be_matcher.evaluate_mismatches(0),
-    )
-    assert_raises_message(
-        RuntimeError,
-        "mismatch-count evaluation currently supports exact search only",
-        lambda: tcam_be_matcher.evaluate_array([0]),
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -172,9 +237,60 @@ def main():
         tcam_th_stored = [0] * tcam_th_width
         assert_raises_message(
             RuntimeError,
-            "threshold TCAM vector evaluation is not implemented",
+            "threshold TCAM vector evaluation requires evaluate_threshold",
             lambda: tcam_th_matcher.evaluate_vector(tcam_th_stored, tcam_th_stored),
         )
+        assert tcam_th_matcher.evaluate_threshold(tcam_th_stored, tcam_th_stored, 0).hit
+        assert not tcam_th_matcher.evaluate_threshold(
+            tcam_th_stored,
+            mismatched_query(tcam_th_width, 1),
+            0,
+        ).hit
+        assert tcam_th_matcher.evaluate_threshold(
+            tcam_th_stored,
+            mismatched_query(tcam_th_width, 1),
+            1,
+        ).hit
+        assert tcam_th_matcher.evaluate_threshold(1, 1).hit
+
+        if expected_mismatch_results[2].sense_margin < expected_mismatch_results[1].sense_margin:
+            guarded_sense_voltage = (
+                expected_mismatch_results[1].sense_margin
+                + expected_mismatch_results[2].sense_margin
+            ) / 2.0
+            high_sense_matcher = evacam_py.EvaCAMMatch(
+                str(write_high_sense_threshold_config(tcam_source, guarded_sense_voltage, tmp_dir))
+            )
+            assert high_sense_matcher.evaluate_threshold(0, 0).hit
+            assert_raises_message(
+                RuntimeError,
+                "sense-margin capability",
+                lambda: high_sense_matcher.evaluate_threshold(1, 1),
+            )
+
+            high_sense_best_path = write_high_sense_threshold_config(
+                tcam_source,
+                guarded_sense_voltage,
+                tmp_dir,
+            )
+            high_sense_best_text = high_sense_best_path.read_text()
+            high_sense_best_text = high_sense_best_text.replace("search_function: TH", "search_function: BE")
+            high_sense_best_path.write_text(high_sense_best_text)
+            high_sense_best_matcher = evacam_py.EvaCAMMatch(str(high_sense_best_path))
+            assert high_sense_best_matcher.evaluate_array([0, 1])[0].hit
+            high_sense_tied = high_sense_best_matcher.evaluate_array([1, 1])
+            assert high_sense_tied[0].hit
+            assert high_sense_tied[1].hit
+            assert_raises_message(
+                RuntimeError,
+                "best-match boundary",
+                lambda: high_sense_best_matcher.evaluate_array([1, 2]),
+            )
+            assert_raises_message(
+                RuntimeError,
+                "best match exceeds",
+                lambda: high_sense_best_matcher.evaluate_array([2, 3]),
+            )
 
         mcam_ex_matcher = evacam_py.EvaCAMMatch(
             str(write_config_with_search_function(mcam_source, "EX", tmp_dir))
