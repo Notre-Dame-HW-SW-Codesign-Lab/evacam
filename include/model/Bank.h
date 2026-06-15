@@ -27,9 +27,6 @@ class Bank: public FunctionUnit {
         /* Functions */
         void printbreakdown();
         void PrintProperty();
-        //NCsim-CAM
-        void debug();
-        //End NVsim-CAM
         bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate(const std::vector<int> &stored, const std::vector<int> &query) const;
         virtual void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
