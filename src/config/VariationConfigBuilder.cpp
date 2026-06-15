@@ -12,14 +12,14 @@ uint32_t DefaultVariationSeed() {
     return static_cast<uint32_t>(ticks);
 }
 
-void ValidateBoundaryVariation(const char *fieldName, double value) {
+void ValidateCornerVariation(const char *fieldName, double value) {
     if (value < 0.0) {
         throw std::runtime_error(std::string("[Input] Error: variation.") + fieldName
                 + " must be non-negative.");
     }
 }
 
-int BoundaryDimensionCount(const VariationConfig &variation) {
+int CornerDimensionCount(const VariationConfig &variation) {
     int count = 0;
     if (variation.mlWireResMaxVar > 0.0)
         count++;
@@ -67,12 +67,12 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
         if (variation.samples <= 1) {
             throw std::runtime_error("[Input] Error: variation.samples must be > 1 for monte_carlo mode.");
         }
-    } else if (variation.mode == "boundary") {
-        ValidateBoundaryVariation("memory_device_resistance_on_max_var", variation.memoryDeviceResOnMaxVar);
-        ValidateBoundaryVariation("memory_device_resistance_off_max_var", variation.memoryDeviceResOffMaxVar);
-        ValidateBoundaryVariation("matchline_wire_resistance_max_var", variation.mlWireResMaxVar);
-        ValidateBoundaryVariation("device_access_resistance_max_var", variation.deviceAccessResMaxVar);
-        ValidateBoundaryVariation("device_match_resistance_max_var", variation.deviceMatchResMaxVar);
+    } else if (variation.mode == "corner") {
+        ValidateCornerVariation("memory_device_resistance_on_max_var", variation.memoryDeviceResOnMaxVar);
+        ValidateCornerVariation("memory_device_resistance_off_max_var", variation.memoryDeviceResOffMaxVar);
+        ValidateCornerVariation("matchline_wire_resistance_max_var", variation.mlWireResMaxVar);
+        ValidateCornerVariation("device_access_resistance_max_var", variation.deviceAccessResMaxVar);
+        ValidateCornerVariation("device_match_resistance_max_var", variation.deviceMatchResMaxVar);
 
         const double matchOnMaxVar = variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar;
         const double matchOffMaxVar = variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar;
@@ -80,16 +80,16 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
                 || variation.deviceAccessResMaxVar >= 1.0
                 || matchOnMaxVar >= 1.0
                 || matchOffMaxVar >= 1.0) {
-            throw std::runtime_error("[Input] Error: boundary variation max values must keep low-corner resistances positive.");
+            throw std::runtime_error("[Input] Error: corner variation max values must keep low-corner resistances positive.");
         }
 
-        const int dimensions = BoundaryDimensionCount(variation);
+        const int dimensions = CornerDimensionCount(variation);
         if (dimensions == 0) {
-            throw std::runtime_error("[Input] Error: boundary variation requires at least one positive *_max_var field.");
+            throw std::runtime_error("[Input] Error: corner variation requires at least one positive *_max_var field.");
         }
         variation.samples = 1 << dimensions;
     } else {
-        throw std::runtime_error("[Input] Error: variation.mode must be 'single_point', 'monte_carlo', or 'boundary'.");
+        throw std::runtime_error("[Input] Error: variation.mode must be 'single_point', 'monte_carlo', or 'corner'.");
     }
 
     return variation;

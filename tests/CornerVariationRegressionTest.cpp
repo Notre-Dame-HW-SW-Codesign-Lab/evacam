@@ -10,7 +10,7 @@
 
 namespace {
 
-struct BoundaryFixture {
+struct CornerFixture {
     std::filesystem::path configPath;
     std::filesystem::path outputPath;
     std::filesystem::path logPath;
@@ -40,12 +40,12 @@ void ReplaceAll(std::string &text, const std::string &from, const std::string &t
     }
 }
 
-BoundaryFixture WriteBoundaryConfig(const std::string &tag, const std::string &maxVarFields) {
+CornerFixture WriteCornerConfig(const std::string &tag, const std::string &maxVarFields) {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
     const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml";
     const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
 
-    const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("boundary_variation_" + tag);
+    const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("corner_variation_" + tag);
     std::filesystem::remove_all(tmpDir);
     std::filesystem::create_directories(tmpDir);
 
@@ -58,7 +58,7 @@ BoundaryFixture WriteBoundaryConfig(const std::string &tag, const std::string &m
     cellText +=
         "\nvariation:\n"
         "  with_variation: true\n"
-        "  mode: boundary\n"
+        "  mode: corner\n"
         "  seed: 12345\n"
         "  samples: 99\n"
         + maxVarFields;
@@ -77,7 +77,7 @@ BoundaryFixture WriteBoundaryConfig(const std::string &tag, const std::string &m
     return {testConfig, testOutput, testLog};
 }
 
-int RunEvaCamVerbose(const BoundaryFixture &fixture) {
+int RunEvaCamVerbose(const CornerFixture &fixture) {
     const std::string command = "./EvaCAM -v " + fixture.configPath.string()
         + " > " + fixture.logPath.string() + " 2>&1";
     return std::system(command.c_str());
@@ -102,15 +102,15 @@ int CountCsvRows(const std::filesystem::path &path, std::string *firstDataRow = 
     return rows;
 }
 
-void AssertBoundaryOutput(
-        const BoundaryFixture &fixture,
+void AssertCornerOutput(
+        const CornerFixture &fixture,
         int expectedSamples,
         const std::string &expectedFirstCornerLabel) {
     assert(std::filesystem::exists(fixture.outputPath));
 
     const YAML::Node variation = YAML::LoadFile(fixture.outputPath.string())["summary"]["timing"]["variation"];
     assert(variation);
-    assert(variation["mode"].as<std::string>() == "boundary");
+    assert(variation["mode"].as<std::string>() == "corner");
     assert(variation["samples"].as<int>() == expectedSamples);
     assert(variation["sample_file"]);
     assert(!variation["plot_file"]);
@@ -127,29 +127,29 @@ void AssertBoundaryOutput(
     assert(firstDataRow.find("\"" + expectedFirstCornerLabel + "\"") != std::string::npos);
 }
 
-void test_boundary_access_variation_outputs_four_corners() {
-    const BoundaryFixture fixture = WriteBoundaryConfig(
+void test_corner_access_variation_outputs_four_corners() {
+    const CornerFixture fixture = WriteCornerConfig(
             "access",
             "  device_access_resistance_max_var: 5%\n");
 
     assert(RunEvaCamVerbose(fixture) == 0);
-    AssertBoundaryOutput(
+    AssertCornerOutput(
             fixture,
             4,
             "ml=nominal,access_on=low,access_off=low,match_on=nominal,match_off=nominal");
 
     const std::string log = ReadFile(fixture.logPath);
-    assert(log.find("variation.samples is ignored because boundary mode is deterministic") != std::string::npos);
-    assert(log.find("variation.seed is ignored because boundary mode is deterministic") != std::string::npos);
+    assert(log.find("variation.samples is ignored because corner mode is deterministic") != std::string::npos);
+    assert(log.find("variation.seed is ignored because corner mode is deterministic") != std::string::npos);
 }
 
-void test_boundary_memory_on_variation_outputs_two_corners() {
-    const BoundaryFixture fixture = WriteBoundaryConfig(
+void test_corner_memory_on_variation_outputs_two_corners() {
+    const CornerFixture fixture = WriteCornerConfig(
             "memory_on",
             "  memory_device_resistance_on_max_var: 5%\n");
 
     assert(RunEvaCamVerbose(fixture) == 0);
-    AssertBoundaryOutput(
+    AssertCornerOutput(
             fixture,
             2,
             "ml=nominal,access_on=nominal,access_off=nominal,match_on=low,match_off=nominal");
@@ -158,8 +158,8 @@ void test_boundary_memory_on_variation_outputs_two_corners() {
 }  // namespace
 
 int main() {
-    test_boundary_access_variation_outputs_four_corners();
-    test_boundary_memory_on_variation_outputs_two_corners();
-    std::cout << "Boundary variation regression tests passed" << std::endl;
+    test_corner_access_variation_outputs_four_corners();
+    test_corner_memory_on_variation_outputs_two_corners();
+    std::cout << "Corner variation regression tests passed" << std::endl;
     return 0;
 }

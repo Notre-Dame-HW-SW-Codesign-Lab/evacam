@@ -77,11 +77,11 @@ Important notes:
 - `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
 - Variation is cell-driven. The system config does not have a supported `variation` section.
 - Stochastic variation sampling uses a fixed bounded-Gaussian model; `variation.distribution` is not a supported input.
-- Supported user-facing variation modes are `single_point`, `monte_carlo`, and `boundary`.
+- Supported user-facing variation modes are `single_point`, `monte_carlo`, and `corner`.
 - `variation.mode: nominal` is not a supported input; disable variation instead.
 - `variation.samples` is required for `monte_carlo` and must be greater than 1.
 - `variation.seed` is an optional cell-level override intended for reproducible testing; otherwise the variation seed is derived from the current time.
-- `variation.mode: boundary` uses deterministic `*_max_var` fields, derives `samples`, and ignores user-provided `samples` and `seed`.
+- `variation.mode: corner` uses deterministic `*_max_var` fields, derives `samples`, and ignores user-provided `samples` and `seed`.
 - `multilevel.enabled` appears in some shipped legacy configs but is not currently parsed.
 - `flash.mlc` is not a parsed cell key; MLC/SLC behavior comes from `cell.type`.
 - `read.wordline_boost_ratio` and `read.read_floating` are parsed but currently have no model effect.

@@ -65,7 +65,7 @@ Variation summary keys:
 
 - `summary.timing.variation` is emitted only when variation is enabled
 - `mode` and `samples` describe the aggregation run
-- `sample_file` is emitted for Monte Carlo and boundary runs and points to the per-sample CSV
+- `sample_file` is emitted for Monte Carlo and corner runs and points to the per-sample CSV
 - `plot_file` is emitted for Monte Carlo runs when SVG histogram generation succeeds and is not disabled
 - metric blocks currently include:
   - `matchline_delay`
@@ -75,7 +75,7 @@ Variation summary keys:
 - for `mode: single_point`, each metric block contains:
   - `nominal`
   - `sample`
-- for `mode: monte_carlo` and `mode: boundary`, each metric block contains:
+- for `mode: monte_carlo` and `mode: corner`, each metric block contains:
   - `nominal`
   - `mean`
   - `stddev`
@@ -97,7 +97,7 @@ These values are useful for debugging which peripheral block dominates a result.
 
 ## Variation Sample CSV
 
-Monte Carlo and boundary variation runs also write a per-sample CSV next to the YAML results file.
+Monte Carlo and corner variation runs also write a per-sample CSV next to the YAML results file.
 For example:
 
 ```text

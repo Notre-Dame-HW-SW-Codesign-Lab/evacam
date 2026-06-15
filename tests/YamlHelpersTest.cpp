@@ -797,26 +797,26 @@ static void test_variation_builder_rejects_invalid_mode_and_samples() {
     } catch (const std::runtime_error&) {
     }
 
-    cell.variationMode = "boundary";
+    cell.variationMode = "corner";
     cell.variationSamples = 1;
     try {
         (void)VariationConfigBuilder::FromCell(cell);
-        assert(false && "Expected boundary with no max-var fields to throw");
+        assert(false && "Expected corner with no max-var fields to throw");
     } catch (const std::runtime_error&) {
     }
 
     cell.deviceAccessResistanceMaxVariation = 0.05;
-    VariationConfig boundary = VariationConfigBuilder::FromCell(cell);
-    assert(boundary.enabled == true);
-    assert(boundary.mode == "boundary");
-    assert(boundary.samples == 4);
-    assert(std::fabs(boundary.deviceAccessResMaxVar - 0.05) < 1e-18);
+    VariationConfig corner = VariationConfigBuilder::FromCell(cell);
+    assert(corner.enabled == true);
+    assert(corner.mode == "corner");
+    assert(corner.samples == 4);
+    assert(std::fabs(corner.deviceAccessResMaxVar - 0.05) < 1e-18);
 
     cell.resistanceOnMaxVariation = 0.96;
     cell.deviceMatchResistanceMaxVariation = 0.04;
     try {
         (void)VariationConfigBuilder::FromCell(cell);
-        assert(false && "Expected boundary combined max-var >= 1 to throw");
+        assert(false && "Expected corner combined max-var >= 1 to throw");
     } catch (const std::runtime_error&) {
     }
 

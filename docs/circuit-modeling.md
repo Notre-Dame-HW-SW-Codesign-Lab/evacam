@@ -535,7 +535,7 @@ The current implementation supports:
 - variation disabled
 - `single_point`
 - `monte_carlo`
-- `boundary`
+- `corner`
 
 If variation is disabled, the model uses nominal resistances everywhere.
 
@@ -543,7 +543,7 @@ If `single_point` is selected, EvaCAM draws one deterministic sample from the co
 
 If `monte_carlo` is selected, EvaCAM draws `N` samples and computes summary statistics.
 
-If `boundary` is selected, EvaCAM enumerates independent deterministic low/high corners for each active effective resistance component. The `*_max_var` inputs are raw fractional bounds, so `5%` applies `nominal * 0.95` and `nominal * 1.05`. Boundary mode ignores user-provided `seed` and `samples`; the sample count is derived from the number of active corner dimensions.
+If `corner` is selected, EvaCAM enumerates independent deterministic low/high corners for each active effective resistance component. The `*_max_var` inputs are raw fractional bounds, so `5%` applies `nominal * 0.95` and `nominal * 1.05`. Corner mode ignores user-provided `seed` and `samples`; the sample count is derived from the number of active corner dimensions.
 
 ### Sampled Quantities
 
@@ -555,7 +555,7 @@ The current sampled categories are resistance-like quantities:
 - access-device resistance for the off-state path
 - match-device resistance for the off-state path
 
-Cell and device sigmas are combined with root-sum-of-squares where appropriate. For boundary mode, memory-device and match-device max variations are added directly for the effective match-resistance bounds.
+Cell and device sigmas are combined with root-sum-of-squares where appropriate. For corner mode, memory-device and match-device max variations are added directly for the effective match-resistance bounds.
 
 ### Sampling Method
 
@@ -567,7 +567,7 @@ Each resistance category uses a stable deterministic RNG stream derived from:
 
 The sampled values are produced by `VariationSampler::SampleResistance()`. The user interface describes this as a bounded-Gaussian resistance-variation model.
 
-Boundary mode does not use the RNG. It applies deterministic low/high scaling to the effective resistance components in this bit order: matchline wire, access on, access off, match on, match off.
+Corner mode does not use the RNG. It applies deterministic low/high scaling to the effective resistance components in this bit order: matchline wire, access on, access off, match on, match off.
 
 ### Effect on Timing and Energy
 

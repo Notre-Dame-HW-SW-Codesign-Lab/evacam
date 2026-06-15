@@ -1,4 +1,4 @@
-# 2FeFET-TCAM Cell Configuration with deterministic boundary variation
+# 2FeFET-TCAM Cell Configuration with deterministic corner variation
 
 cell:
   name: 2FeFET-TCAM
@@ -37,7 +37,7 @@ multilevel:
   enabled: false
 variation:
   with_variation: true
-  mode: boundary
+  mode: corner
   memory_device_resistance_on_max_var: 7%
   memory_device_resistance_off_max_var: 7%
   matchline_wire_resistance_max_var: 3%

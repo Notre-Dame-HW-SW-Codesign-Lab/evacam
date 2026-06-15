@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot EvaCAM deterministic boundary variation corners as an SVG."""
+"""Plot EvaCAM deterministic corner variation samples as an SVG."""
 
 import argparse
 import csv
@@ -32,11 +32,11 @@ def read_rows(path):
     with path.open(newline="") as csv_file:
         rows = list(csv.DictReader(csv_file))
     if not rows:
-        raise RuntimeError(f"No boundary sample rows found in {path}")
+        raise RuntimeError(f"No corner sample rows found in {path}")
     missing = [column for column in CORNER_COLUMNS if column not in rows[0]]
     if missing:
         raise RuntimeError(
-            "Boundary variation CSV is missing corner metadata columns: "
+            "Corner variation CSV is missing corner metadata columns: "
             + ", ".join(missing)
         )
     return rows
@@ -67,7 +67,7 @@ def available_metrics(rows, include_internal):
         if points:
             available.append((column, title, unit, points, bound))
     if not available:
-        raise RuntimeError("No known EvaCAM boundary metric columns found.")
+        raise RuntimeError("No known EvaCAM corner metric columns found.")
     return available
 
 
@@ -76,32 +76,17 @@ def bound_point(points, bound):
     return max(points, key=key) if bound == "max" else min(points, key=key)
 
 
+def ordered_points(points, order):
+    if order == "sample":
+        return sorted(points, key=lambda point: point["sample"])
+    return sorted(points, key=lambda point: point["value"])
+
+
 def format_value(value, unit):
     return f"{value:.3g} {unit}"
 
 
-def compact_corner_label(label):
-    replacements = {
-        "nominal": "nom",
-        "access_on": "acc_on",
-        "access_off": "acc_off",
-        "match_on": "mat_on",
-        "match_off": "mat_off",
-    }
-    compact = label
-    for source, target in replacements.items():
-        compact = compact.replace(source, target)
-    return compact
-
-
-def format_bound_summary(title, unit, point, bound):
-    return (
-        f"{title} {bound}: {format_value(point['value'], unit)}\n"
-        f"sample {point['sample']}: {compact_corner_label(point['corner_label'])}"
-    )
-
-
-def plot_boundary(rows, output_path, include_internal=False):
+def plot_corner_variation(rows, output_path, include_internal=False, order="metric"):
     os.environ.setdefault("MPLCONFIGDIR", "/tmp/evacam-matplotlib")
 
     import matplotlib
@@ -121,43 +106,58 @@ def plot_boundary(rows, output_path, include_internal=False):
         constrained_layout=True,
     )
 
-    fig.suptitle("EvaCAM Boundary Variation Corners", fontsize=15, fontweight="bold")
-    fig.text(0.5, 0.945, f"{len(rows)} deterministic corners", ha="center", fontsize=10)
+    fig.suptitle("EvaCAM Corner Variation", fontsize=14, fontweight="bold")
+    subtitle = f"{len(rows)} deterministic corners"
+    if order == "sample":
+        subtitle += ", original sample order"
+    fig.text(0.5, 0.945, subtitle, ha="center", fontsize=10)
 
-    summaries = []
     for index, (_column, title, unit, points, bound) in enumerate(metrics):
         ax = axes[index // cols][index % cols]
-        sorted_points = sorted(points, key=lambda point: point["value"])
-        values = [point["value"] for point in sorted_points]
-        x_values = list(range(len(sorted_points)))
-        risky = bound_point(sorted_points, bound)
-        risky_index = sorted_points.index(risky)
-        min_value = values[0]
-        max_value = values[-1]
+        plot_points = ordered_points(points, order)
+        values = [point["value"] for point in plot_points]
+        x_values = (
+            [point["sample"] for point in plot_points]
+            if order == "sample"
+            else list(range(len(plot_points)))
+        )
+        risky = bound_point(plot_points, bound)
+        risky_x = risky["sample"] if order == "sample" else plot_points.index(risky)
+        min_value = min(values)
+        max_value = max(values)
 
-        ax.scatter(x_values, values, s=38, color="#4f7cac", edgecolor="white", linewidth=0.7, zorder=3)
-        ax.axhline(min_value, color="#2da44e", linewidth=1.0, linestyle="--", alpha=0.85)
-        ax.axhline(max_value, color="#cf222e", linewidth=1.0, linestyle="--", alpha=0.85)
         ax.scatter(
-            [risky_index],
+            x_values,
+            values,
+            s=34,
+            color="#4f7cac",
+            edgecolor="white",
+            linewidth=0.7,
+            label="Corner",
+            zorder=3,
+        )
+        ax.axhline(
+            min_value,
+            color="#8c959f",
+            linewidth=1.0,
+            linestyle="--",
+            alpha=0.9,
+            label="Min/max range",
+        )
+        ax.axhline(max_value, color="#8c959f", linewidth=1.0, linestyle="--", alpha=0.9)
+        ax.scatter(
+            [risky_x],
             [risky["value"]],
             s=76,
-            color="#cf222e" if bound == "max" else "#2da44e",
+            color="#cf222e",
             edgecolor="#24292f",
             linewidth=0.8,
+            label=f"Worst case ({bound})",
             zorder=4,
         )
-        ax.annotate(
-            f"{bound}: sample {risky['sample']}",
-            xy=(risky_index, risky["value"]),
-            xytext=(8, 10 if bound == "max" else -18),
-            textcoords="offset points",
-            fontsize=8.5,
-            arrowprops={"arrowstyle": "->", "color": "#57606a", "linewidth": 0.8},
-        )
 
-        ax.set_title(title, fontsize=11, fontweight="bold")
-        ax.set_xlabel("Corners sorted by metric value")
+        ax.set_title(title, fontsize=11.5, fontweight="bold", pad=7)
+        ax.set_xlabel("Sample Index" if order == "sample" else "Sorted Corner Index")
         ax.set_ylabel(unit)
         ax.xaxis.set_major_locator(MaxNLocator(nbins=6, integer=True))
         ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
@@ -168,11 +168,11 @@ def plot_boundary(rows, output_path, include_internal=False):
         ax.text(
             0.02,
             0.96,
-            f"min: {format_value(min_value, unit)}\nmax: {format_value(max_value, unit)}",
+            f"min {format_value(min_value, unit)}\nmax {format_value(max_value, unit)}",
             transform=ax.transAxes,
             ha="left",
             va="top",
-            fontsize=8.5,
+            fontsize=8.0,
             bbox={
                 "boxstyle": "round,pad=0.28",
                 "facecolor": "white",
@@ -180,59 +180,61 @@ def plot_boundary(rows, output_path, include_internal=False):
                 "alpha": 0.92,
             },
         )
-        summaries.append(format_bound_summary(title, unit, risky, bound))
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(
+            handles[:3],
+            labels[:3],
+            loc="lower right",
+            fontsize=7.5,
+            frameon=True,
+            framealpha=0.92,
+            edgecolor="#d0d7de",
+        )
 
     for index in range(len(metrics), panel_rows * cols):
         axes[index // cols][index % cols].set_visible(False)
-
-    fig.text(
-        0.5,
-        0.01,
-        "\n\n".join(summaries),
-        ha="center",
-        va="bottom",
-        fontsize=8.5,
-        bbox={
-            "boxstyle": "round,pad=0.45",
-            "facecolor": "white",
-            "edgecolor": "#d0d7de",
-            "alpha": 0.95,
-        },
-    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, format="svg")
     plt.close(fig)
 
 
-def default_output_path(csv_path):
+def default_output_path(csv_path, order="metric"):
     stem = csv_path.stem
     if stem.endswith("_variation_samples"):
         stem = stem[: -len("_variation_samples")] + "_variation"
-    return csv_path.with_name(stem + "_boundary.svg")
+    if order == "sample":
+        stem += "_sample_order"
+    return csv_path.with_name(stem + "_corner.svg")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Plot deterministic boundary corners from an EvaCAM variation samples CSV."
+        description="Plot deterministic corner samples from an EvaCAM variation samples CSV."
     )
-    parser.add_argument("csv_file", type=Path, help="EvaCAM boundary variation samples CSV")
+    parser.add_argument("csv_file", type=Path, help="EvaCAM corner variation samples CSV")
     parser.add_argument(
         "-o",
         "--output",
         type=Path,
-        help="Output SVG path. Defaults to <csv_stem>_boundary.svg next to the CSV.",
+        help="Output SVG path. Defaults to <csv_stem>_corner.svg next to the CSV.",
     )
     parser.add_argument(
         "--include-internal",
         action="store_true",
         help="Include internal diagnostic metrics such as reference delay.",
     )
+    parser.add_argument(
+        "--order",
+        choices=["metric", "sample"],
+        default="metric",
+        help="Plot corners sorted by each metric value or in original sample-index order.",
+    )
     args = parser.parse_args()
 
-    output_path = args.output or default_output_path(args.csv_file)
+    output_path = args.output or default_output_path(args.csv_file, args.order)
     rows = read_rows(args.csv_file)
-    plot_boundary(rows, output_path, args.include_internal)
+    plot_corner_variation(rows, output_path, args.include_internal, args.order)
     print(f"Wrote {output_path}")
 
 

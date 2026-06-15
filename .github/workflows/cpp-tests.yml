@@ -22,7 +22,7 @@ jobs:
           - test-exploration
           - test-variation
           - test-montecarlo
-          - test-boundary
+          - test-corner
           - test-wire
           - test-formula
           - test-match

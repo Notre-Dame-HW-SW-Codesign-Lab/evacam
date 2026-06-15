@@ -1,4 +1,4 @@
-# 2FeFET-TCAM System Configuration with deterministic boundary variation
+# 2FeFET-TCAM System Configuration with deterministic corner variation
 
 design:
   target: CAM
@@ -8,7 +8,7 @@ design:
   temperature: 350K
 
 memory:
-  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_boundary_cell_config.yaml
+  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_corner_cell_config.yaml
   capacity: 512B
   word_width: 64bits
 
@@ -64,4 +64,4 @@ matchline:
   additional_cap: 6fF
 
 extra:
-  output_yaml_file: results/2FeFET_TCAM_boundary_results.yaml
+  output_yaml_file: results/2FeFET_TCAM_corner_results.yaml

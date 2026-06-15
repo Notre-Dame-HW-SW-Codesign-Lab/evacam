@@ -153,7 +153,7 @@ double CombineStdev(double a, double b) {
     return std::sqrt(a * a + b * b);
 }
 
-struct BoundarySelection {
+struct CornerSelection {
     bool matchlineWireResHigh = false;
     bool accessResOnHigh = false;
     bool accessResOffHigh = false;
@@ -171,32 +171,32 @@ std::string CornerName(bool high) {
     return high ? "high" : "low";
 }
 
-bool NextBoundaryCorner(unsigned int cornerIndex, int &bit) {
+bool NextCorner(unsigned int cornerIndex, int &bit) {
     return ((cornerIndex >> bit++) & 1u) != 0;
 }
 
-BoundarySelection BuildBoundarySelection(const VariationConfig &variation, unsigned int cornerIndex) {
-    BoundarySelection selection;
+CornerSelection BuildCornerSelection(const VariationConfig &variation, unsigned int cornerIndex) {
+    CornerSelection selection;
     int bit = 0;
 
     if (variation.mlWireResMaxVar > 0.0) {
-        selection.matchlineWireResHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.matchlineWireResHigh = NextCorner(cornerIndex, bit);
         selection.matchlineWireResCorner = CornerName(selection.matchlineWireResHigh);
     }
     if (variation.deviceAccessResMaxVar > 0.0) {
-        selection.accessResOnHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.accessResOnHigh = NextCorner(cornerIndex, bit);
         selection.accessResOnCorner = CornerName(selection.accessResOnHigh);
     }
     if (variation.deviceAccessResMaxVar > 0.0) {
-        selection.accessResOffHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.accessResOffHigh = NextCorner(cornerIndex, bit);
         selection.accessResOffCorner = CornerName(selection.accessResOffHigh);
     }
     if (variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar > 0.0) {
-        selection.matchResOnHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.matchResOnHigh = NextCorner(cornerIndex, bit);
         selection.matchResOnCorner = CornerName(selection.matchResOnHigh);
     }
     if (variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar > 0.0) {
-        selection.matchResOffHigh = NextBoundaryCorner(cornerIndex, bit);
+        selection.matchResOffHigh = NextCorner(cornerIndex, bit);
         selection.matchResOffCorner = CornerName(selection.matchResOffHigh);
     }
 
@@ -210,7 +210,7 @@ BoundarySelection BuildBoundarySelection(const VariationConfig &variation, unsig
     return selection;
 }
 
-double ApplyBoundaryVariation(double nominal, double maxVar, bool high) {
+double ApplyCornerVariation(double nominal, double maxVar, bool high) {
     if (maxVar <= 0.0) {
         return nominal;
     }
@@ -1670,32 +1670,32 @@ CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex
     return sample;
 }
 
-CAMResistanceSample CAM_SubArray::BuildBoundaryResistanceSample(unsigned int cornerIndex) const {
+CAMResistanceSample CAM_SubArray::BuildCornerResistanceSample(unsigned int cornerIndex) const {
     const auto &variation = config->variation;
-    const BoundarySelection selection = BuildBoundarySelection(variation, cornerIndex);
+    const CornerSelection selection = BuildCornerSelection(variation, cornerIndex);
     const double matchResOnMaxVar = variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar;
     const double matchResOffMaxVar = variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar;
 
     CAMResistanceSample sample;
-    sample.mlWireRes = ApplyBoundaryVariation(
+    sample.mlWireRes = ApplyCornerVariation(
             nominalMatchlineWireRes,
             variation.mlWireResMaxVar,
             selection.matchlineWireResHigh);
-    sample.accessRes = ApplyBoundaryVariation(
+    sample.accessRes = ApplyCornerVariation(
             nominalResCellAccess,
             variation.deviceAccessResMaxVar,
             selection.accessResOnHigh);
-    sample.matchRes = ApplyBoundaryVariation(
+    sample.matchRes = ApplyCornerVariation(
             nominalResMatchTran,
             matchResOnMaxVar,
             selection.matchResOnHigh);
     sample.cellResOn = sample.accessRes + sample.matchRes;
 
-    sample.accessResOff = ApplyBoundaryVariation(
+    sample.accessResOff = ApplyCornerVariation(
             nominalResCellAccessOff,
             variation.deviceAccessResMaxVar,
             selection.accessResOffHigh);
-    sample.matchResOff = ApplyBoundaryVariation(
+    sample.matchResOff = ApplyCornerVariation(
             nominalResMatchTranOff,
             matchResOffMaxVar,
             selection.matchResOffHigh);
@@ -1704,8 +1704,8 @@ CAMResistanceSample CAM_SubArray::BuildBoundaryResistanceSample(unsigned int cor
 }
 
 CAMResistanceSample CAM_SubArray::BuildVariationResistanceSample(unsigned int sampleIndex) const {
-    if (config->variation.mode == "boundary") {
-        return BuildBoundaryResistanceSample(sampleIndex);
+    if (config->variation.mode == "corner") {
+        return BuildCornerResistanceSample(sampleIndex);
     }
     return BuildResistanceSample(sampleIndex);
 }
@@ -1786,7 +1786,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
         referDelay = sampleReferDelay;
         return;
     }
-    if ((variation.mode != "monte_carlo" && variation.mode != "boundary") || variation.samples <= 1) {
+    if ((variation.mode != "monte_carlo" && variation.mode != "corner") || variation.samples <= 1) {
         return;
     }
 
@@ -1836,8 +1836,8 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
         referDelays.push_back(sampleReferDelay);
         CAMVariationSample variationSample;
         variationSample.sample = sampleIndex;
-        if (variation.mode == "boundary") {
-            const BoundarySelection selection = BuildBoundarySelection(variation, sampleIndex);
+        if (variation.mode == "corner") {
+            const CornerSelection selection = BuildCornerSelection(variation, sampleIndex);
             variationSample.cornerLabel = selection.label;
             variationSample.matchlineWireResCorner = selection.matchlineWireResCorner;
             variationSample.accessResOnCorner = selection.accessResOnCorner;

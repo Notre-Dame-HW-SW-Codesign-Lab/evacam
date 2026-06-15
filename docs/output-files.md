@@ -79,7 +79,7 @@ output_2048K_512_1_IN_VOL.csv
 
 When cell-level variation uses `mode: monte_carlo`, EvaCAM also emits a
 per-sample CSV and SVG histogram plot next to the YAML results file. When
-variation uses `mode: boundary`, EvaCAM emits a deterministic corner CSV but
+variation uses `mode: corner`, EvaCAM emits a deterministic corner CSV but
 does not emit a histogram plot. The YAML `summary.timing.variation.sample_file`
 and, for Monte Carlo only, `plot_file` fields point to these files.
 
@@ -105,17 +105,47 @@ Use `--no-variation-plots` to skip SVG generation intentionally.
 To regenerate the plot manually, run:
 
 ```bash
-python3 scripts/plot_variation_histograms.py results/2FeFET_TCAM_variation_samples.csv
+python3 scripts/plot_variation_histograms.py results/<name>_variation_samples.csv
 ```
 
-For boundary mode, generate a deterministic corner plot with:
+For corner mode, generate a deterministic corner plot with:
 
 ```bash
-python3 scripts/plot_boundary_variation.py results/2FeFET_TCAM_variation_samples.csv
+python3 scripts/plot_corner_variation.py results/<name>_variation_samples.csv
 ```
 
-The default plot excludes internal diagnostic columns such as `reference_delay_s`.
-Use `--include-internal` to include them.
+By default, each subplot sorts corners by its metric value. To plot the original
+sample order instead, run:
+
+```bash
+python3 scripts/plot_corner_variation.py results/<name>_variation_samples.csv --order sample
+```
+
+Generate a separate human-readable corner table with:
+
+```bash
+python3 scripts/generate_corner_variation_table.py results/<name>_variation_samples.csv
+```
+
+The table includes one sample-level section with metric-specific plot indices
+that correspond to the plot x-axis. It also includes one sorted section per
+metric showing the sample, value, corner settings, and corner-setting changes
+from the previous plot index.
+
+The default plot and table exclude internal diagnostic columns such as
+`reference_delay_s`. Use `--include-internal` to include them.
+
+SVG plots can be converted to PNG with:
+
+```bash
+scripts/convert_svgs_to_png.sh <svg_path>
+```
+
+To convert every SVG in a directory:
+
+```bash
+scripts/convert_svgs_to_png.sh --dir <dir>
+```
 
 ## Output Directory Behavior
 

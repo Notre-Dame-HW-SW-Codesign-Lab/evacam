@@ -120,7 +120,7 @@ class CAM_SubArray: public FunctionUnit {
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateBinaryMatchByMismatches(int mismatchCount) const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
-        CAMResistanceSample BuildBoundaryResistanceSample(unsigned int cornerIndex) const;
+        CAMResistanceSample BuildCornerResistanceSample(unsigned int cornerIndex) const;
         CAMResistanceSample BuildVariationResistanceSample(unsigned int sampleIndex) const;
         double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
         double EffectiveDeviceResistanceStdev() const;
