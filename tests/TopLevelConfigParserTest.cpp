@@ -282,6 +282,16 @@ void TestInvalidEnumThrows() {
     assert(LoadThrowsWithMessage("Invalid value for 'access_mode'"));
 }
 
+void TestCacheWriteSchemeIsIgnored() {
+    WriteBaseTopLevelConfig(
+        "cache:\n"
+        "  write_scheme: write_and_verify\n");
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kConfigPath, config);
+    assert(config.input.writeScheme == normal_write);
+}
+
 void TestOrganizationAliasParses() {
     WriteBaseTopLevelConfig(
         "array:\n"
@@ -435,6 +445,7 @@ int main() {
     TestMissingRequiredTopLevelSectionThrows();
     TestInvalidUnitThrows();
     TestInvalidEnumThrows();
+    TestCacheWriteSchemeIsIgnored();
     TestOrganizationAliasParses();
     TestCactiAssumptionNormalizesGeometry();
     TestAutoCapacityRequiresFixedSubarrayDimensions();

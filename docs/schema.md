@@ -43,7 +43,7 @@ Useful optional keys:
 - `optimization.deep_exploration`: expands the default exploration search space when explicit `organization.*` pinning is omitted
 - `advanced.enable_pruning`, `advanced.bit_serial_width`, `advanced.use_cacti_assumption`
 - `advanced.input_encoder_type`: currently `encoding_two_bit`
-- `cache.associativity`, `cache.access_mode`, `cache.write_scheme`
+- `cache.associativity`, `cache.access_mode`
 - `extra.real_capacity`: required when `memory.word_width` is not a power of two
 - `extra.output_yaml_file`: overrides the default results YAML path
 - `extra.output_file_prefix`: affects exploration CSV naming

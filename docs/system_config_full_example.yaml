@@ -121,12 +121,10 @@ advanced:
   scaled_voltage: 1.0 # optional scalar; >0 scales dynamic energy by voltage squared
 
 # Optional parsed section. These are NVSim knobs for caches; design.target currently
-# only supports CAM, so access_mode mainly remains for compatibility. write_scheme
-# still affects supported NVM write modeling paths.
+# only supports CAM, so access_mode mainly remains for compatibility.
 cache:
   associativity: 1 # optional int; current CAM bank path uses effective associativity 1
   access_mode: normal # optional enum: normal | fast | sequential
-  write_scheme: normal_write # optional enum: normal_write | set_before_reset | reset_before_set | erase_before_set | erase_before_reset | write_and_verify
 
 # Optional parsed section. System-level NAND flash organization, distinct from
 # cell-level flash device parameters.

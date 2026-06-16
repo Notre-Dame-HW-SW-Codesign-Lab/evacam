@@ -347,9 +347,6 @@ void ReadCacheSection(const YAML::Node &root, EvaCamConfig &config) {
         config.input.cacheAccessMode =
             YamlHelpers::read_enum_required<CacheAccessMode>(cacheCfg, "access_mode", false);
     }
-    if (YamlHelpers::child_optional(cacheCfg, "write_scheme")) {
-        config.input.writeScheme = YamlHelpers::read_enum_required<WriteScheme>(cacheCfg, "write_scheme", false);
-    }
 }
 
 void ReadFlashSection(const YAML::Node &root, EvaCamConfig &config) {
