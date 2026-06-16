@@ -19,6 +19,19 @@ std::string trim(const std::string& s) {
     return s.substr(start, end - start);
 }
 
+bool unit_suffix_matches(const std::string& actual, const char* expected) {
+    if (actual == expected) {
+        return true;
+    }
+
+    const std::string expectedStr(expected);
+    return actual.size() == expectedStr.size()
+        && !actual.empty()
+        && actual[0] == 'K'
+        && expectedStr[0] == 'k'
+        && actual.substr(1) == expectedStr.substr(1);
+}
+
 double parse_quantity_string(
         const std::string& raw,
         const std::vector<YamlHelpers::UnitSpec>& units,
@@ -42,7 +55,7 @@ double parse_quantity_string(
     }
 
     for (const auto& u : units) {
-        if (unit == u.suffix) {
+        if (unit_suffix_matches(unit, u.suffix)) {
             return value * u.to_base;
         }
     }

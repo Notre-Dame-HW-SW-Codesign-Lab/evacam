@@ -10,6 +10,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 using namespace YamlHelpers;
 
@@ -113,6 +114,7 @@ static void test_units() {
         "  delay: 10ns\n"
         "  energy: 2pJ\n"
         "  cap: 5fF\n"
+        "  resistance: 854.7Kohm\n"
         "  temp: 350K\n"
         "  cap_bytes: 2KB\n"
         "  width_bits: 128bit\n");
@@ -124,6 +126,7 @@ static void test_units() {
     double t = YamlHelpers::read_quantity_required(root, "delay", TimeUnits(), 1.0, "delay");
     double e = YamlHelpers::read_quantity_required(root, "energy", EnergyUnits(), 1.0, "energy");
     double c = YamlHelpers::read_quantity_required(root, "cap", CapacitanceUnits(), 1.0, "capacitance");
+    double r = YamlHelpers::read_quantity_required(root, "resistance", ResistanceUnits(), 1.0, "resistance");
     double temp = YamlHelpers::read_quantity_required(root, "temp", TemperatureUnits(), 1.0, "temperature");
     double cap = YamlHelpers::read_quantity_required(root, "cap_bytes", DataSizeUnits(), 1.0, "capacity");
     double bits = YamlHelpers::read_quantity_required(root, "width_bits", BitUnits(), 1.0, "word_width");
@@ -134,9 +137,20 @@ static void test_units() {
     assert(near(t, 10e-9));
     assert(near(e, 2e-12));
     assert(near(c, 5e-15));
+    assert(near(r, 854.7e3));
     assert(near(temp, 350.0));
     assert(near(cap, 2048.0));
     assert(near(bits, 128.0));
+
+    bool rejectedUppercaseMilli = false;
+    try {
+        const YAML::Node bad = YAML::Load("root:\n  voltage: 4MV\n");
+        auto badRoot = YamlHelpers::child_required(bad, "root");
+        YamlHelpers::read_quantity_required(badRoot, "voltage", VoltageUnits(), 1.0, "voltage");
+    } catch (const std::runtime_error&) {
+        rejectedUppercaseMilli = true;
+    }
+    assert(rejectedUppercaseMilli);
 }
 
 static void test_organization_section() {

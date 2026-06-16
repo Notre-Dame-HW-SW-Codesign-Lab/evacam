@@ -16,7 +16,8 @@ const char *kCustomSaPath = "tests/tmp_input_validation_custom_sa.yaml";
 void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         const std::string &camType = "TCAM",
         const std::string &columnType = "matchline",
-        const std::string &columnRegion = "drain") {
+        const std::string &columnRegion = "drain",
+        const std::string &extraCellBlock = "") {
     std::ofstream out(kCellPath);
     out <<
         "cell:\n"
@@ -52,6 +53,7 @@ void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         "    current: 2uA\n"
         "    pulse: 20ns\n"
         "    energy: 3pJ\n"
+        << extraCellBlock <<
         "match:\n"
         "  cmos_width: 3F\n"
         "ports:\n"
@@ -501,6 +503,71 @@ void TestMcamRequiresFefetramThrows() {
     WriteMinimalCellFile();
 }
 
+void TestMcamRequiresResistanceStatesThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamResistanceStateCountMismatchThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 4\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("must define every configured resistance state"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamRequiresAtLeastTwoResistanceStatesThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 1\n"
+        "  resistance_state: [1Mohm]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.num_resistance_state must be between 2 and 64"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamResistanceStatesMustBePositiveThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 0ohm]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.resistance_state values must be positive"));
+    WriteMinimalCellFile();
+}
+
 void TestMatchlineGateConnectionThrows() {
     WriteMinimalCellFile("SRAM", "TCAM", "matchline", "gate");
     WriteConfig(
@@ -858,6 +925,10 @@ int main() {
     TestMissingCamColumnPortsThrows();
     TestAcamUnsupportedThrows();
     TestMcamRequiresFefetramThrows();
+    TestMcamRequiresResistanceStatesThrows();
+    TestMcamResistanceStateCountMismatchThrows();
+    TestMcamRequiresAtLeastTwoResistanceStatesThrows();
+    TestMcamResistanceStatesMustBePositiveThrows();
     TestMatchlineGateConnectionThrows();
     TestBitlineColumnTopologyThrows();
     TestMissingMatchlineColumnThrows();

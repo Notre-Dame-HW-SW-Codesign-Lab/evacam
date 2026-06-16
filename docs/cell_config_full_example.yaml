@@ -128,7 +128,7 @@ variation:
 # Optional parsed section, but current model code does not use these values.
 mcam:
   num_resistance_state: 0 # optional int
-  resistance_state: [] # optional sequence or map keyed by integer state index
+  resistance_state: [] # optional sequence or map keyed by integer state index; resistance units: ohm | kohm | Mohm | Gohm; bare numbers default to ohm
   state_variation: [] # optional sequence or map keyed by integer state index; fraction or percent
 
 # Optional parsed section. Used by CAM/NVM match paths.

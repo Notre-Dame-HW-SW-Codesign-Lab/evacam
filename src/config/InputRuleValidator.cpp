@@ -9,6 +9,7 @@
 #include "SenseAmp.h"
 #include "input/CustomSenseAmpYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
+#include "input/YamlUnitParsers.h"
 
 namespace {
 
@@ -136,6 +137,58 @@ void ValidateCamModelSupport(const EvaCamConfig &config, const YAML::Node &root,
     if (camType == MCAM && memCellType != FEFETRAM) {
         throw std::runtime_error(
                 "[Input] Error: only 2FeFET MCAM design has limited support.");
+    }
+
+    if (camType == MCAM) {
+        config.logger.Log() << "[Input] Warning: 2FeFET MCAM support is experimental; "
+            "latency and power models are still being validated.";
+    }
+}
+
+void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &root) {
+    const CAMType camType = LoadCamTypeForValidation(root, config.input.fileMemCell);
+    if (camType != MCAM) {
+        return;
+    }
+
+    const YAML::Node mcam = YamlHelpers::child_required(root, "mcam");
+    int numStates = YamlHelpers::read_optional<int>(mcam, "num_resistance_state", 0);
+    const YAML::Node states = YamlHelpers::child_required(mcam, "resistance_state");
+    if (!states.IsSequence() && !states.IsMap()) {
+        throw std::runtime_error(
+                "[Input] Error: mcam.resistance_state must be a sequence or map.");
+    }
+
+    if (numStates == 0 && states.IsSequence()) {
+        numStates = static_cast<int>(states.size());
+    }
+    if (numStates < 2 || numStates > 64) {
+        throw std::runtime_error(
+                "[Input] Error: mcam.num_resistance_state must be between 2 and 64.");
+    }
+
+    for (int state = 0; state < numStates; state++) {
+        YAML::Node stateNode;
+        if (states.IsSequence()) {
+            if (state >= static_cast<int>(states.size())) {
+                throw std::runtime_error(
+                        "[Input] Error: mcam.resistance_state must define every configured resistance state.");
+            }
+            stateNode = states[state];
+        } else {
+            stateNode = states[state];
+            if (!stateNode) {
+                throw std::runtime_error(
+                        "[Input] Error: mcam.resistance_state must define every configured resistance state.");
+            }
+        }
+
+        const double resistance = YamlHelpers::parse_quantity_node(
+                stateNode, YamlHelpers::ResistanceUnits(), 1.0, "mcam.resistance_state");
+        if (resistance <= 0) {
+            throw std::runtime_error(
+                    "[Input] Error: mcam.resistance_state values must be positive.");
+        }
     }
 }
 
@@ -334,6 +387,7 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
     ValidateCamPortPresence(root);
     ValidateCamColumnTopology(root);
     ValidateCamModelSupport(config, root, memCellType);
+    ValidateMcamResistanceStates(config, root);
 
     if (!IsCamModelMemCellTypeSupported(memCellType)) {
         throw std::runtime_error(

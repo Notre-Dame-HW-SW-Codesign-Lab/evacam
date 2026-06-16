@@ -131,6 +131,13 @@ class CAM_SubArray: public FunctionUnit {
     private:
         int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
         double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
+        double EffectiveMcamStateResistance(double stateResistance, double baseStateResistance) const;
+        std::vector<double> EffectiveMcamStateResistances() const;
+        double McamStateTau(double effectiveStateResistance, double mlWireRes) const;
+        std::vector<double> McamStateTaus(const std::vector<double> &effectiveStateResistances) const;
+        double McamStateDelay(double stateTau, double *ramp) const;
+        std::vector<double> McamStateDelays(const std::vector<double> &stateTaus);
+        void CalculateSearchPathLatenciesAfterMatchline();
         double MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const;
         double MatchlineAllMatchTau(double cellResOff, double mlWireRes) const;
         double MatchlineSenseMargin(double tauAllMatch, double tauOneMiss, double senseTime) const;

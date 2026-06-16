@@ -413,12 +413,6 @@ void CAM_SubArray::Initialize(
     senseVoltage = cell.minSenseVoltage;
 
 
-    if (!internalSenseAmp && cell.memCellType != SRAM) {
-        invalid = true;
-        logger.Verbose() << "[CAM_SubArray] nvTCAM does not support external sense amplifiers.";
-        return;
-    }
-
     for(int i = 0; i < cell.camNumCol; i++) {
         Col[i].Initialize(false, i, lenCol, numRow, config, localWire);
     }
@@ -439,12 +433,6 @@ void CAM_SubArray::Initialize(
         const auto &cellPort = Col[i].CellPort;
 
         if (cellPort.Type == Matchline || cellPort.Type == Matchline_Bitline) {
-            if (cellPort.ConnectedRegion == gate) {
-                invalid = true;
-                logger.Log() << "[Warning]: Impractical matchline connection (gate).";
-                return;
-            }
-
             MatchlineElectricalParams params;
             if (cellPort.ConnectedRegion == drain || cellPort.ConnectedRegion == source) {
                 params = BuildDrainSourceMatchlineParams(cellPort, cell, tech, input.temperature);
@@ -452,10 +440,6 @@ void CAM_SubArray::Initialize(
                 params = BuildDiodeMatchlineParams(cellPort, cell, tech, input.temperature);
             } else if (cellPort.ConnectedRegion == none) {
                 params = BuildFloatingMatchlineParams(cellPort, cell, fefetTech);
-            } else {
-                invalid = true;
-                logger.Verbose() << "[CAM_SubArray] Unsupported access type.";
-                return;
             }
 
             totalMatchlineCellCap += params.capCellAccess;
@@ -470,18 +454,7 @@ void CAM_SubArray::Initialize(
                 resMemCellOn = params.resMemCellOn;
             }
 
-            // need to account for other cases for some variables to be initialized
-        } else if (cellPort.Type == Bitline && indexMatchline < 0) {
-            invalid = true;
-            logger.Verbose() << "[CAM_SubArray] Unsupported column bitline topology before matchline modeling is established.";
-            return;
         }
-    }
-
-    if (indexMatchline < 0) {
-        invalid = true;
-        logger.Verbose() << "[CAM_SubArray] No matchline found.";
-        return;
     }
 
     capCellAccess = totalMatchlineCellCap;
@@ -911,71 +884,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 return;
             }
 
-            for (int i=0; i<cell.camNumCol; i++) {
-                ColMux[i]->CalculateLatency(matchlineRamp);
-            }
-            if (internalSenseAmp) {
-                senseAmp->CalculateLatency(ColMux[indexMatchline]->rampOutput);
-                senseAmpMuxLev1->CalculateLatency(1e20);
-                senseAmpMuxLev2->CalculateLatency(senseAmpMuxLev1->rampOutput);
-            } else {
-                senseAmpMuxLev1->CalculateLatency(ColMux[indexMatchline]->rampOutput);
-                senseAmpMuxLev2->CalculateLatency(senseAmpMuxLev1->rampOutput);
-            }
-
-            if (withOutputAcc) {
-                outputAcc->CalculateLatency(1e20);
-            } else {
-                outputAcc->readLatency = 0;
-                outputAcc->rampOutput = 1e20;
-            }
-
-            if (withPriorityEnc) {
-                priorityEnc->CalculateLatency(outputAcc->rampOutput);
-                rampOutput = priorityEnc->rampOutput;
-            } else {
-                priorityEnc->readLatency = 0;
-                priorityEnc->rampOutput = outputAcc->rampOutput;
-                rampOutput = priorityEnc->rampOutput;
-            }
-
-            if (withOutputBuf) {
-                outputBuf->CalculateLatency(outputAcc->rampOutput);
-            } else {
-                outputBuf->readLatency = 0;
-            }
-
-            // searchLatency = inputBuf->readLatency + precharger->readLatency + maxRowDriver + inputEnc->readLatency + matchlineDelay
-            //         + ColMux[indexMatchline]->readLatency + senseAmp->readLatency + outputAcc->readLatency + priorityEnc->readLatency
-            //         + outputBuf->readLatency;
-
-            searchLatency = inputBuf->readLatency 
-                + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
-                + matchlineDelay
-                + ColMux[indexMatchline]->readLatency 
-                + senseAmp->readLatency 
-                + senseAmpMuxLev1->readLatency 
-                + senseAmpMuxLev2->readLatency
-                + outputAcc->readLatency 
-                + priorityEnc->readLatency 
-                + outputBuf->readLatency 
-                + inputLS->readLatency 
-                + outputLS->readLatency;
-
-            senseAmpLatency = senseAmp->readLatency;
-
-            readLatency = inputBuf->readLatency 
-                + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
-                + matchlineDelay
-                + ColMux[indexMatchline]->readLatency 
-                + senseAmp->readLatency 
-                + senseAmpMuxLev1->readLatency 
-                + senseAmpMuxLev2->readLatency
-                + outputAcc->readLatency 
-                + priorityEnc->readLatency 
-                + outputBuf->readLatency 
-                + outputLS->readLatency;
-
+            CalculateSearchPathLatenciesAfterMatchline();
             UpdateVariationTimingSummary();
 
 
@@ -1009,19 +918,23 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                 }    
             }
         } else if (cell.camType == MCAM) {
-            if (cell.memCellType != FEFETRAM) {
-                invalid = true;
-                throw std::runtime_error("Only 2FeFET MCAM design has limited support.");
-            } else {
-                logger.Log() << "Warning: 2FeFET MCAM design is not properly supported and will return inaccurate results for some metrics.";
-                // TODO: fix this placeholder
-                capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
-                searchLatency = 0.001;
-                senseAmpLatency = 0.001;
-            }
+            capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
+            const std::vector<double> effectiveMcamResistances = EffectiveMcamStateResistances();
+            const std::vector<double> mcamStateTaus = McamStateTaus(effectiveMcamResistances);
+            const std::vector<double> mcamStateDelays = McamStateDelays(mcamStateTaus);
 
-        } else if (cell.camType == ACAM) {
-            throw std::runtime_error("ACAM is not supported at this time.");
+            // State 0 is the all-base reference; nonzero states model one mismatching cell.
+            size_t oneMismatchState = 0;
+            for (size_t state = 1; state < mcamStateDelays.size(); state++) {
+                if (oneMismatchState == 0 || mcamStateDelays[state] > mcamStateDelays[oneMismatchState]) {
+                    oneMismatchState = state;
+                }
+            }
+            resTotalCell = effectiveMcamResistances[oneMismatchState];
+            tau = mcamStateTaus[oneMismatchState];
+            matchlineDelay = McamStateDelay(tau, &matchlineRamp);
+            referDelay = mcamStateDelays.front();
+            CalculateSearchPathLatenciesAfterMatchline();
         }
     }
 
@@ -1067,7 +980,6 @@ void CAM_SubArray::CalculatePower() {
 
             const auto &cell = *config->technology.cell;
             const auto &tech = *config->technology.tech;
-            auto &logger = config->logger;
 
             /*****************************************************************************
              * Calculate components
@@ -1397,10 +1309,6 @@ void CAM_SubArray::CalculatePower() {
                 leakage += CalculateGateLeakage(INV, 1, cell.camWidthMatchTran * config->technology.tech->featureSize(),  0,
                         config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
             }
-        } else {
-            invalid = true;
-            logger.Verbose() << "[CAM_SubArray] Error: cell type input error";
-            return;
         }
         leakage *= numRow * numColumn;
 
@@ -1478,6 +1386,159 @@ double CAM_SubArray::EffectiveMatchlineCellResistance(
     return (cellResOn * cellResOff)
         / ((CAM_opt.BitSerialWidth - mismatches) * cellResOn
                 + cellResOff * mismatches);
+}
+
+double CAM_SubArray::EffectiveMcamStateResistance(
+        double stateResistance,
+        double baseStateResistance) const {
+    if (CAM_opt.BitSerialWidth <= 0) {
+        throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
+    }
+    if (stateResistance <= 0 || baseStateResistance <= 0) {
+        throw std::runtime_error("[CAM_SubArray] Error: MCAM state resistances must be positive.");
+    }
+
+    const double bitSerialWidth = CAM_opt.BitSerialWidth;
+    return (stateResistance * baseStateResistance)
+        / (stateResistance * (bitSerialWidth - 1) + baseStateResistance);
+}
+
+std::vector<double> CAM_SubArray::EffectiveMcamStateResistances() const {
+    const auto &cell = *config->technology.cell;
+    if (cell.numResistanceState <= 0) {
+        throw std::runtime_error("[CAM_SubArray] Error: MCAM resistance states are not initialized.");
+    }
+
+    const double baseStateResistance = cell.ResistanceState[0];
+    std::vector<double> effectiveResistances;
+    effectiveResistances.reserve(cell.numResistanceState);
+    for (int state = 0; state < cell.numResistanceState; state++) {
+        effectiveResistances.push_back(
+                EffectiveMcamStateResistance(cell.ResistanceState[state], baseStateResistance));
+    }
+    return effectiveResistances;
+}
+
+double CAM_SubArray::McamStateTau(double effectiveStateResistance, double mlWireRes) const {
+    if (effectiveStateResistance <= 0) {
+        throw std::runtime_error("[CAM_SubArray] Error: MCAM effective state resistance must be positive.");
+    }
+
+    const auto &peripherals = config->peripherals;
+    const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
+
+    return effectiveStateResistance * (capTotalCellTemp
+                + Col[indexMatchline].cap
+                + ColMux[indexMatchline]->capForPreviousDelayCalculation
+                + precharger->capOutputBitlinePrecharger
+                + senseAmp->capLoad
+                + peripherals.addCapOnML)
+        + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                + capTotalCellTemp
+                + Col[indexMatchline].cap / 2);
+}
+
+std::vector<double> CAM_SubArray::McamStateTaus(
+        const std::vector<double> &effectiveStateResistances) const {
+    std::vector<double> stateTaus;
+    stateTaus.reserve(effectiveStateResistances.size());
+    for (double effectiveStateResistance : effectiveStateResistances) {
+        stateTaus.push_back(McamStateTau(effectiveStateResistance, matchlineWireRes));
+    }
+    return stateTaus;
+}
+
+double CAM_SubArray::McamStateDelay(double stateTau, double *ramp) const {
+    int maxRowDriverIndex = 0;
+    double maxRowDriverLatency = 0;
+    const int rowDriverCount = config->technology.cell->camNumRow;
+    for (int i = 0; i < rowDriverCount; i++) {
+        if (RowDriver[i]->readLatency > maxRowDriverLatency) {
+            maxRowDriverLatency = RowDriver[i]->readLatency;
+            maxRowDriverIndex = i;
+        }
+    }
+
+    return horowitz(
+            stateTau,
+            0,
+            RowDriver[maxRowDriverIndex]->rampOutput,
+            ramp);
+}
+
+std::vector<double> CAM_SubArray::McamStateDelays(const std::vector<double> &stateTaus) {
+    std::vector<double> stateDelays;
+    stateDelays.reserve(stateTaus.size());
+    for (double stateTau : stateTaus) {
+        double stateRamp = 0;
+        stateDelays.push_back(McamStateDelay(stateTau, &stateRamp));
+    }
+    return stateDelays;
+}
+
+void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
+    const auto &cell = *config->technology.cell;
+
+    for (int i = 0; i < cell.camNumCol; i++) {
+        ColMux[i]->CalculateLatency(matchlineRamp);
+    }
+    if (internalSenseAmp) {
+        senseAmp->CalculateLatency(ColMux[indexMatchline]->rampOutput);
+        senseAmpMuxLev1->CalculateLatency(1e20);
+        senseAmpMuxLev2->CalculateLatency(senseAmpMuxLev1->rampOutput);
+    } else {
+        senseAmpMuxLev1->CalculateLatency(ColMux[indexMatchline]->rampOutput);
+        senseAmpMuxLev2->CalculateLatency(senseAmpMuxLev1->rampOutput);
+    }
+
+    if (withOutputAcc) {
+        outputAcc->CalculateLatency(1e20);
+    } else {
+        outputAcc->readLatency = 0;
+        outputAcc->rampOutput = 1e20;
+    }
+
+    if (withPriorityEnc) {
+        priorityEnc->CalculateLatency(outputAcc->rampOutput);
+        rampOutput = priorityEnc->rampOutput;
+    } else {
+        priorityEnc->readLatency = 0;
+        priorityEnc->rampOutput = outputAcc->rampOutput;
+        rampOutput = priorityEnc->rampOutput;
+    }
+
+    if (withOutputBuf) {
+        outputBuf->CalculateLatency(outputAcc->rampOutput);
+    } else {
+        outputBuf->readLatency = 0;
+    }
+
+    searchLatency = inputBuf->readLatency
+        + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency)
+        + matchlineDelay
+        + ColMux[indexMatchline]->readLatency
+        + senseAmp->readLatency
+        + senseAmpMuxLev1->readLatency
+        + senseAmpMuxLev2->readLatency
+        + outputAcc->readLatency
+        + priorityEnc->readLatency
+        + outputBuf->readLatency
+        + inputLS->readLatency
+        + outputLS->readLatency;
+
+    senseAmpLatency = senseAmp->readLatency;
+
+    readLatency = inputBuf->readLatency
+        + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency)
+        + matchlineDelay
+        + ColMux[indexMatchline]->readLatency
+        + senseAmp->readLatency
+        + senseAmpMuxLev1->readLatency
+        + senseAmpMuxLev2->readLatency
+        + outputAcc->readLatency
+        + priorityEnc->readLatency
+        + outputBuf->readLatency
+        + outputLS->readLatency;
 }
 
 double CAM_SubArray::MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const {
