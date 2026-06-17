@@ -887,8 +887,6 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             CalculateSearchPathLatenciesAfterMatchline();
             UpdateVariationTimingSummary();
 
-
-
             // Hamming distance-based approximate match
             if (input.searchFunction == BE || input.searchFunction == TH) {
                 for (int k = 1; k < CAM_opt.BitSerialWidth; k++) {
@@ -908,15 +906,23 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                     if (delayTemp0 - delayTemp1 >= peripherals.matchlineSenseMargin) {
                         matchlineDelayForApprox[k] = delayTemp0;
                         MaxDetectCellNumber = k;
-                        searchLatencyForApprox[k] = inputBuf->readLatency + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) + matchlineDelayForApprox[k]
-                            + ColMux[indexMatchline]->readLatency + senseAmp->readLatency + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency
-                            + outputAcc->readLatency + priorityEnc->readLatency + outputBuf->readLatency;
+                        searchLatencyForApprox[k] = inputBuf->readLatency 
+                            + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency) 
+                            + matchlineDelayForApprox[k]
+                            + ColMux[indexMatchline]->readLatency 
+                            + senseAmp->readLatency 
+                            + senseAmpMuxLev1->readLatency 
+                            + senseAmpMuxLev2->readLatency
+                            + outputAcc->readLatency 
+                            + priorityEnc->readLatency 
+                            + outputBuf->readLatency;
                         continue;
                     } else {
                         break;
                     }    
                 }    
             }
+
         } else if (cell.camType == MCAM) {
             capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
             const std::vector<double> effectiveMcamResistances = EffectiveMcamStateResistances();
@@ -1550,7 +1556,7 @@ double CAM_SubArray::MatchlineDischargeTau(double effectiveCellRes, double mlWir
                 + peripherals.addCapOnML
                 + precharger->capOutputBitlinePrecharger
                 + senseAmp->capLoad)
-        + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
                 + peripherals.addCapOnML
                 + precharger->capOutputBitlinePrecharger
                 + senseAmp->capLoad
@@ -1589,10 +1595,12 @@ double CAM_SubArray::MatchlineHorowitzDelay(
         double effectiveCellRes,
         double *ramp,
         int activeDischargePaths) const {
+
     const double beta = MatchlineBeta(effectiveCellRes, activeDischargePaths);
     int maxRowDriverIndex = 0;
     double maxRowDriverLatency = 0;
     const int rowDriverCount = config->technology.cell->camNumRow;
+
     for (int i = 0; i < rowDriverCount; i++) {
         if (RowDriver[i]->readLatency > maxRowDriverLatency) {
             maxRowDriverLatency = RowDriver[i]->readLatency;
