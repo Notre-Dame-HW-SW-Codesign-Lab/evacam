@@ -14,8 +14,13 @@ class SenseAmp: public FunctionUnit {
 
         /* Functions */
         void PrintProperty() override;
-        void Initialize(long long _numColumn, bool _currentSense, double _senseVoltage /* Unit: V */, 
-                double _pitchSenseAmp, std::shared_ptr<EvaCamConfig> config);
+
+        void Initialize(
+                long long _numColumn, 
+                bool _currentSense, 
+                double _senseVoltage /* Unit: V */, 
+                double _pitchSenseAmp, 
+                std::shared_ptr<EvaCamConfig> config);
 
         void CalculateArea();
         void CalculateRC();
