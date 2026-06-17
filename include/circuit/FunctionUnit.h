@@ -7,15 +7,6 @@
 
 #include "EvaCamConfig.h"
 
-/* Unused
-   struct SearchPerf{
-   double hit;
-   double oneMiss;
-   double allMiss;
-   double* Miss;
-   };
- */
-
 class FunctionUnit {
     public:
         FunctionUnit();
@@ -26,17 +17,23 @@ class FunctionUnit {
         virtual void PrintProperty();
 
         /* Properties */
-        double height;		/* Unit: m */
-        double width;		/* Unit: m */
-        double area;		/* Unit: m^2 */
-        double readLatency, writeLatency;		/* Unit: s */
-        double readDynamicEnergy, writeDynamicEnergy;	/* Unit: J */
-        double leakage;		/* Unit: W */
+        double height;		    /* Unit: m */
+        double width;		    /* Unit: m */
+        double area;		    /* Unit: m^2 */
+        double readLatency;         /* Unit: s */
+        double writeLatency;	    /* Unit: s */
+        double readDynamicEnergy;   /* Unit: J */
+        double writeDynamicEnergy;  /* Unit: J */
+        double leakage;		    /* Unit: W */
 
         /* Optional properties (not valid for all the memory cells */
-        double setLatency, resetLatency;				/* Unit: s */
-        double setDynamicEnergy, resetDynamicEnergy;	/* Unit: J */
-        double cellReadEnergy, cellSetEnergy, cellResetEnergy;			/* Unit: J */
+        double setLatency;          /* Unit: s */
+        double resetLatency;	    /* Unit: s */
+        double setDynamicEnergy;    /* Unit: J */ 
+        double resetDynamicEnergy;  /* Unit: J */
+        double cellReadEnergy;      /* Unit: J */
+        double cellSetEnergy;       /* Unit: J */
+        double cellResetEnergy;	    /* Unit: J */
 
         std::shared_ptr<EvaCamConfig> config;
 

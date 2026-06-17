@@ -20,8 +20,12 @@ class PredecodeBlock: public FunctionUnit {
 
         /* Functions */
         void PrintProperty();
-        void Initialize(int _numAddressBit, double _capLoad, double _resLoad, 
+        void Initialize(
+                int _numAddressBit, 
+                double _capLoad, 
+                double _resLoad, 
                 std::shared_ptr<EvaCamConfig> _config);
+
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
@@ -42,15 +46,22 @@ class PredecodeBlock: public FunctionUnit {
         int numNandInputStage1A, numNandInputStage1B, numNandInputStage1C;
         int numAddressBitStage1A, numAddressBitStage1B, numAddressBitStage1C;
         double capLoad;		/* Load capacitance Unit: F */
-        double resLoad;     /* Load resistance Unit: ohm */
-        int numAddressBit;   /* Number of Address Bits assigned to the block */
+        double resLoad;         /* Load resistance Unit: ohm */
+        int numAddressBit;      /* Number of Address Bits assigned to the block */
         int numOutputAddressBit;
+
         int numDecoder12;          /* Number of 1 to 2 Decoders */
         int numDecoder24;          /* Number of 2 to 4 Decoders */
         int numDecoder38;          /* Number of 3 to 8 Decoders */
-        int numBasicDecoderA1, numBasicDecoderA2;
-        double capLoadBasicDecoderA1, capLoadBasicDecoderA2, capLoadBasicDecoderB, capLoadBasicDecoderC;
-        double rampInput, rampOutput;
+
+        int numBasicDecoderA1;
+        int numBasicDecoderA2;
+        double capLoadBasicDecoderA1;
+        double capLoadBasicDecoderA2;
+        double capLoadBasicDecoderB;
+        double capLoadBasicDecoderC;
+        double rampInput;
+        double rampOutput;
         /* TODO: Predecoder so far does not take OptPriority input because the output driver is already quite fixed in this module */
 };
 

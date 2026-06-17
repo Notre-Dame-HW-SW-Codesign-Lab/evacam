@@ -19,29 +19,40 @@ class RowDecoder: public FunctionUnit {
 
         /* Functions */
         void PrintProperty();
-        void Initialize(int _numRow, double _capLoad, double _resLoad,
-                bool _multipleRowPerSet, BufferDesignTarget _areaOptimizationLevel, 
-                double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config);
+        void Initialize(
+                int _numRow, 
+                double _capLoad, 
+                double _resLoad,
+                bool _multipleRowPerSet, 
+                BufferDesignTarget _areaOptimizationLevel, 
+                double _minDriverCurrent, 
+                std::shared_ptr<EvaCamConfig> _config);
+
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
 
         /* Properties */
-        bool initialized;	/* Initialization flag */
-        bool invalid;      /*Invalidatio flag */
+        bool initialized; /* Initialization flag */
+        bool invalid;     /* Invalidation flag */
+
         OutputDriver outputDriver;
-        int numRow;			/* Number of rows */
-        bool multipleRowPerSet;		/* For cache design, whether a set is partitioned into multiple wordlines */
+        int numRow;		/* Number of rows */
+        bool multipleRowPerSet;	/* For cache design, whether a set is partitioned into multiple wordlines */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */
         double capLoad;		/* Load capacitance, i.e. wordline capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */
-        BufferDesignTarget areaOptimizationLevel; /* 0 for latency, 2 for area */
-        double minDriverCurrent; /* Minimum driving current should be provided */
 
-        double widthNandN, widthNandP;
-        double capNandInput, capNandOutput;
-        double rampInput, rampOutput;
+        BufferDesignTarget areaOptimizationLevel;   /* 0 for latency, 2 for area */
+        double minDriverCurrent;                    /* Minimum driving current should be provided */
+
+        double widthNandN;
+        double widthNandP;
+        double capNandInput;
+        double capNandOutput;
+        double rampInput;
+        double rampOutput;
 };
 
 #endif /* ROWDECODER_H_ */

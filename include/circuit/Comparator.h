@@ -23,9 +23,10 @@ class Comparator: public FunctionUnit {
         void CalculatePower();
 
         /* Properties */
-        bool initialized;	/* Initialization flag */
+        bool initialized;   /* Initialization flag */
         int numTagBits;     /* Number of tag bits */
         double capLoad;     /* Load Capacitance */
+
         double widthNMOSInv[COMPARATOR_INV_CHAIN_LEN];
         double widthPMOSInv[COMPARATOR_INV_CHAIN_LEN];
         double widthNMOSComp;

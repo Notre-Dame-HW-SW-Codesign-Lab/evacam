@@ -24,7 +24,7 @@ enum CellAccessType {
 enum DeviceRoadmap {
     HP,		/* High performance */
     LSTP,	/* Low standby power */
-    LOP,		/* Low operating power */
+    LOP,	/* Low operating power */
     FEFET,
     LP
 };
@@ -40,20 +40,20 @@ enum WireType {
 };
 
 enum WireRepeaterType {
-    repeated_none = 0,		/* No repeater */
+    repeated_none = 0,	    /* No repeater */
     repeated_opt = 1,       /* Add Repeater, optimal delay */
     repeated_5 = 2,         /* Add Repeater, 5% delay overhead */
     repeated_10 = 3,        /* Add Repeater, 10% delay overhead */
     repeated_20 = 4,        /* Add Repeater, 20% delay overhead */
     repeated_30 = 5,        /* Add Repeater, 30% delay overhead */
-    repeated_40 = 6,		/* Add Repeater, 40% delay overhead */
-    repeated_50 = 7			/* Add Repeater, 50% delay overhead */
+    repeated_40 = 6,	    /* Add Repeater, 40% delay overhead */
+    repeated_50 = 7	    /* Add Repeater, 50% delay overhead */
 };
 
 enum BufferDesignTarget {
-    latency_first = 0,				/* The buffer will be optimized for latency */
-    latency_area_trade_off = 1,		/* the buffer will be fixed to 2-stage */
-    area_first = 2					/* The buffer will be optimized for area */
+    latency_first = 0,		/* The buffer will be optimized for latency */
+    latency_area_trade_off = 1,	/* the buffer will be fixed to 2-stage */
+    area_first = 2		/* The buffer will be optimized for area */
 };
 
 enum MemoryType {
@@ -110,23 +110,24 @@ enum OptimizationTarget {
 };
 
 enum CacheAccessMode {
-    normal_access_mode,		/* mem_data array lookup and tag access happen in parallel
-                             * final mem_data block is broadcasted in mem_data array h-tree
-                             * after getting the signal from the tag array 
-                             */
-    sequential_access_mode,	        /* mem_data array is accessed after accessing the tag array */
-    fast_access_mode		/* mem_data and tag access happen in parallel */
+    normal_access_mode,	     /* mem_data array lookup and tag access happen in parallel
+                              * final mem_data block is broadcasted in mem_data array h-tree
+                              * after getting the signal from the tag array 
+                              */
+
+    sequential_access_mode,  /* mem_data array is accessed after accessing the tag array */
+    fast_access_mode	     /* mem_data and tag access happen in parallel */
 };
 
 enum TypeOfInputEncoder {
-    encoding_two_bit		/* from JSSC11 paper */
+    encoding_two_bit	/* from JSSC11 paper */
 };
 
 enum TypeOfSenseAmp {
     nvsim_voltage_sense,
     nvsim_current_sense,
-    self_clock_sense,		/* from Li Jing's JSSC11 paper */
-    dual_threshold_sense,	        /* from Ohno's APJ11 paper */
+    self_clock_sense,	  /* from Li Jing's JSSC11 paper */
+    dual_threshold_sense, /* from Ohno's APJ11 paper */
     discharge
 };
 
@@ -135,7 +136,7 @@ enum CAM_PortType {
     Searchline,
     Bitline,
     Dataline,
-    Sourceline,                     /* in particular the row source line, as SLr in ISSCC'15 3t1r */
+    Sourceline, /* in particular the row source line, as SLr in ISSCC'15 3t1r */
     Matchline,
     Matchline_Bitline,
     Searchline_Bitline

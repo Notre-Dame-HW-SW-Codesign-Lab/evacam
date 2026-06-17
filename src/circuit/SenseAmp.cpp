@@ -1,5 +1,6 @@
 #include "SenseAmp.h"
 #include "formula.h"
+
 void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _senseVoltage, double _pitchSenseAmp,
         std::shared_ptr<EvaCamConfig> _config) {
     if (initialized)

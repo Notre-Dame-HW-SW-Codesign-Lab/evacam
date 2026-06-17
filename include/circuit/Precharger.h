@@ -20,27 +20,39 @@ class Precharger: public FunctionUnit {
 
         /* Functions */
         void PrintProperty();
-        void Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline,
-                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire);
+        void Initialize(
+                double _voltagePrecharge, 
+                int _numColumn, 
+                double _capBitline, 
+                double _resBitline,
+                std::shared_ptr<EvaCamConfig> _config, 
+                const Wire &_localWire);
+
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
         void CalculatePower();
 
         /* Properties */
-        bool initialized;	/* Initialization flag */
+        bool initialized;	    /* Initialization flag */
         OutputDriver outputDriver;
-        double voltagePrecharge;  /* Precharge Voltage */
-        double capBitline, resBitline;
+        double voltagePrecharge;    /* Precharge Voltage */
+        double capBitline;
+        double resBitline;
         double capLoadInv;
         double capOutputBitlinePrecharger;
-        double capWireLoadPerColumn, resWireLoadPerColumn;
+        double capWireLoadPerColumn;
+        double resWireLoadPerColumn;
         double enableLatency;
-        int numColumn;			/* Number of columns */
-        double widthPMOSBitlinePrecharger, widthPMOSBitlineEqual;
-        double widthInvNmos, widthInvPmos;
+
+        int numColumn;		    /* Number of columns */
+        double widthPMOSBitlinePrecharger;
+        double widthPMOSBitlineEqual;
+        double widthInvNmos;
+        double widthInvPmos;
         double capLoadPerColumn;
-        double rampInput, rampOutput;
+        double rampInput;
+        double rampOutput;
 
         Wire localWire;
 };

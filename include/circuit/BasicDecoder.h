@@ -18,7 +18,9 @@ class BasicDecoder: public FunctionUnit {
 
         /* Functions */
         void PrintProperty();
-        void Initialize(int _numAddressBit, double _capLoad, double _resLoad, 
+        void Initialize(int _numAddressBit, 
+                double _capLoad, 
+                double _resLoad, 
                 std::shared_ptr<EvaCamConfig> _config);
 
         void CalculateArea();
@@ -32,7 +34,7 @@ class BasicDecoder: public FunctionUnit {
         double capLoad;		/* Load capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */
-        int numNandGate;    /* Number of NAND Gates */
+        int numNandGate;        /* Number of NAND Gates */
 
         double widthNandN, widthNandP;
         double capNandInput, capNandOutput;

@@ -9,12 +9,14 @@ class SenseAmp: public FunctionUnit {
             initialized = false;
             invalid = false;
         }
+
         virtual ~SenseAmp() {}
 
         /* Functions */
         void PrintProperty() override;
         void Initialize(long long _numColumn, bool _currentSense, double _senseVoltage /* Unit: V */, 
                 double _pitchSenseAmp, std::shared_ptr<EvaCamConfig> config);
+
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
@@ -23,7 +25,7 @@ class SenseAmp: public FunctionUnit {
         /* Properties */
         bool initialized;	/* Initialization flag */
         bool invalid;		/* Indicate that the current configuration is not valid */
-        long long numColumn;		/* Number of columns */
+        long long numColumn;	/* Number of columns */
         bool currentSense;	/* Whether the sensing scheme is current-based */
         double senseVoltage;	/* Minimum sensible voltage */
         double capLoad;		/* Load capacitance of sense amplifier */

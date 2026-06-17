@@ -24,43 +24,59 @@ class Wire {
                 int _temperature,
                 bool _isLowSwing,
                 std::shared_ptr<EvaCamConfig> _config);
+
         void CalculateLatencyAndPower(
                 double _wireLength,
                 double *delay,
                 double *dynamicEnergy,
                 double *leakagePower);
+
         void findOptimalRepeater();
         void findPenalizedRepeater(double _penalty);
-        double getRepeatedWireUnitDelay();				/* Return delay per unit, Unit: s/m */
-        double getRepeatedWireUnitDynamicEnergy();		/* Return dynamic energy per unit, Unit: J/m */
-        double getRepeatedWireUnitLeakage();			/* Return leakage power per unit, Unit: W/m */
+
+        double getRepeatedWireUnitDelay();	    /* Return delay per unit, Unit: s/m */
+        double getRepeatedWireUnitDynamicEnergy();  /* Return dynamic energy per unit, Unit: J/m */
+        double getRepeatedWireUnitLeakage();	    /* Return leakage power per unit, Unit: W/m */
 
     private:
         void CalculateLowSwingLatencyAndPower(
-                double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+                double _wireLength, 
+                double *delay, 
+                double *dynamicEnergy, 
+                double *leakagePower);
+
         void CalculatePassiveLatencyAndPower(
-                double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+                double _wireLength, 
+                double *delay, 
+                double *dynamicEnergy, 
+                double *leakagePower);
+
         void CalculateRepeatedLatencyAndPower(
-                double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower);
+                double _wireLength, 
+                double *delay, 
+                double *dynamicEnergy, 
+                double *leakagePower);
 
     public:
         /* Properties */
         bool initialized;	/* Initialization flag */
-        int featureSizeInNano; /* Process feature size, Unit: nm */
+        int featureSizeInNano;  /* Process feature size, Unit: nm */
         double featureSize;	/* Process feature size, Unit: m */
-        WireType wireType;	/* Type of wire */
+
+        WireType wireType;	                /* Type of wire */
         WireRepeaterType wireRepeaterType;	/* Type of wire repeater */
+
         int temperature;	/* Unit: K */
         bool isLowSwing;	/* Whether to use Low Swing wire with transmitters and receivers */
 
-        double barrierThickness;		/* Unit: m */
+        double barrierThickness;	/* Unit: m */
         double horizontalDielectric;	/* Unit: 1 */
-        double wirePitch;				/* Unit: m */
-        double aspectRatio;				/* Unit: 1 */
-        double ildThickness;			/* Unit: m */
-        double wireWidth;				/* Unit: m */
-        double wireThickness;			/* Unit: m */
-        double wireSpacing;				/* Unit: m */
+        double wirePitch;		/* Unit: m */
+        double aspectRatio;		/* Unit: 1 */
+        double ildThickness;		/* Unit: m */
+        double wireWidth;		/* Unit: m */
+        double wireThickness;		/* Unit: m */
+        double wireSpacing;		/* Unit: m */
 
         double repeaterSize;			/* For repeated wire only, non-repeated wire = 0 */
         double repeaterSpacing;			/* For repeated wire only, non-repeated wire = inf, Unit: m */

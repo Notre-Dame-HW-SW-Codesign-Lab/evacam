@@ -10,8 +10,15 @@ class Mux: public FunctionUnit {
         virtual ~Mux() {}
         /* Functions */
         void PrintProperty();
-        void Initialize(int _numInput, long long _numMux, double _capLoad, double _capInputNextStage, 
-                double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config);
+
+        void Initialize(
+                int _numInput, 
+                long long _numMux, 
+                double _capLoad, 
+                double _capInputNextStage, 
+                double _minDriverCurrent, 
+                std::shared_ptr<EvaCamConfig> _config);
+
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency(double _rampInput);
@@ -20,7 +27,7 @@ class Mux: public FunctionUnit {
         /* Properties */
         bool initialized;	/* Initialization flag */
         int numInput;
-        long long numMux;		/* Number of muxs in each row */
+        long long numMux;	/* Number of muxs in each row */
         double capLoad;
         double capInputNextStage;
         double minDriverCurrent;

@@ -58,32 +58,35 @@ class Technology {
         std::array<double, 11> CollectTemperatureAnchors(const std::array<double, 101> &src);
         void ExpandCurrentTable(const std::array<double, 11> &src, std::array<double, 101> &dst);
         void ExpandTemperatureTables(const TechnologySpec &spec);
-        bool initialized_;  /* Initialization flag */
-        int featureSizeInNano_; /*Process feature size, Unit: nm */
-        double featureSize_; /* Process feature size, Unit: m */
-        DeviceRoadmap deviceRoadmap_; /* HP, LSTP, or LOP */
-        double vdd_; /* Supply voltage, Unit: V */
-        double vth_; /* Threshold voltage, Unit: V */
-        double vdsatNmos_; /* Velocity saturation voltage, Unit: V */
-        double vdsatPmos_; /* Velocity saturation voltage, Unit: V */
-        double phyGateLength_; /* Physical gate length, Unit: m */
-        double capIdealGate_; /* Ideal gate capacitance, Unit: F/m */
-        double capFringe_; /* Fringe capacitance, Unit: F/m */
-        double capJunction_; /* Junction bottom capacitance, Cj0, Unit: F/m^2 */
-        double capOverlap_; /* Overlap capacitance, Cover in MASTAR, Unit: F/m */
-        double capSidewall_; /* Junction sidewall capacitance, Cjsw, Unit: F/m */
-        double capDrainToChannel_; /* Junction drain to channel capacitance, Cjswg, Unit: F/m */
-        double capOx_; /* Cox_elec in MASTAR, Unit: F/m^2 */
-        double buildInPotential_; /* Bottom junction built-in potential(PB in BSIM4 model), Unit: V */
-        double effectiveElectronMobility_; /* ueff for NMOS in MASTAR, Unit: m^2/V/s */
-        double effectiveHoleMobility_; /* ueff for PMOS in MASTAR, Unit: m^2/V/s */
-        double pnSizeRatio_; /* PMOS to NMOS size ratio */
-        double effectiveResistanceMultiplier_; /* Extra resistance due to vdsat */
-        std::array<double, 101> currentOnNmos_; /* NMOS saturation current, Unit: A/m */
-        std::array<double, 101> currentOnPmos_; /* PMOS saturation current, Unit: A/m */
+
+        bool initialized_;                       /* Initialization flag */
+        int featureSizeInNano_;                  /*Process feature size, Unit: nm */
+        double featureSize_;                     /* Process feature size, Unit: m */
+        DeviceRoadmap deviceRoadmap_;            /* HP, LSTP, or LOP */
+        double vdd_;                             /* Supply voltage, Unit: V */
+        double vth_;                             /* Threshold voltage, Unit: V */
+        double vdsatNmos_;                       /* Velocity saturation voltage, Unit: V */
+        double vdsatPmos_;                       /* Velocity saturation voltage, Unit: V */
+        double phyGateLength_;                   /* Physical gate length, Unit: m */
+        double capIdealGate_;                    /* Ideal gate capacitance, Unit: F/m */
+        double capFringe_;                       /* Fringe capacitance, Unit: F/m */
+        double capJunction_;                     /* Junction bottom capacitance, Cj0, Unit: F/m^2 */
+        double capOverlap_;                      /* Overlap capacitance, Cover in MASTAR, Unit: F/m */
+        double capSidewall_;                     /* Junction sidewall capacitance, Cjsw, Unit: F/m */
+        double capDrainToChannel_;               /* Junction drain to channel capacitance, Cjswg, Unit: F/m */
+        double capOx_;                           /* Cox_elec in MASTAR, Unit: F/m^2 */
+        double buildInPotential_;                /* Bottom junction built-in potential(PB in BSIM4 model), Unit: V */
+        double effectiveElectronMobility_;       /* ueff for NMOS in MASTAR, Unit: m^2/V/s */
+        double effectiveHoleMobility_;           /* ueff for PMOS in MASTAR, Unit: m^2/V/s */
+        double pnSizeRatio_;                     /* PMOS to NMOS size ratio */
+        double effectiveResistanceMultiplier_;   /* Extra resistance due to vdsat */
+
+        std::array<double, 101> currentOnNmos_;  /* NMOS saturation current, Unit: A/m */
+        std::array<double, 101> currentOnPmos_;  /* PMOS saturation current, Unit: A/m */
         std::array<double, 101> currentOffNmos_; /* NMOS off current (from 300K to 400K), Unit: A/m */
         std::array<double, 101> currentOffPmos_; /* PMOS off current (from 300K to 400K), Unit: A/m */
-        double capPolywire_; /* Poly wire capacitance, Unit: F/m */
+        double capPolywire_;                     /* Poly wire capacitance, Unit: F/m */
+
         double currentGmNmos_;
         double currentGmPmos_;
         double heightFin_;
