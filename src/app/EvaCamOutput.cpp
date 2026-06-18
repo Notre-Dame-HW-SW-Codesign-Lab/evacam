@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "CAM_Result.h"
+#include "Result.h"
 #include "EvaCamConfig.h"
 #include "Logger.h"
 #include "config/DerivedValueHelpers.h"
@@ -18,16 +18,6 @@
 #include "output/VariationSamplesCsv.h"
 
 namespace {
-
-std::vector<std::shared_ptr<Result>> AsResults(
-        const std::vector<std::shared_ptr<CAM_Result>> &bestResults) {
-    std::vector<std::shared_ptr<Result>> results;
-    results.reserve(bestResults.size());
-    for (const auto &result : bestResults) {
-        results.push_back(result);
-    }
-    return results;
-}
 
 void PrintVariationMetric(const char *name, double scale, const char *unit, const CAMMetricStats &stats) {
     if (!stats.available) {
@@ -85,7 +75,7 @@ std::string OptimizationTargetName(OptimizationTarget t) {
     return "Unknown";
 }
 
-bool HasVariationSamples(const std::shared_ptr<CAM_Result> &result) {
+bool HasVariationSamples(const std::shared_ptr<Result> &result) {
     return result
         && result->bank
         && result->bank->mat
@@ -95,12 +85,12 @@ bool HasVariationSamples(const std::shared_ptr<CAM_Result> &result) {
         && !result->bank->mat->subarray->variationSamples.empty();
 }
 
-bool HasMonteCarloSamples(const std::shared_ptr<CAM_Result> &result) {
+bool HasMonteCarloSamples(const std::shared_ptr<Result> &result) {
     return HasVariationSamples(result)
         && result->bank->mat->subarray->variationSummary.mode == "monte_carlo";
 }
 
-void WriteVariationSamplesFile(const CAM_Result &result, const std::string &path) {
+void WriteVariationSamplesFile(const Result &result, const std::string &path) {
     std::filesystem::path outPath(path);
     if (!outPath.parent_path().empty()) {
         std::filesystem::create_directories(outPath.parent_path());
@@ -159,7 +149,7 @@ bool WriteVariationHistogramFile(const std::string &samplesPath, const std::stri
 
 void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
         long long numSolution,
-        const std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        const std::vector<std::shared_ptr<Result>> &bestResults,
         const std::string &explorationOutputFileName) {
     std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
 
@@ -270,7 +260,7 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
 void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         const std::string &outputYamlFileName,
         long long numSolution,
-        const std::vector<std::shared_ptr<CAM_Result>> &bestResults) {
+        const std::vector<std::shared_ptr<Result>> &bestResults) {
     std::filesystem::path outPath(outputYamlFileName);
     if (!outPath.parent_path().empty()) {
         std::filesystem::create_directories(outPath.parent_path());
@@ -305,7 +295,7 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         if (!yamlOut) {
             throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
         }
-        WriteResultsYamlMulti(yamlOut, AsResults(bestResults), variationSamplesFiles, variationPlotFiles);
+        WriteResultsYamlMulti(yamlOut, bestResults, variationSamplesFiles, variationPlotFiles);
     } else {
         const auto &result = bestResults[config.input.optimizationTarget];
         std::string variationSamplesFile;

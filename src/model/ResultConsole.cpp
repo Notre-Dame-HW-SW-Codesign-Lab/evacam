@@ -1,84 +1,9 @@
-#include "CAM_Result.h"
+#include <iostream>
+
+#include "Result.h"
 #include "UnitFormatter.h"
 
-CAM_Result::CAM_Result() {
-}
-
-
-CAM_Result::~CAM_Result() {
-    //if (bank) delete bank;
-}
-
-void CAM_Result::compareAndUpdate(std::shared_ptr<Result> newResult) {
-    // Test to ensure the bank initialized right
-    if (newResult->bank->readLatency <= limitReadLatency 
-            && newResult->bank->writeLatency <= limitWriteLatency
-            && newResult->bank->readDynamicEnergy <= limitReadDynamicEnergy 
-            && newResult->bank->writeDynamicEnergy <= limitWriteDynamicEnergy
-            && newResult->bank->readLatency * newResult->bank->readDynamicEnergy <= limitReadEdp
-            && newResult->bank->writeLatency * newResult->bank->writeDynamicEnergy <= limitWriteEdp
-            && newResult->bank->area <= limitArea 
-            && newResult->bank->leakage <= limitLeakage) {
-
-        bool toUpdate = false;
-        switch (optimizationTarget) {
-            case read_latency_optimized:
-                if 	(newResult->bank->readLatency < bank->readLatency)
-                    toUpdate = true;
-                break;
-            case write_latency_optimized:
-                if 	(newResult->bank->writeLatency < bank->writeLatency)
-                    toUpdate = true;
-                break;
-            case read_energy_optimized:
-                if 	(newResult->bank->readDynamicEnergy < bank->readDynamicEnergy)
-                    toUpdate = true;
-                break;
-            case write_energy_optimized:
-                if 	(newResult->bank->writeDynamicEnergy < bank->writeDynamicEnergy)
-                    toUpdate = true;
-                break;
-            case read_edp_optimized:
-                if 	(newResult->bank->readLatency * newResult->bank->readDynamicEnergy < bank->readLatency * bank->readDynamicEnergy)
-                    toUpdate = true;
-                break;
-            case write_edp_optimized:
-                if 	(newResult->bank->writeLatency * newResult->bank->writeDynamicEnergy < bank->writeLatency * bank->writeDynamicEnergy)
-                    toUpdate = true;
-                break;
-            case area_optimized:
-                if 	(newResult->bank->area < bank->area)
-                    toUpdate = true;
-                break;
-            case leakage_optimized:
-                if 	(newResult->bank->leakage < bank->leakage)
-                    toUpdate = true;
-                break;
-            case search_latency_optimized:
-                if 	(newResult->bank->searchLatency < bank->searchLatency)
-                    toUpdate = true;
-                break;
-            case search_energy_optimized:
-                if 	(newResult->bank->searchDynamicEnergy < bank->searchDynamicEnergy)
-                    toUpdate = true;
-                break;
-            case search_edp_optimized:
-                if 	(newResult->bank->searchDynamicEnergy * newResult->bank->searchLatency < bank->searchDynamicEnergy * bank->searchLatency)
-                    toUpdate = true;
-                break;
-            default:	/* Exploration */
-                /* should not happen */
-                ;
-        }
-        if (toUpdate) {
-            bank = newResult->bank;
-            localWire = newResult->localWire;
-            globalWire = newResult->globalWire;
-        }
-    }
-}
-
-void CAM_Result::print() {
+void Result::print() {
     // std::cout << "Bank Area: " << bank->area * 1e12 << std::endl;
     // std::cout << "Bank Search Latency: " << bank->searchLatency * 1e9 << std::endl;
     // std::cout << "Bank Search Dynamic Energy: " << bank->searchDynamicEnergy * 1e12 << std::endl;

@@ -204,6 +204,36 @@ void TestResultOwnsWireSnapshots() {
     assert(!best.globalWire.isLowSwing);
 }
 
+void TestResultSearchOptimizationTargets() {
+    auto config = std::make_shared<EvaCamConfig>();
+
+    const OptimizationTarget targets[] = {
+        search_latency_optimized,
+        search_energy_optimized,
+        search_edp_optimized,
+    };
+
+    for (OptimizationTarget target : targets) {
+        Result best;
+        best.Initialize(config);
+        best.optimizationTarget = target;
+
+        auto candidate = std::make_shared<Result>();
+        candidate->Initialize(config);
+        candidate->bank->readLatency = 1.0;
+        candidate->bank->writeLatency = 1.0;
+        candidate->bank->readDynamicEnergy = 1.0;
+        candidate->bank->writeDynamicEnergy = 1.0;
+        candidate->bank->searchLatency = 1.0;
+        candidate->bank->searchDynamicEnergy = 1.0;
+        candidate->bank->area = 1.0;
+        candidate->bank->leakage = 1.0;
+
+        best.compareAndUpdate(candidate);
+        assert(best.bank == candidate->bank);
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -212,6 +242,7 @@ int main() {
     TestCopyConstructInitializedWire();
     TestAssignInitializedWire();
     TestResultOwnsWireSnapshots();
+    TestResultSearchOptimizationTargets();
 
     std::cout << "Wire copy tests passed" << std::endl;
     return 0;

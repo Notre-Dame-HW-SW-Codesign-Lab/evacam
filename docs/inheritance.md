@@ -30,7 +30,6 @@ This document is a quick reference for the major inheritance relationships in th
 - `CAM_Encoder`
 - `BasicDecoder`
 - `Result`
-- `CAM_Result`
 - `MemCell`
 - `Technology`
 - `Wire`
@@ -65,7 +64,6 @@ FunctionUnit
     CAM_Encoder
     BasicDecoder
 Result
-    CAM_Result
 MemCell
 Technology
 Wire

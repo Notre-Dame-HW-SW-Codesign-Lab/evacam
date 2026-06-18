@@ -12,13 +12,12 @@
 #include "Wire.h"
 #include "config/OutputFileLock.h"
 
-class CAM_Result;
 class Result;
 class Bank;
 
 struct EvaCamExplorationResult {
     long long numSolution = 0;
-    std::vector<std::shared_ptr<CAM_Result>> bestResults;
+    std::vector<std::shared_ptr<Result>> bestResults;
     std::string explorationCsvPath;
 };
 
@@ -30,11 +29,11 @@ class EvaCamExplorer {
     private:
         void InitializeExploration();
         void InitializeBestResults();
-        std::vector<std::shared_ptr<CAM_Result>> CreateBestResultsBuffer() const;
+        std::vector<std::shared_ptr<Result>> CreateBestResultsBuffer() const;
         void OpenExplorationCsv();
         void RunPrimaryExploration();
         void EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
-                std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+                std::vector<std::shared_ptr<Result>> &bestResults,
                 long long &numSolutions,
                 std::ostream *csvStream,
                 const Wire &localWire,
@@ -60,16 +59,16 @@ class EvaCamExplorer {
         bool IsValidCandidate(const std::shared_ptr<Bank> &bank) const;
         void ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const;
         void UpdateBestResults(const std::shared_ptr<Result> &result);
-        void UpdateBestResults(std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        void UpdateBestResults(std::vector<std::shared_ptr<Result>> &bestResults,
                 const std::shared_ptr<Result> &result) const;
-        void MergeBestResults(const std::vector<std::shared_ptr<CAM_Result>> &bestResults);
+        void MergeBestResults(const std::vector<std::shared_ptr<Result>> &bestResults);
         void FlushExplorationCsvBuffer(const std::string &buffer);
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result);
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const;
 
         std::shared_ptr<EvaCamConfig> config_;
         int numThreads_ = 1;
-        std::vector<std::shared_ptr<CAM_Result>> bestResults_;
+        std::vector<std::shared_ptr<Result>> bestResults_;
         Wire localWire_;
         Wire globalWire_;
         CAM_Opt camOpt_{};

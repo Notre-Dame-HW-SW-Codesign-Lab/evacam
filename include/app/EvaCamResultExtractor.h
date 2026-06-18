@@ -6,11 +6,11 @@
 
 #include "EvaCamRunResult.h"
 
-class CAM_Result;
+class Result;
 
 EvaCamRunResultDto ExtractEvaCamRunResult(
         long long numSolutions,
-        const std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        const std::vector<std::shared_ptr<Result>> &bestResults,
         const std::string &explorationCsvPath,
         const std::string &outputYamlPath);
 

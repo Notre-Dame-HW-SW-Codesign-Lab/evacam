@@ -15,10 +15,9 @@
 #include <vector>
 
 #include "Bank.h"
-#include "CAM_Result.h"
+#include "Result.h"
 #include "EvaCamConfig.h"
 #include "Logger.h"
-#include "Result.h"
 #include "Wire.h"
 #include "config/EvaCamConfigPrinter.h"
 #include "config/EvaCamConfigValidator.h"
@@ -26,20 +25,6 @@
 #include "config/OutputPathBuilder.h"
 #include "factories/BankFactory.h"
 #include "factories/WireFactory.h"
-
-namespace {
-
-std::vector<std::shared_ptr<Result>> AsResults(
-        const std::vector<std::shared_ptr<CAM_Result>> &bestResults) {
-    std::vector<std::shared_ptr<Result>> results;
-    results.reserve(bestResults.size());
-    for (const auto &result : bestResults) {
-        results.push_back(result);
-    }
-    return results;
-}
-
-}  // namespace
 
 EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config, int numThreads)
     : config_(std::move(config)),
@@ -99,10 +84,10 @@ void EvaCamExplorer::InitializeBestResults() {
     bestResults_ = CreateBestResultsBuffer();
 }
 
-std::vector<std::shared_ptr<CAM_Result>> EvaCamExplorer::CreateBestResultsBuffer() const {
-    std::vector<std::shared_ptr<CAM_Result>> bestResults((int)full_exploration);
+std::vector<std::shared_ptr<Result>> EvaCamExplorer::CreateBestResultsBuffer() const {
+    std::vector<std::shared_ptr<Result>> bestResults((int)full_exploration);
     for (int i = 0; i < (int)full_exploration; i++) {
-        bestResults[i] = std::make_shared<CAM_Result>();
+        bestResults[i] = std::make_shared<Result>();
         bestResults[i]->Initialize(config_);
         bestResults[i]->optimizationTarget = (OptimizationTarget)i;
     }
@@ -201,7 +186,7 @@ void EvaCamExplorer::RunPrimaryExploration() {
 }
 
 void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
-        std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        std::vector<std::shared_ptr<Result>> &bestResults,
         long long &numSolutions,
         std::ostream *csvStream,
         const Wire &localWire,
@@ -453,10 +438,9 @@ void EvaCamExplorer::RunConstrainedExploration() {
         return;
     }
 
-    auto bestResults = AsResults(bestResults_);
-    constraintLimits_ = config_->BuildResultLimits(bestResults);
+    constraintLimits_ = config_->BuildResultLimits(bestResults_);
     hasConstraintLimits_ = true;
-    config_->ApplyResultLimits(constraintLimits_, bestResults);
+    config_->ApplyResultLimits(constraintLimits_, bestResults_);
 
     numSolution_ = 0;
     localWire_ = WireFactory::CreateDefaultLocalWire(config_);
@@ -592,14 +576,14 @@ void EvaCamExplorer::UpdateBestResults(const std::shared_ptr<Result> &result) {
     UpdateBestResults(bestResults_, result);
 }
 
-void EvaCamExplorer::UpdateBestResults(std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+void EvaCamExplorer::UpdateBestResults(std::vector<std::shared_ptr<Result>> &bestResults,
         const std::shared_ptr<Result> &result) const {
     for (int i = 0; i < (int)full_exploration; i++) {
         bestResults[i]->compareAndUpdate(result);
     }
 }
 
-void EvaCamExplorer::MergeBestResults(const std::vector<std::shared_ptr<CAM_Result>> &bestResults) {
+void EvaCamExplorer::MergeBestResults(const std::vector<std::shared_ptr<Result>> &bestResults) {
     for (int i = 0; i < (int)full_exploration; i++) {
         bestResults_[i]->compareAndUpdate(bestResults[i]);
     }

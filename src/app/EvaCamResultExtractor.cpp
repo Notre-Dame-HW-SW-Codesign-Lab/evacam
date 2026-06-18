@@ -7,11 +7,10 @@
 #include <unordered_map>
 
 #include "Bank.h"
-#include "CAM_Result.h"
+#include "Result.h"
 #include "CAM_SubArray.h"
 #include "EvaCamConfig.h"
 #include "Mat.h"
-#include "Result.h"
 
 namespace {
 
@@ -369,7 +368,7 @@ void AddBreakdown(EvaCamDesignResultDto &dto, const Result &result) {
     }
 }
 
-EvaCamDesignResultDto ExtractDesignResult(const CAM_Result &result) {
+EvaCamDesignResultDto ExtractDesignResult(const Result &result) {
     EvaCamDesignResultDto dto;
     dto.optimizationTarget = OptimizationTargetName(result.optimizationTarget);
     AddCoreSummary(dto, result);
@@ -383,7 +382,7 @@ EvaCamDesignResultDto ExtractDesignResult(const CAM_Result &result) {
 
 EvaCamRunResultDto ExtractEvaCamRunResult(
         long long numSolutions,
-        const std::vector<std::shared_ptr<CAM_Result>> &bestResults,
+        const std::vector<std::shared_ptr<Result>> &bestResults,
         const std::string &explorationCsvPath,
         const std::string &outputYamlPath) {
     EvaCamRunResultDto dto;

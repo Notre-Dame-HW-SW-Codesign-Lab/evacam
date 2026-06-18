@@ -15,7 +15,7 @@ This document is a quick reference for the main ownership and member relationshi
 - Wire settings are no longer owned through smart pointers in the model tree. `Wire` objects are direct value members or passed by `const Wire&`.
 - `CAM_Opt` is a value-like configuration bundle. It is stored by value and passed as `const CAM_Opt&`.
 - `Result` still stores `EvaCamConfig` and the selected `Bank` as `shared_ptr`; `Result::localWire` and `Result::globalWire` are value snapshots.
-- Explorer best-result buffers still use `std::vector<std::shared_ptr<CAM_Result>>`.
+- Explorer best-result buffers still use `std::vector<std::shared_ptr<Result>>`.
 
 ## Helper API Notes
 
@@ -206,7 +206,3 @@ This document is a quick reference for the main ownership and member relationshi
 - `Bank bank` (`shared_ptr`)
 - `Wire localWire` (by value)
 - `Wire globalWire` (by value)
-
-### `CAM_Result`
-
-- No additional notable contained runtime objects beyond `Result` in this summary
