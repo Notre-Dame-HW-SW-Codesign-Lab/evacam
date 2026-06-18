@@ -146,19 +146,6 @@ This document is a quick reference for the main ownership and member relationshi
 - `CAM_MMR MMR` (by value)
 - `CAM_Encoder Encoder` (by value)
 
-### `SubArray`
-
-- `RowDecoder rowDecoder` (`unique_ptr`)
-- `RowDecoder bitlineMuxDecoder` (`unique_ptr`)
-- `Mux bitlineMux` (`unique_ptr`)
-- `RowDecoder senseAmpMuxLev1Decoder` (`unique_ptr`)
-- `Mux senseAmpMuxLev1` (`unique_ptr`)
-- `RowDecoder senseAmpMuxLev2Decoder` (`unique_ptr`)
-- `Mux senseAmpMuxLev2` (`unique_ptr`)
-- `Precharger precharger` (`unique_ptr`)
-- `SenseAmp senseAmp` (`unique_ptr`)
-- `Wire localWire` (by value)
-
 ### `CAM_SubArray`
 
 - `CAM_DataBuffer inputBuf` (`unique_ptr`)

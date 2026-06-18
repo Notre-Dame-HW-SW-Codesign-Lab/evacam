@@ -14,7 +14,6 @@ This document is a quick reference for the major inheritance relationships in th
 - `CAM_Precharger`
 - `CAM_LevelShifter`
 - `CAM_InputEncoder`
-- `SubArray`
 - `CAM_SubArray`
 - `SenseAmp`
 - `CAM_SenseAmp`
@@ -52,7 +51,6 @@ FunctionUnit
         CAM_Precharger
     CAM_LevelShifter
     CAM_InputEncoder
-    SubArray
     CAM_SubArray
     SenseAmp
         CAM_SenseAmp
@@ -77,8 +75,6 @@ Technology
 Wire
 CAM_Line
 ```
-
-Note: `CAM_SubArray` does not inherit from `SubArray`; both derive from `FunctionUnit`.
 
 ## Classes Outside The Repo-Local Inheritance Tree
 
