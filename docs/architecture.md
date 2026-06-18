@@ -25,8 +25,8 @@ This is the high-level execution flow for the current codebase.
 - `src/config`, `include/config`: system config loading, section readers, normalization, validation, and derived exploration settings
 - `src/technology`, `include/technology`: technology models, memory-cell models, and built-in technology tables
 - `src/circuit`, `include/circuit`: reusable circuit blocks and shared equations
-- `src/model`, `include/model`: bank, mat, subarray, and result abstractions
-- `src/cam`, `include/cam`: CAM-specific blocks layered on top of the common circuit/model code
+- `src/model`, `include/model`: bank, mat, and result abstractions
+- `src/cam`, `include/cam`: the CAM subarray and CAM-specific blocks layered on top of the common circuit/model code
 - `src/factories`, `include/factories`: object construction helpers
 
 ## EvaCamConfig

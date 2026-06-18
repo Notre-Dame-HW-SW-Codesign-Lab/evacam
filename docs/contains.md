@@ -20,7 +20,6 @@ This document is a quick reference for the main ownership and member relationshi
 ## Helper API Notes
 
 - Circuit formula helpers take `const Technology&`.
-- `CAM_CustomSA::{CalcAreaForCostomSA, CalcCapForCostomSA}` take `const Technology&`.
 - `Technology::InterpolateWith` takes `const Technology&`.
 - `BankFactory::CreateBank` takes `const EvaCamConfig&`.
 - `BankFactory::InitializeBank` still takes `const std::shared_ptr<EvaCamConfig>&` because it forwards config into model initialization paths that store shared config.

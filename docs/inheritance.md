@@ -20,7 +20,6 @@ This document is a quick reference for the major inheritance relationships in th
 - `Comparator`
 - `OutputDriver`
 - `CAM_DataBuffer`
-- `CAM_Controller`
 - `CAM_OutputAccumulator`
 - `CAM_MMR`
 - `CAM_BasicMMR`
@@ -54,7 +53,6 @@ FunctionUnit
     Comparator
     OutputDriver
     CAM_DataBuffer
-    CAM_Controller
     CAM_OutputAccumulator
     CAM_MMR
     CAM_BasicMMR

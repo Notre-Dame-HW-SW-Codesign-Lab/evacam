@@ -153,18 +153,13 @@
   local/global wires
 };
 
-\node[class, fill=purple!10] (result) at (7.8, 1.9) {%
+\node[class, fill=purple!10, text width=4.7cm, minimum width=5.0cm] (result) at (10.8, 1.9) {%
   \textbf{Result}\\
   + config\\
   + bank, localWire, globalWire\\
-  + compareAndUpdate()
-};
-
-\node[class, fill=purple!10] (camResult) at (14.2, 1.9) {%
-  \textbf{CAM\_Result}\\
+  + compareAndUpdate()\\
   + print()\\
-  + reset()\\
-  CAM-specific best-point view
+  + reset()
 };
 
 % Hardware hierarchy
@@ -195,7 +190,8 @@
 
 \node[class, fill=orange!10, text width=4.9cm, minimum width=5.2cm] (camsub) at (0.8, -10.8) {%
   \textbf{CAM\_SubArray}\\
-  + RowNand, Mux, SenseAmp\\
+  + RowDecoder, Precharger, Mux\\
+  + SenseAmp\\
   + InputEncoder\\
   + PriorityEncoder\\
   + OutputAccumulator
@@ -222,9 +218,9 @@
   \textbf{CAM blocks}\\
   CAM\_DataBuffer\\
   CAM\_LevelShifter\\
-  CAM\_Precharger\\
+  Precharger\\
   CAM\_SenseAmp\\
-  CAM\_RowNand and encoders
+  RowDecoder and encoders
 };
 
 % Relationships
@@ -249,15 +245,14 @@
 \draw[uses] (explorer) -- node[above] {\scriptsize reads} (config);
 \draw[uses] (explorer) -- node[left] {\scriptsize builds banks} (bankFactory);
 \draw[uses] (explorer) -- node[above] {\scriptsize builds wires} (wireFactory);
-\draw[owns] (explorer) -- node[right] {\scriptsize best results} (camResult);
+\draw[owns] (explorer) -- node[right] {\scriptsize best results} (result);
 \draw[uses] (explorer) -- node[left] {\scriptsize CSV path} (outPath);
 
-\draw[inherit] (camResult) -- (result);
 \draw[owns] (result) -- node[above] {\scriptsize selected design} (bank);
 \draw[assoc] (result) -- node[above] {\scriptsize config} (config);
 
 \draw[uses] (output) -- node[left] {\scriptsize serializes} (resultsYaml);
-\draw[uses] (output) -- node[above] {\scriptsize prints} (camResult);
+\draw[uses] (output) -- node[above] {\scriptsize prints} (result);
 \draw[uses] (output) -- node[left] {\scriptsize checks mode} (config);
 
 \draw[assoc] (fu) -- node[left] {\scriptsize config} (config);
@@ -274,7 +269,7 @@
 % Packages
 \node[package, fit=(main)(cli)(builder)(context)(explorer)(output), label=above:{\textbf{Application Flow}}] {};
 \node[package, fit=(config)(yamlLoader)(techCtx)(techLoader)(tech)(memcell)(outPath)(resultsYaml), label=above:{\textbf{Configuration, Technology, Input IO, and Output IO}}] {};
-\node[package, fit=(bankFactory)(wireFactory)(result)(camResult), label=above:{\textbf{Exploration Support}}] {};
+\node[package, fit=(bankFactory)(wireFactory)(result), label=above:{\textbf{Exploration Support}}] {};
 \node[package, fit=(fu)(bank)(mat)(camsub)(bankNoTree)(bankTree)(sharedBlocks)(camBlocks), label=above:{\textbf{Hardware and CAM Hierarchy}}] {};
 
 % Scope note
