@@ -350,7 +350,7 @@ void CAM_SubArray::Initialize(
     inputLS = std::make_unique<CAM_LevelShifter>();
     outputLS = std::make_unique<CAM_LevelShifter>();
     inputEnc = std::make_unique<CAM_InputEncoder>();
-    RowDecMergeNand = std::make_unique<CAM_RowNand>();
+    RowDecMergeNand = std::make_unique<RowDecoder>();
 
     precharger = std::make_unique<CAM_Precharger>();
 
@@ -538,25 +538,25 @@ void CAM_SubArray::Initialize(
                 capNandInput,
                 0,
                 false /*TODO*/,
-                true,
                 DecMergeOptLevel,
                 0,
-                config /*TODO*/);
+                config /*TODO*/,
+                true);
     
     // those NAND merges the WL and SL signal
 
     for (int i = 0; i < cell.camNumRow; i++) {
-        RowDriver[i] = std::make_unique<CAM_RowNand>();
+        RowDriver[i] = std::make_unique<RowDecoder>();
         RowDriver[i]->Initialize(
                 numRow,
                 Row[i].cap * 1.6, // TODO: verify the 1.6 scaling constant, it may need to be different for FeFET
                                   //       previous maintainer tried 10 at one point for FeFET 
                 Row[i].res,
                 false/*TODO*/,
-                false,
                 DriverOptLevel,
                 Row[i].maxCurrent,
-                config);
+                config,
+                false);
     }
 
     precharger = std::make_unique<CAM_Precharger>();

@@ -91,10 +91,6 @@ This document is a quick reference for the main ownership and member relationshi
 
 - Inherits `Precharger`; no additional notable contained runtime objects tracked in this summary
 
-### `CAM_RowNand`
-
-- Inherits `RowDecoder`; no additional notable contained runtime objects tracked in this summary
-
 ### `PredecodeBlock`
 
 - `RowDecoder rowDecoderStage1A` (`unique_ptr`)
@@ -153,8 +149,8 @@ This document is a quick reference for the main ownership and member relationshi
 - `CAM_LevelShifter inputLS` (`unique_ptr`)
 - `CAM_LevelShifter outputLS` (`unique_ptr`)
 - `CAM_InputEncoder inputEnc` (`unique_ptr`)
-- `CAM_RowNand RowDecMergeNand` (`unique_ptr`)
-- `CAM_RowNand RowDriver` (`vector<unique_ptr<CAM_RowNand>>`)
+- `RowDecoder RowDecMergeNand` (`unique_ptr`)
+- `RowDecoder RowDriver` (`vector<unique_ptr<RowDecoder>>`)
 - `CAM_Precharger precharger` (`unique_ptr`)
 - `RowDecoder ColDecMergeNand` (`unique_ptr`)
 - `RowDecoder WriteDriver` (`vector<unique_ptr<RowDecoder>>`)

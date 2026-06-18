@@ -8,7 +8,6 @@
 #define CAM_SUBARRAY_H_
 
 #include "FunctionUnit.h"
-#include "CAM_RowNand.h"
 #include "CAM_Precharger.h"
 #include "CAM_SenseAmp.h"
 #include "CAM_DataBuffer.h"
@@ -155,9 +154,9 @@ class CAM_SubArray: public FunctionUnit {
         std::unique_ptr<CAM_LevelShifter> inputLS;
         std::unique_ptr<CAM_LevelShifter> outputLS;
         std::unique_ptr<CAM_InputEncoder> inputEnc;
-        std::unique_ptr<CAM_RowNand>	RowDecMergeNand;	/* Last level nand & driver for wordline predecoder */
+        std::unique_ptr<RowDecoder> RowDecMergeNand; /* Last level NAND and driver for wordline predecoder */
 
-        std::vector<std::unique_ptr<CAM_RowNand>> RowDriver; /* nand & driver for wl/sl/etc, there could be multiple, e.g., ISSCC15 3T1R */
+        std::vector<std::unique_ptr<RowDecoder>> RowDriver; /* NAND and driver for WL/SL/etc.; there may be multiple, e.g. ISSCC15 3T1R */
 
         std::unique_ptr<CAM_Precharger>	precharger;
 

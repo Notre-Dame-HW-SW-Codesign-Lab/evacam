@@ -2,7 +2,7 @@
 #include "formula.h"
 void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         bool _multipleRowPerSet, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent,
-        std::shared_ptr<EvaCamConfig> _config) {
+        std::shared_ptr<EvaCamConfig> _config, bool _driverInv) {
     if (initialized)
         _config->logger.Verbose() << "[Row Decoder] Warning: Already initialized!";
 
@@ -38,7 +38,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         }
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         capNand = CalculateGateCap(widthNandN, *config->technology.tech) + CalculateGateCap(widthNandP, *config->technology.tech);
-        outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, true, 
+        outputDriver.Initialize(logicEffortNand, capNand, capLoad, resLoad, _driverInv,
                 areaOptimizationLevel, minDriverCurrent, config);
     } else {
         /* we only need an 1-level output buffer to driver the wordline */
@@ -46,7 +46,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
         widthNandN = MIN_NMOS_SIZE * config->technology.tech->featureSize();
         widthNandP = config->technology.tech->pnSizeRatio() * MIN_NMOS_SIZE * config->technology.tech->featureSize();
         capInv = CalculateGateCap(widthNandN, *config->technology.tech) + CalculateGateCap(widthNandP, *config->technology.tech);
-        outputDriver.Initialize(1, capInv, capLoad, resLoad, true, areaOptimizationLevel, 
+        outputDriver.Initialize(1, capInv, capLoad, resLoad, _driverInv, areaOptimizationLevel,
                 minDriverCurrent, config);
     }
 

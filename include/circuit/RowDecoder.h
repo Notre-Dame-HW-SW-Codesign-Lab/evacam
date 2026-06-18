@@ -26,7 +26,8 @@ class RowDecoder: public FunctionUnit {
                 bool _multipleRowPerSet, 
                 BufferDesignTarget _areaOptimizationLevel, 
                 double _minDriverCurrent, 
-                std::shared_ptr<EvaCamConfig> _config);
+                std::shared_ptr<EvaCamConfig> _config,
+                bool _driverInv = true);
 
         void CalculateArea();
         void CalculateRC();
