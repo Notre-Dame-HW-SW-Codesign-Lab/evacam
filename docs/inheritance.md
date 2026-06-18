@@ -10,7 +10,6 @@ This document is a quick reference for the major inheritance relationships in th
 - `BankWithoutHtree`
 - `RowDecoder`
 - `Precharger`
-- `CAM_Precharger`
 - `CAM_LevelShifter`
 - `CAM_InputEncoder`
 - `CAM_SubArray`
@@ -46,7 +45,6 @@ FunctionUnit
         BankWithoutHtree
     RowDecoder
     Precharger
-        CAM_Precharger
     CAM_LevelShifter
     CAM_InputEncoder
     CAM_SubArray

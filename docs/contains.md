@@ -87,10 +87,6 @@ This document is a quick reference for the main ownership and member relationshi
 - `OutputDriver outputDriver` (by value)
 - `Wire localWire` (by value)
 
-### `CAM_Precharger`
-
-- Inherits `Precharger`; no additional notable contained runtime objects tracked in this summary
-
 ### `PredecodeBlock`
 
 - `RowDecoder rowDecoderStage1A` (`unique_ptr`)
@@ -151,7 +147,7 @@ This document is a quick reference for the main ownership and member relationshi
 - `CAM_InputEncoder inputEnc` (`unique_ptr`)
 - `RowDecoder RowDecMergeNand` (`unique_ptr`)
 - `RowDecoder RowDriver` (`vector<unique_ptr<RowDecoder>>`)
-- `CAM_Precharger precharger` (`unique_ptr`)
+- `Precharger precharger` (`unique_ptr`)
 - `RowDecoder ColDecMergeNand` (`unique_ptr`)
 - `RowDecoder WriteDriver` (`vector<unique_ptr<RowDecoder>>`)
 - `Mux ColMux` (`vector<unique_ptr<Mux>>`)

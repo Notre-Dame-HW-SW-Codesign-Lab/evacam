@@ -352,8 +352,6 @@ void CAM_SubArray::Initialize(
     inputEnc = std::make_unique<CAM_InputEncoder>();
     RowDecMergeNand = std::make_unique<RowDecoder>();
 
-    precharger = std::make_unique<CAM_Precharger>();
-
     senseAmp = std::make_unique<CAM_SenseAmp>();
 
     ColDecMergeNand = std::make_unique<RowDecoder>();
@@ -559,7 +557,7 @@ void CAM_SubArray::Initialize(
                 false);
     }
 
-    precharger = std::make_unique<CAM_Precharger>();
+    precharger = std::make_unique<Precharger>();
     precharger->Initialize(voltagePrecharge, numColumn, Col[indexMatchline].cap, matchlineWireRes, config, localWire);
 
     // Model the shared column-decoder merge line against the worst-case column mux width.
