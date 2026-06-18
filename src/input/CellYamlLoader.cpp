@@ -552,6 +552,48 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
             throw std::runtime_error("mcam.state_variation must be sequence or map");
         }
     }
+
+    auto mlPrechargeVoltage = YamlHelpers::child_optional(mcam, "ml_precharge_voltage");
+    if (mlPrechargeVoltage) {
+        if (mlPrechargeVoltage.IsSequence()) {
+            const int n = std::min<int>(mlPrechargeVoltage.size(), 64);
+            for (int i = 0; i < n; i++) {
+                cell.mlPrechargeVoltage[i] = YamlHelpers::parse_quantity_node(
+                        mlPrechargeVoltage[i], YamlHelpers::VoltageUnits(), 1.0, "mcam.ml_precharge_voltage");
+            }
+        } else if (mlPrechargeVoltage.IsMap()) {
+            for (const auto& it : mlPrechargeVoltage) {
+                const int idx = YamlHelpers::read_scalar_required<int>(it.first, "mcam.ml_precharge_voltage index");
+                if (idx < 0 || idx >= 64)
+                    throw std::runtime_error("mcam.ml_precharge_voltage index out of range");
+                cell.mlPrechargeVoltage[idx] = YamlHelpers::parse_quantity_node(
+                        it.second, YamlHelpers::VoltageUnits(), 1.0, "mcam.ml_precharge_voltage");
+            }
+        } else {
+            throw std::runtime_error("mcam.ml_precharge_voltage must be sequence or map");
+        }
+    }
+
+    auto searchlineVoltage = YamlHelpers::child_optional(mcam, "searchline_voltage");
+    if (searchlineVoltage) {
+        if (searchlineVoltage.IsSequence()) {
+            const int n = std::min<int>(searchlineVoltage.size(), 64);
+            for (int i = 0; i < n; i++) {
+                cell.searchlineVoltage[i] = YamlHelpers::parse_quantity_node(
+                        searchlineVoltage[i], YamlHelpers::VoltageUnits(), 1.0, "mcam.searchline_voltage");
+            }
+        } else if (searchlineVoltage.IsMap()) {
+            for (const auto& it : searchlineVoltage) {
+                const int idx = YamlHelpers::read_scalar_required<int>(it.first, "mcam.searchline_voltage index");
+                if (idx < 0 || idx >= 64)
+                    throw std::runtime_error("mcam.searchline_voltage index out of range");
+                cell.searchlineVoltage[idx] = YamlHelpers::parse_quantity_node(
+                        it.second, YamlHelpers::VoltageUnits(), 1.0, "mcam.searchline_voltage");
+            }
+        } else {
+            throw std::runtime_error("mcam.searchline_voltage must be sequence or map");
+        }
+    }
 }
 
 void ReadPortsSection(MemCell& cell, const YAML::Node& root) {

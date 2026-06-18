@@ -1703,6 +1703,18 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
     return result;
 }
 
+CAMResistanceSample CAM_SubArray::BuildNominalResistanceSample() const {
+    CAMResistanceSample sample;
+    sample.mlWireRes = nominalMatchlineWireRes;
+    sample.accessRes = nominalResCellAccess;
+    sample.matchRes = nominalResMatchTran;
+    sample.cellResOn = sample.accessRes + sample.matchRes;
+    sample.accessResOff = nominalResCellAccessOff;
+    sample.matchResOff = nominalResMatchTranOff;
+    sample.cellResOff = sample.accessResOff + sample.matchResOff;
+    return sample;
+}
+
 CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex) const {
     const auto &variation = config->variation;
     CAMResistanceSample sample;
@@ -1984,6 +1996,10 @@ double CAM_SubArray::SampleCellReadEnergy(
 void CAM_SubArray::UpdateVariationPowerSummary() {
 
     const auto &cell = *config->technology.cell;
+    const CAMResistanceSample nominalSample = BuildNominalResistanceSample();
+    const double nominalMatchlineDelay = variationSummary.matchlineDelay.nominal;
+    const double nominalSearchDynamicEnergy = searchDynamicEnergy
+        + SampleCellReadEnergy(nominalSample, nominalMatchlineDelay);
 
     if (!variationSummary.enabled) {
         return;
@@ -2026,7 +2042,9 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
         const double sampleMatchlineDelay = variationSummary.matchlineDelay.sample;
         sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
         sampleSearchDynamicEnergy += SampleCellReadEnergy(sample, sampleMatchlineDelay);
-        variationSummary.searchDynamicEnergy = BuildSinglePointMetric(sampleSearchDynamicEnergy, searchDynamicEnergy);
+        variationSummary.searchDynamicEnergy = BuildSinglePointMetric(
+                sampleSearchDynamicEnergy,
+                nominalSearchDynamicEnergy);
         searchDynamicEnergy = sampleSearchDynamicEnergy - SampleCellReadEnergy(sampledResistance, matchlineDelay);
         return;
     }
@@ -2079,7 +2097,9 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
         }
     }
 
-    variationSummary.searchDynamicEnergy = BuildMetricStats(searchEnergies, searchDynamicEnergy);
+    variationSummary.searchDynamicEnergy = BuildMetricStats(
+            searchEnergies,
+            nominalSearchDynamicEnergy);
     searchDynamicEnergy = variationSummary.searchDynamicEnergy.mean
         - SampleCellReadEnergy(sampledResistance, matchlineDelay);
 }

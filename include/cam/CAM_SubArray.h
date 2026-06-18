@@ -119,6 +119,7 @@ class CAM_SubArray: public FunctionUnit {
         void CalculatePower();
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateBinaryMatchByMismatches(int mismatchCount) const;
+        CAMResistanceSample BuildNominalResistanceSample() const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         CAMResistanceSample BuildCornerResistanceSample(unsigned int cornerIndex) const;
         CAMResistanceSample BuildVariationResistanceSample(unsigned int sampleIndex) const;

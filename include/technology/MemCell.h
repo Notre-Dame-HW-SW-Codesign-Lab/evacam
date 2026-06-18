@@ -66,6 +66,8 @@ class MemCell {
         int numResistanceState; // # of state of multi-bit CAM
                                 // double ResistanceValues[64]; // corresponding resistance values
         double ResistanceState[64];
+        double mlPrechargeVoltage[64]; // Optional MCAM matchline precharge voltage per state
+        double searchlineVoltage[64]; // Optional MCAM searchline voltage per state
 
         bool withVariation;
         bool hasVariationSeed;

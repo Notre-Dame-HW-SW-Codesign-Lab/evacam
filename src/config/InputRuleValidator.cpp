@@ -190,6 +190,68 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
                     "[Input] Error: mcam.resistance_state values must be positive.");
         }
     }
+
+    const YAML::Node mlPrechargeVoltages = YamlHelpers::child_optional(mcam, "ml_precharge_voltage");
+    if (mlPrechargeVoltages) {
+        if (!mlPrechargeVoltages.IsSequence() && !mlPrechargeVoltages.IsMap()) {
+            throw std::runtime_error(
+                    "[Input] Error: mcam.ml_precharge_voltage must be a sequence or map.");
+        }
+        for (int state = 0; mlPrechargeVoltages.size() != 0 && state < numStates; state++) {
+            YAML::Node voltageNode;
+            if (mlPrechargeVoltages.IsSequence()) {
+                if (state >= static_cast<int>(mlPrechargeVoltages.size())) {
+                    throw std::runtime_error(
+                            "[Input] Error: mcam.ml_precharge_voltage must define every configured resistance state.");
+                }
+                voltageNode = mlPrechargeVoltages[state];
+            } else {
+                voltageNode = mlPrechargeVoltages[state];
+                if (!voltageNode) {
+                    throw std::runtime_error(
+                            "[Input] Error: mcam.ml_precharge_voltage must define every configured resistance state.");
+                }
+            }
+
+            const double voltage = YamlHelpers::parse_quantity_node(
+                    voltageNode, YamlHelpers::VoltageUnits(), 1.0, "mcam.ml_precharge_voltage");
+            if (voltage < 0) {
+                throw std::runtime_error(
+                        "[Input] Error: mcam.ml_precharge_voltage values must be non-negative.");
+            }
+        }
+    }
+
+    const YAML::Node searchlineVoltages = YamlHelpers::child_optional(mcam, "searchline_voltage");
+    if (searchlineVoltages) {
+        if (!searchlineVoltages.IsSequence() && !searchlineVoltages.IsMap()) {
+            throw std::runtime_error(
+                    "[Input] Error: mcam.searchline_voltage must be a sequence or map.");
+        }
+        for (int state = 0; searchlineVoltages.size() != 0 && state < numStates; state++) {
+            YAML::Node voltageNode;
+            if (searchlineVoltages.IsSequence()) {
+                if (state >= static_cast<int>(searchlineVoltages.size())) {
+                    throw std::runtime_error(
+                            "[Input] Error: mcam.searchline_voltage must define every configured resistance state.");
+                }
+                voltageNode = searchlineVoltages[state];
+            } else {
+                voltageNode = searchlineVoltages[state];
+                if (!voltageNode) {
+                    throw std::runtime_error(
+                            "[Input] Error: mcam.searchline_voltage must define every configured resistance state.");
+                }
+            }
+
+            const double voltage = YamlHelpers::parse_quantity_node(
+                    voltageNode, YamlHelpers::VoltageUnits(), 1.0, "mcam.searchline_voltage");
+            if (voltage < 0) {
+                throw std::runtime_error(
+                        "[Input] Error: mcam.searchline_voltage values must be non-negative.");
+            }
+        }
+    }
 }
 
 bool IsSupportedCamSenseAmpType(TypeOfSenseAmp type) {

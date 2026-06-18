@@ -129,6 +129,8 @@ variation:
 mcam:
   num_resistance_state: 0 # optional int
   resistance_state: [] # optional sequence or map keyed by integer state index; resistance units: ohm | kohm | Mohm | Gohm; bare numbers default to ohm
+  ml_precharge_voltage: [] # optional sequence or map keyed by integer state index; voltage units: V | mV; bare numbers default to V
+  searchline_voltage: [] # optional sequence or map keyed by integer state index; voltage units: V | mV; bare numbers default to V
   state_variation: [] # optional sequence or map keyed by integer state index; fraction or percent
 
 # Optional parsed section. Used by CAM/NVM match paths.

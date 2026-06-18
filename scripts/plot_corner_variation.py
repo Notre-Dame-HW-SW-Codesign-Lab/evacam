@@ -59,13 +59,24 @@ def metric_points(rows, column, scale):
     return points
 
 
+def nominal_value(rows, column, scale):
+    nominal_column = f"nominal_{column}"
+    for row in rows:
+        value = row.get(nominal_column)
+        if value not in (None, ""):
+            return float(value) * scale
+    raise RuntimeError(
+        f"Corner variation CSV is missing nominal metric column: {nominal_column}"
+    )
+
+
 def available_metrics(rows, include_internal):
     metrics = METRICS + (INTERNAL_METRICS if include_internal else [])
     available = []
     for column, title, unit, scale, bound in metrics:
         points = metric_points(rows, column, scale)
         if points:
-            available.append((column, title, unit, points, bound))
+            available.append((column, title, unit, scale, points, bound))
     if not available:
         raise RuntimeError("No known EvaCAM corner metric columns found.")
     return available
@@ -74,6 +85,10 @@ def available_metrics(rows, include_internal):
 def bound_point(points, bound):
     key = lambda point: point["value"]
     return max(points, key=key) if bound == "max" else min(points, key=key)
+
+
+def opposite_bound(bound):
+    return "min" if bound == "max" else "max"
 
 
 def ordered_points(points, order):
@@ -110,9 +125,13 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
     subtitle = f"{len(rows)} deterministic corners"
     if order == "sample":
         subtitle += ", original sample order"
+    else:
+        subtitle += ", sorted by metric value"
     fig.text(0.5, 0.945, subtitle, ha="center", fontsize=10)
+    legend_handles = None
+    legend_labels = None
 
-    for index, (_column, title, unit, points, bound) in enumerate(metrics):
+    for index, (column, title, unit, scale, points, bound) in enumerate(metrics):
         ax = axes[index // cols][index % cols]
         plot_points = ordered_points(points, order)
         values = [point["value"] for point in plot_points]
@@ -123,6 +142,10 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
         )
         risky = bound_point(plot_points, bound)
         risky_x = risky["sample"] if order == "sample" else plot_points.index(risky)
+        best_bound = opposite_bound(bound)
+        best = bound_point(plot_points, best_bound)
+        best_x = best["sample"] if order == "sample" else plot_points.index(best)
+        nominal = nominal_value(rows, column, scale)
         min_value = min(values)
         max_value = max(values)
 
@@ -135,6 +158,15 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
             linewidth=0.7,
             label="Corner",
             zorder=3,
+        )
+        ax.axhline(
+            nominal,
+            color="#8250df",
+            linewidth=1.2,
+            linestyle="--",
+            alpha=0.95,
+            label="Nominal",
+            zorder=2,
         )
         ax.axhline(
             min_value,
@@ -155,6 +187,16 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
             label=f"Worst case ({bound})",
             zorder=4,
         )
+        ax.scatter(
+            [best_x],
+            [best["value"]],
+            s=76,
+            color="#1a7f37",
+            edgecolor="#24292f",
+            linewidth=0.8,
+            label=f"Best case ({best_bound})",
+            zorder=4,
+        )
 
         ax.set_title(title, fontsize=11.5, fontweight="bold", pad=7)
         ax.set_xlabel("Sample Index" if order == "sample" else "Sorted Corner Index")
@@ -168,7 +210,9 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
         ax.text(
             0.02,
             0.96,
-            f"min {format_value(min_value, unit)}\nmax {format_value(max_value, unit)}",
+            f"nominal {format_value(nominal, unit)}\n"
+            f"min {format_value(min_value, unit)}\n"
+            f"max {format_value(max_value, unit)}",
             transform=ax.transAxes,
             ha="left",
             va="top",
@@ -181,21 +225,27 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
             },
         )
         handles, labels = ax.get_legend_handles_labels()
-        ax.legend(
-            handles[:3],
-            labels[:3],
-            loc="lower right",
-            fontsize=7.5,
-            frameon=True,
-            framealpha=0.92,
-            edgecolor="#d0d7de",
-        )
+        if legend_handles is None:
+            legend_handles = handles[:5]
+            legend_labels = labels[:5]
 
     for index in range(len(metrics), panel_rows * cols):
         axes[index // cols][index % cols].set_visible(False)
 
+    fig.legend(
+        legend_handles,
+        legend_labels,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.01),
+        ncol=5,
+        fontsize=8.0,
+        frameon=True,
+        framealpha=0.95,
+        edgecolor="#d0d7de",
+    )
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, format="svg")
+    fig.savefig(output_path, format="svg", bbox_inches="tight")
     plt.close(fig)
 
 

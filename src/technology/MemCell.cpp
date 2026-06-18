@@ -68,6 +68,8 @@ MemCell::MemCell() {
     numResistanceState = 0;
     for (int i = 0; i < 64; i++) {
         ResistanceState[i] = 0;
+        mlPrechargeVoltage[i] = 0;
+        searchlineVoltage[i] = 0;
         resStateVariation[i] = 0;
     }
 

@@ -85,7 +85,7 @@ Important notes:
 - `multilevel.enabled` appears in some shipped legacy configs but is not currently parsed.
 - `flash.mlc` is not a parsed cell key; MLC/SLC behavior comes from `cell.type`.
 - `read.wordline_boost_ratio` and `read.read_floating` are parsed but currently have no model effect.
-- `mcam.*` fields are parsed but currently have no model effect; `mcam.resistance_state` and `mcam.state_variation` accept either sequences or maps keyed by integer state index.
+- `mcam.*` fields are parsed but currently have no model effect; `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index.
 - `ports.row` and `ports.column` are maps keyed by integer index.
 - `docs/system_config_full_example.yaml` and `docs/cell_config_full_example.yaml` include reference-only non-sensical numbers. They also may contain conflicting fields.
 

@@ -568,6 +568,78 @@ void TestMcamResistanceStatesMustBePositiveThrows() {
     WriteMinimalCellFile();
 }
 
+void TestMcamMlPrechargeVoltageCountMismatchThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 3\n"
+        "  resistance_state: [1Mohm, 500Kohm, 250Kohm]\n"
+        "  ml_precharge_voltage: [1V, 900mV]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.ml_precharge_voltage must define every configured resistance state"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamMlPrechargeVoltagesMustBeNonNegativeThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n"
+        "  ml_precharge_voltage: [1V, -1mV]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.ml_precharge_voltage values must be non-negative"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamSearchlineVoltageCountMismatchThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 3\n"
+        "  resistance_state: [1Mohm, 500Kohm, 250Kohm]\n"
+        "  searchline_voltage: [1V, 900mV]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.searchline_voltage must define every configured resistance state"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamSearchlineVoltagesMustBeNonNegativeThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n"
+        "  searchline_voltage: [1V, -1mV]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.searchline_voltage values must be non-negative"));
+    WriteMinimalCellFile();
+}
+
 void TestMatchlineGateConnectionThrows() {
     WriteMinimalCellFile("SRAM", "TCAM", "matchline", "gate");
     WriteConfig(
@@ -929,6 +1001,10 @@ int main() {
     TestMcamResistanceStateCountMismatchThrows();
     TestMcamRequiresAtLeastTwoResistanceStatesThrows();
     TestMcamResistanceStatesMustBePositiveThrows();
+    TestMcamMlPrechargeVoltageCountMismatchThrows();
+    TestMcamMlPrechargeVoltagesMustBeNonNegativeThrows();
+    TestMcamSearchlineVoltageCountMismatchThrows();
+    TestMcamSearchlineVoltagesMustBeNonNegativeThrows();
     TestMatchlineGateConnectionThrows();
     TestBitlineColumnTopologyThrows();
     TestMissingMatchlineColumnThrows();

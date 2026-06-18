@@ -109,7 +109,7 @@ results/2FeFET_TCAM_variation_samples_histograms.svg
 The CSV uses base SI units and has one row per sample or corner:
 
 ```csv
-sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s
+sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s
 0,...
 ```
 

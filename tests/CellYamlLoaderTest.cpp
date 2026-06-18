@@ -186,6 +186,33 @@ void TestVariationSectionParses() {
     assert(near(cell.deviceMatchResistanceMaxVariation, 0.23));
 }
 
+void TestMcamMlPrechargeVoltageParses() {
+    WriteMinimalCellFile(
+        kCellPath,
+        "mcam:\n"
+        "  num_resistance_state: 4\n"
+        "  resistance_state: [1Mohm, 500kohm, 100kohm, 50kohm]\n"
+        "  ml_precharge_voltage:\n"
+        "    0: 1V\n"
+        "    1: 900mV\n"
+        "    2: 0.75V\n"
+        "    3: 600mV\n"
+        "  searchline_voltage: [0.4V, 500mV, 0.6V, 700mV]\n");
+
+    MemCell cell;
+    cell.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
+
+    auto near = [](double a, double b) { return std::fabs(a - b) < 1e-12; };
+    assert(near(cell.mlPrechargeVoltage[0], 1.0));
+    assert(near(cell.mlPrechargeVoltage[1], 0.9));
+    assert(near(cell.mlPrechargeVoltage[2], 0.75));
+    assert(near(cell.mlPrechargeVoltage[3], 0.6));
+    assert(near(cell.searchlineVoltage[0], 0.4));
+    assert(near(cell.searchlineVoltage[1], 0.5));
+    assert(near(cell.searchlineVoltage[2], 0.6));
+    assert(near(cell.searchlineVoltage[3], 0.7));
+}
+
 void TestMissingRequiredCellFieldThrows() {
     {
         std::ofstream out(kMissingFieldPath);
@@ -206,6 +233,7 @@ int main() {
     TestMinimalCellParses();
     TestVariationDefaultsWhenOmitted();
     TestVariationSectionParses();
+    TestMcamMlPrechargeVoltageParses();
     TestMissingRequiredCellFieldThrows();
     std::cout << "CellYamlLoader tests passed" << std::endl;
     return 0;

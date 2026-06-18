@@ -89,7 +89,7 @@ int CountCsvRows(const std::filesystem::path &path, std::string *firstDataRow = 
 
     std::string line;
     assert(std::getline(csv, line));
-    assert(line == "sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s");
+    assert(line == "sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
 
     int rows = 0;
     while (std::getline(csv, line)) {
@@ -118,6 +118,13 @@ void AssertCornerOutput(
     assert(variation["matchline_delay"]["max"]);
     assert(variation["search_dynamic_energy"]["min"]);
     assert(variation["search_dynamic_energy"]["max"]);
+    const double nominalEnergy = std::stod(variation["search_dynamic_energy"]["nominal"].as<std::string>());
+    const double minEnergy = std::stod(variation["search_dynamic_energy"]["min"].as<std::string>());
+    const double maxEnergy = std::stod(variation["search_dynamic_energy"]["max"].as<std::string>());
+    const double energyRange = maxEnergy - minEnergy;
+    assert(nominalEnergy >= minEnergy);
+    assert(nominalEnergy <= maxEnergy);
+    assert(std::fabs(nominalEnergy - (minEnergy + maxEnergy) / 2) < energyRange * 0.1);
 
     const std::filesystem::path samplePath = variation["sample_file"].as<std::string>();
     assert(std::filesystem::exists(samplePath));
