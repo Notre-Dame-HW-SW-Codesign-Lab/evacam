@@ -66,6 +66,9 @@ MemCell::MemCell() {
     camNumCol = 0;
     camWidthMatchTran = 0.0;
     numResistanceState = 0;
+    centerVoltage = 0;
+    hasMcamSearchlineVoltages = false;
+    hasMcamCenterVoltage = false;
     for (int i = 0; i < 64; i++) {
         ResistanceState[i] = 0;
         mlPrechargeVoltage[i] = 0;

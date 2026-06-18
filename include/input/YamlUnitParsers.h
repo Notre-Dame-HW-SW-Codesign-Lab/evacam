@@ -26,6 +26,7 @@ double read_quantity_required(
         const char* what);
 
 const std::vector<UnitSpec>& VoltageUnits();
+const std::vector<UnitSpec>& McamCenterVoltageUnits();
 const std::vector<UnitSpec>& CurrentUnits();
 const std::vector<UnitSpec>& TimeUnits();
 const std::vector<UnitSpec>& CapacitanceUnits();

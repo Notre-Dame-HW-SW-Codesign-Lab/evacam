@@ -252,6 +252,49 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
             }
         }
     }
+
+    const YAML::Node centerVoltage = YamlHelpers::child_optional(mcam, "center_voltage");
+    if (centerVoltage) {
+        const double voltage = YamlHelpers::parse_quantity_node(
+                centerVoltage, YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
+        if (voltage < 0) {
+            throw std::runtime_error(
+                    "[Input] Error: mcam.center_voltage must be non-negative.");
+        }
+    }
+
+    if (static_cast<bool>(searchlineVoltages) != static_cast<bool>(centerVoltage)) {
+        throw std::runtime_error(
+                "[Input] Error: mcam.searchline_voltage and mcam.center_voltage must be provided together.");
+    }
+    if (searchlineVoltages && centerVoltage) {
+        const YAML::Node ports = YamlHelpers::child_required(root, "ports");
+        const YAML::Node rowPorts = YamlHelpers::child_required(ports, "row");
+        int searchlineCount = 0;
+        for (auto it = rowPorts.begin(); it != rowPorts.end(); ++it) {
+            const CAM_PortType type =
+                    YamlHelpers::read_enum_required<CAM_PortType>(it->second, "type", false);
+            if (type == Searchline) {
+                searchlineCount++;
+            }
+        }
+        if (searchlineCount != 2) {
+            throw std::runtime_error(
+                    "[Input] Error: MCAM state voltage mapping requires exactly two searchline row ports.");
+        }
+
+        const double center = YamlHelpers::parse_quantity_node(
+                centerVoltage, YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
+        for (int state = 0; state < numStates; state++) {
+            const YAML::Node voltageNode = searchlineVoltages[state];
+            const double primary = YamlHelpers::parse_quantity_node(
+                    voltageNode, YamlHelpers::VoltageUnits(), 1.0, "mcam.searchline_voltage");
+            if (2 * center - primary < 0) {
+                throw std::runtime_error(
+                        "[Input] Error: MCAM derived complementary searchline voltage must be non-negative.");
+            }
+        }
+    }
 }
 
 bool IsSupportedCamSenseAmpType(TypeOfSenseAmp type) {

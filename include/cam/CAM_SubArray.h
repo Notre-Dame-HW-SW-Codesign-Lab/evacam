@@ -134,6 +134,8 @@ class CAM_SubArray: public FunctionUnit {
         double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
         double EffectiveMcamStateResistance(double stateResistance, double baseStateResistance) const;
         std::vector<double> EffectiveMcamStateResistances() const;
+        double MeanSquaredSearchVoltage(int rowPortIndex) const;
+        double CalculateSearchlineDriveEnergy() const;
         double McamStateTau(double effectiveStateResistance, double mlWireRes) const;
         std::vector<double> McamStateTaus(const std::vector<double> &effectiveStateResistances) const;
         double McamStateDelay(double stateTau, double *ramp) const;
@@ -292,8 +294,7 @@ class CAM_SubArray: public FunctionUnit {
         double chargeLatency;
         double searchLatency;
         double searchDynamicEnergy;
-        double energyDriveSearch0;
-        double energyDriveSearch1;
+        double searchlineDriveDynamicEnergy;
         double rampOutput;
         double resetEnergyPerBit;
         double setEnergyPerBit;

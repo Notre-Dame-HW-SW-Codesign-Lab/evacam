@@ -224,10 +224,7 @@ namespace {
         y.begin_map("search_dynamic_energy");
         y.line("input_encoder", fmt_joule(sub->inputEnc->readDynamicEnergy));
         y.line("row_decoder", fmt_joule(sub->RowDecMergeNand->readDynamicEnergy));
-        double row_search_dynamic_energy = 0;
-        for (int i = 0; i < input->technology.cell->camNumRow; i++)
-            row_search_dynamic_energy += sub->RowDriver[i]->readDynamicEnergy;
-        y.line("row_driver", fmt_joule(row_search_dynamic_energy));
+        y.line("row_driver", fmt_joule(sub->searchlineDriveDynamicEnergy));
         y.line("precharger", fmt_joule(sub->precharger->readDynamicEnergy));
         y.line("cell_read", fmt_joule(sub->cellReadEnergy));
         double col_mux_read_dynamic_energy = 0;

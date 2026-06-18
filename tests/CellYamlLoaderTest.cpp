@@ -141,6 +141,8 @@ void TestVariationDefaultsWhenOmitted() {
     assert(cell.matchlineWireResistanceMaxVariation == 0.0);
     assert(cell.deviceAccessResistanceMaxVariation == 0.0);
     assert(cell.deviceMatchResistanceMaxVariation == 0.0);
+    assert(cell.hasMcamSearchlineVoltages == false);
+    assert(cell.hasMcamCenterVoltage == false);
 }
 
 void TestVariationSectionParses() {
@@ -186,7 +188,7 @@ void TestVariationSectionParses() {
     assert(near(cell.deviceMatchResistanceMaxVariation, 0.23));
 }
 
-void TestMcamMlPrechargeVoltageParses() {
+void TestMcamVoltagesParse() {
     WriteMinimalCellFile(
         kCellPath,
         "mcam:\n"
@@ -197,7 +199,8 @@ void TestMcamMlPrechargeVoltageParses() {
         "    1: 900mV\n"
         "    2: 0.75V\n"
         "    3: 600mV\n"
-        "  searchline_voltage: [0.4V, 500mV, 0.6V, 700mV]\n");
+        "  searchline_voltage: [0.4V, 500mV, 0.6V, 700mV]\n"
+        "  center_voltage: 840mV\n");
 
     MemCell cell;
     cell.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
@@ -211,6 +214,28 @@ void TestMcamMlPrechargeVoltageParses() {
     assert(near(cell.searchlineVoltage[1], 0.5));
     assert(near(cell.searchlineVoltage[2], 0.6));
     assert(near(cell.searchlineVoltage[3], 0.7));
+    assert(near(cell.centerVoltage, 0.84));
+    assert(cell.hasMcamSearchlineVoltages == true);
+    assert(cell.hasMcamCenterVoltage == true);
+
+    WriteMinimalCellFile(
+        kCellPath,
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500kohm]\n"
+        "  center_voltage: 1.25V\n");
+
+    MemCell cellWithVolts;
+    cellWithVolts.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
+    assert(near(cellWithVolts.centerVoltage, 1.25));
+
+    WriteMinimalCellFile(
+        kCellPath,
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500kohm]\n"
+        "  center_voltage: 840uV\n");
+    assert(LoadCellThrows(kCellPath));
 }
 
 void TestMissingRequiredCellFieldThrows() {
@@ -233,7 +258,7 @@ int main() {
     TestMinimalCellParses();
     TestVariationDefaultsWhenOmitted();
     TestVariationSectionParses();
-    TestMcamMlPrechargeVoltageParses();
+    TestMcamVoltagesParse();
     TestMissingRequiredCellFieldThrows();
     std::cout << "CellYamlLoader tests passed" << std::endl;
     return 0;

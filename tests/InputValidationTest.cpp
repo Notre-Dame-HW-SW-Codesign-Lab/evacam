@@ -17,7 +17,8 @@ void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         const std::string &camType = "TCAM",
         const std::string &columnType = "matchline",
         const std::string &columnRegion = "drain",
-        const std::string &extraCellBlock = "") {
+        const std::string &extraCellBlock = "",
+        const std::string &additionalRowPorts = "") {
     std::ofstream out(kCellPath);
     out <<
         "cell:\n"
@@ -71,6 +72,7 @@ void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         "        reset: 4V\n"
         "        search0: 1V\n"
         "        search1: 1V\n"
+        << additionalRowPorts <<
         "  column:\n"
         "    0:\n"
         "      type: " << columnType << "\n"
@@ -640,6 +642,89 @@ void TestMcamSearchlineVoltagesMustBeNonNegativeThrows() {
     WriteMinimalCellFile();
 }
 
+void TestMcamCenterVoltageMustBeNonNegativeThrows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n"
+        "  center_voltage: -1mV\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("mcam.center_voltage must be non-negative"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamSearchlineVoltageMappingRequiresBothInputs() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n"
+        "  searchline_voltage: [1V, 900mV]\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage(
+            "mcam.searchline_voltage and mcam.center_voltage must be provided together"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamSearchlineVoltageMappingRequiresTwoSearchlines() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n"
+        "  searchline_voltage: [1V, 900mV]\n"
+        "  center_voltage: 600mV\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage("requires exactly two searchline row ports"));
+    WriteMinimalCellFile();
+}
+
+void TestMcamComplementarySearchlineVoltageMustBeNonNegative() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500Kohm]\n"
+        "  searchline_voltage: [1V, 900mV]\n"
+        "  center_voltage: 400mV\n",
+        "    1:\n"
+        "      type: searchline\n"
+        "      cmos_region: gate\n"
+        "      num_cmos: 1\n"
+        "      cmos_width: 1F\n"
+        "      is_nmos: true\n"
+        "      wire_width: 1F\n");
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n");
+
+    assert(LoadThrowsWithMessage(
+            "MCAM derived complementary searchline voltage must be non-negative"));
+    WriteMinimalCellFile();
+}
+
 void TestMatchlineGateConnectionThrows() {
     WriteMinimalCellFile("SRAM", "TCAM", "matchline", "gate");
     WriteConfig(
@@ -1005,6 +1090,10 @@ int main() {
     TestMcamMlPrechargeVoltagesMustBeNonNegativeThrows();
     TestMcamSearchlineVoltageCountMismatchThrows();
     TestMcamSearchlineVoltagesMustBeNonNegativeThrows();
+    TestMcamCenterVoltageMustBeNonNegativeThrows();
+    TestMcamSearchlineVoltageMappingRequiresBothInputs();
+    TestMcamSearchlineVoltageMappingRequiresTwoSearchlines();
+    TestMcamComplementarySearchlineVoltageMustBeNonNegative();
     TestMatchlineGateConnectionThrows();
     TestBitlineColumnTopologyThrows();
     TestMissingMatchlineColumnThrows();

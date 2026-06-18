@@ -576,6 +576,7 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
 
     auto searchlineVoltage = YamlHelpers::child_optional(mcam, "searchline_voltage");
     if (searchlineVoltage) {
+        cell.hasMcamSearchlineVoltages = true;
         if (searchlineVoltage.IsSequence()) {
             const int n = std::min<int>(searchlineVoltage.size(), 64);
             for (int i = 0; i < n; i++) {
@@ -593,6 +594,12 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
         } else {
             throw std::runtime_error("mcam.searchline_voltage must be sequence or map");
         }
+    }
+
+    if (YamlHelpers::child_optional(mcam, "center_voltage")) {
+        cell.hasMcamCenterVoltage = true;
+        cell.centerVoltage = YamlHelpers::read_quantity_required(
+                mcam, "center_voltage", YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
     }
 }
 

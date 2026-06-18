@@ -311,6 +311,7 @@ void CAM_SubArray::Initialize(
     numRow = _numRow;
     numColumn = _numColumn;
     latencyCalculated = false;
+    searchlineDriveDynamicEnergy = 0;
     multipleRowPerSet = _multipleRowPerSet;
     split = _split;
     muxSenseAmp = _muxSenseAmp;
@@ -1122,19 +1123,8 @@ void CAM_SubArray::CalculatePower() {
             }
         cellReadEnergy *= numColumn / muxSenseAmp;
 
-        energyDriveSearch0 = 0;
-        energyDriveSearch1 = 0;
-
-        for (int i = 0; i < cell.camNumRow; i++) {
-
-            energyDriveSearch0 += RowDriver[i]->readDynamicEnergy / tech.vdd() 
-                / tech.vdd() * Row[i].CellPort.volSearch0 * Row[i].CellPort.volSearch0;
-
-            energyDriveSearch1 += RowDriver[i]->readDynamicEnergy / tech.vdd() 
-                / tech.vdd() * Row[i].CellPort.volSearch1 * Row[i].CellPort.volSearch1;
-        }
-
-        searchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1)/2;
+        searchlineDriveDynamicEnergy = CalculateSearchlineDriveEnergy();
+        searchDynamicEnergy += searchlineDriveDynamicEnergy;
         UpdateVariationPowerSummary();
 
         readDynamicEnergy = searchDynamicEnergy + inputBufReadEnergy * numRow 
@@ -1407,6 +1397,47 @@ double CAM_SubArray::EffectiveMcamStateResistance(
     const double bitSerialWidth = CAM_opt.BitSerialWidth;
     return (stateResistance * baseStateResistance)
         / (stateResistance * (bitSerialWidth - 1) + baseStateResistance);
+}
+
+double CAM_SubArray::MeanSquaredSearchVoltage(int rowPortIndex) const {
+    const auto &cell = *config->technology.cell;
+    if (rowPortIndex < 0 || rowPortIndex >= cell.camNumRow) {
+        throw std::runtime_error("[CAM_SubArray] Error: row port index is out of range.");
+    }
+
+    const CAMPort &port = cell.camPort[0][rowPortIndex];
+    if (cell.camType != MCAM || port.Type != Searchline
+            || (!cell.hasMcamSearchlineVoltages && !cell.hasMcamCenterVoltage)) {
+        return (port.volSearch0 * port.volSearch0 + port.volSearch1 * port.volSearch1) / 2;
+    }
+
+    int searchlineIndex = 0;
+    for (int i = 0; i < rowPortIndex; i++) {
+        if (cell.camPort[0][i].Type == Searchline) {
+            searchlineIndex++;
+        }
+    }
+
+    double voltageSquaredSum = 0;
+    for (int state = 0; state < cell.numResistanceState; state++) {
+        double voltage = cell.searchlineVoltage[state];
+        if (searchlineIndex == 1) {
+            voltage = 2 * cell.centerVoltage - voltage;
+        }
+        voltageSquaredSum += voltage * voltage;
+    }
+    return voltageSquaredSum / cell.numResistanceState;
+}
+
+double CAM_SubArray::CalculateSearchlineDriveEnergy() const {
+    const auto &cell = *config->technology.cell;
+    const double vdd = config->technology.tech->vdd();
+    double energy = 0;
+    for (int i = 0; i < cell.camNumRow; i++) {
+        energy += RowDriver[i]->readDynamicEnergy
+            * MeanSquaredSearchVoltage(i) / (vdd * vdd);
+    }
+    return energy;
 }
 
 std::vector<double> CAM_SubArray::EffectiveMcamStateResistances() const {
@@ -2040,7 +2071,7 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
         }
 
         const double sampleMatchlineDelay = variationSummary.matchlineDelay.sample;
-        sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
+        sampleSearchDynamicEnergy += searchlineDriveDynamicEnergy;
         sampleSearchDynamicEnergy += SampleCellReadEnergy(sample, sampleMatchlineDelay);
         variationSummary.searchDynamicEnergy = BuildSinglePointMetric(
                 sampleSearchDynamicEnergy,
@@ -2086,7 +2117,7 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
             }
         }
 
-        sampleSearchDynamicEnergy += (energyDriveSearch0 + energyDriveSearch1) / 2;
+        sampleSearchDynamicEnergy += searchlineDriveDynamicEnergy;
         double sampleMatchlineDelay = matchlineDelay;
         searchEnergies.push_back(sampleSearchDynamicEnergy);
         if (sampleIndex < static_cast<int>(variationSamples.size())) {

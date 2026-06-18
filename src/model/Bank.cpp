@@ -89,10 +89,8 @@ void PrintSearchEnergyBreakdown(const Bank &bank, const CAM_SubArray &subarray) 
     std::cout << "========= Search Dynamic Energy Breakdown =========" << std::endl;
     std::cout << " |--- Input Encoder Dynamic Energy      = " << ToJoule(subarray.inputEnc->readDynamicEnergy) << std::endl;
     std::cout << " |--- Row Decoder Dynamic Energy        = " << ToJoule(subarray.RowDecMergeNand->readDynamicEnergy) << std::endl;
-    const double rowSearchDynamicEnergy = SumRowDrivers(
-            subarray, config.technology.cell->camNumRow,
-            [](const auto &rowDriver) { return rowDriver.readDynamicEnergy; });
-    std::cout << " |--- RowDriver Dynamic Energy          = " << ToJoule(rowSearchDynamicEnergy) << std::endl; //For FeFET *16
+    std::cout << " |--- RowDriver Dynamic Energy          = "
+              << ToJoule(subarray.searchlineDriveDynamicEnergy) << std::endl;
     std::cout << " |--- Precharger Dynamic Energy         = " << ToJoule(subarray.precharger->readDynamicEnergy) << std::endl;
     // TODO: not really the breakdown
     std::cout << " |--- Cell Read Energy                  = " << ToJoule(subarray.cellReadEnergy) << std::endl;

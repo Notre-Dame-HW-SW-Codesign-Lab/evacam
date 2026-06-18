@@ -242,13 +242,7 @@ void AddBreakdown(EvaCamDesignResultDto &dto, const Result &result) {
         dto.breakdown["search_dynamic_energy.input_encoder_j"] = sub.inputEnc->readDynamicEnergy;
     }
     dto.breakdown["search_dynamic_energy.row_decoder_j"] = sub.RowDecMergeNand->readDynamicEnergy;
-    double rowSearchDynamicEnergy = 0;
-    for (const auto &driver : sub.RowDriver) {
-        if (driver) {
-            rowSearchDynamicEnergy += driver->readDynamicEnergy;
-        }
-    }
-    dto.breakdown["search_dynamic_energy.row_driver_j"] = rowSearchDynamicEnergy;
+    dto.breakdown["search_dynamic_energy.row_driver_j"] = sub.searchlineDriveDynamicEnergy;
     dto.breakdown["search_dynamic_energy.precharger_j"] = sub.precharger->readDynamicEnergy;
     dto.breakdown["search_dynamic_energy.cell_read_j"] = sub.cellReadEnergy;
     double colMuxReadDynamicEnergy = 0;

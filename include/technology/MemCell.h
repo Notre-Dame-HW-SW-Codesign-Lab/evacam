@@ -68,6 +68,9 @@ class MemCell {
         double ResistanceState[64];
         double mlPrechargeVoltage[64]; // Optional MCAM matchline precharge voltage per state
         double searchlineVoltage[64]; // Optional MCAM searchline voltage per state
+        double centerVoltage; // Optional MCAM center voltage
+        bool hasMcamSearchlineVoltages;
+        bool hasMcamCenterVoltage;
 
         bool withVariation;
         bool hasVariationSeed;
