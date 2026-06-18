@@ -35,7 +35,6 @@ This document is a quick reference for the major inheritance relationships in th
 - `Result`
 - `CAM_Result`
 - `MemCell`
-- `CAM_MemCell`
 - `Technology`
 - `Wire`
 - `CAM_Line`
@@ -74,7 +73,6 @@ FunctionUnit
 Result
     CAM_Result
 MemCell
-    CAM_MemCell
 Technology
 Wire
 CAM_Line
