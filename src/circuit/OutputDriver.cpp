@@ -179,7 +179,7 @@ void OutputDriver::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[Output Driver]");
     } else if (invalid) {
-        ;  // nothing to do if invalid
+        return;  // nothing to do if invalid
     } else if (numStage == 0) {
         capInput[0] = 0;
         capOutput[0] = 0;

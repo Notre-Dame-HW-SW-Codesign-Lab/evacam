@@ -1,23 +1,23 @@
 #include "Precharger.h"
 #include "formula.h"
-/*
-   Precharger::Precharger() {
-initialized = false;
-enableLatency = 0;
-}
 
-Precharger::~Precharger() {
-}
- */
-void Precharger::Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire) {
+void Precharger::Initialize(
+        double _voltagePrecharge, 
+        int _numColumn, 
+        double _capBitline, 
+        double _resBitline, 
+        std::shared_ptr<EvaCamConfig> _config, 
+        const Wire &_localWire) {
+
+    config = _config;
+
     if (initialized)
-        _config->logger.Verbose() << "[Precharger] Warning: Already initialized!";
+        config->logger.Verbose() << "[Precharger] Warning: Already initialized!";
 
     voltagePrecharge = _voltagePrecharge;
     numColumn  = _numColumn;
     capBitline = _capBitline;
     resBitline = _resBitline;
-    config = _config;
     localWire = _localWire;
 
     capWireLoadPerColumn = config->technology.cell->widthInFeatureSize * config->technology.tech->featureSize() * localWire.capWirePerUnit;
@@ -44,7 +44,6 @@ void Precharger::CalculateArea() {
     if (!initialized) {
         ThrowInitializationError("[Precharger]");
     } else {
-        //outputDriver.CalculateArea();
         double hBitlinePrechareger, wBitlinePrechareger;
         double hBitlineEqual, wBitlineEqual;
         double hInverter, wInverter;
@@ -66,8 +65,7 @@ void Precharger::CalculateRC() {
     if (!initialized) {
         ThrowInitializationError("[Precharger]");
     } else {
-        //outputDriver.CalculateRC();
-        //more accurate RC model would include drain Capacitances of Precharger and Equalization PMOS transistors
+        // more accurate RC model would include drain Capacitances of Precharger and Equalization PMOS transistors
         // TODO: the above
     }
 }

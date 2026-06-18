@@ -20,8 +20,14 @@ class CAM_Precharger: public Precharger {
         ~CAM_Precharger() override = default;
 
         /* Functions */
-        void Initialize(double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, 
-                std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire);
+        void Initialize(
+                double _voltagePrecharge, 
+                int _numColumn, 
+                double _capBitline, 
+                double _resBitline, 
+                std::shared_ptr<EvaCamConfig> _config, 
+                const Wire &_localWire);
+
         void CalculateArea();
 };
 
