@@ -336,19 +336,6 @@ void ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config) {
             advanced, "scaled_voltage", config.peripherals.scaledVoltage);
 }
 
-void ReadCacheSection(const YAML::Node &root, EvaCamConfig &config) {
-    auto cacheCfg = YamlHelpers::child_optional(root, "cache");
-    if (!cacheCfg) {
-        return;
-    }
-    config.input.associativity = YamlHelpers::read_optional<int>(
-            cacheCfg, "associativity", config.input.associativity);
-    if (YamlHelpers::child_optional(cacheCfg, "access_mode")) {
-        config.input.cacheAccessMode =
-            YamlHelpers::read_enum_required<CacheAccessMode>(cacheCfg, "access_mode", false);
-    }
-}
-
 void ReadFlashSection(const YAML::Node &root, EvaCamConfig &config) {
     auto flash = YamlHelpers::child_optional(root, "flash");
     if (!flash) {

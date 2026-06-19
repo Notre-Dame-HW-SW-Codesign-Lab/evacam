@@ -45,7 +45,6 @@ static void test_enum_read() {
         "  route: H-tree\n"
         "  write: Normal\n"
         "  opt: ReadLatency\n"
-        "  cache: normal\n"
         "  encoder: encoding_two_bit\n"
         "  sense: nvsim_vol\n"
         "  port: Matchline\n"
@@ -71,7 +70,6 @@ static void test_enum_read() {
     auto route = YamlHelpers::read_enum_required<RoutingMode>(root, "route");
     auto write = YamlHelpers::read_enum_required<WriteScheme>(root, "write");
     auto opt = YamlHelpers::read_enum_required<OptimizationTarget>(root, "opt");
-    auto cache = YamlHelpers::read_enum_required<CacheAccessMode>(root, "cache");
     auto encoder = YamlHelpers::read_enum_required<TypeOfInputEncoder>(root, "encoder");
     auto sense = YamlHelpers::read_enum_required<TypeOfSenseAmp>(root, "sense");
     auto port = YamlHelpers::read_enum_required<CAM_PortType>(root, "port");
@@ -90,7 +88,6 @@ static void test_enum_read() {
     assert(route == h_tree);
     assert(write == normal_write);
     assert(opt == read_latency_optimized);
-    assert(cache == normal_access_mode);
     assert(encoder == encoding_two_bit);
     assert(sense == nvsim_voltage_sense);
     assert(port == Matchline);

@@ -245,15 +245,6 @@ const std::vector<std::pair<const char*, OptimizationTarget>>& EnumTraits<Optimi
     return k;
 }
 
-const std::vector<std::pair<const char*, CacheAccessMode>>& EnumTraits<CacheAccessMode>::mapping() {
-    static const std::vector<std::pair<const char*, CacheAccessMode>> k = {
-        {"normal", normal_access_mode},
-        {"sequential", sequential_access_mode},
-        {"fast", fast_access_mode},
-    };
-    return k;
-}
-
 const std::vector<std::pair<const char*, TypeOfInputEncoder>>& EnumTraits<TypeOfInputEncoder>::mapping() {
     static const std::vector<std::pair<const char*, TypeOfInputEncoder>> k = {
         {"encoding_two_bit", encoding_two_bit},

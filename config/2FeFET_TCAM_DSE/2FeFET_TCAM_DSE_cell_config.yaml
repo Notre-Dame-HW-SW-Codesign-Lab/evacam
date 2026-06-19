@@ -35,8 +35,6 @@ write:
     current: 5e-07uA
     pulse: 10ns
     energy: 0.0002pJ
-multilevel:
-  enabled: false
 match:
   cmos_width: 3F
   additional_cap_on_ml: 33fF

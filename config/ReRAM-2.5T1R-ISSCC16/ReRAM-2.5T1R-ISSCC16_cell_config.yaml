@@ -31,8 +31,6 @@ write:
     current: 150uA
     pulse: 10ns
     energy: 1pJ
-multilevel:
-  enabled: true
 match:
   cmos_width: 6F
 ports:

@@ -20,7 +20,6 @@ void EvaCamYamlLoader::Load(const std::string &inputFile, EvaCamConfig &config) 
     ConfigSectionReaders::ReadMatchlineSection(root, config);
     ConfigSectionReaders::ReadConstraintSection(root, config);
     ConfigSectionReaders::ReadAdvancedSection(root, config);
-    ConfigSectionReaders::ReadCacheSection(root, config);
     ConfigSectionReaders::ReadFlashSection(root, config);
     ConfigSectionReaders::ReadExtraSection(root, config);
     ConfigNormalizer::Normalize(config);

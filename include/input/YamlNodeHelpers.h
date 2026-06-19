@@ -179,10 +179,6 @@ template <>
         static const std::vector<std::pair<const char*, OptimizationTarget>>& mapping();
     };
 template <>
-    struct EnumTraits<CacheAccessMode> {
-        static const std::vector<std::pair<const char*, CacheAccessMode>>& mapping();
-    };
-template <>
     struct EnumTraits<TypeOfInputEncoder> {
         static const std::vector<std::pair<const char*, TypeOfInputEncoder>>& mapping();
     };

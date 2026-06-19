@@ -64,5 +64,5 @@ organization:
 matchline:
   additional_cap: 0fF
 
-output:
-  yaml_file: results/2FeFET_MCAM_as_TCAM_results.yaml
+extra:
+  output_yaml_file: results/2FeFET_MCAM_as_TCAM_results.yaml

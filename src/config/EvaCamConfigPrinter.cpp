@@ -42,15 +42,6 @@ const char *ToString(SearchFunction function) {
     }
 }
 
-const char *ToString(CacheAccessMode mode) {
-    switch (mode) {
-        case normal_access_mode: return "Normal";
-        case sequential_access_mode: return "Sequential";
-        case fast_access_mode: return "Fast";
-        default: return "Unknown";
-    }
-}
-
 const char *ToString(WriteScheme scheme) {
     switch (scheme) {
         case set_before_reset: return "Set before reset";
@@ -149,10 +140,6 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
     std::cout << "Temperature: " << input.temperature << "K" << std::endl;
     std::cout << "Memory Cell: " << ToString(technology.cell->memCellType) << std::endl;
     std::cout << "Cell File  : " << input.fileMemCell << std::endl;
-
-    if (input.designTarget == cache) {
-        std::cout << "Cache Access Mode: " << ToString(input.cacheAccessMode) << std::endl;
-    }
 
     if (input.designTarget == CAM_chip) {
         std::cout << "Search Function: " << ToString(input.searchFunction) << std::endl;

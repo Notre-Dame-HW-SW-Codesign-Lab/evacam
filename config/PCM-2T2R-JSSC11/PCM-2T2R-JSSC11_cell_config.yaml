@@ -30,8 +30,6 @@ write:
     mode: current
     current: 300uA
     pulse: 40ns
-multilevel:
-  enabled: false
 match:
   cmos_width: 8F
 ports:

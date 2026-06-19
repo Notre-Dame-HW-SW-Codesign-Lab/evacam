@@ -18,7 +18,6 @@ void ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadMatchlineSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadConstraintSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config);
-void ReadCacheSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadFlashSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadExtraSection(const YAML::Node &root, EvaCamConfig &config);
 

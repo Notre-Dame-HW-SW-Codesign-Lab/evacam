@@ -39,9 +39,6 @@ write:
     pulse: 10ns
     energy: 2e-05pJ
 
-multilevel:
-  enabled: false
-
 mcam:
   num_resistance_state: 8
   resistance_state: [ 1.616Mohm, 

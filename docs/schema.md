@@ -43,7 +43,6 @@ Useful optional keys:
 - `optimization.deep_exploration`: expands the default exploration search space when explicit `organization.*` pinning is omitted
 - `advanced.enable_pruning`, `advanced.bit_serial_width`, `advanced.use_cacti_assumption`
 - `advanced.input_encoder_type`: currently `encoding_two_bit`
-- `cache.associativity`, `cache.access_mode`
 - `extra.real_capacity`: required when `memory.word_width` is not a power of two
 - `extra.output_yaml_file`: overrides the default results YAML path
 - `extra.output_file_prefix`: affects exploration CSV naming
@@ -93,5 +92,4 @@ System config notes:
 
 - `design.system_process_node` is the authoritative modeled technology node. `cell.cell_process_node` records the process node associated with the cell definition.
 - `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
-- `cache.access_mode` is retained for cache-era compatibility; `design.target` currently supports only `CAM`.
 - `sensing.custom_sense_amp: true` requires `advanced.custom_sa_input_file` to reference a YAML file. The custom sense-amp file uses a `custom_sense_amp` mapping with `latency`, `energy`, `cap_load`, and either `area` or both `height` and `width`; `leakage` is optional.

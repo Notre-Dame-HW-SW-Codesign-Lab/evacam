@@ -20,7 +20,6 @@ struct InputConfig {
     double maxDriverCurrent = 0;
     WriteScheme writeScheme = normal_write;
     int associativity = 1;
-    CacheAccessMode cacheAccessMode = normal_access_mode;
     long pageSize = 0;
     long flashBlockSize = 0;
     RoutingMode routingMode = h_tree;

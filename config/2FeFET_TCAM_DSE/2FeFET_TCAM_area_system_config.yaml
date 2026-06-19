@@ -55,6 +55,3 @@ organization:
 
 matchline:
   additional_cap: 0fF
-
-extra:
-  "CamType": TCAM

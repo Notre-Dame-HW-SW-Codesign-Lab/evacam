@@ -62,10 +62,9 @@ wires:
   global:
     type: GlobalAggressive # required enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
     repeater: RepeatedNone # required enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
-    low_swing: false # required bool; true is only supported with RepeatedNone
 
 # Optional parsed section. The top-level key array: is also accepted as a legacy
-# alias for organization:.
+# alias for organization.
 # If this section is omitted, EvaCAM uses default exploration ranges. If
 # optimization.deep_exploration is true, those default ranges are wider.
 organization:
@@ -119,12 +118,6 @@ advanced:
   exclude_precharge_latency: false # optional bool
   include_leakage: false # optional bool
   scaled_voltage: 1.0 # optional scalar; >0 scales dynamic energy by voltage squared
-
-# Optional parsed section. These are NVSim knobs for caches; design.target currently
-# only supports CAM, so access_mode mainly remains for compatibility.
-cache:
-  associativity: 1 # optional int; current CAM bank path uses effective associativity 1
-  access_mode: normal # optional enum: normal | fast | sequential
 
 # Optional parsed section. System-level NAND flash organization, distinct from
 # cell-level flash device parameters.

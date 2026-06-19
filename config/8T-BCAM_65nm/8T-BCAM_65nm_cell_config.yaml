@@ -17,8 +17,6 @@ read:
   voltage: 1.2V
   energy: 0.61fJ
   min_sense_voltage: 50mV
-multilevel:
-  enabled: false
 match:
   cmos_width: 1F
 ports:

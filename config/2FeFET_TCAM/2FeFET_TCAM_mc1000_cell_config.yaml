@@ -33,8 +33,6 @@ write:
     current: 5e-07uA
     pulse: 10ns
     energy: 2e-05pJ
-multilevel:
-  enabled: false
 variation:
   with_variation: true
   seed: 33333

@@ -39,9 +39,6 @@ write:
     pulse: 10ns
     energy: 2e-05pJ
 
-multilevel:
-  enabled: false
-
 match:
   cmos_width: 5F
   additional_cap_on_ml: 33fF

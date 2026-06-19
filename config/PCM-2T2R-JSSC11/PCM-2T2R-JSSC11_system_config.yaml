@@ -60,6 +60,3 @@ organization:
     sense_amp: 1
     output_level1: 8  # for write only
     output_level2: 1  # for write only
-
-extra:
-  "InputEncType": encoding_two_bit
