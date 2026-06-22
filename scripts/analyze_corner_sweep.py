@@ -25,6 +25,32 @@ DERIVED_METRICS = (
     ("search_energy_range_pct", "Search energy range", "%", "max"),
     ("minimum_sense_margin_mv", "Minimum sense margin", "mV", "min"),
 )
+MAIN_EFFECT_BOUNDS = (
+    (
+        "matchline_delay_lower_deviation_pct",
+        "matchline_delay_upper_deviation_pct",
+        "Matchline delay deviation",
+        "Deviation from nominal (%)",
+    ),
+    (
+        "search_latency_lower_deviation_pct",
+        "search_latency_upper_deviation_pct",
+        "Search latency deviation",
+        "Deviation from nominal (%)",
+    ),
+    (
+        "search_energy_lower_deviation_pct",
+        "search_energy_upper_deviation_pct",
+        "Search energy deviation",
+        "Deviation from nominal (%)",
+    ),
+    (
+        "sense_margin_lower_deviation_mv",
+        "sense_margin_upper_deviation_mv",
+        "Sense margin deviation",
+        "Deviation from nominal (mV)",
+    ),
+)
 REQUIRED_SUMMARY_FIELDS = {
     "run_id",
     "corners",
@@ -139,6 +165,12 @@ def percent_range(minimum: float, maximum: float, nominal: float) -> float:
     return 100.0 * (maximum - minimum) / abs(nominal)
 
 
+def percent_deviation(value: float, nominal: float) -> float:
+    if nominal == 0.0:
+        return math.nan
+    return 100.0 * (value - nominal) / abs(nominal)
+
+
 def derive_rows(summary_rows: list[dict[str, str]]) -> list[dict[str, str | float | int]]:
     derived = []
     for source in summary_rows:
@@ -171,11 +203,23 @@ def derive_rows(summary_rows: list[dict[str, str]]) -> list[dict[str, str | floa
                 "matchline_delay_range_pct": percent_range(
                     matchline_min, matchline_max, matchline_nominal
                 ),
+                "matchline_delay_lower_deviation_pct": percent_deviation(
+                    matchline_min, matchline_nominal
+                ),
+                "matchline_delay_upper_deviation_pct": percent_deviation(
+                    matchline_max, matchline_nominal
+                ),
                 "search_latency_nominal_ps": latency_nominal * 1e12,
                 "search_latency_min_ps": latency_min * 1e12,
                 "search_latency_max_ps": latency_max * 1e12,
                 "search_latency_range_pct": percent_range(
                     latency_min, latency_max, latency_nominal
+                ),
+                "search_latency_lower_deviation_pct": percent_deviation(
+                    latency_min, latency_nominal
+                ),
+                "search_latency_upper_deviation_pct": percent_deviation(
+                    latency_max, latency_nominal
                 ),
                 "search_energy_nominal_pj": energy_nominal * 1e12,
                 "search_energy_min_pj": energy_min * 1e12,
@@ -183,9 +227,19 @@ def derive_rows(summary_rows: list[dict[str, str]]) -> list[dict[str, str | floa
                 "search_energy_range_pct": percent_range(
                     energy_min, energy_max, energy_nominal
                 ),
+                "search_energy_lower_deviation_pct": percent_deviation(
+                    energy_min, energy_nominal
+                ),
+                "search_energy_upper_deviation_pct": percent_deviation(
+                    energy_max, energy_nominal
+                ),
                 "sense_margin_nominal_mv": sense_nominal * 1e3,
                 "minimum_sense_margin_mv": sense_min * 1e3,
                 "maximum_sense_margin_mv": sense_max * 1e3,
+                "sense_margin_lower_deviation_mv": (sense_min - sense_nominal)
+                * 1e3,
+                "sense_margin_upper_deviation_mv": (sense_max - sense_nominal)
+                * 1e3,
             }
         )
         derived.append(row)
@@ -234,6 +288,10 @@ def build_main_effects(rows: list[dict]) -> list[dict[str, str | float | int]]:
                 effect[f"{metric}_median"] = statistics.median(values)
                 effect[f"{metric}_min"] = min(values)
                 effect[f"{metric}_max"] = max(values)
+            for lower_metric, upper_metric, _label, _unit in MAIN_EFFECT_BOUNDS:
+                for metric in (lower_metric, upper_metric):
+                    values = [float(row[metric]) for row in group]
+                    effect[f"{metric}_mean"] = statistics.fmean(values)
             effects.append(effect)
     return effects
 
@@ -307,26 +365,46 @@ def setup_matplotlib():
 
 def plot_main_effects(main_effects: list[dict], output_dir: Path, plt) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(12, 8), constrained_layout=True)
-    for axis, (metric, label, unit, _direction) in zip(
-        axes.flat, DERIVED_METRICS
+    for axis, (lower_metric, upper_metric, label, y_label) in zip(
+        axes.flat, MAIN_EFFECT_BOUNDS
     ):
         for parameter, parameter_label in PARAMETERS:
             selected = [
                 row for row in main_effects if row["parameter"] == parameter
             ]
-            axis.plot(
-                [int(row["level_percent"]) for row in selected],
-                [float(row[f"{metric}_mean"]) for row in selected],
+            levels = [int(row["level_percent"]) for row in selected]
+            lower_values = [
+                float(row[f"{lower_metric}_mean"]) for row in selected
+            ]
+            upper_values = [
+                float(row[f"{upper_metric}_mean"]) for row in selected
+            ]
+            upper_line = axis.plot(
+                levels,
+                upper_values,
                 marker="o",
+                linestyle="-",
                 label=parameter_label,
+            )[0]
+            axis.plot(
+                levels,
+                lower_values,
+                marker="o",
+                linestyle="--",
+                color=upper_line.get_color(),
             )
         axis.set_title(label)
         axis.set_xlabel("Variation bound (%)")
-        axis.set_ylabel(unit)
+        axis.set_ylabel(y_label)
+        axis.axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axis.grid(axis="y", alpha=0.3)
         axis.spines["top"].set_visible(False)
         axis.spines["right"].set_visible(False)
-    axes[0][0].legend(fontsize=8)
+    axes[0][0].legend(
+        fontsize=8,
+        title="Solid: upper; dashed: lower",
+        title_fontsize=8,
+    )
     fig.suptitle("Corner Sweep Main Effects")
     fig.savefig(output_dir / "main_effects.svg", format="svg")
     plt.close(fig)
