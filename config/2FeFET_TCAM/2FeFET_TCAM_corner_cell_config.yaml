@@ -38,9 +38,6 @@ variation:
   mode: corner
   memory_device_resistance_on_max_var: 7%
   memory_device_resistance_off_max_var: 7%
-  matchline_wire_resistance_max_var: 3%
-  device_access_resistance_max_var: 1%
-  device_match_resistance_max_var: 1%
 match:
   cmos_width: 3F
 ports:

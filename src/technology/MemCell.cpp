@@ -85,14 +85,8 @@ MemCell::MemCell() {
     variationSamples = 1;
     resistanceOnVariation = 0;
     resistanceOffVariation = 0;
-    matchlineWireResistanceVariation = 0;
-    deviceAccessResistanceVariation = 0;
-    deviceMatchResistanceVariation = 0;
     resistanceOnMaxVariation = 0;
     resistanceOffMaxVariation = 0;
-    matchlineWireResistanceMaxVariation = 0;
-    deviceAccessResistanceMaxVariation = 0;
-    deviceMatchResistanceMaxVariation = 0;
 
     /* For NAND flash */
     flashEraseVoltage = 0;

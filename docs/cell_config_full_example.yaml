@@ -116,14 +116,8 @@ variation:
   seed: 12345 # optional uint32; mainly for reproducible testing; ignored for corner
   memory_device_resistance_on_stdev: 0% # optional; fraction or percent
   memory_device_resistance_off_stdev: 0% # optional; fraction or percent
-  matchline_wire_resistance_stdev: 0% # optional; fraction or percent
-  device_access_resistance_stdev: 0% # optional; fraction or percent
-  device_match_resistance_stdev: 0% # optional; fraction or percent
   memory_device_resistance_on_max_var: 0% # optional for corner; fraction or percent
   memory_device_resistance_off_max_var: 0% # optional for corner; fraction or percent
-  matchline_wire_resistance_max_var: 0% # optional for corner; fraction or percent
-  device_access_resistance_max_var: 0% # optional for corner; fraction or percent
-  device_match_resistance_max_var: 0% # optional for corner; fraction or percent
 
 # Optional parsed section, but current model code does not use these values.
 mcam:

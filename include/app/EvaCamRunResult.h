@@ -19,11 +19,8 @@ struct EvaCamMetricStatsDto {
 struct EvaCamVariationSampleDto {
     int sample = 0;
     std::string cornerLabel;
-    std::string matchlineWireResCorner = "nominal";
-    std::string accessResOnCorner = "nominal";
-    std::string accessResOffCorner = "nominal";
-    std::string matchResOnCorner = "nominal";
-    std::string matchResOffCorner = "nominal";
+    std::string memoryDeviceResOnCorner = "nominal";
+    std::string memoryDeviceResOffCorner = "nominal";
     double matchlineDelay = 0;
     double searchLatency = 0;
     double searchDynamicEnergy = 0;

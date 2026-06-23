@@ -26,9 +26,6 @@ SWEEP_VALUES = (0, 2, 4, 6, 8)
 VARIATION_FIELDS = (
     ("memory_device_resistance_on_max_var", "on"),
     ("memory_device_resistance_off_max_var", "off"),
-    ("matchline_wire_resistance_max_var", "wire"),
-    ("device_access_resistance_max_var", "access"),
-    ("device_match_resistance_max_var", "match"),
 )
 METRICS = (
     "matchline_delay_s",
@@ -40,9 +37,6 @@ MANIFEST_FIELDS = (
     "run_id",
     "on_var_percent",
     "off_var_percent",
-    "wire_var_percent",
-    "access_var_percent",
-    "match_var_percent",
     "expected_corners",
     "status",
     "elapsed_seconds",
@@ -53,7 +47,7 @@ MANIFEST_FIELDS = (
 
 @dataclass(frozen=True)
 class RunSpec:
-    values: tuple[int, int, int, int, int]
+    values: tuple[int, int]
 
     @property
     def run_id(self) -> str:
@@ -69,13 +63,7 @@ class RunSpec:
 
     @property
     def expected_corners(self) -> int:
-        on_var, off_var, wire_var, access_var, match_var = self.values
-        dimensions = 0
-        dimensions += wire_var > 0
-        dimensions += 2 * (access_var > 0)
-        dimensions += on_var > 0 or match_var > 0
-        dimensions += off_var > 0 or match_var > 0
-        return 2 ** dimensions
+        return 2 ** sum(value > 0 for value in self.values)
 
     @property
     def cell_path(self) -> Path:
@@ -101,7 +89,7 @@ class RunSpec:
 def all_specs() -> list[RunSpec]:
     return [
         RunSpec(values)
-        for values in itertools.product(SWEEP_VALUES, repeat=5)
+        for values in itertools.product(SWEEP_VALUES, repeat=len(VARIATION_FIELDS))
         if any(values)
     ]
 
@@ -177,9 +165,6 @@ def manifest_row(
         "run_id": spec.run_id,
         "on_var_percent": spec.values[0],
         "off_var_percent": spec.values[1],
-        "wire_var_percent": spec.values[2],
-        "access_var_percent": spec.values[3],
-        "match_var_percent": spec.values[4],
         "expected_corners": spec.expected_corners,
         "status": status,
         "elapsed_seconds": elapsed_seconds,
@@ -308,9 +293,6 @@ def summary_row(spec: RunSpec) -> dict[str, str | int]:
         "run_id": spec.run_id,
         "on_var_percent": spec.values[0],
         "off_var_percent": spec.values[1],
-        "wire_var_percent": spec.values[2],
-        "access_var_percent": spec.values[3],
-        "match_var_percent": spec.values[4],
         "corners": len(rows),
         "result_dir": relative_to_root(spec.run_dir),
     }
@@ -333,9 +315,6 @@ def write_summary(specs: list[RunSpec]) -> None:
         "run_id",
         "on_var_percent",
         "off_var_percent",
-        "wire_var_percent",
-        "access_var_percent",
-        "match_var_percent",
         "corners",
         *(f"{metric}_{bound}" for metric in METRICS for bound in ("nominal", "min", "max")),
         "result_dir",
@@ -389,7 +368,7 @@ def parse_args() -> argparse.Namespace:
     default_jobs = min(16, os.cpu_count() or 1)
     parser = argparse.ArgumentParser(
         description=(
-            "Generate the 0/2/4/6/8 percent five-parameter corner sweep. "
+            "Generate the 0/2/4/6/8 percent memory-device corner sweep. "
             "The invalid all-zero corner configuration is excluded. "
             "EvaCAM is run only when --run is supplied."
         )

@@ -133,14 +133,8 @@ void TestVariationDefaultsWhenOmitted() {
     assert(cell.variationSamples == 1);
     assert(cell.resistanceOnVariation == 0.0);
     assert(cell.resistanceOffVariation == 0.0);
-    assert(cell.matchlineWireResistanceVariation == 0.0);
-    assert(cell.deviceAccessResistanceVariation == 0.0);
-    assert(cell.deviceMatchResistanceVariation == 0.0);
     assert(cell.resistanceOnMaxVariation == 0.0);
     assert(cell.resistanceOffMaxVariation == 0.0);
-    assert(cell.matchlineWireResistanceMaxVariation == 0.0);
-    assert(cell.deviceAccessResistanceMaxVariation == 0.0);
-    assert(cell.deviceMatchResistanceMaxVariation == 0.0);
     assert(cell.hasMcamSearchlineVoltages == false);
     assert(cell.hasMcamCenterVoltage == false);
 }
@@ -156,14 +150,8 @@ void TestVariationSectionParses() {
         "  samples: 7\n"
         "  memory_device_resistance_on_stdev: 5%\n"
         "  memory_device_resistance_off_stdev: 7%\n"
-        "  matchline_wire_resistance_stdev: 3%\n"
-        "  device_access_resistance_stdev: 2%\n"
-        "  device_match_resistance_stdev: 4%\n"
         "  memory_device_resistance_on_max_var: 11%\n"
-        "  memory_device_resistance_off_max_var: 13%\n"
-        "  matchline_wire_resistance_max_var: 17%\n"
-        "  device_access_resistance_max_var: 19%\n"
-        "  device_match_resistance_max_var: 23%\n");
+        "  memory_device_resistance_off_max_var: 13%\n");
 
     MemCell cell;
     cell.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
@@ -178,14 +166,8 @@ void TestVariationSectionParses() {
     assert(cell.variationSamples == 7);
     assert(near(cell.resistanceOnVariation, 0.05));
     assert(near(cell.resistanceOffVariation, 0.07));
-    assert(near(cell.matchlineWireResistanceVariation, 0.03));
-    assert(near(cell.deviceAccessResistanceVariation, 0.02));
-    assert(near(cell.deviceMatchResistanceVariation, 0.04));
     assert(near(cell.resistanceOnMaxVariation, 0.11));
     assert(near(cell.resistanceOffMaxVariation, 0.13));
-    assert(near(cell.matchlineWireResistanceMaxVariation, 0.17));
-    assert(near(cell.deviceAccessResistanceMaxVariation, 0.19));
-    assert(near(cell.deviceMatchResistanceMaxVariation, 0.23));
 }
 
 void TestMcamVoltagesParse() {

@@ -24,8 +24,8 @@ std::string CsvString(const std::string &value) {
 }  // namespace
 
 void WriteVariationSamplesCsv(std::ostream &os, const Result &result) {
-    os << "sample,corner_label,matchline_wire_res_corner,access_res_on_corner,"
-       << "access_res_off_corner,match_res_on_corner,match_res_off_corner,"
+    os << "sample,corner_label,memory_device_res_on_corner,"
+       << "memory_device_res_off_corner,"
        << "matchline_delay_s,search_latency_s,search_dynamic_energy_j,"
        << "sense_margin_v,reference_delay_s,nominal_matchline_delay_s,"
        << "nominal_search_latency_s,nominal_search_dynamic_energy_j,"
@@ -42,11 +42,8 @@ void WriteVariationSamplesCsv(std::ostream &os, const Result &result) {
     for (const auto &sample : samples) {
         os << sample.sample << ","
            << CsvString(sample.cornerLabel) << ","
-           << CsvString(sample.matchlineWireResCorner) << ","
-           << CsvString(sample.accessResOnCorner) << ","
-           << CsvString(sample.accessResOffCorner) << ","
-           << CsvString(sample.matchResOnCorner) << ","
-           << CsvString(sample.matchResOffCorner) << ","
+           << CsvString(sample.memoryDeviceResOnCorner) << ","
+           << CsvString(sample.memoryDeviceResOffCorner) << ","
            << sample.matchlineDelay << ","
            << sample.searchLatency << ","
            << sample.searchDynamicEnergy << ","

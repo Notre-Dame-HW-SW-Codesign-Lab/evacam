@@ -81,14 +81,8 @@ class MemCell {
         int variationSamples;
         double resistanceOnVariation;
         double resistanceOffVariation;
-        double matchlineWireResistanceVariation;
-        double deviceAccessResistanceVariation;
-        double deviceMatchResistanceVariation;
         double resistanceOnMaxVariation;
         double resistanceOffMaxVariation;
-        double matchlineWireResistanceMaxVariation;
-        double deviceAccessResistanceMaxVariation;
-        double deviceMatchResistanceMaxVariation;
         double resStateVariation[64];
 
         /* Optional properties */

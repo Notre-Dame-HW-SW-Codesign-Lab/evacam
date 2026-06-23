@@ -38,9 +38,6 @@ variation:
   with_variation: true
   memory_device_resistance_on_stdev: 5%
   memory_device_resistance_off_stdev: 5%
-  matchline_wire_resistance_stdev: 0%
-  device_access_resistance_stdev: 0%
-  device_match_resistance_stdev: 0%
 match:
   cmos_width: 3F
 ports:

@@ -82,11 +82,8 @@ EvaCamVariationDto ExtractVariation(const CAM_SubArray &subarray) {
         EvaCamVariationSampleDto dto;
         dto.sample = sample.sample;
         dto.cornerLabel = sample.cornerLabel;
-        dto.matchlineWireResCorner = sample.matchlineWireResCorner;
-        dto.accessResOnCorner = sample.accessResOnCorner;
-        dto.accessResOffCorner = sample.accessResOffCorner;
-        dto.matchResOnCorner = sample.matchResOnCorner;
-        dto.matchResOffCorner = sample.matchResOffCorner;
+        dto.memoryDeviceResOnCorner = sample.memoryDeviceResOnCorner;
+        dto.memoryDeviceResOffCorner = sample.memoryDeviceResOffCorner;
         dto.matchlineDelay = sample.matchlineDelay;
         dto.searchLatency = sample.searchLatency;
         dto.searchDynamicEnergy = sample.searchDynamicEnergy;

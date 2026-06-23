@@ -25,9 +25,6 @@ def replace_variation_block(text: str, stdev: int) -> str:
         f"  samples: {SAMPLES}\n"
         f"  memory_device_resistance_on_stdev: {stdev}%\n"
         f"  memory_device_resistance_off_stdev: {stdev}%\n"
-        "  matchline_wire_resistance_stdev: 0%\n"
-        "  device_access_resistance_stdev: 0%\n"
-        "  device_match_resistance_stdev: 0%\n"
     )
     return re.sub(r"variation:\n(?:  .*\n)+", block, text, count=1)
 

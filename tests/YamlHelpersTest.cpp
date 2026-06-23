@@ -561,14 +561,8 @@ static void test_memcell_variation_yaml() {
             "  samples: 7\n"
             "  memory_device_resistance_on_stdev: 5%\n"
             "  memory_device_resistance_off_stdev: 7%\n"
-            "  matchline_wire_resistance_stdev: 3%\n"
-            "  device_access_resistance_stdev: 2%\n"
-            "  device_match_resistance_stdev: 4%\n"
             "  memory_device_resistance_on_max_var: 11%\n"
             "  memory_device_resistance_off_max_var: 13%\n"
-            "  matchline_wire_resistance_max_var: 17%\n"
-            "  device_access_resistance_max_var: 19%\n"
-            "  device_match_resistance_max_var: 23%\n"
             "match:\n"
             "  cmos_width: 3F\n"
             "ports:\n"
@@ -616,14 +610,8 @@ static void test_memcell_variation_yaml() {
     assert(cell.variationSamples == 7);
     assert(near(cell.resistanceOnVariation, 0.05));
     assert(near(cell.resistanceOffVariation, 0.07));
-    assert(near(cell.matchlineWireResistanceVariation, 0.03));
-    assert(near(cell.deviceAccessResistanceVariation, 0.02));
-    assert(near(cell.deviceMatchResistanceVariation, 0.04));
     assert(near(cell.resistanceOnMaxVariation, 0.11));
     assert(near(cell.resistanceOffMaxVariation, 0.13));
-    assert(near(cell.matchlineWireResistanceMaxVariation, 0.17));
-    assert(near(cell.deviceAccessResistanceMaxVariation, 0.19));
-    assert(near(cell.deviceMatchResistanceMaxVariation, 0.23));
 }
 
 static void test_cell_variation_drives_runtime_config() {
@@ -672,9 +660,6 @@ static void test_cell_variation_drives_runtime_config() {
             "  samples: 17\n"
             "  memory_device_resistance_on_stdev: 5%\n"
             "  memory_device_resistance_off_stdev: 8%\n"
-            "  matchline_wire_resistance_stdev: 6%\n"
-            "  device_access_resistance_stdev: 4%\n"
-            "  device_match_resistance_stdev: 3%\n"
             "match:\n"
             "  cmos_width: 3F\n"
             "ports:\n"
@@ -776,9 +761,6 @@ static void test_cell_variation_drives_runtime_config() {
     assert(variation.samples == 17);
     assert(near(variation.memoryDeviceResOnStdev, 0.05));
     assert(near(variation.memoryDeviceResOffStdev, 0.08));
-    assert(near(variation.mlWireResStdev, 0.06));
-    assert(near(variation.deviceAccessResStdev, 0.04));
-    assert(near(variation.deviceMatchResStdev, 0.03));
 }
 
 static void test_variation_builder_rejects_invalid_mode_and_samples() {
@@ -816,18 +798,18 @@ static void test_variation_builder_rejects_invalid_mode_and_samples() {
     } catch (const std::runtime_error&) {
     }
 
-    cell.deviceAccessResistanceMaxVariation = 0.05;
+    cell.resistanceOnMaxVariation = 0.05;
     VariationConfig corner = VariationConfigBuilder::FromCell(cell);
     assert(corner.enabled == true);
     assert(corner.mode == "corner");
-    assert(corner.samples == 4);
-    assert(std::fabs(corner.deviceAccessResMaxVar - 0.05) < 1e-18);
+    assert(corner.samples == 2);
+    assert(std::fabs(corner.memoryDeviceResOnMaxVar - 0.05) < 1e-18);
 
     cell.resistanceOnMaxVariation = 0.96;
-    cell.deviceMatchResistanceMaxVariation = 0.04;
+    cell.resistanceOffMaxVariation = 1.0;
     try {
         (void)VariationConfigBuilder::FromCell(cell);
-        assert(false && "Expected corner combined max-var >= 1 to throw");
+        assert(false && "Expected corner max-var >= 1 to throw");
     } catch (const std::runtime_error&) {
     }
 

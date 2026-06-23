@@ -462,21 +462,6 @@ void ReadVariationSection(MemCell& cell, const YAML::Node& root) {
                 YamlHelpers::child_optional(variation, "memory_device_resistance_off_stdev"),
                 "variation.memory_device_resistance_off_stdev");
     }
-    if (YamlHelpers::child_optional(variation, "matchline_wire_resistance_stdev")) {
-        cell.matchlineWireResistanceVariation = parse_fraction_or_percent_node(
-                YamlHelpers::child_optional(variation, "matchline_wire_resistance_stdev"),
-                "variation.matchline_wire_resistance_stdev");
-    }
-    if (YamlHelpers::child_optional(variation, "device_access_resistance_stdev")) {
-        cell.deviceAccessResistanceVariation = parse_fraction_or_percent_node(
-                YamlHelpers::child_optional(variation, "device_access_resistance_stdev"),
-                "variation.device_access_resistance_stdev");
-    }
-    if (YamlHelpers::child_optional(variation, "device_match_resistance_stdev")) {
-        cell.deviceMatchResistanceVariation = parse_fraction_or_percent_node(
-                YamlHelpers::child_optional(variation, "device_match_resistance_stdev"),
-                "variation.device_match_resistance_stdev");
-    }
     if (YamlHelpers::child_optional(variation, "memory_device_resistance_on_max_var")) {
         cell.resistanceOnMaxVariation = parse_fraction_or_percent_node(
                 YamlHelpers::child_optional(variation, "memory_device_resistance_on_max_var"),
@@ -486,21 +471,6 @@ void ReadVariationSection(MemCell& cell, const YAML::Node& root) {
         cell.resistanceOffMaxVariation = parse_fraction_or_percent_node(
                 YamlHelpers::child_optional(variation, "memory_device_resistance_off_max_var"),
                 "variation.memory_device_resistance_off_max_var");
-    }
-    if (YamlHelpers::child_optional(variation, "matchline_wire_resistance_max_var")) {
-        cell.matchlineWireResistanceMaxVariation = parse_fraction_or_percent_node(
-                YamlHelpers::child_optional(variation, "matchline_wire_resistance_max_var"),
-                "variation.matchline_wire_resistance_max_var");
-    }
-    if (YamlHelpers::child_optional(variation, "device_access_resistance_max_var")) {
-        cell.deviceAccessResistanceMaxVariation = parse_fraction_or_percent_node(
-                YamlHelpers::child_optional(variation, "device_access_resistance_max_var"),
-                "variation.device_access_resistance_max_var");
-    }
-    if (YamlHelpers::child_optional(variation, "device_match_resistance_max_var")) {
-        cell.deviceMatchResistanceMaxVariation = parse_fraction_or_percent_node(
-                YamlHelpers::child_optional(variation, "device_match_resistance_max_var"),
-                "variation.device_match_resistance_max_var");
     }
 }
 

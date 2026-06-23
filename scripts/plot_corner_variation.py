@@ -20,11 +20,8 @@ INTERNAL_METRICS = [
 
 CORNER_COLUMNS = [
     "corner_label",
-    "matchline_wire_res_corner",
-    "access_res_on_corner",
-    "access_res_off_corner",
-    "match_res_on_corner",
-    "match_res_off_corner",
+    "memory_device_res_on_corner",
+    "memory_device_res_off_corner",
 ]
 
 

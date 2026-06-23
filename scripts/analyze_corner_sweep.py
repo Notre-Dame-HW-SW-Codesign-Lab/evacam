@@ -15,9 +15,6 @@ DEFAULT_SWEEP_DIR = ROOT / "results" / "corner_sweep"
 PARAMETERS = (
     ("on_var_percent", "Memory on"),
     ("off_var_percent", "Memory off"),
-    ("wire_var_percent", "Matchline wire"),
-    ("access_var_percent", "Access device"),
-    ("match_var_percent", "Match device"),
 )
 DERIVED_METRICS = (
     ("matchline_delay_range_pct", "Matchline delay range", "%", "max"),

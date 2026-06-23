@@ -149,21 +149,11 @@ MatchlineElectricalParams BuildFloatingMatchlineParams(
     return params;
 }
 
-double CombineStdev(double a, double b) {
-    return std::sqrt(a * a + b * b);
-}
-
 struct CornerSelection {
-    bool matchlineWireResHigh = false;
-    bool accessResOnHigh = false;
-    bool accessResOffHigh = false;
-    bool matchResOnHigh = false;
-    bool matchResOffHigh = false;
-    std::string matchlineWireResCorner = "nominal";
-    std::string accessResOnCorner = "nominal";
-    std::string accessResOffCorner = "nominal";
-    std::string matchResOnCorner = "nominal";
-    std::string matchResOffCorner = "nominal";
+    bool memoryDeviceResOnHigh = false;
+    bool memoryDeviceResOffHigh = false;
+    std::string memoryDeviceResOnCorner = "nominal";
+    std::string memoryDeviceResOffCorner = "nominal";
     std::string label;
 };
 
@@ -179,33 +169,18 @@ CornerSelection BuildCornerSelection(const VariationConfig &variation, unsigned 
     CornerSelection selection;
     int bit = 0;
 
-    if (variation.mlWireResMaxVar > 0.0) {
-        selection.matchlineWireResHigh = NextCorner(cornerIndex, bit);
-        selection.matchlineWireResCorner = CornerName(selection.matchlineWireResHigh);
+    if (variation.memoryDeviceResOnMaxVar > 0.0) {
+        selection.memoryDeviceResOnHigh = NextCorner(cornerIndex, bit);
+        selection.memoryDeviceResOnCorner = CornerName(selection.memoryDeviceResOnHigh);
     }
-    if (variation.deviceAccessResMaxVar > 0.0) {
-        selection.accessResOnHigh = NextCorner(cornerIndex, bit);
-        selection.accessResOnCorner = CornerName(selection.accessResOnHigh);
-    }
-    if (variation.deviceAccessResMaxVar > 0.0) {
-        selection.accessResOffHigh = NextCorner(cornerIndex, bit);
-        selection.accessResOffCorner = CornerName(selection.accessResOffHigh);
-    }
-    if (variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar > 0.0) {
-        selection.matchResOnHigh = NextCorner(cornerIndex, bit);
-        selection.matchResOnCorner = CornerName(selection.matchResOnHigh);
-    }
-    if (variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar > 0.0) {
-        selection.matchResOffHigh = NextCorner(cornerIndex, bit);
-        selection.matchResOffCorner = CornerName(selection.matchResOffHigh);
+    if (variation.memoryDeviceResOffMaxVar > 0.0) {
+        selection.memoryDeviceResOffHigh = NextCorner(cornerIndex, bit);
+        selection.memoryDeviceResOffCorner = CornerName(selection.memoryDeviceResOffHigh);
     }
 
     std::ostringstream label;
-    label << "ml=" << selection.matchlineWireResCorner
-          << ",access_on=" << selection.accessResOnCorner
-          << ",access_off=" << selection.accessResOffCorner
-          << ",match_on=" << selection.matchResOnCorner
-          << ",match_off=" << selection.matchResOffCorner;
+    label << "memory_on=" << selection.memoryDeviceResOnCorner
+          << ",memory_off=" << selection.memoryDeviceResOffCorner;
     selection.label = label.str();
     return selection;
 }
@@ -1747,33 +1722,20 @@ CAMResistanceSample CAM_SubArray::BuildNominalResistanceSample() const {
 CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex) const {
     const auto &variation = config->variation;
     CAMResistanceSample sample;
-    // Stream offsets give each resistance category a stable deterministic RNG stream.
-    sample.mlWireRes = SampleVariationResistance(
-            nominalMatchlineWireRes,
-            variation.mlWireResStdev,
-            3,
-            sampleIndex);
+    sample.mlWireRes = nominalMatchlineWireRes;
 
-    sample.accessRes = SampleVariationResistance(
-            nominalResCellAccess,
-            variation.deviceAccessResStdev,
-            1,
-            sampleIndex);
+    sample.accessRes = nominalResCellAccess;
     sample.matchRes = SampleVariationResistance(
             nominalResMatchTran,
-            CombineStdev(variation.memoryDeviceResOnStdev, variation.deviceMatchResStdev),
+            variation.memoryDeviceResOnStdev,
             2,
             sampleIndex);
     sample.cellResOn = sample.accessRes + sample.matchRes;
 
-    sample.accessResOff = SampleVariationResistance(
-            nominalResCellAccessOff,
-            variation.deviceAccessResStdev,
-            4,
-            sampleIndex);
+    sample.accessResOff = nominalResCellAccessOff;
     sample.matchResOff = SampleVariationResistance(
             nominalResMatchTranOff,
-            CombineStdev(variation.memoryDeviceResOffStdev, variation.deviceMatchResStdev),
+            variation.memoryDeviceResOffStdev,
             5,
             sampleIndex);
     sample.cellResOff = sample.accessResOff + sample.matchResOff;
@@ -1783,32 +1745,21 @@ CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex
 CAMResistanceSample CAM_SubArray::BuildCornerResistanceSample(unsigned int cornerIndex) const {
     const auto &variation = config->variation;
     const CornerSelection selection = BuildCornerSelection(variation, cornerIndex);
-    const double matchResOnMaxVar = variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar;
-    const double matchResOffMaxVar = variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar;
 
     CAMResistanceSample sample;
-    sample.mlWireRes = ApplyCornerVariation(
-            nominalMatchlineWireRes,
-            variation.mlWireResMaxVar,
-            selection.matchlineWireResHigh);
-    sample.accessRes = ApplyCornerVariation(
-            nominalResCellAccess,
-            variation.deviceAccessResMaxVar,
-            selection.accessResOnHigh);
+    sample.mlWireRes = nominalMatchlineWireRes;
+    sample.accessRes = nominalResCellAccess;
     sample.matchRes = ApplyCornerVariation(
             nominalResMatchTran,
-            matchResOnMaxVar,
-            selection.matchResOnHigh);
+            variation.memoryDeviceResOnMaxVar,
+            selection.memoryDeviceResOnHigh);
     sample.cellResOn = sample.accessRes + sample.matchRes;
 
-    sample.accessResOff = ApplyCornerVariation(
-            nominalResCellAccessOff,
-            variation.deviceAccessResMaxVar,
-            selection.accessResOffHigh);
+    sample.accessResOff = nominalResCellAccessOff;
     sample.matchResOff = ApplyCornerVariation(
             nominalResMatchTranOff,
-            matchResOffMaxVar,
-            selection.matchResOffHigh);
+            variation.memoryDeviceResOffMaxVar,
+            selection.memoryDeviceResOffHigh);
     sample.cellResOff = sample.accessResOff + sample.matchResOff;
     return sample;
 }
@@ -1835,11 +1786,6 @@ double CAM_SubArray::SampleVariationResistance(
             sampleIndex,
             streamOffset));
     return sampler.SampleResistance(nominal, stdevFrac);
-}
-
-double CAM_SubArray::EffectiveDeviceResistanceStdev() const {
-    const auto &variation = config->variation;
-    return CombineStdev(variation.deviceAccessResStdev, variation.deviceMatchResStdev);
 }
 
 void CAM_SubArray::UpdateVariationTimingSummary() {
@@ -1949,11 +1895,8 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
         if (variation.mode == "corner") {
             const CornerSelection selection = BuildCornerSelection(variation, sampleIndex);
             variationSample.cornerLabel = selection.label;
-            variationSample.matchlineWireResCorner = selection.matchlineWireResCorner;
-            variationSample.accessResOnCorner = selection.accessResOnCorner;
-            variationSample.accessResOffCorner = selection.accessResOffCorner;
-            variationSample.matchResOnCorner = selection.matchResOnCorner;
-            variationSample.matchResOffCorner = selection.matchResOffCorner;
+            variationSample.memoryDeviceResOnCorner = selection.memoryDeviceResOnCorner;
+            variationSample.memoryDeviceResOffCorner = selection.memoryDeviceResOffCorner;
         }
         variationSample.matchlineDelay = sampleMatchlineDelay;
         variationSample.searchLatency = sampleSearchLatency;

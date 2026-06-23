@@ -19,21 +19,15 @@ INTERNAL_METRICS = [
 
 CORNER_COLUMNS = [
     "corner_label",
-    "matchline_wire_res_corner",
-    "access_res_on_corner",
-    "access_res_off_corner",
-    "match_res_on_corner",
-    "match_res_off_corner",
+    "memory_device_res_on_corner",
+    "memory_device_res_off_corner",
 ]
 
 TABLE_COLUMNS = [
     ("sample", "sample"),
     ("worst_case_for", "worst case for"),
-    ("matchline_wire_res_corner", "ml"),
-    ("access_res_on_corner", "access on"),
-    ("access_res_off_corner", "access off"),
-    ("match_res_on_corner", "match on"),
-    ("match_res_off_corner", "match off"),
+    ("memory_device_res_on_corner", "memory on"),
+    ("memory_device_res_off_corner", "memory off"),
 ]
 
 
@@ -112,11 +106,8 @@ def format_changed(previous_row, row):
 
 def column_name(column):
     names = {
-        "matchline_wire_res_corner": "ml",
-        "access_res_on_corner": "access on",
-        "access_res_off_corner": "access off",
-        "match_res_on_corner": "match on",
-        "match_res_off_corner": "match off",
+        "memory_device_res_on_corner": "memory on",
+        "memory_device_res_off_corner": "memory off",
     }
     return names.get(column, column)
 
@@ -179,11 +170,8 @@ def build_table(rows, include_internal=False):
             "sample",
             f"{title} ({unit})",
             "changed from previous index",
-            "ml",
-            "access on",
-            "access off",
-            "match on",
-            "match off",
+            "memory on",
+            "memory off",
             "worst case",
         ]
         metric_table_rows = []
@@ -197,11 +185,8 @@ def build_table(rows, include_internal=False):
                     row.get("sample", ""),
                     format_value(metric_value(row, column, scale)),
                     format_changed(previous_row, row),
-                    row.get("matchline_wire_res_corner", ""),
-                    row.get("access_res_on_corner", ""),
-                    row.get("access_res_off_corner", ""),
-                    row.get("match_res_on_corner", ""),
-                    row.get("match_res_off_corner", ""),
+                    row.get("memory_device_res_on_corner", ""),
+                    row.get("memory_device_res_off_corner", ""),
                     "yes" if row.get("sample", "") == worst_sample else "",
                 ]
             )

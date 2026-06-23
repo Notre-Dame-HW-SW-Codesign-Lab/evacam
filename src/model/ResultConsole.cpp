@@ -156,9 +156,6 @@ void Result::print() {
         std::cout << " - Samples                      : " << config->variation.samples << std::endl;
         std::cout << " - Memory Device On Stddev      : " << config->variation.memoryDeviceResOnStdev * 100 << "%" << std::endl;
         std::cout << " - Memory Device Off Stddev     : " << config->variation.memoryDeviceResOffStdev * 100 << "%" << std::endl;
-        std::cout << " - Matchline Wire Stddev        : " << config->variation.mlWireResStdev * 100 << "%" << std::endl;
-        std::cout << " - Device Access Stddev         : " << config->variation.deviceAccessResStdev * 100 << "%" << std::endl;
-        std::cout << " - Device Match Stddev          : " << config->variation.deviceMatchResStdev * 100 << "%" << std::endl;
     }
 
     std::cout << std::endl;

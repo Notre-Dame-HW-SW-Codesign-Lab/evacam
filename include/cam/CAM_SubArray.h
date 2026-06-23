@@ -61,11 +61,8 @@ struct CAMVariationSummary {
 struct CAMVariationSample {
     int sample = 0;
     std::string cornerLabel;
-    std::string matchlineWireResCorner = "nominal";
-    std::string accessResOnCorner = "nominal";
-    std::string accessResOffCorner = "nominal";
-    std::string matchResOnCorner = "nominal";
-    std::string matchResOffCorner = "nominal";
+    std::string memoryDeviceResOnCorner = "nominal";
+    std::string memoryDeviceResOffCorner = "nominal";
     double matchlineDelay = 0;
     double searchLatency = 0;
     double searchDynamicEnergy = 0;
@@ -122,7 +119,6 @@ class CAM_SubArray: public FunctionUnit {
         CAMResistanceSample BuildCornerResistanceSample(unsigned int cornerIndex) const;
         CAMResistanceSample BuildVariationResistanceSample(unsigned int sampleIndex) const;
         double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
-        double EffectiveDeviceResistanceStdev() const;
         void UpdateVariationTimingSummary();
         void UpdateVariationPowerSummary();
         double SampleCellReadEnergy(const CAMResistanceSample &sample, double sampleMatchlineDelay) const;

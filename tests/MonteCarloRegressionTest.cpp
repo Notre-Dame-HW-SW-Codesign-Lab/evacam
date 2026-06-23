@@ -89,17 +89,11 @@ MonteCarloFixture WriteMonteCarloConfig(
     if (memoryOnlyVariation) {
         cellText +=
             "  memory_device_resistance_on_stdev: 20%\n"
-            "  memory_device_resistance_off_stdev: 20%\n"
-            "  matchline_wire_resistance_stdev: 0%\n"
-            "  device_access_resistance_stdev: 0%\n"
-            "  device_match_resistance_stdev: 0%\n";
+            "  memory_device_resistance_off_stdev: 20%\n";
     } else {
         cellText +=
             "  memory_device_resistance_on_stdev: 15%\n"
-            "  memory_device_resistance_off_stdev: 20%\n"
-            "  matchline_wire_resistance_stdev: 10%\n"
-            "  device_access_resistance_stdev: 12%\n"
-            "  device_match_resistance_stdev: 8%\n";
+            "  memory_device_resistance_off_stdev: 20%\n";
     }
     WriteFile(testCell, cellText);
 
@@ -177,7 +171,7 @@ void test_monte_carlo_output_summary_is_emitted() {
     assert(sampleCsv);
     std::string line;
     assert(std::getline(sampleCsv, line));
-    assert(line == "sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
+    assert(line == "sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
     int rowCount = 0;
     while (std::getline(sampleCsv, line)) {
         assert(!line.empty());

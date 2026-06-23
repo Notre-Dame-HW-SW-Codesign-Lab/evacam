@@ -89,7 +89,7 @@ int CountCsvRows(const std::filesystem::path &path, std::string *firstDataRow = 
 
     std::string line;
     assert(std::getline(csv, line));
-    assert(line == "sample,corner_label,matchline_wire_res_corner,access_res_on_corner,access_res_off_corner,match_res_on_corner,match_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
+    assert(line == "sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
 
     int rows = 0;
     while (std::getline(csv, line)) {
@@ -134,16 +134,17 @@ void AssertCornerOutput(
     assert(firstDataRow.find("\"" + expectedFirstCornerLabel + "\"") != std::string::npos);
 }
 
-void test_corner_access_variation_outputs_four_corners() {
+void test_corner_memory_on_off_variation_outputs_four_corners() {
     const CornerFixture fixture = WriteCornerConfig(
-            "access",
-            "  device_access_resistance_max_var: 5%\n");
+            "memory_on_off",
+            "  memory_device_resistance_on_max_var: 5%\n"
+            "  memory_device_resistance_off_max_var: 5%\n");
 
     assert(RunEvaCamVerbose(fixture) == 0);
     AssertCornerOutput(
             fixture,
             4,
-            "ml=nominal,access_on=low,access_off=low,match_on=nominal,match_off=nominal");
+            "memory_on=low,memory_off=low");
 
     const std::string log = ReadFile(fixture.logPath);
     assert(log.find("variation.samples is ignored because corner mode is deterministic") != std::string::npos);
@@ -159,13 +160,13 @@ void test_corner_memory_on_variation_outputs_two_corners() {
     AssertCornerOutput(
             fixture,
             2,
-            "ml=nominal,access_on=nominal,access_off=nominal,match_on=low,match_off=nominal");
+            "memory_on=low,memory_off=nominal");
 }
 
 }  // namespace
 
 int main() {
-    test_corner_access_variation_outputs_four_corners();
+    test_corner_memory_on_off_variation_outputs_four_corners();
     test_corner_memory_on_variation_outputs_two_corners();
     std::cout << "Corner variation regression tests passed" << std::endl;
     return 0;

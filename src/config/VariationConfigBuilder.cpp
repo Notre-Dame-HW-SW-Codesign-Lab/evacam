@@ -21,15 +21,9 @@ void ValidateCornerVariation(const char *fieldName, double value) {
 
 int CornerDimensionCount(const VariationConfig &variation) {
     int count = 0;
-    if (variation.mlWireResMaxVar > 0.0)
+    if (variation.memoryDeviceResOnMaxVar > 0.0)
         count++;
-    if (variation.deviceAccessResMaxVar > 0.0)
-        count++;
-    if (variation.deviceAccessResMaxVar > 0.0)
-        count++;
-    if (variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar > 0.0)
-        count++;
-    if (variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar > 0.0)
+    if (variation.memoryDeviceResOffMaxVar > 0.0)
         count++;
     return count;
 }
@@ -47,14 +41,8 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
     variation.samples = cell.variationSamples;
     variation.memoryDeviceResOnStdev = cell.resistanceOnVariation;
     variation.memoryDeviceResOffStdev = cell.resistanceOffVariation;
-    variation.mlWireResStdev = cell.matchlineWireResistanceVariation;
-    variation.deviceAccessResStdev = cell.deviceAccessResistanceVariation;
-    variation.deviceMatchResStdev = cell.deviceMatchResistanceVariation;
     variation.memoryDeviceResOnMaxVar = cell.resistanceOnMaxVariation;
     variation.memoryDeviceResOffMaxVar = cell.resistanceOffMaxVariation;
-    variation.mlWireResMaxVar = cell.matchlineWireResistanceMaxVariation;
-    variation.deviceAccessResMaxVar = cell.deviceAccessResistanceMaxVariation;
-    variation.deviceMatchResMaxVar = cell.deviceMatchResistanceMaxVariation;
 
     if (!variation.enabled) {
         variation.mode = "nominal";
@@ -70,16 +58,9 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
     } else if (variation.mode == "corner") {
         ValidateCornerVariation("memory_device_resistance_on_max_var", variation.memoryDeviceResOnMaxVar);
         ValidateCornerVariation("memory_device_resistance_off_max_var", variation.memoryDeviceResOffMaxVar);
-        ValidateCornerVariation("matchline_wire_resistance_max_var", variation.mlWireResMaxVar);
-        ValidateCornerVariation("device_access_resistance_max_var", variation.deviceAccessResMaxVar);
-        ValidateCornerVariation("device_match_resistance_max_var", variation.deviceMatchResMaxVar);
 
-        const double matchOnMaxVar = variation.memoryDeviceResOnMaxVar + variation.deviceMatchResMaxVar;
-        const double matchOffMaxVar = variation.memoryDeviceResOffMaxVar + variation.deviceMatchResMaxVar;
-        if (variation.mlWireResMaxVar >= 1.0
-                || variation.deviceAccessResMaxVar >= 1.0
-                || matchOnMaxVar >= 1.0
-                || matchOffMaxVar >= 1.0) {
+        if (variation.memoryDeviceResOnMaxVar >= 1.0
+                || variation.memoryDeviceResOffMaxVar >= 1.0) {
             throw std::runtime_error("[Input] Error: corner variation max values must keep low-corner resistances positive.");
         }
 

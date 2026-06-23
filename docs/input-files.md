@@ -81,7 +81,9 @@ Representative fields:
 - `variation.samples`
 - `variation.seed`
 - `variation.memory_device_resistance_on_stdev`
+- `variation.memory_device_resistance_off_stdev`
 - `variation.memory_device_resistance_on_max_var`
+- `variation.memory_device_resistance_off_max_var`
 - `ports.row`
 - `ports.column`
 
