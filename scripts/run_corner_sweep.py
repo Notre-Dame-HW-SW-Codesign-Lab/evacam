@@ -22,11 +22,17 @@ RUNS_ROOT = SWEEP_ROOT / "runs"
 MANIFEST_PATH = SWEEP_ROOT / "manifest.csv"
 SUMMARY_PATH = SWEEP_ROOT / "summary.csv"
 
-SWEEP_VALUES = (0, 2, 4, 6, 8)
-VARIATION_FIELDS = (
+DEFAULT_SWEEP_VALUES = (0, 2, 4, 6, 8)
+SUPPORTED_VARIATION_FIELDS = (
     ("memory_device_resistance_on_max_var", "on"),
     ("memory_device_resistance_off_max_var", "off"),
 )
+FIELD_ALIASES = {
+    short: (field, short) for field, short in SUPPORTED_VARIATION_FIELDS
+}
+FIELD_ALIASES.update({
+    field: (field, short) for field, short in SUPPORTED_VARIATION_FIELDS
+})
 METRICS = (
     "matchline_delay_s",
     "search_latency_s",
@@ -47,13 +53,14 @@ MANIFEST_FIELDS = (
 
 @dataclass(frozen=True)
 class RunSpec:
-    values: tuple[int, int]
+    fields: tuple[tuple[str, str], ...]
+    values: tuple[int, ...]
 
     @property
     def run_id(self) -> str:
         labels = (
             f"{short}{value:02d}"
-            for (_, short), value in zip(VARIATION_FIELDS, self.values)
+            for (_, short), value in zip(self.fields, self.values)
         )
         return "_".join(labels)
 
@@ -86,12 +93,62 @@ class RunSpec:
         return self.run_dir / "run.log"
 
 
-def all_specs() -> list[RunSpec]:
+def all_specs(
+    fields: tuple[tuple[str, str], ...],
+    sweep_values: tuple[int, ...],
+) -> list[RunSpec]:
     return [
-        RunSpec(values)
-        for values in itertools.product(SWEEP_VALUES, repeat=len(VARIATION_FIELDS))
+        RunSpec(fields, values)
+        for values in itertools.product(sweep_values, repeat=len(fields))
         if any(values)
     ]
+
+
+def split_cli_values(raw_values: list[str]) -> list[str]:
+    values = []
+    for raw_value in raw_values:
+        values.extend(part.strip() for part in raw_value.split(","))
+    return [value for value in values if value]
+
+
+def parse_corner_fields(raw_fields: list[str]) -> tuple[tuple[str, str], ...]:
+    fields = []
+    seen = set()
+    for name in split_cli_values(raw_fields):
+        try:
+            field = FIELD_ALIASES[name]
+        except KeyError as error:
+            supported = ", ".join(sorted(FIELD_ALIASES))
+            raise argparse.ArgumentTypeError(
+                f"unsupported corner field {name!r}; supported values: {supported}"
+            ) from error
+        if field[0] in seen:
+            raise argparse.ArgumentTypeError(f"duplicate corner field {name!r}")
+        seen.add(field[0])
+        fields.append(field)
+    if not fields:
+        raise argparse.ArgumentTypeError("at least one corner field is required")
+    return tuple(fields)
+
+
+def parse_corner_values(raw_values: list[str]) -> tuple[int, ...]:
+    values = []
+    for raw_value in split_cli_values(raw_values):
+        try:
+            value = int(raw_value)
+        except ValueError as error:
+            raise argparse.ArgumentTypeError(
+                f"corner value must be an integer percent: {raw_value!r}"
+            ) from error
+        if value < 0 or value >= 100:
+            raise argparse.ArgumentTypeError(
+                f"corner value must be in the range [0, 99]: {value}"
+            )
+        values.append(value)
+    unique_values = tuple(sorted(set(values)))
+    if not unique_values:
+        raise argparse.ArgumentTypeError("at least one corner value is required")
+    return unique_values
 
 
 def relative_to_root(path: Path) -> str:
@@ -99,14 +156,18 @@ def relative_to_root(path: Path) -> str:
 
 
 def replace_variation_block(text: str, spec: RunSpec) -> str:
+    selected = {
+        field: value
+        for (field, _short), value in zip(spec.fields, spec.values)
+    }
     lines = [
         "variation:",
         "  with_variation: true",
         "  mode: corner",
     ]
     lines.extend(
-        f"  {field}: {value}%"
-        for (field, _short), value in zip(VARIATION_FIELDS, spec.values)
+        f"  {field}: {selected.get(field, 0)}%"
+        for field, _short in SUPPORTED_VARIATION_FIELDS
     )
     block = "\n".join(lines) + "\n"
     updated, count = re.subn(
@@ -163,14 +224,21 @@ def manifest_row(
 ) -> dict[str, str | int]:
     return {
         "run_id": spec.run_id,
-        "on_var_percent": spec.values[0],
-        "off_var_percent": spec.values[1],
+        "on_var_percent": selected_percent(spec, "on"),
+        "off_var_percent": selected_percent(spec, "off"),
         "expected_corners": spec.expected_corners,
         "status": status,
         "elapsed_seconds": elapsed_seconds,
         "result_dir": relative_to_root(spec.run_dir),
         "message": message,
     }
+
+
+def selected_percent(spec: RunSpec, short_name: str) -> int:
+    for (_field, short), value in zip(spec.fields, spec.values):
+        if short == short_name:
+            return value
+    return 0
 
 
 def write_csv_atomic(path: Path, fieldnames: tuple[str, ...], rows: list[dict]) -> None:
@@ -291,8 +359,8 @@ def summary_row(spec: RunSpec) -> dict[str, str | int]:
 
     row: dict[str, str | int] = {
         "run_id": spec.run_id,
-        "on_var_percent": spec.values[0],
-        "off_var_percent": spec.values[1],
+        "on_var_percent": selected_percent(spec, "on"),
+        "off_var_percent": selected_percent(spec, "off"),
         "corners": len(rows),
         "result_dir": relative_to_root(spec.run_dir),
     }
@@ -394,6 +462,26 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Generate a corner SVG and Markdown table for every completed run.",
     )
+    parser.add_argument(
+        "--corner-fields",
+        nargs="+",
+        default=["on", "off"],
+        metavar="FIELD",
+        help=(
+            "Corner max-var inputs to sweep. Use aliases 'on' and 'off' or full "
+            "YAML field names. Default: on off."
+        ),
+    )
+    parser.add_argument(
+        "--corner-values",
+        nargs="+",
+        default=[str(value) for value in DEFAULT_SWEEP_VALUES],
+        metavar="PERCENT",
+        help=(
+            "Integer percent levels to sweep. Values may be space- or "
+            "comma-separated. Default: 0 2 4 6 8."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -402,7 +490,18 @@ def main() -> None:
     if args.jobs <= 0:
         raise SystemExit("--jobs must be positive")
 
-    specs = all_specs()
+    try:
+        fields = parse_corner_fields(args.corner_fields)
+        sweep_values = parse_corner_values(args.corner_values)
+    except argparse.ArgumentTypeError as error:
+        raise SystemExit(str(error)) from error
+
+    specs = all_specs(fields, sweep_values)
+    if not specs:
+        raise SystemExit(
+            "corner values produced no valid cases; provide at least one positive "
+            "percentage"
+        )
     total_corners = sum(spec.expected_corners for spec in specs)
     print(
         f"Sweep contains {len(specs):,} runs and {total_corners:,} total corners."

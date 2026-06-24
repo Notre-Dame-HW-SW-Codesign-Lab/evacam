@@ -13,8 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SWEEP_DIR = ROOT / "results" / "corner_sweep"
 PARAMETERS = (
-    ("on_var_percent", "Memory on"),
-    ("off_var_percent", "Memory off"),
+    ("on_var_percent", "Memory R_on max-var input"),
+    ("off_var_percent", "Memory R_off max-var input"),
 )
 DERIVED_METRICS = (
     ("matchline_delay_range_pct", "Matchline delay range", "%", "max"),
@@ -321,31 +321,6 @@ def build_sensitivity(main_effects: list[dict]) -> list[dict[str, str | float]]:
     return sensitivity
 
 
-def aggregate_pair(
-    rows: list[dict],
-    x_parameter: str,
-    y_parameter: str,
-    metric: str,
-) -> tuple[list[int], list[int], list[list[float]]]:
-    grouped: dict[tuple[int, int], list[float]] = defaultdict(list)
-    x_levels = sorted({int(row[x_parameter]) for row in rows})
-    y_levels = sorted({int(row[y_parameter]) for row in rows})
-    for row in rows:
-        grouped[(int(row[x_parameter]), int(row[y_parameter]))].append(
-            float(row[metric])
-        )
-    matrix = [
-        [
-            statistics.fmean(grouped[(x_level, y_level)])
-            if grouped[(x_level, y_level)]
-            else math.nan
-            for x_level in x_levels
-        ]
-        for y_level in y_levels
-    ]
-    return x_levels, y_levels, matrix
-
-
 def setup_matplotlib():
     os.environ.setdefault("MPLCONFIGDIR", "/tmp/evacam-matplotlib")
     try:
@@ -391,7 +366,7 @@ def plot_main_effects(main_effects: list[dict], output_dir: Path, plt) -> None:
                 color=upper_line.get_color(),
             )
         axis.set_title(label)
-        axis.set_xlabel("Variation bound (%)")
+        axis.set_xlabel("Input corner resistance bound (% from nominal)")
         axis.set_ylabel(y_label)
         axis.axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axis.grid(axis="y", alpha=0.3)
@@ -407,77 +382,68 @@ def plot_main_effects(main_effects: list[dict], output_dir: Path, plt) -> None:
     plt.close(fig)
 
 
+DEVIATION_DISTRIBUTIONS = (
+    (
+        "matchline_delay_lower_deviation_pct",
+        "matchline_delay_upper_deviation_pct",
+        "Matchline delay corner deviation",
+        "Deviation from nominal (%)",
+    ),
+    (
+        "search_latency_lower_deviation_pct",
+        "search_latency_upper_deviation_pct",
+        "Search latency corner deviation",
+        "Deviation from nominal (%)",
+    ),
+    (
+        "search_energy_lower_deviation_pct",
+        "search_energy_upper_deviation_pct",
+        "Search energy corner deviation",
+        "Deviation from nominal (%)",
+    ),
+    (
+        "sense_margin_lower_deviation_mv",
+        "sense_margin_upper_deviation_mv",
+        "Sense margin corner deviation",
+        "Deviation from nominal (mV)",
+    ),
+)
+
+
 def plot_distributions(rows: list[dict], output_dir: Path, plt) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(11, 8), constrained_layout=True)
-    for axis, (metric, label, unit, _direction) in zip(
-        axes.flat, DERIVED_METRICS
+    bins = min(14, max(5, int(math.sqrt(len(rows) * 2)) + 1))
+    for axis, (lower_metric, upper_metric, label, x_label) in zip(
+        axes.flat, DEVIATION_DISTRIBUTIONS
     ):
-        values = [float(row[metric]) for row in rows]
-        axis.hist(values, bins=30, color="#4f7cac", edgecolor="white")
-        axis.axvline(statistics.median(values), color="#8250df", linestyle="--")
+        lower_values = [float(row[lower_metric]) for row in rows]
+        upper_values = [float(row[upper_metric]) for row in rows]
+        axis.hist(
+            lower_values,
+            bins=bins,
+            color="#4f7cac",
+            alpha=0.72,
+            edgecolor="white",
+            label="Low corner",
+        )
+        axis.hist(
+            upper_values,
+            bins=bins,
+            color="#c75146",
+            alpha=0.62,
+            edgecolor="white",
+            label="High corner",
+        )
+        axis.axvline(0.0, color="#8250df", linestyle="--", label="Nominal")
         axis.set_title(label)
-        axis.set_xlabel(unit)
+        axis.set_xlabel(x_label)
         axis.set_ylabel("Runs")
+        axis.legend(fontsize=8)
         axis.spines["top"].set_visible(False)
         axis.spines["right"].set_visible(False)
-    fig.suptitle("Corner Sweep Outcome Distributions")
+    fig.suptitle("Corner Sweep Signed Deviations")
     fig.savefig(output_dir / "distributions.svg", format="svg")
     plt.close(fig)
-
-
-def plot_pairwise_heatmaps(rows: list[dict], output_dir: Path, plt) -> None:
-    pairs = [
-        (PARAMETERS[i], PARAMETERS[j])
-        for i in range(len(PARAMETERS))
-        for j in range(i + 1, len(PARAMETERS))
-    ]
-    for metric, metric_label, unit, _direction in DERIVED_METRICS:
-        fig, axes = plt.subplots(2, 5, figsize=(18, 7), constrained_layout=True)
-        pair_data = [
-            (
-                x_info,
-                y_info,
-                *aggregate_pair(rows, x_info[0], y_info[0], metric),
-            )
-            for x_info, y_info in pairs
-        ]
-        finite_values = [
-            value
-            for _x_info, _y_info, _x_levels, _y_levels, matrix in pair_data
-            for matrix_row in matrix
-            for value in matrix_row
-            if math.isfinite(value)
-        ]
-        color_min = min(finite_values)
-        color_max = max(finite_values)
-        image = None
-        for axis, (
-            (_x_parameter, x_label),
-            (_y_parameter, y_label),
-            x_levels,
-            y_levels,
-            matrix,
-        ) in zip(
-            axes.flat, pair_data
-        ):
-            image = axis.imshow(
-                matrix,
-                origin="lower",
-                aspect="auto",
-                cmap="viridis",
-                vmin=color_min,
-                vmax=color_max,
-            )
-            axis.set_xticks(range(len(x_levels)), x_levels)
-            axis.set_yticks(range(len(y_levels)), y_levels)
-            axis.set_xlabel(f"{x_label} (%)", fontsize=8)
-            axis.set_ylabel(f"{y_label} (%)", fontsize=8)
-            axis.tick_params(labelsize=8)
-        if image is not None:
-            fig.colorbar(image, ax=axes.ravel().tolist(), label=unit, shrink=0.85)
-        fig.suptitle(f"Pairwise Mean: {metric_label}")
-        fig.savefig(output_dir / f"pairwise_{metric}.svg", format="svg")
-        plt.close(fig)
 
 
 def format_number(value: float) -> str:
@@ -564,7 +530,6 @@ def write_report(
             [
                 "- `main_effects.svg`: level-averaged response curves.",
                 "- `distributions.svg`: outcome distributions.",
-                "- `pairwise_*.svg`: pairwise means averaged over remaining inputs.",
             ]
         )
     (output_dir / "analysis_summary.md").write_text("\n".join(lines) + "\n")
@@ -615,7 +580,6 @@ def main() -> None:
         plt = setup_matplotlib()
         plot_main_effects(main_effects, output_dir, plt)
         plot_distributions(rows, output_dir, plt)
-        plot_pairwise_heatmaps(rows, output_dir, plt)
 
     write_report(
         output_dir,

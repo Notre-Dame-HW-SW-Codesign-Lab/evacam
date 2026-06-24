@@ -138,6 +138,84 @@ from the previous plot index.
 The default plot and table exclude internal diagnostic columns such as
 `reference_delay_s`. Use `--include-internal` to include them.
 
+## Corner Sweep Helper
+
+The repository includes a helper for generating and optionally running a
+deterministic 2FeFET-TCAM corner sweep:
+
+```bash
+python3 scripts/run_corner_sweep.py
+```
+
+By default, the helper sweeps the two corner inputs currently supported by
+EvaCAM:
+
+- `variation.memory_device_resistance_on_max_var`
+- `variation.memory_device_resistance_off_max_var`
+
+The default levels are `0%`, `2%`, `4%`, `6%`, and `8%`. The all-zero case is
+excluded because corner mode requires at least one positive `*_max_var` field,
+so the default sweep contains 24 runs and 80 evaluated corners.
+
+Running the script without `--run` only generates per-run configs and writes a
+pending manifest under `results/corner_sweep/`. To execute EvaCAM, build the
+binary first and pass `--run`:
+
+```bash
+make -j
+python3 scripts/run_corner_sweep.py --run --jobs 16
+```
+
+Each EvaCAM process is launched with `--threads 1`; `--jobs` controls process
+parallelism. Completed runs are skipped on later invocations unless `--force`
+is supplied. Per-run SVG plots and Markdown tables are disabled by default; add
+`--artifacts` to create them.
+
+Generated output uses this layout:
+
+```text
+results/corner_sweep/
+├── manifest.csv
+├── summary.csv
+└── runs/
+    └── on02_off04/
+        ├── cell_config.yaml
+        ├── system_config.yaml
+        ├── corner_results.yaml
+        ├── corner_variation_samples.csv
+        └── run.log
+```
+
+`manifest.csv` records the status of each generated case. `summary.csv`
+aggregates nominal, minimum, and maximum values for matchline delay, search
+latency, search dynamic energy, and sense margin.
+
+Use `--corner-values` to choose different integer percent levels:
+
+```bash
+python3 scripts/run_corner_sweep.py --corner-values 0 1 5 10
+```
+
+Values may omit `0`; in that case every generated combination is run because
+there is no all-zero case to exclude.
+
+Use `--corner-fields` to sweep a subset of the supported corner inputs. The
+aliases `on` and `off` may be used instead of full YAML field names:
+
+```bash
+python3 scripts/run_corner_sweep.py --corner-fields on --corner-values 0 5 10
+```
+
+After a completed sweep, generate aggregate rankings, sensitivity tables, and
+plots with:
+
+```bash
+python3 scripts/analyze_corner_sweep.py
+```
+
+The analysis output is written to `results/corner_sweep/analysis/`. Use
+`--no-plots` when only CSV and Markdown outputs are needed.
+
 SVG plots can be converted to PNG with:
 
 ```bash

@@ -45,6 +45,24 @@ Run the broader config sweep:
 make test-all-valgrind
 ```
 
+Generate the default deterministic corner-sweep configs without running EvaCAM:
+
+```bash
+python3 scripts/run_corner_sweep.py
+```
+
+Run the default corner sweep after building `EvaCAM`:
+
+```bash
+make -j
+python3 scripts/run_corner_sweep.py --run --jobs 16
+```
+
+The default helper sweep covers the supported memory-device on/off corner
+inputs at `0%`, `2%`, `4%`, `6%`, and `8%`, excluding the all-zero case. Use
+`--corner-values` to provide different percent levels and `--corner-fields` to
+limit the sweep to `on`, `off`, or their full YAML field names.
+
 ## Editor Tooling
 
 This repository depends on multiple include directories from the `Makefile`. Editors and linters such as ALE or `clangd` may show false include errors unless they can read a local `compile_commands.json`.
