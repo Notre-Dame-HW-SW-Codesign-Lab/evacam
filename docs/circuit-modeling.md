@@ -285,6 +285,19 @@ If `senseMargin < senseVoltage`, the configuration is marked invalid because the
 
 This sense-margin check is one of the main validity gates in the current model.
 
+### MCAM Matchline Delay
+
+For MCAM, EvaCAM uses the configured `mcam.resistance_state` values to build an effective one-mismatch resistance for each state. State `0` is treated as the all-base reference, and the nonzero state with the largest matchline delay is selected for the nominal search path.
+
+That selected state drives:
+
+- `resTotalCell`
+- matchline `tau`
+- `matchlineDelay`
+- total search/read latency composition
+
+This makes the nominal MCAM latency path worst-case across configured nonzero MCAM states. The broader MCAM query-evaluation API remains limited; binary vector, best-match, and threshold vector evaluation for MCAM are not implemented.
+
 ### Total Search and Read Latency
 
 Once the matchline and sensing stages are available, the total search latency is formed by summing:
@@ -447,7 +460,9 @@ This cell-read energy is then scaled by the number of columns sharing the active
 
 ### Searchline and Row-Driver Energy
 
-The model separately accumulates energy to drive the search values on the row-side lines. It scales the row-driver dynamic energy by the configured search voltages for logic `0` and logic `1`, then averages the two.
+The model separately accumulates energy to drive the search values on the row-side lines. For ordinary binary ports, it scales the row-driver dynamic energy by the configured search voltages for logic `0` and logic `1`, then averages the two squared-voltage terms.
+
+For MCAM ports with `mcam.searchline_voltage` and `mcam.center_voltage`, it averages the squared searchline voltage across configured resistance states. For the complementary MCAM searchline, the voltage is derived as `2 * center_voltage - searchline_voltage[state]`.
 
 ### Read Dynamic Energy Aggregation
 
@@ -632,7 +647,7 @@ The strongest support today is for:
 ### Explicitly Limited or Unsupported Paths
 
 - ACAM is not supported.
-- MCAM is only partially supported and currently returns placeholder values in some paths.
+- MCAM has an experimental subarray timing and energy path for 2FeFET-style inputs, including resistance-state-based matchline latency and searchline-voltage-based row-driver energy. MCAM vector/query evaluation APIs are still limited.
 - External sense amplifiers are rejected for non-SRAM cells.
 - Some sense-amp modes exist in the type system but are not fully implemented.
 - Some topologies are rejected early because the current matchline model does not cover them.
