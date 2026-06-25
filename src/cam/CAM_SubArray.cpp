@@ -201,6 +201,16 @@ uint32_t MixVariationSeed(uint32_t baseSeed, uint32_t sampleIndex, uint32_t stre
     return z;
 }
 
+uint32_t MixVariationSeed(
+        uint32_t baseSeed,
+        uint32_t sampleIndex,
+        uint32_t streamOffset,
+        uint32_t cellIndex) {
+    uint32_t z = MixVariationSeed(baseSeed, sampleIndex, streamOffset);
+    z ^= cellIndex + 0xc2b2ae35u + (z << 6) + (z >> 2);
+    return z;
+}
+
 CAMMetricStats BuildMetricStats(const std::vector<double> &samples, double nominal) {
     CAMMetricStats stats;
     if (samples.empty()) {
@@ -1564,7 +1574,31 @@ double CAM_SubArray::MatchlineDischargeTau(double effectiveCellRes, double mlWir
                 + peripherals.addCapOnML
                 + precharger->capOutputBitlinePrecharger
                 + senseAmp->capLoad
-                + Col[indexMatchline].cap / 2);
+	                + Col[indexMatchline].cap / 2);
+}
+
+double CAM_SubArray::MatchlineEffectiveResistance(
+        const CAMResistanceSample &sample,
+        int mismatches) const {
+    if (sample.hasAggregateMatchlineRes) {
+        if (mismatches <= 0) {
+            return sample.allMatchEffectiveCellRes;
+        }
+        if (mismatches == 1) {
+            return sample.oneMissEffectiveCellRes;
+        }
+    }
+    return EffectiveMatchlineCellResistance(mismatches, sample.cellResOn, sample.cellResOff);
+}
+
+double CAM_SubArray::MatchlineAllMatchTau(const CAMResistanceSample &sample) const {
+    if (sample.hasAggregateMatchlineRes) {
+        return sample.allMatchEffectiveCellRes * (Col[indexMatchline].cap
+                    + ColMux[indexMatchline]->capForPreviousDelayCalculation)
+            + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
+                    + Col[indexMatchline].cap / 2);
+    }
+    return MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
 }
 
 double CAM_SubArray::MatchlineAllMatchTau(double cellResOff, double mlWireRes) const {
@@ -1742,6 +1776,57 @@ CAMResistanceSample CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex
     return sample;
 }
 
+CAMResistanceSample CAM_SubArray::BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const {
+    const auto &variation = config->variation;
+    if (CAM_opt.BitSerialWidth <= 0) {
+        throw std::runtime_error("[CAM_SubArray] Error: cell-level Monte Carlo requires positive BitSerialWidth.");
+    }
+
+    CAMResistanceSample sample;
+    sample.mlWireRes = nominalMatchlineWireRes;
+
+    sample.accessRes = nominalResCellAccess;
+    sample.matchRes = SampleCellVariationResistance(
+            nominalResMatchTran,
+            variation.memoryDeviceResOnStdev,
+            2,
+            sampleIndex,
+            0);
+    sample.cellResOn = sample.accessRes + sample.matchRes;
+
+    sample.accessResOff = nominalResCellAccessOff;
+
+    double allMatchOffConductance = 0.0;
+    double oneMissOffConductance = 0.0;
+    for (int cellIndex = 0; cellIndex < CAM_opt.BitSerialWidth; cellIndex++) {
+        const double sampledMatchResOff = SampleCellVariationResistance(
+                nominalResMatchTranOff,
+                variation.memoryDeviceResOffStdev,
+                5,
+                sampleIndex,
+                static_cast<unsigned int>(cellIndex));
+        const double sampledCellResOff = sample.accessResOff + sampledMatchResOff;
+        const double conductance = 1.0 / sampledCellResOff;
+        allMatchOffConductance += conductance;
+        if (cellIndex > 0) {
+            oneMissOffConductance += conductance;
+        }
+    }
+
+    if (allMatchOffConductance <= 0.0) {
+        throw std::runtime_error("[CAM_SubArray] Error: sampled off-cell conductance must be positive.");
+    }
+
+    sample.cellResOff = static_cast<double>(CAM_opt.BitSerialWidth) / allMatchOffConductance;
+    sample.matchResOff = std::max(0.0, sample.cellResOff - sample.accessResOff);
+
+    const double oneMissConductance = (1.0 / sample.cellResOn) + oneMissOffConductance;
+    sample.hasAggregateMatchlineRes = true;
+    sample.oneMissEffectiveCellRes = 1.0 / oneMissConductance;
+    sample.allMatchEffectiveCellRes = 1.0 / allMatchOffConductance;
+    return sample;
+}
+
 CAMResistanceSample CAM_SubArray::BuildCornerResistanceSample(unsigned int cornerIndex) const {
     const auto &variation = config->variation;
     const CornerSelection selection = BuildCornerSelection(variation, cornerIndex);
@@ -1768,6 +1853,10 @@ CAMResistanceSample CAM_SubArray::BuildVariationResistanceSample(unsigned int sa
     if (config->variation.mode == "corner") {
         return BuildCornerResistanceSample(sampleIndex);
     }
+    if (config->variation.mode == "monte_carlo"
+            && config->variation.monteCarloGranularity == "cell") {
+        return BuildCellMonteCarloResistanceSample(sampleIndex);
+    }
     return BuildResistanceSample(sampleIndex);
 }
 
@@ -1785,6 +1874,25 @@ double CAM_SubArray::SampleVariationResistance(
             variation.seed,
             sampleIndex,
             streamOffset));
+    return sampler.SampleResistance(nominal, stdevFrac);
+}
+
+double CAM_SubArray::SampleCellVariationResistance(
+        double nominal,
+        double stdevFrac,
+        unsigned int streamOffset,
+        unsigned int sampleIndex,
+        unsigned int cellIndex) const {
+    const auto &variation = config->variation;
+    if (!(withVariation || variation.enabled) || stdevFrac <= 0.0) {
+        return nominal;
+    }
+
+    VariationSampler sampler(MixVariationSeed(
+            variation.seed,
+            sampleIndex,
+            streamOffset,
+            cellIndex));
     return sampler.SampleResistance(nominal, stdevFrac);
 }
 
@@ -1809,8 +1917,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
             }
         }
 
-        const double sampleResTotalCell =
-                EffectiveMatchlineCellResistance(1, sample.cellResOn, sample.cellResOff);
+        const double sampleResTotalCell = MatchlineEffectiveResistance(sample, 1);
         const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
         double sampleRamp = 0;
         double sampleMatchlineDelay = MatchlineHorowitzDelay(
@@ -1818,7 +1925,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
                 sampleResTotalCell,
                 &sampleRamp);
 
-        const double sampleAllMatchTau = MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
+        const double sampleAllMatchTau = MatchlineAllMatchTau(sample);
         const double sampleReferDelay = sampleMatchlineDelay;
         const double sampleSenseMargin = MatchlineSenseMargin(sampleAllMatchTau, sampleTau, sampleReferDelay);
 
@@ -1867,8 +1974,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
 
     for (int sampleIndex = 0; sampleIndex < variation.samples; sampleIndex++) {
         const CAMResistanceSample sample = BuildVariationResistanceSample(sampleIndex);
-        const double sampleResTotalCell =
-                EffectiveMatchlineCellResistance(1, sample.cellResOn, sample.cellResOff);
+        const double sampleResTotalCell = MatchlineEffectiveResistance(sample, 1);
         const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
         double sampleRamp = 0;
         double sampleMatchlineDelay = MatchlineHorowitzDelay(
@@ -1876,7 +1982,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
                 sampleResTotalCell,
                 &sampleRamp);
 
-        const double sampleAllMatchTau = MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
+        const double sampleAllMatchTau = MatchlineAllMatchTau(sample);
         const double sampleReferDelay = sampleMatchlineDelay;
         const double sampleSenseMargin = MatchlineSenseMargin(sampleAllMatchTau, sampleTau, sampleReferDelay);
 

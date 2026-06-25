@@ -557,6 +557,7 @@ static void test_memcell_variation_yaml() {
             "  with_variation: true\n"
             "  seed: 12345\n"
             "  mode: monte_carlo\n"
+            "  monte_carlo_granularity: effective\n"
             "  lut_file: variation_lut.csv\n"
             "  samples: 7\n"
             "  memory_device_resistance_on_stdev: 5%\n"
@@ -606,6 +607,7 @@ static void test_memcell_variation_yaml() {
     assert(cell.hasVariationSamples == true);
     assert(cell.variationSeed == 12345u);
     assert(cell.variationMode == "monte_carlo");
+    assert(cell.monteCarloGranularity == "effective");
     assert(cell.variationLutFile == "variation_lut.csv");
     assert(cell.variationSamples == 7);
     assert(near(cell.resistanceOnVariation, 0.05));
@@ -757,6 +759,7 @@ static void test_cell_variation_drives_runtime_config() {
     assert(variation.enabled == true);
     assert(variation.seed != 0u);
     assert(variation.mode == "monte_carlo");
+    assert(variation.monteCarloGranularity == "cell");
     assert(variation.lutFile == "tests/tmp_variation_lut.csv");
     assert(variation.samples == 17);
     assert(near(variation.memoryDeviceResOnStdev, 0.05));
@@ -781,6 +784,15 @@ static void test_variation_builder_rejects_invalid_mode_and_samples() {
         assert(false && "Expected monte_carlo samples <= 1 to throw");
     } catch (const std::runtime_error&) {
     }
+
+    cell.variationSamples = 9;
+    cell.monteCarloGranularity = "invalid";
+    try {
+        (void)VariationConfigBuilder::FromCell(cell);
+        assert(false && "Expected invalid monte_carlo_granularity to throw");
+    } catch (const std::runtime_error&) {
+    }
+    cell.monteCarloGranularity = "cell";
 
     cell.variationMode = "invalid_mode";
     cell.variationSamples = 9;

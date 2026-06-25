@@ -10,10 +10,12 @@ YamlHelpersTest
 TopLevelConfigParserTest
 CellYamlLoaderTest
 CliOptionsTest
+CustomSenseAmpYamlLoaderTest
 InputValidationTest
 ExplorationDomainTest
 VariationSamplerTest
 MonteCarloRegressionTest
+CornerVariationRegressionTest
 WireCopyTest
 FormulaTest
 MatchTest
@@ -31,6 +33,7 @@ compile_commands.json
 
 # Local testing
 testing*
+tests/tmp_*.yaml
 
 # Python packaging build artifacts
 build/

@@ -94,10 +94,11 @@ Supported cell-level variation controls:
 - `variation.mode: single_point` for one sampled run
 - `variation.mode: monte_carlo` with `variation.samples: <N>` for Monte Carlo analysis
 - `variation.mode: corner` for deterministic independent low/high resistance corners
+- `variation.monte_carlo_granularity: cell | effective` to choose whether Monte Carlo samples each modeled matchline cell independently or samples one effective resistance for all modeled cells; default is `cell`
 - `variation.seed` as an optional reproducibility/testing override; if omitted, EvaCAM derives the base seed from the current time
 - `variation.lut_file` as an optional path to a future external variation LUT file
 
-For `single_point` and `monte_carlo`, use `*_stdev` fields such as `memory_device_resistance_on_stdev`; these are interpreted as bounded-Gaussian standard-deviation fractions. For `corner`, use `*_max_var` fields such as `memory_device_resistance_on_max_var`; these are interpreted as deterministic raw variation bounds, so `5%` produces low/high corners at `0.95x` and `1.05x` nominal resistance. Corner mode derives its own sample count from the number of active effective resistance components and ignores user-provided `variation.samples` and `variation.seed`.
+For `single_point` and `monte_carlo`, use `*_stdev` fields such as `memory_device_resistance_on_stdev`; these are interpreted as bounded-Gaussian standard-deviation fractions. In Monte Carlo `cell` granularity, EvaCAM samples the effective memory resistance of each modeled matchline cell branch independently, then reduces those branches into the aggregate matchline resistance used by the timing model. In `effective` granularity, EvaCAM samples one effective on/off resistance pair per Monte Carlo sample and applies it across all modeled matchline cells. For `corner`, use `*_max_var` fields such as `memory_device_resistance_on_max_var`; these are interpreted as deterministic raw variation bounds, so `5%` produces low/high corners at `0.95x` and `1.05x` nominal resistance. Corner mode derives its own sample count from the number of active effective resistance components and ignores user-provided `variation.samples` and `variation.seed`.
 
 ## Units and Formatting
 

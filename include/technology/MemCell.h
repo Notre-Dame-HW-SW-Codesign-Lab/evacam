@@ -77,6 +77,7 @@ class MemCell {
         bool hasVariationSamples;
         uint32_t variationSeed;
         std::string variationMode;
+        std::string monteCarloGranularity;
         std::string variationLutFile;
         int variationSamples;
         double resistanceOnVariation;

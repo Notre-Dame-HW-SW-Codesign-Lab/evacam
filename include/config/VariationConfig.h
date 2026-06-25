@@ -8,6 +8,7 @@ struct VariationConfig {
     bool enabled = false;
     uint32_t seed = 0;
     std::string mode = "nominal";
+    std::string monteCarloGranularity = "cell";
     std::string lutFile;
     int samples = 1;
     bool hasUserSeed = false;

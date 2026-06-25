@@ -60,7 +60,8 @@ MonteCarloFixture WriteMonteCarloConfig(
         uint32_t seed = 0,
         const std::string &mode = "monte_carlo",
         int samples = 9,
-        bool memoryOnlyVariation = false) {
+        bool memoryOnlyVariation = false,
+        const std::string &monteCarloGranularity = "") {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
     const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml";
     const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
@@ -84,6 +85,9 @@ MonteCarloFixture WriteMonteCarloConfig(
         cellText += "  mode: " + mode + "\n";
         if (mode == "monte_carlo") {
             cellText += "  samples: " + std::to_string(samples) + "\n";
+            if (!monteCarloGranularity.empty()) {
+                cellText += "  monte_carlo_granularity: " + monteCarloGranularity + "\n";
+            }
         }
     }
     if (memoryOnlyVariation) {
@@ -230,6 +234,41 @@ void test_memory_device_variation_affects_matchline_distribution() {
     assert(searchEnergyStddev > 0.0);
 }
 
+void test_monte_carlo_granularity_changes_distribution() {
+    const MonteCarloFixture cellFixture = WriteMonteCarloConfig(
+            "cell_granularity",
+            true,
+            77777u,
+            "monte_carlo",
+            21,
+            true,
+            "cell");
+    const MonteCarloFixture effectiveFixture = WriteMonteCarloConfig(
+            "effective_granularity",
+            true,
+            77777u,
+            "monte_carlo",
+            21,
+            true,
+            "effective");
+
+    const std::string cellCommand = "./EvaCAM " + cellFixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
+    const std::string effectiveCommand = "./EvaCAM " + effectiveFixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
+    assert(std::system(cellCommand.c_str()) == 0);
+    assert(std::system(effectiveCommand.c_str()) == 0);
+
+    const YAML::Node cellVariation = YAML::LoadFile(cellFixture.outputPath.string())["summary"]["timing"]["variation"];
+    const YAML::Node effectiveVariation = YAML::LoadFile(effectiveFixture.outputPath.string())["summary"]["timing"]["variation"];
+    assert(cellVariation);
+    assert(effectiveVariation);
+
+    const double cellMatchlineStddev = ParseLeadingDouble(cellVariation["matchline_delay"]["stddev"]);
+    const double effectiveMatchlineStddev = ParseLeadingDouble(effectiveVariation["matchline_delay"]["stddev"]);
+    assert(cellMatchlineStddev > 0.0);
+    assert(effectiveMatchlineStddev > 0.0);
+    assert(!Near(cellMatchlineStddev, effectiveMatchlineStddev, 1e-6, 1e-18));
+}
+
 void test_single_point_output_summary_is_emitted() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("single_point", true, 55555u, "single_point");
 
@@ -288,6 +327,7 @@ int main() {
     test_monte_carlo_changes_with_variation_toggle();
     test_monte_carlo_output_summary_is_emitted();
     test_memory_device_variation_affects_matchline_distribution();
+    test_monte_carlo_granularity_changes_distribution();
     test_single_point_output_summary_is_emitted();
     test_variation_output_summary_is_absent_when_disabled();
     std::cout << "Monte Carlo regression tests passed" << std::endl;

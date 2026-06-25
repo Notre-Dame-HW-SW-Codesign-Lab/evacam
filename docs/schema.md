@@ -79,6 +79,7 @@ Important notes:
 - Supported user-facing variation modes are `single_point`, `monte_carlo`, and `corner`.
 - `variation.mode: nominal` is not a supported input; disable variation instead.
 - `variation.samples` is required for `monte_carlo` and must be greater than 1.
+- `variation.monte_carlo_granularity` is optional for `monte_carlo`; supported values are `cell` and `effective`, and the default is `cell`.
 - `variation.seed` is an optional cell-level override intended for reproducible testing; otherwise the variation seed is derived from the current time.
 - `variation.mode: corner` uses deterministic `*_max_var` fields, derives `samples`, and ignores user-provided `samples` and `seed`.
 - `multilevel.enabled` appears in some shipped legacy configs but is not currently parsed.

@@ -111,6 +111,7 @@ variation:
   # single_point and monte_carlo use bounded-Gaussian stdev fields.
   # corner uses deterministic max_var fields.
   mode: single_point # optional enum: single_point | monte_carlo | corner
+  monte_carlo_granularity: cell # optional enum for monte_carlo: cell | effective
   lut_file: ./variation_lut.csv # optional path; accepted and propagated but not consumed yet
   samples: 9 # optional int; required for monte_carlo and must be > 1; ignored for corner
   seed: 12345 # optional uint32; mainly for reproducible testing; ignored for corner

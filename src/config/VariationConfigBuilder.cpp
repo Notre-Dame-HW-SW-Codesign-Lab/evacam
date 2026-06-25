@@ -37,6 +37,7 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
     variation.hasUserSamples = cell.hasVariationSamples;
     variation.seed = cell.hasVariationSeed ? cell.variationSeed : DefaultVariationSeed();
     variation.mode = cell.variationMode;
+    variation.monteCarloGranularity = cell.monteCarloGranularity;
     variation.lutFile = cell.variationLutFile;
     variation.samples = cell.variationSamples;
     variation.memoryDeviceResOnStdev = cell.resistanceOnVariation;
@@ -52,6 +53,10 @@ VariationConfig VariationConfigBuilder::FromCell(const MemCell &cell) {
     } else if (variation.mode == "single_point") {
         variation.samples = 1;
     } else if (variation.mode == "monte_carlo") {
+        if (variation.monteCarloGranularity != "cell"
+                && variation.monteCarloGranularity != "effective") {
+            throw std::runtime_error("[Input] Error: variation.monte_carlo_granularity must be 'cell' or 'effective'.");
+        }
         if (variation.samples <= 1) {
             throw std::runtime_error("[Input] Error: variation.samples must be > 1 for monte_carlo mode.");
         }

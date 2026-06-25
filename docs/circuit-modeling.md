@@ -556,21 +556,15 @@ If variation is disabled, the model uses nominal resistances everywhere.
 
 If `single_point` is selected, EvaCAM draws one deterministic sample from the configured seeded RNG streams and overwrites the nominal timing and search-energy results with that single sampled point.
 
-If `monte_carlo` is selected, EvaCAM draws `N` samples and computes summary statistics.
+If `monte_carlo` is selected, EvaCAM draws `N` samples and computes summary statistics. `variation.monte_carlo_granularity: cell` samples each modeled matchline cell branch independently and reduces those sampled branches into the aggregate matchline resistance. `variation.monte_carlo_granularity: effective` samples one effective on/off resistance pair per Monte Carlo sample and applies it across the modeled matchline cells.
 
 If `corner` is selected, EvaCAM enumerates independent deterministic low/high corners for each active effective resistance component. The `*_max_var` inputs are raw fractional bounds, so `5%` applies `nominal * 0.95` and `nominal * 1.05`. Corner mode ignores user-provided `seed` and `samples`; the sample count is derived from the number of active corner dimensions.
 
 ### Sampled Quantities
 
-The current sampled categories are resistance-like quantities:
+The current sampled quantities are the effective memory-device resistance in the on-state path and the effective memory-device resistance in the off-state path. Access-device resistance, wire resistance, and peripheral circuit parameters remain nominal.
 
-- matchline wire resistance
-- access-device resistance for the on-state path
-- match-device resistance for the on-state path
-- access-device resistance for the off-state path
-- match-device resistance for the off-state path
-
-Cell and device sigmas are combined with root-sum-of-squares where appropriate. For corner mode, memory-device and match-device max variations are added directly for the effective match-resistance bounds.
+For Monte Carlo `cell` granularity, the number of sampled matchline branches is `CAM_opt.BitSerialWidth`. The representative one-mismatch path uses one sampled on branch and the remaining sampled off branches. The all-match/reference path reuses the same sampled off-branch population from that Monte Carlo sample. For Monte Carlo `effective` granularity and corner mode, EvaCAM varies the effective on/off resistance values directly before the existing aggregate matchline equations consume them.
 
 ### Sampling Method
 

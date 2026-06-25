@@ -35,6 +35,9 @@ struct CAMResistanceSample {
     double matchRes = 0;
     double accessResOff = 0;
     double matchResOff = 0;
+    bool hasAggregateMatchlineRes = false;
+    double oneMissEffectiveCellRes = 0;
+    double allMatchEffectiveCellRes = 0;
 };
 
 struct CAMMetricStats {
@@ -116,9 +119,12 @@ class CAM_SubArray: public FunctionUnit {
         EvaCAMMatchResult EvaluateBinaryMatchByMismatches(int mismatchCount) const;
         CAMResistanceSample BuildNominalResistanceSample() const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
+        CAMResistanceSample BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const;
         CAMResistanceSample BuildCornerResistanceSample(unsigned int cornerIndex) const;
         CAMResistanceSample BuildVariationResistanceSample(unsigned int sampleIndex) const;
         double SampleVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const;
+        double SampleCellVariationResistance(double nominal, double stdevFrac, unsigned int streamOffset,
+                unsigned int sampleIndex, unsigned int cellIndex) const;
         void UpdateVariationTimingSummary();
         void UpdateVariationPowerSummary();
         double SampleCellReadEnergy(const CAMResistanceSample &sample, double sampleMatchlineDelay) const;
@@ -136,6 +142,8 @@ class CAM_SubArray: public FunctionUnit {
         std::vector<double> McamStateDelays(const std::vector<double> &stateTaus);
         void CalculateSearchPathLatenciesAfterMatchline();
         double MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const;
+        double MatchlineEffectiveResistance(const CAMResistanceSample &sample, int mismatches) const;
+        double MatchlineAllMatchTau(const CAMResistanceSample &sample) const;
         double MatchlineAllMatchTau(double cellResOff, double mlWireRes) const;
         double MatchlineSenseMargin(double tauAllMatch, double tauOneMiss, double senseTime) const;
         double MatchlineBeta(double effectiveCellRes, int activeDischargePaths = 1) const;

@@ -81,6 +81,7 @@ MemCell::MemCell() {
     hasVariationSamples = false;
     variationSeed = 0;
     variationMode = "nominal";
+    monteCarloGranularity = "cell";
     variationLutFile = "";
     variationSamples = 1;
     resistanceOnVariation = 0;
