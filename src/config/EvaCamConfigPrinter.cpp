@@ -98,17 +98,7 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
     std::cout << std::endl << "====================" << std::endl
               << "DESIGN SPECIFICATION" << std::endl
               << "====================" << std::endl;
-    std::cout << "Design Target: ";
-    switch (input.designTarget) {
-        case cache:
-            std::cout << "Cache" << std::endl;
-            break;
-        case RAM_chip:
-            std::cout << "Random Access Memory" << std::endl;
-            break;
-        default:
-            std::cout << "Content Addressable Memory" << std::endl;
-    }
+    std::cout << "Design Target: Content Addressable Memory" << std::endl;
 
     std::cout << "Capacity   : ";
     if (input.capacity < 1024)
@@ -120,35 +110,20 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
     else
         std::cout << input.capacity / 1024 / 1024 / 1024 << "GB" << std::endl;
 
-    if (input.designTarget == cache) {
-        std::cout << "Cache Line Size: " << input.wordWidth / 8 << "Bytes" << std::endl;
-        std::cout << "Cache Associativity: " << input.associativity << " Ways" << std::endl;
-    } else {
-        std::cout << "Data Width : " << input.wordWidth << "Bits";
-        if (input.wordWidth % 8 == 0)
-            std::cout << " (" << input.wordWidth / 8 << "Bytes)" << std::endl;
-        else
-            std::cout << std::endl;
-    }
-    if (input.designTarget == RAM_chip
-            && (technology.cell->memCellType == SLCNAND || technology.cell->memCellType == MLCNAND)) {
-        std::cout << "Page Size  : " << input.pageSize / 8 << "Bytes" << std::endl;
-        std::cout << "Block Size : " << input.flashBlockSize / 8 / 1024 << "KB" << std::endl;
-    }
+    std::cout << "Data Width : " << input.wordWidth << "Bits";
+    if (input.wordWidth % 8 == 0)
+        std::cout << " (" << input.wordWidth / 8 << "Bytes)" << std::endl;
+    else
+        std::cout << std::endl;
     std::cout << "System Process Node: " << input.processNode << "nm" << std::endl;
     std::cout << "Device Roadmap: " << ToString(input.deviceRoadmap) << std::endl;
     std::cout << "Temperature: " << input.temperature << "K" << std::endl;
     std::cout << "Memory Cell: " << ToString(technology.cell->memCellType) << std::endl;
     std::cout << "Cell File  : " << input.fileMemCell << std::endl;
 
-    if (input.designTarget == CAM_chip) {
-        std::cout << "Search Function: " << ToString(input.searchFunction) << std::endl;
-    }
+    std::cout << "Search Function: " << ToString(input.searchFunction) << std::endl;
 
-    if (input.designTarget != RAM_chip
-            || (technology.cell->memCellType != SLCNAND && technology.cell->memCellType != MLCNAND)) {
-        std::cout << "Write Scheme: " << ToString(input.writeScheme) << std::endl;
-    }
+    std::cout << "Write Scheme: " << ToString(input.writeScheme) << std::endl;
 
     std::cout << "Routing Mode: " << (input.routingMode == h_tree ? "H-tree" : "Non-H-tree") << std::endl;
     std::cout << "Sensing: " << (input.internalSensing ? "Internal" : "External")

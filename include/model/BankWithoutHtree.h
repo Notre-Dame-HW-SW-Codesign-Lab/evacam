@@ -20,7 +20,7 @@ class BankWithoutHtree: public Bank {
 
         /* Functions */
         void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
-                long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
+                long _blockSize, int _numActiveMatPerRow,
                 int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
                 int _muxOutputLev2,
                 int _numRowSubarray, int _numColumnSubarray,

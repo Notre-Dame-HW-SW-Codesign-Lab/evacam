@@ -20,7 +20,6 @@ struct GeometryExplorationSpec {
     IntValueDomain muxSenseAmp = IntValueDomain::PowersOfTwo(1, 32);
     IntValueDomain muxOutputLev1 = IntValueDomain::PowersOfTwo(1, 32);
     IntValueDomain muxOutputLev2 = IntValueDomain::PowersOfTwo(1, 32);
-    IntValueDomain numRowPerSet = IntValueDomain::PowersOfTwo(1, 32);
 };
 
 struct WireExplorationSpec {
@@ -47,7 +46,7 @@ struct ExplorationSpec {
     bool deepExploration = false;
 
     static ExplorationSpec Default();
-    void ApplyDeepExplorationDefaults(int associativity);
+    void ApplyDeepExplorationDefaults();
 
     std::vector<int> ActiveMatPerRowValues(int numColumnMat) const;
     std::vector<int> ActiveMatPerColumnValues(int numRowMat) const;

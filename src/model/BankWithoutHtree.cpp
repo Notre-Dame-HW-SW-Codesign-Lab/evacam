@@ -2,7 +2,7 @@
 #include "formula.h"
 
 void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
-        long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
+        long _blockSize, int _numActiveMatPerRow,
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
         int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
@@ -38,12 +38,12 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     numColumnMat = _numColumnMat;
     capacity = _capacity;
     blockSize = _blockSize;
-    associativity = _associativity;
-    numRowPerSet = _numRowPerSet;
+    associativity = 1;
+    numRowPerSet = 1;
     internalSenseAmp = _internalSenseAmp;
     areaOptimizationLevel = _areaOptimizationLevel;
     memoryType = _memoryType;
-    numWay = 1;	/* default value for non-cache design */
+    numWay = 1;	/* CAM invariant until non-H-tree is revisited */
 
     camType = _camType;
     CAM_opt = _CAM_opt;

@@ -220,8 +220,6 @@ const std::vector<std::pair<const char*, WriteScheme>>& EnumTraits<WriteScheme>:
 
 const std::vector<std::pair<const char*, DesignTarget>>& EnumTraits<DesignTarget>::mapping() {
     static const std::vector<std::pair<const char*, DesignTarget>> k = {
-        {"cache", cache},
-        {"RAM", RAM_chip},
         {"CAM", CAM_chip},
     };
     return k;

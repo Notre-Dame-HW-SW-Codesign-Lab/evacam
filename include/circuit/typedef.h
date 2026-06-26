@@ -89,8 +89,6 @@ enum WriteScheme {
 };
 
 enum DesignTarget {
-    cache,
-    RAM_chip,
     CAM_chip
 };
 

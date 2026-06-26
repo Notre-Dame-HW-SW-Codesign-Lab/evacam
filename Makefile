@@ -28,6 +28,7 @@ TEST_CELL_LOADER_BIN=CellYamlLoaderTest
 TEST_CLI_OPTIONS_BIN=CliOptionsTest
 TEST_CUSTOM_SA_LOADER_BIN=CustomSenseAmpYamlLoaderTest
 TEST_INPUT_VALIDATION_BIN=InputValidationTest
+TEST_OUTPUT_PATH_BUILDER_BIN=OutputPathBuilderTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
 TEST_VARIATION_BIN=VariationSamplerTest
 TEST_MONTECARLO_BIN=MonteCarloRegressionTest
@@ -86,7 +87,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-pybind-match test-pybind-run uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -116,6 +117,11 @@ test-input-validation: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_INPUT_VALIDATION_BIN).d -MT $(TEST_INPUT_VALIDATION_BIN) -o $(TEST_INPUT_VALIDATION_BIN) tests/InputValidationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_INPUT_VALIDATION_BIN)
+
+test-output-path-builder: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_OUTPUT_PATH_BUILDER_BIN).d -MT $(TEST_OUTPUT_PATH_BUILDER_BIN) -o $(TEST_OUTPUT_PATH_BUILDER_BIN) tests/OutputPathBuilderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_OUTPUT_PATH_BUILDER_BIN)
 
 test-exploration:
 	@mkdir -p $(TEST_DEP_DIR)
@@ -189,6 +195,7 @@ clean:
 		$(TEST_CLI_OPTIONS_BIN) $(TEST_CLI_OPTIONS_BIN).d \
 		$(TEST_CUSTOM_SA_LOADER_BIN) $(TEST_CUSTOM_SA_LOADER_BIN).d \
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
+		$(TEST_OUTPUT_PATH_BUILDER_BIN) $(TEST_OUTPUT_PATH_BUILDER_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
 		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
 		$(TEST_CORNER_BIN) $(TEST_CORNER_BIN).d \

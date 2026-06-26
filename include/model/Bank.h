@@ -30,7 +30,7 @@ class Bank: public FunctionUnit {
         bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate(const std::vector<int> &stored, const std::vector<int> &query) const;
         virtual void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
-                long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
+                long _blockSize, int _numActiveMatPerRow,
                 int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
                 int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
                 int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
@@ -51,8 +51,8 @@ class Bank: public FunctionUnit {
         int numColumnMat;	/* Number of mat columns in a bank */
         long long capacity;		/* The capacity of this bank, Unit: bit */
         long blockSize;		/* The basic block size in this bank, Unit: bit */
-        int associativity;	/* Associativity, for cache design only */
-        int numRowPerSet;		/* For cache design, the number of wordlines which a set is partitioned into */
+        int associativity;	/* CAM callers pass the invariant value 1 until the bank API is simplified */
+        int numRowPerSet;		/* CAM callers pass the invariant value 1 until the bank API is simplified */
         int numActiveMatPerRow;	/* For different access types */
         int numActiveMatPerColumn;	/* For different access types */
         int muxSenseAmp;	/* How many bitlines connect to one sense amplifier */

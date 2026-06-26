@@ -33,10 +33,6 @@ namespace ConfigSectionReaders {
 void ReadDesignSection(const YAML::Node &root, EvaCamConfig &config) {
     auto design = YamlHelpers::child_required(root, "design");
     config.input.designTarget = YamlHelpers::read_enum_required<DesignTarget>(design, "target");
-    if (config.input.designTarget != CAM_chip) {
-        throw std::runtime_error("[Error]: Only support CAM design.");
-    }
-    config.exploration.geometry.numRowPerSet = IntValueDomain::PowersOfTwo(1, 256);
     config.input.searchFunction = YamlHelpers::read_enum_required<SearchFunction>(design, "search_function");
 
     const double processNodeM = YamlHelpers::read_quantity_required(

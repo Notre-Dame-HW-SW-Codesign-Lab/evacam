@@ -39,7 +39,7 @@ void TestExplorationSpecDefaults() {
 
 void TestDeepExplorationDefaults() {
     ExplorationSpec spec = ExplorationSpec::Default();
-    spec.ApplyDeepExplorationDefaults(4);
+    spec.ApplyDeepExplorationDefaults();
     const ResolvedExplorationSpace resolved = ExplorationSpaceResolver::Resolve(spec);
 
     AssertEqual(resolved.geometry.numRowMatValues, {1, 2, 4, 8, 16, 32, 64});

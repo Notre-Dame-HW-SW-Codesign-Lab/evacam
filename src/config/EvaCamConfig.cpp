@@ -10,7 +10,7 @@ namespace {
 void EvaCamConfig::SetDeepExploration(bool enabled) {
     exploration = ExplorationSpec::Default();
     if (enabled) {
-        exploration.ApplyDeepExplorationDefaults(input.associativity);
+        exploration.ApplyDeepExplorationDefaults();
     } else {
         exploration.deepExploration = false;
         exploration.geometry.numRowMat = IntValueDomain::PowersOfTwo(1, 4);
@@ -20,7 +20,6 @@ void EvaCamConfig::SetDeepExploration(bool enabled) {
         exploration.geometry.muxSenseAmp = IntValueDomain::PowersOfTwo(1, 32);
         exploration.geometry.muxOutputLev1 = IntValueDomain::PowersOfTwo(1, 32);
         exploration.geometry.muxOutputLev2 = IntValueDomain::PowersOfTwo(1, 32);
-        exploration.geometry.numRowPerSet = IntValueDomain::PowersOfTwo(1, input.associativity);
         exploration.wires.localWireType = IntValueDomain::Sequential(local_aggressive, semi_conservative);
         exploration.wires.globalWireType = IntValueDomain::Sequential(semi_aggressive, global_conservative);
         exploration.wires.localWireRepeaterType = IntValueDomain::Sequential(repeated_none, repeated_50);

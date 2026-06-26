@@ -99,10 +99,13 @@ void ValidateCamColumnTopology(const YAML::Node &root) {
         const CAM_PortType portType =
                 YamlHelpers::read_enum_required<CAM_PortType>(portNode, "type", false);
 
-        if (portType == Bitline) {
-            throw std::runtime_error(
-                    "[Input] Error: cell.ports.column does not support Bitline topology for CAM modeling.");
-        }
+        // Plain bitline columns are used by some shipped CAM cell configs for
+        // write paths. Keep validating that a matchline exists, but do not
+        // reject the topology before the model sees it.
+        // if (portType == Bitline) {
+        //     throw std::runtime_error(
+        //             "[Input] Error: cell.ports.column does not support Bitline topology for CAM modeling.");
+        // }
 
         if (portType != Matchline && portType != Matchline_Bitline) {
             continue;
@@ -483,10 +486,6 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
 }
 
 void ValidateMemCellSupport(const EvaCamConfig &config) {
-    if (config.input.designTarget != CAM_chip) {
-        return;
-    }
-
     const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
     const MemCellType memCellType = LoadMemCellTypeForValidation(root);
     ValidateCamPortPresence(root);

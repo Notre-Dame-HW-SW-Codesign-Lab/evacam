@@ -402,6 +402,24 @@ static void test_invalid_inputs() {
     } catch (const std::runtime_error&) {
         // expected
     }
+
+    const YAML::Node cache_target = YAML::Load("root:\n  target: cache\n");
+    auto root3 = YamlHelpers::child_required(cache_target, "root");
+    try {
+        (void)YamlHelpers::read_enum_required<DesignTarget>(root3, "target");
+        assert(false && "Expected cache target to throw");
+    } catch (const std::runtime_error&) {
+        // expected
+    }
+
+    const YAML::Node ram_target = YAML::Load("root:\n  target: RAM\n");
+    auto root4 = YamlHelpers::child_required(ram_target, "root");
+    try {
+        (void)YamlHelpers::read_enum_required<DesignTarget>(root4, "target");
+        assert(false && "Expected RAM target to throw");
+    } catch (const std::runtime_error&) {
+        // expected
+    }
 }
 
 static void test_memcell_yaml() {

@@ -19,6 +19,7 @@ jobs:
           - test-cell-loader
           - test-cli-options
           - test-input-validation
+          - test-output-path-builder
           - test-exploration
           - test-variation
           - test-montecarlo

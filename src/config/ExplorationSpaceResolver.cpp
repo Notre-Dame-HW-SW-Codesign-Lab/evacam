@@ -22,7 +22,6 @@ ResolvedExplorationSpace ExplorationSpaceResolver::Resolve(const ExplorationSpec
     resolved.geometry.muxSenseAmpValues = spec.geometry.muxSenseAmp.Values();
     resolved.geometry.muxOutputLev1Values = spec.geometry.muxOutputLev1.Values();
     resolved.geometry.muxOutputLev2Values = spec.geometry.muxOutputLev2.Values();
-    resolved.geometry.numRowPerSetValues = spec.geometry.numRowPerSet.Values();
 
     resolved.wires.localWireTypeValues = spec.wires.localWireType.Values();
     resolved.wires.globalWireTypeValues = spec.wires.globalWireType.Values();
@@ -43,7 +42,6 @@ ResolvedExplorationSpace ExplorationSpaceResolver::Resolve(const ExplorationSpec
     ValidateNotEmpty(resolved.geometry.muxSenseAmpValues, "muxSenseAmp");
     ValidateNotEmpty(resolved.geometry.muxOutputLev1Values, "muxOutputLev1");
     ValidateNotEmpty(resolved.geometry.muxOutputLev2Values, "muxOutputLev2");
-    ValidateNotEmpty(resolved.geometry.numRowPerSetValues, "numRowPerSet");
     ValidateNotEmpty(resolved.wires.localWireTypeValues, "localWireType");
     ValidateNotEmpty(resolved.wires.globalWireTypeValues, "globalWireType");
     ValidateNotEmpty(resolved.wires.localWireRepeaterTypeValues, "localWireRepeaterType");

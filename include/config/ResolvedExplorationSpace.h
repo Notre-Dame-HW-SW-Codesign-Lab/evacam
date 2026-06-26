@@ -11,7 +11,6 @@ struct ResolvedGeometryExplorationSpace {
     std::vector<int> muxSenseAmpValues;
     std::vector<int> muxOutputLev1Values;
     std::vector<int> muxOutputLev2Values;
-    std::vector<int> numRowPerSetValues;
 };
 
 struct ResolvedWireExplorationSpace {

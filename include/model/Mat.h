@@ -47,9 +47,9 @@ class Mat : public FunctionUnit {
         int numColumnSubarray;  /* Number of subarray columns in a mat */
         int numAddressBit;      /* Number of mat address bits */
         long numDataBit;        /* Number of mat mem_data bits */
-        /* Number of cache ways distributed to this mat, non-cache it is 1 */
+        /* CAM callers pass one until the mat API is simplified */
         int numWay;
-        /* For cache design, the number of wordlines which a set is partitioned into */
+        /* CAM callers pass one until the mat API is simplified */
         int numRowPerSet;
         bool split;             /* Whether the row decoder is at the middle of subarrays */
 

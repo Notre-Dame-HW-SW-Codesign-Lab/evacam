@@ -211,11 +211,12 @@ void WriteConfig(const std::string &memoryBlock,
         const std::string &optimizationBlock,
         const std::string &organizationBlock = "",
         const std::string &extraBlock = "",
-        const std::string &advancedBlock = "") {
+        const std::string &advancedBlock = "",
+        const std::string &designTarget = "CAM") {
     std::ofstream out(kConfigPath);
     out <<
         "design:\n"
-        "  target: CAM\n"
+        "  target: " << designTarget << "\n"
         "  search_function: EX\n"
         "  system_process_node: 45nm\n"
         "  device_roadmap: HP\n"
@@ -279,6 +280,28 @@ bool LoadThrows() {
         return true;
     }
     return false;
+}
+
+void TestNonCamDesignTargetsThrow() {
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n",
+        "", "", "", "cache");
+    assert(LoadThrowsWithMessage("Invalid value for 'target': cache"));
+
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n",
+        "", "", "", "RAM");
+    assert(LoadThrowsWithMessage("Invalid value for 'target': RAM"));
 }
 
 void TestMissingRequiredTopLevelKeyThrows() {
@@ -739,7 +762,7 @@ void TestMatchlineGateConnectionThrows() {
     WriteMinimalCellFile();
 }
 
-void TestBitlineColumnTopologyThrows() {
+void TestBitlineOnlyColumnRequiresMatchline() {
     WriteMinimalCellFile("SRAM", "TCAM", "Bitline", "drain");
     WriteConfig(
         "  capacity: 1KB\n"
@@ -749,7 +772,7 @@ void TestBitlineColumnTopologyThrows() {
         "  row_driver: latency\n"
         "  priority_encoder: latency\n");
 
-    assert(LoadThrowsWithMessage("does not support Bitline topology"));
+    assert(LoadThrowsWithMessage("must define at least one CAM matchline port"));
     WriteMinimalCellFile();
 }
 
@@ -1070,6 +1093,7 @@ void TestGlobalLowSwingWithRepeaterThrows() {
 
 int main() {
     WriteMinimalCellFile();
+    TestNonCamDesignTargetsThrow();
     TestMissingRequiredTopLevelKeyThrows();
     TestFixedSubarrayDimensionsDeriveCapacity();
     TestAutoCapacityWithoutFixedSubarrayDimensionsThrows();
@@ -1095,7 +1119,7 @@ int main() {
     TestMcamSearchlineVoltageMappingRequiresTwoSearchlines();
     TestMcamComplementarySearchlineVoltageMustBeNonNegative();
     TestMatchlineGateConnectionThrows();
-    TestBitlineColumnTopologyThrows();
+    TestBitlineOnlyColumnRequiresMatchline();
     TestMissingMatchlineColumnThrows();
     TestUnsupportedSenseAmpTypeThrows();
     TestMissingCustomSenseAmpFileThrows();

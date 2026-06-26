@@ -191,7 +191,6 @@ void EvaCAM_Match::InitializeConfiguredBank() {
     int muxSenseAmp = resolved.geometry.muxSenseAmpValues.front();
     int muxOutputLev1 = resolved.geometry.muxOutputLev1Values.front();
     int muxOutputLev2 = resolved.geometry.muxOutputLev2Values.front();
-    int numRowPerSet = resolved.geometry.numRowPerSetValues.front();
     int areaOptimizationLevel = resolved.cam.areaOptimizationLevelValues.front();
     int rowDriverOpt = resolved.cam.rowDriverOptLevelValues.front();
     int priorityOpt = resolved.cam.priorityOptLevelValues.front();
@@ -210,8 +209,8 @@ void EvaCAM_Match::InitializeConfiguredBank() {
         bank = std::make_shared<BankWithoutHtree>();
     }
 
-    bank->Initialize(numRowMat, numColumnMat, capacity, blockSize, config->input.associativity,
-            numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
+    bank->Initialize(numRowMat, numColumnMat, capacity, blockSize,
+            numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
             config->input.internalSensing, muxOutputLev1, muxOutputLev2, numRowSubarray,
             numColumnSubarray, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
             static_cast<BufferDesignTarget>(areaOptimizationLevel), mem_data,

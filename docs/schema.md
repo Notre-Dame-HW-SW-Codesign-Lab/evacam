@@ -20,7 +20,6 @@ Optional sections:
 - `matchline`
 - `constraints`
 - `advanced`
-- `cache`
 - `flash`
 - `extra`
 

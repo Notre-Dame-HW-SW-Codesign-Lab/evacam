@@ -27,9 +27,6 @@ void ApplyExplorationDefaults(EvaCamConfig &config) {
         if (SameDomain(config.exploration.geometry.muxOutputLev2, base.geometry.muxOutputLev2)) {
             config.exploration.geometry.muxOutputLev2 = IntValueDomain::PowersOfTwo(1, 64);
         }
-        if (SameDomain(config.exploration.geometry.numRowPerSet, IntValueDomain::PowersOfTwo(1, 256))) {
-            config.exploration.geometry.numRowPerSet = IntValueDomain::PowersOfTwo(1, 1);
-        }
         return;
     }
 
@@ -45,10 +42,6 @@ void ApplyExplorationDefaults(EvaCamConfig &config) {
     }
     if (SameDomain(config.exploration.geometry.numColumnSubarray, base.geometry.numColumnSubarray)) {
         config.exploration.geometry.numColumnSubarray = IntValueDomain::PowersOfTwo(1, 8);
-    }
-    if (SameDomain(config.exploration.geometry.numRowPerSet, IntValueDomain::PowersOfTwo(1, 256))) {
-        config.exploration.geometry.numRowPerSet =
-            IntValueDomain::PowersOfTwo(1, config.input.associativity);
     }
 }
 

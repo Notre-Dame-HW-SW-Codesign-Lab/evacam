@@ -65,7 +65,7 @@ std::string OutputPathBuilder::ExplorationCsvPath(const InputConfig &input,
         const TechnologyContext &technology) {
     std::stringstream temp;
     temp << input.outputFilePrefix << "_" << input.capacity / 1024
-        << "K_" << input.wordWidth << "_" << input.associativity;
+        << "K_" << input.wordWidth;
 
     if (input.internalSensing) temp << "_IN";
     else                       temp << "_EX";

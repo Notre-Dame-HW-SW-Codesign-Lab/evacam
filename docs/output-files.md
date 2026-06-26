@@ -66,13 +66,13 @@ Current behavior:
 The generated name follows this pattern:
 
 ```text
-<prefix>_<capacity_kib>K_<word_width>_<associativity>_<IN|EX>_<VOL|CUR>.csv
+<prefix>_<capacity_kib>K_<word_width>_<IN|EX>_<VOL|CUR>.csv
 ```
 
 Example shape:
 
 ```text
-output_2048K_512_1_IN_VOL.csv
+output_2048K_512_IN_VOL.csv
 ```
 
 ## Variation CSV

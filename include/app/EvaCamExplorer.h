@@ -50,7 +50,7 @@ class EvaCamExplorer {
         std::shared_ptr<Bank> BuildBank(int numRowMat, int numColumnMat, int numRowSubarray,
                 int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
-                int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
+                int muxOutputLev1, int muxOutputLev2,
                 BufferDesignTarget areaOptimizationLevel, const Wire &localWire,
                 const Wire &globalWire, const CAM_Opt &camOpt) const;
         std::shared_ptr<Result> MakeResult(const std::shared_ptr<Bank> &bank,
@@ -77,7 +77,6 @@ class EvaCamExplorer {
         long long numSolution_ = 0;
         long long capacityBits_ = 0;
         long blockSizeBits_ = 0;
-        int associativity_ = 0;
         bool fixedOuterGeometry_ = false;
         std::vector<int> numRowMatValues_;
         std::vector<int> numColumnMatValues_;

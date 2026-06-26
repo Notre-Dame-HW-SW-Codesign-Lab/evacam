@@ -8,7 +8,7 @@
 #include "typedef.h"
 
 struct InputConfig {
-    DesignTarget designTarget = cache;
+    DesignTarget designTarget = CAM_chip;
     SearchFunction searchFunction = EX;
     OptimizationTarget optimizationTarget = read_latency_optimized;
     int processNode = 90;
@@ -19,7 +19,6 @@ struct InputConfig {
     int temperature = 300;
     double maxDriverCurrent = 0;
     WriteScheme writeScheme = normal_write;
-    int associativity = 1;
     long pageSize = 0;
     long flashBlockSize = 0;
     RoutingMode routingMode = h_tree;

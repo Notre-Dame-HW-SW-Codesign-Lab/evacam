@@ -61,12 +61,10 @@ void BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
     setDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
     leakage += leakageWire * level.totalWireGroups * totalBits;
 
-    if (config->input.designTarget == CAM_chip) {
-        if (!config->peripherals.noPrechargeInc)
-            searchLatency += latency * 2;
-        searchDynamicEnergy += mat->subarray->searchDynamicEnergy
-            + energy * level.activeWireGroups * totalBits;
-    }
+    if (!config->peripherals.noPrechargeInc)
+        searchLatency += latency * 2;
+    searchDynamicEnergy += mat->subarray->searchDynamicEnergy
+        + energy * level.activeWireGroups * totalBits;
 }
 
 bool BankWithHtree::HasRoutableBits(const RoutingState &state) const {
@@ -308,7 +306,7 @@ bool BankWithHtree::DetermineMatRouting(const RoutingState &state, MatRouting &m
 }
 
 void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
-        long _blockSize, int _associativity, int _numRowPerSet, int _numActiveMatPerRow,
+        long _blockSize, int _numActiveMatPerRow,
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1,
         int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
@@ -337,8 +335,8 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     numColumnMat = _numColumnMat;
     capacity = _capacity;
     blockSize = _blockSize;
-    associativity = _associativity;
-    numRowPerSet = _numRowPerSet;
+    associativity = 1;
+    numRowPerSet = 1;
     internalSenseAmp = _internalSenseAmp;
     areaOptimizationLevel = _areaOptimizationLevel;
     memoryType = _memoryType;
@@ -569,9 +567,7 @@ void BankWithHtree::CalculateLatencyAndPower() {
         leakage = 1e41;
 
     } else {
-        /* For fast access mode cache, beta is equal to associativity, which
-         * means only 1/beta interconnect wires are activated.
-         */
+        /* CAM uses all interconnect wires. */
         int beta = 1;
 
         mat->CalculateLatency(1e41 /* means Inf */);
@@ -593,38 +589,35 @@ void BankWithHtree::CalculateLatencyAndPower() {
         resetDynamicEnergy = mat->resetDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
         setDynamicEnergy = mat->setDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
 
-        if (config->input.designTarget == CAM_chip) {
+        if (config->peripherals.noPrechargeInc) {
+            searchLatency = mat->subarray->matchlineDelay
+                + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
+                + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
 
-            if (config->peripherals.noPrechargeInc) {
-                searchLatency = mat->subarray->matchlineDelay
-                    + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
-                    + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
-
-                if (config->peripherals.withOutputAcc || mat->muxSenseAmp > 1) {
-                    config->logger.Verbose()
-                        << "[Bank] Warning: Bit serial or Mux on SA design, "
-                        << "but latency only shows a single sense.";
-                }
-
-            } else {
-                searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
-                    - (mat->subarray->inputBuf->readLatency) * (mat->muxSenseAmp - 1);
-                if (config->peripherals.withOutputAcc) {
-                    searchLatency *= config->input.wordWidth / CAM_opt.BitSerialWidth;
-                }
+            if (config->peripherals.withOutputAcc || mat->muxSenseAmp > 1) {
+                config->logger.Verbose()
+                    << "[Bank] Warning: Bit serial or Mux on SA design, "
+                    << "but latency only shows a single sense.";
             }
 
-            searchDynamicEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
-                - (mat->subarray->inputBuf->readDynamicEnergy
-                        + mat->subarray->inputEnc->readDynamicEnergy)
-                * (mat->muxSenseAmp - 1);
-
+        } else {
+            searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
+                - (mat->subarray->inputBuf->readLatency) * (mat->muxSenseAmp - 1);
             if (config->peripherals.withOutputAcc) {
-                searchDynamicEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
+                searchLatency *= config->input.wordWidth / CAM_opt.BitSerialWidth;
             }
-
-            numBitSerial = CAM_opt.BitSerialWidth;
         }
+
+        searchDynamicEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
+            - (mat->subarray->inputBuf->readDynamicEnergy
+                    + mat->subarray->inputEnc->readDynamicEnergy)
+            * (mat->muxSenseAmp - 1);
+
+        if (config->peripherals.withOutputAcc) {
+            searchDynamicEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
+        }
+
+        numBitSerial = CAM_opt.BitSerialWidth;
 
         for (int i = 0; i < levelHorizontal; i++) {
             AccumulateHtreeLevelLatencyAndPower(horizontalLevels[i], TotalHorizontalBits(i), beta);

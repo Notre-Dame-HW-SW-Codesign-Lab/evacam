@@ -69,7 +69,6 @@ void EvaCamExplorer::InitializeExploration() {
 
     capacityBits_ = DerivedValueHelpers::EffectiveCapacityBits(config_->input);
     blockSizeBits_ = DerivedValueHelpers::EffectiveBlockSizeBits(config_->input);
-    associativity_ = DerivedValueHelpers::EffectiveAssociativity(config_->input);
 
     const auto &resolved = config_->resolvedExploration;
     fixedOuterGeometry_ = DerivedValueHelpers::HasFixedOuterGeometry(resolved);
@@ -198,7 +197,6 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
     const auto &muxSenseAmpValues = resolved.geometry.muxSenseAmpValues;
     const auto &muxOutputLev1Values = resolved.geometry.muxOutputLev1Values;
     const auto &muxOutputLev2Values = resolved.geometry.muxOutputLev2Values;
-    const auto &numRowPerSetValues = resolved.geometry.numRowPerSetValues;
     const auto &areaOptimizationLevels = resolved.cam.areaOptimizationLevelValues;
     const auto &rowDriverOptimizationLevels = resolved.cam.rowDriverOptLevelValues;
     const auto &priorityOptimizationLevels = resolved.cam.priorityOptLevelValues;
@@ -212,11 +210,10 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                         for (int muxSenseAmp : muxSenseAmpValues)
                             for (int muxOutputLev1 : muxOutputLev1Values)
                                 for (int muxOutputLev2 : muxOutputLev2Values)
-                                    for (int numRowPerSet : numRowPerSetValues)
-                                        for (int areaOptimizationLevel : areaOptimizationLevels)
-                                            for (int rowDriverOptLevel : rowDriverOptimizationLevels)
-                                                for (int priorityOptLevel : priorityOptimizationLevels)
-                                                    for (int bitSerialWidth : bitSerialWidthValues) {
+                                    for (int areaOptimizationLevel : areaOptimizationLevels)
+                                        for (int rowDriverOptLevel : rowDriverOptimizationLevels)
+                                            for (int priorityOptLevel : priorityOptimizationLevels)
+                                                for (int bitSerialWidth : bitSerialWidthValues) {
                                                         if (!config_->exploration.IsValidPartitioning(blockSizeBits_,
                                                                     numActiveMatPerRow,
                                                                     numActiveMatPerColumn,
@@ -234,7 +231,7 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                                 numColumnSubarray, numActiveMatPerRow,
                                                                 numActiveMatPerColumn, numActiveSubarrayPerRow,
                                                                 numActiveSubarrayPerColumn, muxSenseAmp, muxOutputLev1,
-                                                                muxOutputLev2, numRowPerSet,
+                                                                muxOutputLev2,
                                                                 (BufferDesignTarget)areaOptimizationLevel,
                                                                 localWire, globalWire, iterCamOpt);
 
@@ -364,7 +361,6 @@ std::shared_ptr<Result> EvaCamExplorer::ReevaluateBestResultWithWires(int optimi
             bestResults_[optimizationIndex]->bank->muxSenseAmp,
             bestResults_[optimizationIndex]->bank->muxOutputLev1,
             bestResults_[optimizationIndex]->bank->muxOutputLev2,
-            bestResults_[optimizationIndex]->bank->numRowPerSet,
             bestResults_[optimizationIndex]->bank->areaOptimizationLevel,
             localWire,
             globalWire,
@@ -469,7 +465,6 @@ void EvaCamExplorer::EvaluateConstrainedGeometry(int numRowMat, int numColumnMat
     const auto &muxSenseAmpValues = resolved.geometry.muxSenseAmpValues;
     const auto &muxOutputLev1Values = resolved.geometry.muxOutputLev1Values;
     const auto &muxOutputLev2Values = resolved.geometry.muxOutputLev2Values;
-    const auto &numRowPerSetValues = resolved.geometry.numRowPerSetValues;
     const auto &areaOptimizationLevels = resolved.cam.areaOptimizationLevelValues;
 
     for (int numActiveMatPerRow : numActiveMatPerRowValues)
@@ -480,8 +475,7 @@ void EvaCamExplorer::EvaluateConstrainedGeometry(int numRowMat, int numColumnMat
                         for (int muxSenseAmp : muxSenseAmpValues)
                             for (int muxOutputLev1 : muxOutputLev1Values)
                                 for (int muxOutputLev2 : muxOutputLev2Values)
-                                    for (int numRowPerSet : numRowPerSetValues)
-                                        for (int areaOptimizationLevel : areaOptimizationLevels) {
+                                    for (int areaOptimizationLevel : areaOptimizationLevels) {
                                             if (!config_->exploration.IsValidPartitioning(blockSizeBits_,
                                                         numActiveMatPerRow,
                                                         numActiveMatPerColumn,
@@ -494,7 +488,7 @@ void EvaCamExplorer::EvaluateConstrainedGeometry(int numRowMat, int numColumnMat
                                                     numColumnSubarray, numActiveMatPerRow,
                                                     numActiveMatPerColumn, numActiveSubarrayPerRow,
                                                     numActiveSubarrayPerColumn, muxSenseAmp, muxOutputLev1,
-                                                    muxOutputLev2, numRowPerSet,
+                                                    muxOutputLev2,
                                                     (BufferDesignTarget)areaOptimizationLevel,
                                                     localWire_, globalWire_, camOpt_);
 
@@ -518,12 +512,12 @@ void EvaCamExplorer::EvaluateConstrainedGeometry(int numRowMat, int numColumnMat
 std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat, int numRowSubarray,
         int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
         int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
-        int muxOutputLev1, int muxOutputLev2, int numRowPerSet,
+        int muxOutputLev1, int muxOutputLev2,
         BufferDesignTarget areaOptimizationLevel, const Wire &localWire,
         const Wire &globalWire, const CAM_Opt &camOpt) const {
     const auto bank = BankFactory::CreateBank(*config_);
     BankFactory::InitializeBank(config_, bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
-            associativity_, numRowPerSet, numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
+            numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
             muxOutputLev1, muxOutputLev2, numRowSubarray, numColumnSubarray,
             numActiveSubarrayPerRow, numActiveSubarrayPerColumn, areaOptimizationLevel,
             mem_data, localWire, globalWire, camOpt);

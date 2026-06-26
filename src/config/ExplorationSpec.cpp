@@ -20,7 +20,7 @@ ExplorationSpec ExplorationSpec::Default() {
     return ExplorationSpec();
 }
 
-void ExplorationSpec::ApplyDeepExplorationDefaults(int associativity) {
+void ExplorationSpec::ApplyDeepExplorationDefaults() {
     deepExploration = true;
 
     geometry.numRowMat = IntValueDomain::PowersOfTwo(1, 64);
@@ -30,14 +30,11 @@ void ExplorationSpec::ApplyDeepExplorationDefaults(int associativity) {
     geometry.muxSenseAmp = IntValueDomain::PowersOfTwo(1, 64);
     geometry.muxOutputLev1 = IntValueDomain::PowersOfTwo(1, 64);
     geometry.muxOutputLev2 = IntValueDomain::PowersOfTwo(1, 64);
-    geometry.numRowPerSet = IntValueDomain::PowersOfTwo(1, 1);
 
     wires.localWireType = IntValueDomain::Sequential(local_aggressive, local_conservative);
     wires.globalWireType = IntValueDomain::Sequential(global_aggressive, global_conservative);
     wires.localWireRepeaterType = IntValueDomain::Sequential(repeated_none, repeated_opt);
     wires.globalWireRepeaterType = IntValueDomain::Sequential(repeated_none, repeated_opt);
-
-    (void)associativity;
 }
 
 std::vector<int> ExplorationSpec::ActiveMatPerRowValues(int numColumnMat) const {

@@ -40,7 +40,7 @@ class RowDecoder: public FunctionUnit {
 
         OutputDriver outputDriver;
         int numRow;		/* Number of rows */
-        bool multipleRowPerSet;	/* For cache design, whether a set is partitioned into multiple wordlines */
+        bool multipleRowPerSet;	/* CAM callers pass false until the decoder API is simplified */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */
         double capLoad;		/* Load capacitance, i.e. wordline capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */

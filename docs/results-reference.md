@@ -121,7 +121,7 @@ using the objective name in the file stem.
 The exploration CSV is only emitted for full exploration without pruning. Its name is:
 
 ```text
-<prefix>_<capacity_kib>K_<word_width>_<associativity>_<IN|EX>_<VOL|CUR>.csv
+<prefix>_<capacity_kib>K_<word_width>_<IN|EX>_<VOL|CUR>.csv
 ```
 
 `<prefix>` comes from `extra.output_file_prefix`. If you need a non-default YAML path, set `extra.output_yaml_file`.

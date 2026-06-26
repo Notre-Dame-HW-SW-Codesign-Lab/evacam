@@ -313,7 +313,7 @@ class CAM_SubArray: public FunctionUnit {
         double totalcapcell;
 
         // useless items
-        bool multipleRowPerSet;		/* For cache design, whether a set is partitioned into multiple wordlines */
+        bool multipleRowPerSet;		/* CAM callers pass false until the subarray API is simplified */
         bool split;			/* NOT USED YET for NVSIM: Whether the row decoder is at the middle of subarrays */
         double lenWordline;	/* Length of wordlines, Unit: m */
         double lenBitline;	/* Length of bitlines, Unit: m */

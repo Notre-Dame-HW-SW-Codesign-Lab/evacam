@@ -157,15 +157,6 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         numColumn = (long long)numDataBit
             / (numActiveSubarrayPerRow * numActiveSubarrayPerColumn);
     }
-
-
-
-    // if (config->input.designTarget == CAM_chip) {
-    // 	numColumn *= muxSenseAmp;
-    // } else {
-    // 	numColumn *= muxSenseAmp * muxOutputLev1 * muxOutputLev2;
-    // }
-
     if (numColumn < 8) {
         MarkInvalid(*this, "[Mat]: Column width is too small.");
         return;
@@ -210,12 +201,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     }
     /* Subarray dimensions are used by the predecoder setup below. */
 
-    int numAddressRowPredecoder = _numAddressBit
-        - Log2Rounded(muxSenseAmp * muxOutputLev1 * muxOutputLev2);
-
-    if (config->input.designTarget == CAM_chip) {
-        numAddressRowPredecoder = _numAddressBit - Log2Rounded(muxSenseAmp);
-    }
+    int numAddressRowPredecoder = _numAddressBit - Log2Rounded(muxSenseAmp);
 
 
     if (numAddressRowPredecoder < 0) {

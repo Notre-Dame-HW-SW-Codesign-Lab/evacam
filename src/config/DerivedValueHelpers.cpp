@@ -8,10 +8,6 @@ long DerivedValueHelpers::EffectiveBlockSizeBits(const InputConfig &input) {
     return input.capacity * 8 / input.wordWidth;
 }
 
-int DerivedValueHelpers::EffectiveAssociativity(const InputConfig & /*input*/) {
-    return 1;
-}
-
 bool DerivedValueHelpers::IsFullExploration(const InputConfig &input) {
     return input.optimizationTarget == full_exploration;
 }

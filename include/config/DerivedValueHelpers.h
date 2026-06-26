@@ -9,7 +9,6 @@ class DerivedValueHelpers {
     public:
         static long long EffectiveCapacityBits(const InputConfig &input);
         static long EffectiveBlockSizeBits(const InputConfig &input);
-        static int EffectiveAssociativity(const InputConfig &input);
         static bool IsFullExploration(const InputConfig &input);
         static bool ShouldWriteExplorationCsv(const InputConfig &input, const ConstraintConfig &constraints);
         static bool IsPruningEnabledForExploration(const InputConfig &input, const ConstraintConfig &constraints);
