@@ -520,7 +520,7 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat,
             numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
             muxOutputLev1, muxOutputLev2, numRowSubarray, numColumnSubarray,
             numActiveSubarrayPerRow, numActiveSubarrayPerColumn, areaOptimizationLevel,
-            mem_data, localWire, globalWire, camOpt);
+            localWire, globalWire, camOpt);
     return bank;
 }
 

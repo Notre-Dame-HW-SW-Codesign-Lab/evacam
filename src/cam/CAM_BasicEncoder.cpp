@@ -101,7 +101,7 @@ void CAM_BasicEncoder::CalculateLatency(double _rampInput) {
     } else {
         rampInput = _rampInput;
         if (numInputBit == 8) {
-            // TODO: the output mem_data latency is not considered, since the carry in signal is much slower when array size larger than 8
+            // TODO: Output-data latency is not considered because carry-in is much slower for arrays larger than 8.
             double resPullDown;
             double capLoad;
             double tr;	/* time constant */

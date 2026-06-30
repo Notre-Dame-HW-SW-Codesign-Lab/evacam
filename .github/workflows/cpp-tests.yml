@@ -27,6 +27,8 @@ jobs:
           - test-wire
           - test-formula
           - test-match
+          - test-mat-decoder
+          - test-htree-routing
           - test-pybind-run
 
     steps:

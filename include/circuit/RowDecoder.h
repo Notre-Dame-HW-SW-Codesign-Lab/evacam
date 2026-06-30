@@ -23,7 +23,7 @@ class RowDecoder: public FunctionUnit {
                 int _numRow, 
                 double _capLoad, 
                 double _resLoad,
-                bool _multipleRowPerSet, 
+                int _numNandInput,
                 BufferDesignTarget _areaOptimizationLevel, 
                 double _minDriverCurrent, 
                 std::shared_ptr<EvaCamConfig> _config,
@@ -40,7 +40,6 @@ class RowDecoder: public FunctionUnit {
 
         OutputDriver outputDriver;
         int numRow;		/* Number of rows */
-        bool multipleRowPerSet;	/* CAM callers pass false until the decoder API is simplified */
         int numNandInput;	/* Type of NAND, NAND2 or NAND3 */
         double capLoad;		/* Load capacitance, i.e. wordline capacitance, Unit: F */
         double resLoad;		/* Load resistance, Unit: ohm */

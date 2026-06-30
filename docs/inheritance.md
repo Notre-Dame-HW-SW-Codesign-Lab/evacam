@@ -17,7 +17,6 @@ This document is a quick reference for the major inheritance relationships in th
 - `CAM_SenseAmp`
 - `Mux`
 - `Mat`
-- `Comparator`
 - `OutputDriver`
 - `CAM_DataBuffer`
 - `CAM_OutputAccumulator`
@@ -50,7 +49,6 @@ FunctionUnit
         CAM_SenseAmp
     Mux
     Mat
-    Comparator
     OutputDriver
     CAM_DataBuffer
     CAM_OutputAccumulator

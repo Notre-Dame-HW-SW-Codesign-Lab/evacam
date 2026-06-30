@@ -1,7 +1,9 @@
+#include <stdexcept>
+
 #include "RowDecoder.h"
 #include "formula.h"
 void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
-        bool _multipleRowPerSet, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent,
+        int _numNandInput, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent,
         std::shared_ptr<EvaCamConfig> _config, bool _driverInv) {
     if (initialized)
         _config->logger.Verbose() << "[Row Decoder] Warning: Already initialized!";
@@ -9,21 +11,13 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
     numRow = _numRow;
     capLoad = _capLoad;
     resLoad = _resLoad;
-    multipleRowPerSet = _multipleRowPerSet;
+    numNandInput = _numNandInput;
     areaOptimizationLevel = _areaOptimizationLevel;
     minDriverCurrent = _minDriverCurrent;
     config = _config;
 
-    if (numRow <= 8) {	/* The predecoder output is used directly */
-        if (multipleRowPerSet)
-            numNandInput = 2;	/* NAND way-select with predecoder output */
-        else
-            numNandInput = 0;	/* no circuit needed */
-    } else {
-        if (multipleRowPerSet)
-            numNandInput = 3;	/* NAND way-select with two predecoder outputs */
-        else
-            numNandInput = 2;	/* just NAND two predecoder outputs */
+    if (numNandInput != 0 && numNandInput != 2 && numNandInput != 3) {
+        throw std::invalid_argument("[Row Decoder] NAND input count must be 0, 2, or 3.");
     }
 
     if (numNandInput > 0) {

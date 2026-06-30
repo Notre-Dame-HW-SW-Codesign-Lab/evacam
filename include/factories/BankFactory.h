@@ -18,7 +18,7 @@ class BankFactory {
                 int numActiveMatPerRow, int numActiveMatPerColumn, int muxSenseAmp, int muxOutputLev1,
                 int muxOutputLev2, int numRowSubarray, int numColumnSubarray,
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn,
-                BufferDesignTarget areaOptimizationLevel, MemoryType memoryType,
+                BufferDesignTarget areaOptimizationLevel,
                 const Wire &localWire, const Wire &globalWire,
                 const CAM_Opt &camOpt);
 };

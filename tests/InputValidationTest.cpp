@@ -212,7 +212,8 @@ void WriteConfig(const std::string &memoryBlock,
         const std::string &organizationBlock = "",
         const std::string &extraBlock = "",
         const std::string &advancedBlock = "",
-        const std::string &designTarget = "CAM") {
+        const std::string &designTarget = "CAM",
+        const std::string &routingType = "H-tree") {
     std::ofstream out(kConfigPath);
     out <<
         "design:\n"
@@ -225,7 +226,7 @@ void WriteConfig(const std::string &memoryBlock,
         "  cell_file: tests/tmp_input_validation_cell_config.yaml\n"
         << memoryBlock <<
         "routing:\n"
-        "  type: H-tree\n"
+        "  type: " << routingType << "\n"
         "peripherals:\n"
         "  write_driver: false\n"
         "  input:\n"
@@ -302,6 +303,19 @@ void TestNonCamDesignTargetsThrow() {
         "  priority_encoder: latency\n",
         "", "", "", "RAM");
     assert(LoadThrowsWithMessage("Invalid value for 'target': RAM"));
+}
+
+void TestNonHTreeRoutingThrows() {
+    WriteConfig(
+        "  capacity: 1KB\n"
+        "  word_width: 64bits\n",
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n",
+        "", "", "", "CAM", "non_h_tree");
+
+    assert(LoadThrowsWithMessage("non H-tree is under development"));
 }
 
 void TestMissingRequiredTopLevelKeyThrows() {
@@ -1094,6 +1108,7 @@ void TestGlobalLowSwingWithRepeaterThrows() {
 int main() {
     WriteMinimalCellFile();
     TestNonCamDesignTargetsThrow();
+    TestNonHTreeRoutingThrows();
     TestMissingRequiredTopLevelKeyThrows();
     TestFixedSubarrayDimensionsDeriveCapacity();
     TestAutoCapacityWithoutFixedSubarrayDimensionsThrows();

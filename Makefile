@@ -36,6 +36,8 @@ TEST_CORNER_BIN=CornerVariationRegressionTest
 TEST_WIRE_BIN=WireCopyTest
 TEST_FORMULA_BIN=FormulaTest
 TEST_MATCH_BIN=MatchTest
+TEST_MAT_DECODER_BIN=MatDecoderRegressionTest
+TEST_HTREE_ROUTING_BIN=HtreeRoutingRegressionTest
 TEST_PYBIND_MATCH_PERSISTENCE_BIN=PybindMatchPersistenceTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
@@ -87,7 +89,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-pybind-match test-pybind-run uml uml-slide open-uml
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -160,6 +162,16 @@ test-match: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MATCH_BIN).d -MT $(TEST_MATCH_BIN) -o $(TEST_MATCH_BIN) tests/MatchTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_MATCH_BIN) $(MATCH_CONFIG_FILE)
 
+test-mat-decoder: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MAT_DECODER_BIN).d -MT $(TEST_MAT_DECODER_BIN) -o $(TEST_MAT_DECODER_BIN) tests/MatDecoderRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_MAT_DECODER_BIN)
+
+test-htree-routing: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_HTREE_ROUTING_BIN).d -MT $(TEST_HTREE_ROUTING_BIN) -o $(TEST_HTREE_ROUTING_BIN) tests/HtreeRoutingRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_HTREE_ROUTING_BIN)
+
 test-pybind-match: $(PYBIND_MODULE)
 	python3 tests/test_pybind_match.py $(MATCH_CONFIG_FILE)
 
@@ -202,6 +214,8 @@ clean:
 		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
 		$(TEST_FORMULA_BIN) $(TEST_FORMULA_BIN).d \
 		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
+		$(TEST_MAT_DECODER_BIN) $(TEST_MAT_DECODER_BIN).d \
+		$(TEST_HTREE_ROUTING_BIN) $(TEST_HTREE_ROUTING_BIN).d \
 		$(TEST_PYBIND_MATCH_PERSISTENCE_BIN) $(TEST_PYBIND_MATCH_PERSISTENCE_BIN).d \
 		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
@@ -249,7 +263,7 @@ test-all-valgrind: $(BIN)
 	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14_system_config.yaml > /dev/null
 	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-2T2R-ASPDAC12/MRAM-2T2R-ASPDAC12_system_config.yaml > /dev/null
 	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-6T2R-VLSIC11/MRAM-6T2R-VLSIC11_system_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R-VLSI21/ReRAM-2T2R-VLSI21_system_config.yaml > /dev/null
+	# ReRAM-2T2R-VLSI21 has only a RAM bitline port and is not a valid CAM configuration.
 	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_MCAM/2FeFET_MCAM_system_config.yaml > /dev/null
 
 # the following takes 15 mins to pass valgrind, runs much faster without valgrind turned on

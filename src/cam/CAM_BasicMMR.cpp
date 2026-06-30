@@ -78,7 +78,7 @@ void CAM_BasicMMR::CalculateArea(){
             CalculateGateArea(NOR, 4, widthN*2, 0, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, &hLAintra, &wLAintra, config->peripherals.useUpdatedLib);
             hLAintra += hInv;
             wLAintra = std::max(wLAintra, wInv);
-            // the mem_data line: 2/3/4/5-input NAND dynamic logic
+            // Data line: 2/3/4/5-input NAND dynamic logic.
             for(int i=0;i<4;i++){
                 CalculateGateArea(NAND, i+2, widthN*(i+3), 0, config->technology.tech->featureSize()*MAX_TRANSISTOR_HEIGHT, *config->technology.tech, hD+i, wD+i, config->peripherals.useUpdatedLib);
                 hD[i] += hInv;
@@ -148,7 +148,7 @@ void CAM_BasicMMR::CalculateLatency(double _rampInput) {
             resPullDown = CalculateOnResistance(widthN*2, NMOS, config->input.temperature, *config->technology.tech);
             gm = CalculateTransconductance(widthN*2, NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
-            // internal look ahead controls other 4 mem_data path, each dynamic circuit equals to inverter
+            // Internal look-ahead controls four other data paths; each dynamic circuit equals an inverter.
             cap = capLAintra + capInvIn*4;
             tr = resPullDown * cap;
             //lLAintra = horowitz(tr, beta, rampInput, &rampInternal); // TODO: why is this set but unused?
@@ -158,7 +158,7 @@ void CAM_BasicMMR::CalculateLatency(double _rampInput) {
             resPullDown = CalculateOnResistance(widthN, NMOS, config->input.temperature, *config->technology.tech);
             gm = CalculateTransconductance(widthN, NMOS, *config->technology.tech);
             beta = 1 / (resPullDown * gm);
-            // worst case inverter drives 3 other mem_data lines
+            // Worst-case inverter drives three other data lines.
             cap = capInvIn*3;
             tr = resPullDown * cap;
             readLatency = horowitz(tr, beta, rampInput, &rampInternal);
@@ -210,7 +210,7 @@ void CAM_BasicMMR::CalculatePower() {
             // for the inverter
             cap = capInvIn*3;
             readDynamicEnergy += (cap * config->technology.tech->vdd() * config->technology.tech->vdd());
-            // for the mem_data path
+            // Data path.
             cap = capD[3] + capLoad;
             readDynamicEnergy += (cap * config->technology.tech->vdd() * config->technology.tech->vdd() * 8);
             writeDynamicEnergy = readDynamicEnergy;

@@ -213,7 +213,7 @@ void EvaCAM_Match::InitializeConfiguredBank() {
             numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
             config->input.internalSensing, muxOutputLev1, muxOutputLev2, numRowSubarray,
             numColumnSubarray, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
-            static_cast<BufferDesignTarget>(areaOptimizationLevel), mem_data,
+            static_cast<BufferDesignTarget>(areaOptimizationLevel),
             config->technology.cell->camType, config->input.searchFunction, config,
             localWire, globalWire, camOpt);
 

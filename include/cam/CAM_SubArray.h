@@ -100,7 +100,7 @@ class CAM_SubArray: public FunctionUnit {
 
         /* Functions */
         void PrintProperty();
-        void Initialize(long long _numRow, long long _numColumn, bool _multipleRowPerSet, bool _split,
+        void Initialize(long long _numRow, long long _numColumn, bool _split,
                 int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2,
                 BufferDesignTarget _RowDecMergeOptLevel, BufferDesignTarget _RowDriverOptLevel,
                 bool _withInputEnc, TypeOfInputEncoder _typeInputEnc, bool _customInputEnc,
@@ -313,7 +313,6 @@ class CAM_SubArray: public FunctionUnit {
         double totalcapcell;
 
         // useless items
-        bool multipleRowPerSet;		/* CAM callers pass false until the subarray API is simplified */
         bool split;			/* NOT USED YET for NVSIM: Whether the row decoder is at the middle of subarrays */
         double lenWordline;	/* Length of wordlines, Unit: m */
         double lenBitline;	/* Length of bitlines, Unit: m */

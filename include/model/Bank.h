@@ -34,7 +34,7 @@ class Bank: public FunctionUnit {
                 int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
                 int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
                 int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
-                BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
+                BufferDesignTarget _areaOptimizationLevel, CAMType _camType,
                 SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
                 const Wire &_localWire, const Wire &_globalWire,
                 const CAM_Opt &_CAM_opt) = 0;
@@ -51,8 +51,6 @@ class Bank: public FunctionUnit {
         int numColumnMat;	/* Number of mat columns in a bank */
         long long capacity;		/* The capacity of this bank, Unit: bit */
         long blockSize;		/* The basic block size in this bank, Unit: bit */
-        int associativity;	/* CAM callers pass the invariant value 1 until the bank API is simplified */
-        int numRowPerSet;		/* CAM callers pass the invariant value 1 until the bank API is simplified */
         int numActiveMatPerRow;	/* For different access types */
         int numActiveMatPerColumn;	/* For different access types */
         int muxSenseAmp;	/* How many bitlines connect to one sense amplifier */
@@ -63,7 +61,6 @@ class Bank: public FunctionUnit {
         int numActiveSubarrayPerRow;	/* For different access types */
         int numActiveSubarrayPerColumn;	/* For different access types */
         BufferDesignTarget areaOptimizationLevel;
-        MemoryType memoryType;
         CAMType camType;
         SearchFunction searchFunction;
 

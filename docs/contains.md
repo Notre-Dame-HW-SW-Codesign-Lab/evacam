@@ -69,10 +69,6 @@ This document is a quick reference for the main ownership and member relationshi
 
 - No notable contained runtime objects tracked in this summary
 
-### `Comparator`
-
-- No notable contained runtime objects tracked in this summary
-
 ### `BasicDecoder`
 
 - `OutputDriver outputDriver` (by value)
@@ -180,7 +176,6 @@ This document is a quick reference for the main ownership and member relationshi
 - `PredecodeBlock senseAmpMuxLev2PredecoderBlock2` (`unique_ptr`)
 - `Wire localWire` (by value)
 - `CAM_Opt CAM_opt` (by value)
-- `Comparator comparator` (by value)
 
 ### `Bank`
 
@@ -197,7 +192,6 @@ This document is a quick reference for the main ownership and member relationshi
 
 - `Mux globalBitlineMux` (`unique_ptr`)
 - `SenseAmp globalSenseAmp` (`unique_ptr`)
-- `Comparator globalComparator` (`unique_ptr`)
 
 ### `Result`
 

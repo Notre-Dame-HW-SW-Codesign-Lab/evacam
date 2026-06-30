@@ -1,5 +1,5 @@
 /*
- * Latches for input/output mem_data
+ * Level shifters for input/output data.
  * refer to ASP-DAC-12-Ohino
  */
 #ifndef CAM_LEVELSHIFTER_H_

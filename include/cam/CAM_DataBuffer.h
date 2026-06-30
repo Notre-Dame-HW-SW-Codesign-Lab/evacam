@@ -1,5 +1,5 @@
 /*
- * Latches for input/output mem_data
+ * Latches for input/output data.
  * refer to ASP-DAC-12-Ohino
  */
 #ifndef CAM_DATABUFFER_H_

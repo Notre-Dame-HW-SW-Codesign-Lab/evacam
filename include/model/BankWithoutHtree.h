@@ -4,7 +4,6 @@
 #include "Bank.h"
 #include "Mat.h"
 #include "typedef.h"
-#include "Comparator.h"
 
 class BankWithoutHtree: public Bank {
     public:
@@ -25,7 +24,7 @@ class BankWithoutHtree: public Bank {
                 int _muxOutputLev2,
                 int _numRowSubarray, int _numColumnSubarray,
                 int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
-                BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
+                BufferDesignTarget _areaOptimizationLevel, CAMType _camType,
                 SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
                 const Wire &_localWire, const Wire &_globalWire,
                 const CAM_Opt &_CAM_opt);
@@ -35,13 +34,11 @@ class BankWithoutHtree: public Bank {
         void CalculateLatencyAndPower();
 
         int numAddressBit;		   /* Number of bank address bits */
-        int numWay;                  /* Number of way in a mat */
         int numAddressBitRouteToMat;  /* Number of address bits routed to mat */
         int numDataBitRouteToMat;   /* Number of data bits routed to mat */
 
         std::unique_ptr<Mux>	globalBitlineMux;
         std::unique_ptr<SenseAmp> globalSenseAmp;
-        std::unique_ptr<Comparator> globalComparator;
 };
 
 #endif /* BANKWITHOUTHTREE_H_ */

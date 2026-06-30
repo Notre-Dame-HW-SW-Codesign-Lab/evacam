@@ -18,14 +18,12 @@ void BankWithHtree::MarkInvalidInitialized(const char *reason) {
 
 int BankWithHtree::TotalHorizontalBits(int level) const {
     return horizontalLevels[level].addressBits
-        + horizontalLevels[level].dataDistributeBits
-        + horizontalLevels[level].dataBroadcastBits;
+        + horizontalLevels[level].dataBits;
 }
 
 int BankWithHtree::TotalVerticalBits(int level) const {
     return verticalLevels[level].addressBits
-        + verticalLevels[level].dataDistributeBits
-        + verticalLevels[level].dataBroadcastBits;
+        + verticalLevels[level].dataBits;
 }
 
 BankWithHtree::WireAreaModel BankWithHtree::GetWireAreaModel() const {
@@ -41,7 +39,7 @@ BankWithHtree::WireAreaModel BankWithHtree::GetWireAreaModel() const {
 }
 
 void BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
-        int totalBits, int beta) {
+        int totalBits) {
     double latency;
     double energy;
     double leakageWire;
@@ -52,13 +50,11 @@ void BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
     resetLatency += latency;
     setLatency += latency;
 
-    /* Read and write energy for H-tree should be the same; each wire is
-     * activated on exactly one way.
-     */
+    /* CAM activates the routed H-tree wires for each operation. */
     readDynamicEnergy += energy * level.activeWireGroups * totalBits;
-    writeDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
-    resetDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
-    setDynamicEnergy += energy * level.activeWireGroups * totalBits / beta;
+    writeDynamicEnergy += energy * level.activeWireGroups * totalBits;
+    resetDynamicEnergy += energy * level.activeWireGroups * totalBits;
+    setDynamicEnergy += energy * level.activeWireGroups * totalBits;
     leakage += leakageWire * level.totalWireGroups * totalBits;
 
     if (!config->peripherals.noPrechargeInc)
@@ -68,8 +64,7 @@ void BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
 }
 
 bool BankWithHtree::HasRoutableBits(const RoutingState &state) const {
-    return state.dataDistributeBitsToRoute + state.dataBroadcastBitsToRoute != 0
-        && state.addressBitsToRoute != 0;
+    return state.dataBitsToRoute != 0 && state.addressBitsToRoute != 0;
 }
 
 BankWithHtree::RoutingState BankWithHtree::CreateInitialRoutingState() const {
@@ -79,8 +74,7 @@ BankWithHtree::RoutingState BankWithHtree::CreateInitialRoutingState() const {
     state.activeRowsRemaining = numActiveMatPerColumn;
     state.activeColumnsRemaining = numActiveMatPerRow;
     state.addressBitsToRoute = numAddressBit;
-    state.dataDistributeBitsToRoute = numDataDistributeBit;
-    state.dataBroadcastBitsToRoute = numDataBroadcastBit;
+    state.dataBitsToRoute = numDataBit;
     return state;
 }
 
@@ -94,8 +88,7 @@ bool BankWithHtree::InitializeFirstHorizontalLevel(RoutingState &state) {
     }
 
     horizontalLevels[0].addressBits = state.addressBitsToRoute;
-    horizontalLevels[0].dataDistributeBits = state.dataDistributeBitsToRoute;
-    horizontalLevels[0].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+    horizontalLevels[0].dataBits = state.dataBitsToRoute;
     horizontalLevels[0].wireGroups = 1;
     horizontalLevels[0].totalWireGroups = 1;
     horizontalLevels[0].activeWireGroups = 1;
@@ -112,7 +105,7 @@ bool BankWithHtree::ReduceExtraHorizontalLevels(RoutingState &state) {
 
         int level = levelHorizontal - state.horizontalLevelsRemaining;
         if (state.activeColumnsRemaining > 1) {
-            state.dataDistributeBitsToRoute /= 2;
+            state.dataBitsToRoute /= 2;
             state.activeColumnsRemaining /= 2;
             horizontalLevels[level].activeWireGroups =
                 2 * horizontalLevels[level - 1].activeWireGroups;
@@ -122,8 +115,7 @@ bool BankWithHtree::ReduceExtraHorizontalLevels(RoutingState &state) {
         }
 
         horizontalLevels[level].addressBits = state.addressBitsToRoute;
-        horizontalLevels[level].dataDistributeBits = state.dataDistributeBitsToRoute;
-        horizontalLevels[level].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        horizontalLevels[level].dataBits = state.dataBitsToRoute;
         horizontalLevels[level].wireGroups = 1;
         horizontalLevels[level].totalWireGroups = 2 * horizontalLevels[level - 1].totalWireGroups;
         state.horizontalLevelsRemaining--;
@@ -141,7 +133,7 @@ bool BankWithHtree::ReduceExtraVerticalLevels(RoutingState &state) {
 
         int level = levelVertical - state.verticalLevelsRemaining;
         if (state.activeRowsRemaining > 1) {
-            state.dataDistributeBitsToRoute /= 2;
+            state.dataBitsToRoute /= 2;
             state.activeRowsRemaining /= 2;
             if (state.verticalLevelsRemaining == levelVertical) {
                 verticalLevels[0].activeWireGroups = 2;
@@ -159,8 +151,7 @@ bool BankWithHtree::ReduceExtraVerticalLevels(RoutingState &state) {
         }
 
         verticalLevels[level].addressBits = state.addressBitsToRoute;
-        verticalLevels[level].dataDistributeBits = state.dataDistributeBitsToRoute;
-        verticalLevels[level].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        verticalLevels[level].dataBits = state.dataBitsToRoute;
         verticalLevels[level].wireGroups = 1;
         if (state.verticalLevelsRemaining == levelVertical) {
             verticalLevels[0].totalWireGroups = 2;
@@ -184,7 +175,7 @@ bool BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state)
         int verticalLevel = levelVertical - state.verticalLevelsRemaining;
 
         if (state.activeColumnsRemaining > 1) {
-            state.dataDistributeBitsToRoute /= 2;
+            state.dataBitsToRoute /= 2;
             state.activeColumnsRemaining /= 2;
             if (state.verticalLevelsRemaining == levelVertical) {
                 horizontalLevels[horizontalLevel].activeWireGroups =
@@ -205,8 +196,7 @@ bool BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state)
         }
 
         horizontalLevels[horizontalLevel].addressBits = state.addressBitsToRoute;
-        horizontalLevels[horizontalLevel].dataDistributeBits = state.dataDistributeBitsToRoute;
-        horizontalLevels[horizontalLevel].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        horizontalLevels[horizontalLevel].dataBits = state.dataBitsToRoute;
         horizontalLevels[horizontalLevel].wireGroups = state.horizontalWireTier;
 
         if (state.verticalLevelsRemaining == levelVertical) {
@@ -218,13 +208,12 @@ bool BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state)
         }
 
         if (!HasRoutableBits(state)) {
-            MarkInvalidInitialized("numDataDistributeBitToRoute + "
-                    "numDataBroadcastBitToRoute == 0 || numAddressBitToRoute == 0");
+            MarkInvalidInitialized("dataBitsToRoute == 0 || addressBitsToRoute == 0");
             return false;
         }
 
         if (state.activeRowsRemaining > 1) {
-            state.dataDistributeBitsToRoute /= 2;
+            state.dataBitsToRoute /= 2;
             state.activeRowsRemaining /= 2;
             verticalLevels[verticalLevel].activeWireGroups =
                 2 * horizontalLevels[horizontalLevel].activeWireGroups;
@@ -235,8 +224,7 @@ bool BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state)
         }
 
         verticalLevels[verticalLevel].addressBits = state.addressBitsToRoute;
-        verticalLevels[verticalLevel].dataDistributeBits = state.dataDistributeBitsToRoute;
-        verticalLevels[verticalLevel].dataBroadcastBits = state.dataBroadcastBitsToRoute;
+        verticalLevels[verticalLevel].dataBits = state.dataBitsToRoute;
         if (levelHorizontal == 2) {
             verticalLevels[verticalLevel].wireGroups = state.verticalWireTier;
         } else {
@@ -255,51 +243,15 @@ bool BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state)
 
 bool BankWithHtree::FinalizeMatRoutingBits(RoutingState &state) {
     if (!HasRoutableBits(state)) {
-        MarkInvalidInitialized("numDataDistributeBitToRoute");
+        MarkInvalidInitialized("dataBitsToRoute");
         return false;
     }
 
     if (state.activeColumnsRemaining > 1) {
-        state.dataDistributeBitsToRoute /= 2;
+        state.dataBitsToRoute /= 2;
         state.activeColumnsRemaining /= 2;
     } else if (levelHorizontal > 0) {
         state.addressBitsToRoute--;
-    }
-
-    return true;
-}
-
-bool BankWithHtree::DetermineMatRouting(const RoutingState &state, MatRouting &matRouting) {
-    if (memoryType == mem_data) {
-        if (numRowPerSet > (int)pow(2, state.dataBroadcastBitsToRoute)) {
-            MarkInvalidInitialized("no multiple rows");
-            return false;
-        }
-
-        matRouting.blockSize = state.dataDistributeBitsToRoute;
-        matRouting.numWay = (int)pow(2, state.dataBroadcastBitsToRoute);
-
-        int numWayPerRow = matRouting.numWay / numRowPerSet;
-        if (numWayPerRow > 1) {
-            int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
-            if (config->technology.cell->memCellType == DRAM
-                    || config->technology.cell->memCellType == eDRAM) {
-                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 2);
-                int extraMuxOutputLev1 = numWayPerRow / extraMuxOutputLev2;
-                muxOutputLev1 *= extraMuxOutputLev1;
-                muxOutputLev2 *= extraMuxOutputLev2;
-            } else {
-                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 3);
-                int extraMuxOutputLev1 = extraMuxOutputLev2;
-                int extraMuxSenseAmp = numWayPerRow / extraMuxOutputLev1 / extraMuxOutputLev2;
-                muxSenseAmp *= extraMuxSenseAmp;
-                muxOutputLev1 *= extraMuxOutputLev1;
-                muxOutputLev2 *= extraMuxOutputLev2;
-            }
-        }
-    } else {
-        matRouting.blockSize = state.dataBroadcastBitsToRoute;
-        matRouting.numWay = 1;
     }
 
     return true;
@@ -310,7 +262,7 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1,
         int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
-        BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
+        BufferDesignTarget _areaOptimizationLevel, CAMType _camType,
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
         const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt) {
 
@@ -335,27 +287,16 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
     numColumnMat = _numColumnMat;
     capacity = _capacity;
     blockSize = _blockSize;
-    associativity = 1;
-    numRowPerSet = 1;
     internalSenseAmp = _internalSenseAmp;
     areaOptimizationLevel = _areaOptimizationLevel;
-    memoryType = _memoryType;
     camType = _camType;
     searchFunction = _searchFunction;
     CAM_opt = _CAM_opt;
 
     /* Calculate the physical signals that are required in routing */
-    numAddressBit = (int)(log2((double)capacity / blockSize / associativity) + 0.1);
+    numAddressBit = (int)(log2((double)capacity / blockSize) + 0.1);
 
-    /* use double during the calculation to avoid overflow */
-    if (memoryType == mem_data) {
-        numDataDistributeBit = blockSize;
-        numDataBroadcastBit = (int)(log2(associativity));	/* TODO: this is not the only way */
-
-    } else {	/* CAM */
-        numDataDistributeBit = 0;
-        numDataBroadcastBit = blockSize;
-    }
+    numDataBit = blockSize;
 
     if (_numActiveMatPerRow > numColumnMat) {
         config->logger.Log() << "[Bank] Warning: The number of active subarray "
@@ -423,17 +364,12 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         return;
     }
 
-    MatRouting matRouting;
-    if (!DetermineMatRouting(state, matRouting)) {
-        return;
-    }
-
     mat = std::make_unique<Mat>();
     mat->Initialize(numRowSubarray, numColumnSubarray, state.addressBitsToRoute,
-            matRouting.blockSize, matRouting.numWay, numRowPerSet, false,
+            state.dataBitsToRoute, false,
             numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
             muxSenseAmp, internalSenseAmp, muxOutputLev1, muxOutputLev2, areaOptimizationLevel, 
-            memoryType, camType, searchFunction, config, localWire, CAM_opt);
+            camType, searchFunction, config, localWire, CAM_opt);
 
     /* Check if mat is under a legal configuration */
     if (mat->invalid) {
@@ -473,16 +409,14 @@ void BankWithHtree::CalculateArea() {
         }
 
         /* Determine if the aspect ratio meets the constraint */
-        if (memoryType == mem_data)
-            if (height / width > CONSTRAINT_ASPECT_RATIO_BANK
-                    || width / height > CONSTRAINT_ASPECT_RATIO_BANK) {
-                /* illegal */
-                MarkInvalid("aspect ratio doesn't meet the constraint");
-                config->logger.Verbose() << "height / width = " << height / width
-                    << "|| width / height = " << width / height;
-                height = width = area = 1e41;
-                return;
-            }
+        if (height / width > CONSTRAINT_ASPECT_RATIO_BANK
+                || width / height > CONSTRAINT_ASPECT_RATIO_BANK) {
+            MarkInvalid("aspect ratio doesn't meet the constraint");
+            config->logger.Verbose() << "height / width = " << height / width
+                << "|| width / height = " << width / height;
+            height = width = area = 1e41;
+            return;
+        }
 
         area = height * width;
 
@@ -567,9 +501,6 @@ void BankWithHtree::CalculateLatencyAndPower() {
         leakage = 1e41;
 
     } else {
-        /* CAM uses all interconnect wires. */
-        int beta = 1;
-
         mat->CalculateLatency(1e41 /* means Inf */);
         mat->CalculatePower();
         readLatency = mat->readLatency;
@@ -620,11 +551,11 @@ void BankWithHtree::CalculateLatencyAndPower() {
         numBitSerial = CAM_opt.BitSerialWidth;
 
         for (int i = 0; i < levelHorizontal; i++) {
-            AccumulateHtreeLevelLatencyAndPower(horizontalLevels[i], TotalHorizontalBits(i), beta);
+            AccumulateHtreeLevelLatencyAndPower(horizontalLevels[i], TotalHorizontalBits(i));
         }
 
         for (int i = 0; i < levelVertical; i++) {
-            AccumulateHtreeLevelLatencyAndPower(verticalLevels[i], TotalVerticalBits(i), beta);
+            AccumulateHtreeLevelLatencyAndPower(verticalLevels[i], TotalVerticalBits(i));
         }
     }
 }

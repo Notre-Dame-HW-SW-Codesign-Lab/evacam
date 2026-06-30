@@ -72,11 +72,10 @@ double MaxPairReadLatency(const std::unique_ptr<PredecodeBlock> &block1,
 } // namespace
 
 void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddressBit,
-        long _numDataBit,
-        int _numWay, int _numRowPerSet, bool _split, int _numActiveSubarrayPerRow, 
+        long _numDataBit, bool _split, int _numActiveSubarrayPerRow,
         int _numActiveSubarrayPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
         int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
-        MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
+        CAMType _camType, SearchFunction _searchFunction,
         std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire,
         const CAM_Opt &_CAM_opt) {
     config = _config;
@@ -88,12 +87,9 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     numColumnSubarray = _numColumnSubarray;
     numAddressBit = _numAddressBit;
     numDataBit = _numDataBit;
-    numWay = _numWay;
-    numRowPerSet = _numRowPerSet;
     split = _split;
     internalSenseAmp = _internalSenseAmp;
     areaOptimizationLevel = _areaOptimizationLevel;
-    memoryType = _memoryType;
     camType = _camType;
     searchFunction = _searchFunction;
     localWire = _localWire;
@@ -169,7 +165,6 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     subarray->Initialize(
             numRow, 
             numColumn, 
-            numRowPerSet > 1, 
             split,
             muxSenseAmp, 
             internalSenseAmp, 

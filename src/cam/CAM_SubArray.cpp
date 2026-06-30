@@ -250,13 +250,16 @@ CAMMetricStats BuildSinglePointMetric(double sample, double nominal) {
     return stats;
 }
 
+int CamDecoderNandInputCount(long long numRows) {
+    return numRows <= 8 ? 0 : 2;
+}
+
 }  // namespace
 
 
 void CAM_SubArray::Initialize(
         long long _numRow, 
         long long _numColumn, 
-        bool _multipleRowPerSet, 
         bool _split,
         int _muxSenseAmp, 
         bool _internalSenseAmp, 
@@ -297,7 +300,6 @@ void CAM_SubArray::Initialize(
     numColumn = _numColumn;
     latencyCalculated = false;
     searchlineDriveDynamicEnergy = 0;
-    multipleRowPerSet = _multipleRowPerSet;
     split = _split;
     muxSenseAmp = _muxSenseAmp;
     muxOutputLev1 = _muxOutputLev1;
@@ -520,7 +522,7 @@ void CAM_SubArray::Initialize(
                 rowDecMergeNandNumRow,
                 capNandInput,
                 0,
-                false /*TODO*/,
+                CamDecoderNandInputCount(rowDecMergeNandNumRow),
                 DecMergeOptLevel,
                 0,
                 config /*TODO*/,
@@ -535,7 +537,7 @@ void CAM_SubArray::Initialize(
                 Row[i].cap * 1.6, // TODO: verify the 1.6 scaling constant, it may need to be different for FeFET
                                   //       previous maintainer tried 10 at one point for FeFET 
                 Row[i].res,
-                false/*TODO*/,
+                CamDecoderNandInputCount(numRow),
                 DriverOptLevel,
                 Row[i].maxCurrent,
                 config,
@@ -556,7 +558,7 @@ void CAM_SubArray::Initialize(
             cell.camNumCol * muxSenseAmp,
             Row[cell.camNumRow].cap,
             Row[cell.camNumRow].res,
-            false,
+            CamDecoderNandInputCount(cell.camNumCol * muxSenseAmp),
             DecMergeOptLevel,
             0,
             config);
@@ -565,7 +567,7 @@ void CAM_SubArray::Initialize(
             muxOutputLev1,
             Row[cell.camNumRow].cap * 1.6,
             Row[cell.camNumRow].res,
-            false,
+            CamDecoderNandInputCount(muxOutputLev1),
             DecMergeOptLevel,
             0,
             config);
@@ -574,7 +576,7 @@ void CAM_SubArray::Initialize(
             muxOutputLev2,
             Row[cell.camNumRow].cap * 1.6,
             Row[cell.camNumRow].res,
-            false,
+            CamDecoderNandInputCount(muxOutputLev2),
             DecMergeOptLevel,
             0,
             config);
@@ -639,7 +641,7 @@ void CAM_SubArray::Initialize(
                         numColumn / muxSenseAmp,
                         Col[i].cap,
                         Col[i].res,
-                        false,
+                        CamDecoderNandInputCount(numColumn / muxSenseAmp),
                         DriverOptLevel,
                         Col[i].maxCurrent,
                         config);

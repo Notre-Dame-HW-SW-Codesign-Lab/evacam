@@ -1,5 +1,5 @@
 /*
- * optional encoding input mem_data to reduce leakage during searching
+ * Optional input encoding to reduce leakage during searching.
  * refer to JSSC-11-Li
  */
 #ifndef CAM_INPUTENCODER_H_

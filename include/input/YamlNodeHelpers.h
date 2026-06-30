@@ -151,10 +151,6 @@ template <>
         static const std::vector<std::pair<const char*, BufferDesignTarget>>& mapping();
     };
 template <>
-    struct EnumTraits<MemoryType> {
-        static const std::vector<std::pair<const char*, MemoryType>>& mapping();
-    };
-template <>
     struct EnumTraits<CAMType> {
         static const std::vector<std::pair<const char*, CAMType>>& mapping();
     };

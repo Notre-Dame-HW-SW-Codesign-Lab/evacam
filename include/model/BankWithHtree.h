@@ -7,8 +7,7 @@ class BankWithHtree: public Bank {
     public:
         struct HtreeLevel {
             int addressBits = 0;
-            int dataDistributeBits = 0;
-            int dataBroadcastBits = 0;
+            int dataBits = 0;
             int wireGroups = 0;
             int totalWireGroups = 0;
             int activeWireGroups = 0;
@@ -26,8 +25,7 @@ class BankWithHtree: public Bank {
                 int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
                 int _muxOutputLev1, int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
                 int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
-                BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType,
-                CAMType _camType, 
+                BufferDesignTarget _areaOptimizationLevel, CAMType _camType,
                 SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
                 const Wire &_localWire, const Wire &_globalWire,
                 const CAM_Opt &_CAM_opt);
@@ -37,10 +35,7 @@ class BankWithHtree: public Bank {
         void CalculateLatencyAndPower();
 
         int numAddressBit;		/* Number of bank address bits */
-        /* Number of bank mem_data bits distributed along with the address */
-        int numDataDistributeBit;
-        /* Number of bank mem_data bits broadcasted at every node */
-        int numDataBroadcastBit;
+        int numDataBit;		/* Number of bank data bits routed with the address */
 
         int levelHorizontal;			/* The number of horizontal levels */
         int levelVertical;				/* The number of vertical levels */
@@ -55,15 +50,9 @@ class BankWithHtree: public Bank {
             int activeRowsRemaining = 0;
             int activeColumnsRemaining = 0;
             int addressBitsToRoute = 0;
-            int dataDistributeBitsToRoute = 0;
-            int dataBroadcastBitsToRoute = 0;
+            int dataBitsToRoute = 0;
             int horizontalWireTier = 1;
             int verticalWireTier = 1;
-        };
-
-        struct MatRouting {
-            long blockSize = 0;
-            int numWay = 1;
         };
 
         struct WireAreaModel {
@@ -77,7 +66,7 @@ class BankWithHtree: public Bank {
         int TotalVerticalBits(int level) const;
         WireAreaModel GetWireAreaModel() const;
         void AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
-                int totalBits, int beta);
+                int totalBits);
         bool HasRoutableBits(const RoutingState &state) const;
         RoutingState CreateInitialRoutingState() const;
         bool InitializeFirstHorizontalLevel(RoutingState &state);
@@ -85,7 +74,6 @@ class BankWithHtree: public Bank {
         bool ReduceExtraVerticalLevels(RoutingState &state);
         bool ReducePairedHorizontalAndVerticalLevels(RoutingState &state);
         bool FinalizeMatRoutingBits(RoutingState &state);
-        bool DetermineMatRouting(const RoutingState &state, MatRouting &matRouting);
 };
 
 #endif /* BANKWITHHTREE_H_ */

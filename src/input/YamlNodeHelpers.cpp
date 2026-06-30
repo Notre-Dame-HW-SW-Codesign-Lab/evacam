@@ -162,15 +162,6 @@ const std::vector<std::pair<const char*, BufferDesignTarget>>& EnumTraits<Buffer
     return k;
 }
 
-const std::vector<std::pair<const char*, MemoryType>>& EnumTraits<MemoryType>::mapping() {
-    static const std::vector<std::pair<const char*, MemoryType>> k = {
-        {"mem_data", mem_data},
-        {"tag", tag},
-        {"CAM", CAM},
-    };
-    return k;
-}
-
 const std::vector<std::pair<const char*, CAMType>>& EnumTraits<CAMType>::mapping() {
     static const std::vector<std::pair<const char*, CAMType>> k = {
         {"TCAM", TCAM},

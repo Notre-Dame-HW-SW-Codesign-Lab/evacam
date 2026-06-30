@@ -6,12 +6,10 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
         int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray,
         int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn,
-        BufferDesignTarget _areaOptimizationLevel, MemoryType _memoryType, CAMType _camType, 
+        BufferDesignTarget _areaOptimizationLevel, CAMType _camType,
         SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config,
         const Wire &_localWire, const Wire &_globalWire,
         const CAM_Opt &_CAM_opt) {
-    (void)_searchFunction;
-
     localWire = _localWire;
     globalWire = _globalWire;
     config = _config;
@@ -38,23 +36,18 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     numColumnMat = _numColumnMat;
     capacity = _capacity;
     blockSize = _blockSize;
-    associativity = 1;
-    numRowPerSet = 1;
     internalSenseAmp = _internalSenseAmp;
     areaOptimizationLevel = _areaOptimizationLevel;
-    memoryType = _memoryType;
-    numWay = 1;	/* CAM invariant until non-H-tree is revisited */
-
     camType = _camType;
+    searchFunction = _searchFunction;
     CAM_opt = _CAM_opt;
 
     /* Calculate the physical signals that are required in routing */
-    numAddressBit = (int)(log2((double)capacity / blockSize / associativity) + 0.1);
+    numAddressBit = (int)(log2((double)capacity / blockSize) + 0.1);
     /* use double during the calculation to avoid overflow */
 
     globalBitlineMux = std::make_unique<Mux>();
     globalSenseAmp = std::make_unique<SenseAmp>();
-    globalComparator = std::make_unique<Comparator>();
 
 
     if (_numActiveMatPerRow > numColumnMat) {
@@ -97,48 +90,12 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     numAddressBitRouteToMat = numAddressBit - numAddressForGating;	/* Only use the effective address bits in the following calculation */
     numDataBitRouteToMat = blockSize;
 
-
-    if (memoryType == mem_data) { /* Data array */
-        numDataBitRouteToMat = blockSize / numActiveMatPerColumn / numActiveMatPerRow;
-        if (numRowPerSet > associativity) {
-            /* There is no enough ways to distribute into multiple rows */
-            invalid = true;
-            initialized = true;
-            return;
-        }
-        numWay = associativity;
-        int numWayPerRow = numWay / numRowPerSet;	/* At least 1, otherwise it is invalid, and returned already */
-        if (numWayPerRow > 1) {		/* multiple ways per row, needs extra mux level */
-            /* Do mux level recalculation to contain the multiple ways */
-            if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
-                /* for DRAM, mux before sense amp has to be 1, only mux output1 and mux output2 can be used */
-                int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
-                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 2);
-                int extraMuxOutputLev1 = numWayPerRow / extraMuxOutputLev2;
-                muxOutputLev1 *= extraMuxOutputLev1;
-                muxOutputLev2 *= extraMuxOutputLev2;
-            } else {
-                /* for non-DRAM, all mux levels can be used */
-                int numWayPerRowInLog = (int)(log2((double)numWayPerRow) + 0.1);
-                int extraMuxOutputLev2 = (int)pow(2, numWayPerRowInLog / 3);
-                int extraMuxOutputLev1 = extraMuxOutputLev2;
-                int extraMuxSenseAmp = numWayPerRow / extraMuxOutputLev1 / extraMuxOutputLev2;
-                muxSenseAmp *= extraMuxSenseAmp;
-                muxOutputLev1 *= extraMuxOutputLev1;
-                muxOutputLev2 *= extraMuxOutputLev2;
-            }
-        }
-    } else { /* CAM */
-        numDataBitRouteToMat = blockSize;
-        numWay = 1;
-    }
-
     mat = std::make_unique<Mat>();
 
     mat->Initialize(numRowSubarray, numColumnSubarray, numAddressBitRouteToMat, numDataBitRouteToMat,
-            numWay, numRowPerSet, false, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
+            false, numActiveSubarrayPerRow, numActiveSubarrayPerColumn,
             muxSenseAmp, internalSenseAmp, muxOutputLev1, muxOutputLev2, areaOptimizationLevel, 
-            memoryType, camType, searchFunction, config, localWire, CAM_opt);
+            camType, searchFunction, config, localWire, CAM_opt);
     /* Check if mat is under a legal configuration */
     if (mat->invalid) {
         invalid = true;
@@ -160,10 +117,7 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         }
 
         int numSenseAmp;
-        if (memoryType == mem_data)
-            numSenseAmp = blockSize;
-        else
-            numSenseAmp = blockSize * associativity;
+        numSenseAmp = blockSize;
 
         globalSenseAmp->Initialize(numSenseAmp, !voltageSense, senseVoltage, mat->width * numColumnMat / numSenseAmp, config);
         if (globalSenseAmp->invalid) {
@@ -213,13 +167,12 @@ void BankWithoutHtree::CalculateArea() {
         }
 
         /* Determine if the aspect ratio meets the constraint */
-        if (memoryType == mem_data)
-            if (height / width > CONSTRAINT_ASPECT_RATIO_BANK || width / height > CONSTRAINT_ASPECT_RATIO_BANK) {
-                /* illegal */
-                invalid = true;
-                height = width = area = 1e41;
-                return;
-            }
+        if (height / width > CONSTRAINT_ASPECT_RATIO_BANK
+                || width / height > CONSTRAINT_ASPECT_RATIO_BANK) {
+            invalid = true;
+            height = width = area = 1e41;
+            return;
+        }
 
         area = height * width;
     }
@@ -303,7 +256,7 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                         energy = capGlobalBitline * config->technology.tech->vdd() * config->technology.tech->vdd() * numAddressBitRouteToMat;
                         readDynamicEnergy += energy;
                         writeDynamicEnergy += energy;
-                        readDynamicEnergy += capGlobalBitline * vpre * vpre * numWay;
+                        readDynamicEnergy += capGlobalBitline * vpre * vpre;
                         writeDynamicEnergy += capGlobalBitline * vpre * vpre * numDataBitRouteToMat;
                     }
                     // TODO: cap calculation needs further consideration

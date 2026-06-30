@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "CAM_SubArray.h"
-#include "Comparator.h"
 #include "FunctionUnit.h"
 #include "PredecodeBlock.h"
 #include "Wire.h"
@@ -26,11 +25,10 @@ class Mat : public FunctionUnit {
         /* Functions */
         void PrintProperty();
         void Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddressBit,
-                long _numDataBit,
-                int _numWay, int _numRowPerSet, bool _split, int _numActiveSubarrayPerRow, 
+                long _numDataBit, bool _split, int _numActiveSubarrayPerRow,
                 int _numActiveSubarrayPerColumn, int _muxSenseAmp, bool _internalSenseAmp, 
                 int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, 
-                MemoryType _memoryType, CAMType _camType, SearchFunction _searchFunction, 
+                CAMType _camType, SearchFunction _searchFunction,
                 std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire,
                 const CAM_Opt &_CAM_opt);
         void CalculateArea();
@@ -46,11 +44,7 @@ class Mat : public FunctionUnit {
         int numRowSubarray;     /* Number of subarray rows in a mat */
         int numColumnSubarray;  /* Number of subarray columns in a mat */
         int numAddressBit;      /* Number of mat address bits */
-        long numDataBit;        /* Number of mat mem_data bits */
-        /* CAM callers pass one until the mat API is simplified */
-        int numWay;
-        /* CAM callers pass one until the mat API is simplified */
-        int numRowPerSet;
+        long numDataBit;        /* Number of data bits routed to the mat */
         bool split;             /* Whether the row decoder is at the middle of subarrays */
 
         int numActiveSubarrayPerRow;    /* For different access types */
@@ -59,7 +53,6 @@ class Mat : public FunctionUnit {
         int muxOutputLev1;              /* Sense amplifiers per output bit, level-1 */
         int muxOutputLev2;              /* Sense amplifiers per output bit, level-2 */
         BufferDesignTarget areaOptimizationLevel;
-        MemoryType memoryType;
 
         CAMType camType;                 /* For CAM type specification */
         SearchFunction searchFunction;   /* For search function specification */
@@ -79,8 +72,6 @@ class Mat : public FunctionUnit {
 
         Wire localWire;
         CAM_Opt CAM_opt;
-
-        Comparator comparator;
 };
 
 #endif /* MAT_H_ */

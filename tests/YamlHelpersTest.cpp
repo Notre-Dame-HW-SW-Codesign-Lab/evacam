@@ -39,7 +39,6 @@ static void test_enum_read() {
         "  wire: LocalAggressive\n"
         "  repeater: RepeatedOpt\n"
         "  buffer: latency\n"
-        "  memtype: mem_data\n"
         "  cam: TCAM\n"
         "  search: EX\n"
         "  route: H-tree\n"
@@ -64,7 +63,6 @@ static void test_enum_read() {
     auto wire = YamlHelpers::read_enum_required<WireType>(root, "wire");
     auto repeater = YamlHelpers::read_enum_required<WireRepeaterType>(root, "repeater");
     auto buffer = YamlHelpers::read_enum_required<BufferDesignTarget>(root, "buffer");
-    auto memtype = YamlHelpers::read_enum_required<MemoryType>(root, "memtype");
     auto cam = YamlHelpers::read_enum_required<CAMType>(root, "cam");
     auto search = YamlHelpers::read_enum_required<SearchFunction>(root, "search");
     auto route = YamlHelpers::read_enum_required<RoutingMode>(root, "route");
@@ -82,7 +80,6 @@ static void test_enum_read() {
     assert(wire == local_aggressive);
     assert(repeater == repeated_opt);
     assert(buffer == latency_first);
-    assert(memtype == mem_data);
     assert(cam == TCAM);
     assert(search == EX);
     assert(route == h_tree);

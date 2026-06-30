@@ -56,12 +56,6 @@ enum BufferDesignTarget {
     area_first = 2		/* The buffer will be optimized for area */
 };
 
-enum MemoryType {
-    mem_data,
-    tag,
-    CAM
-};
-
 enum CAMType {
     TCAM,
     MCAM,
@@ -105,16 +99,6 @@ enum OptimizationTarget {
     search_energy_optimized = 9,
     search_edp_optimized = 10,
     full_exploration = 11
-};
-
-enum CacheAccessMode {
-    normal_access_mode,	     /* mem_data array lookup and tag access happen in parallel
-                              * final mem_data block is broadcasted in mem_data array h-tree
-                              * after getting the signal from the tag array 
-                              */
-
-    sequential_access_mode,  /* mem_data array is accessed after accessing the tag array */
-    fast_access_mode	     /* mem_data and tag access happen in parallel */
 };
 
 enum TypeOfInputEncoder {

@@ -44,13 +44,15 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
             rowDecoderStage1B = NULL;
             rowDecoderStage1C = NULL;
             rowDecoderStage1A = std::make_unique<RowDecoder>();
-            rowDecoderStage1A->Initialize(numOutputAddressBit, capLoad, resLoad, numNandInputStage1A == 3, latency_first, 0, config);
+            rowDecoderStage1A->Initialize(numOutputAddressBit, capLoad, resLoad,
+                    numNandInputStage1A, latency_first, 0, config);
             //rowDecoderStage1A->CalculateRC();
         } else {
             rowDecoderStage2 = std::make_unique<RowDecoder>();
             double capLoadStage1A, capLoadStage1B, capLoadStage1C;
             if (numBasicDecoder <= 6) {
-                rowDecoderStage2->Initialize(numOutputAddressBit, capLoad, resLoad, false, latency_first, 0, config);
+                rowDecoderStage2->Initialize(numOutputAddressBit, capLoad, resLoad,
+                        2, latency_first, 0, config);
                 //rowDecoderStage2->CalculateRC();
                 numNandInputStage1B = numBasicDecoder / 2;
                 numNandInputStage1A = numBasicDecoder - numNandInputStage1B;
@@ -62,13 +64,16 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
                 capLoadStage1B = numAddressBitStage1A * rowDecoderStage2->capNandInput;
                 rowDecoderStage1C = NULL;
                 rowDecoderStage1A = std::make_unique<RowDecoder>();
-                rowDecoderStage1A->Initialize(numAddressBitStage1A, capLoadStage1A, 0 /* TODO */, numNandInputStage1A == 3, latency_first, 0, config);
+                rowDecoderStage1A->Initialize(numAddressBitStage1A, capLoadStage1A,
+                        0 /* TODO */, numNandInputStage1A, latency_first, 0, config);
                 //rowDecoderStage1A->CalculateRC();
                 rowDecoderStage1B = std::make_unique<RowDecoder>();
-                rowDecoderStage1B->Initialize(numAddressBitStage1B, capLoadStage1B, 0 /* TODO */, numNandInputStage1B == 3, latency_first, 0, config);
+                rowDecoderStage1B->Initialize(numAddressBitStage1B, capLoadStage1B,
+                        0 /* TODO */, numNandInputStage1B, latency_first, 0, config);
                 //rowDecoderStage1B->CalculateRC();
             } else if (numBasicDecoder <= 9){
-                rowDecoderStage2->Initialize(numOutputAddressBit, capLoad, resLoad, true, latency_first, 0, config);
+                rowDecoderStage2->Initialize(numOutputAddressBit, capLoad, resLoad,
+                        3, latency_first, 0, config);
                 //rowDecoderStage2->CalculateRC();
                 if (numBasicDecoder == 7) {
                     numNandInputStage1A = 3;
@@ -95,13 +100,16 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
                 capLoadStage1B = numAddressBitStage1A * numAddressBitStage1C * rowDecoderStage2->capNandInput;
                 capLoadStage1C = numAddressBitStage1A * numAddressBitStage1B * rowDecoderStage2->capNandInput;
                 rowDecoderStage1A = std::make_unique<RowDecoder>();
-                rowDecoderStage1A->Initialize(numAddressBitStage1A, capLoadStage1A, 0 /* TODO */, numNandInputStage1A == 3, latency_first, 0, config);
+                rowDecoderStage1A->Initialize(numAddressBitStage1A, capLoadStage1A,
+                        0 /* TODO */, numNandInputStage1A, latency_first, 0, config);
                 //rowDecoderStage1A->CalculateRC();
                 rowDecoderStage1B = std::make_unique<RowDecoder>();
-                rowDecoderStage1B->Initialize(numAddressBitStage1B, capLoadStage1B, 0 /* TODO */, numNandInputStage1B == 3, latency_first, 0, config);
+                rowDecoderStage1B->Initialize(numAddressBitStage1B, capLoadStage1B,
+                        0 /* TODO */, numNandInputStage1B, latency_first, 0, config);
                 //rowDecoderStage1B->CalculateRC();
                 rowDecoderStage1C = std::make_unique<RowDecoder>();
-                rowDecoderStage1C->Initialize(numAddressBitStage1C, capLoadStage1C, 0 /* TODO */, numNandInputStage1C == 3, latency_first, 0, config);
+                rowDecoderStage1C->Initialize(numAddressBitStage1C, capLoadStage1C,
+                        0 /* TODO */, numNandInputStage1C, latency_first, 0, config);
                 //rowDecoderStage1C->CalculateRC();
             }
         }

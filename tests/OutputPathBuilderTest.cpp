@@ -32,7 +32,7 @@ void TestVariationPaths() {
             == "results/case_variation_histograms.svg");
 }
 
-void TestExplorationCsvPathOmitsAssociativity() {
+void TestExplorationCsvPathUsesCamDimensions() {
     InputConfig input;
     input.outputFilePrefix = "results/output";
     input.capacity = 2LL * 1024 * 1024;
@@ -52,7 +52,7 @@ void TestExplorationCsvPathOmitsAssociativity() {
 int main() {
     TestDefaultResultsYamlPath();
     TestVariationPaths();
-    TestExplorationCsvPathOmitsAssociativity();
+    TestExplorationCsvPathUsesCamDimensions();
 
     std::cout << "OutputPathBuilder tests passed" << std::endl;
     return 0;

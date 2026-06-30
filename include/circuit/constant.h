@@ -11,7 +11,6 @@
 #define MAX_INV_CHAIN_LEN	20
 #define OPT_F				4
 
-#define COMPARATOR_INV_CHAIN_LEN 4
 
 #define MAX_NMOS_SIZE	500
 #define MIN_NMOS_SIZE	1.5
