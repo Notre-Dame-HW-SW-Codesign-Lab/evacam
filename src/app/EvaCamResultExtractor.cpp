@@ -134,7 +134,7 @@ void AddCoreSummary(EvaCamDesignResultDto &dto, const Result &result) {
     dto.summary["timing.matchline_delay_s"] = sub.matchlineDelay;
     dto.summary["timing.sense_amp_latency_s"] = sub.senseAmpLatency;
     dto.summary["timing.reference_delay_s"] = sub.referDelay;
-    dto.summary["timing.sense_margin_v"] = sub.senseMargin;
+    dto.summary["timing.exact_match_sense_margin_v"] = sub.senseMargin;
 
     dto.summary["energy.read_dynamic_j"] = bank.readDynamicEnergy;
     dto.summary["energy.write_dynamic_j"] = bank.writeDynamicEnergy;

@@ -37,7 +37,7 @@ METRICS = (
     "matchline_delay_s",
     "search_latency_s",
     "search_dynamic_energy_j",
-    "sense_margin_v",
+    "exact_match_sense_margin_v",
 )
 MANIFEST_FIELDS = (
     "run_id",

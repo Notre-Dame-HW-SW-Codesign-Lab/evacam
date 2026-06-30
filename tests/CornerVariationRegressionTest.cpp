@@ -89,7 +89,7 @@ int CountCsvRows(const std::filesystem::path &path, std::string *firstDataRow = 
 
     std::string line;
     assert(std::getline(csv, line));
-    assert(line == "sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
+    assert(line == "sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,exact_match_sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_exact_match_sense_margin_v,nominal_reference_delay_s");
 
     int rows = 0;
     while (std::getline(csv, line)) {

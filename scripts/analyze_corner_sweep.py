@@ -20,7 +20,7 @@ DERIVED_METRICS = (
     ("matchline_delay_range_pct", "Matchline delay range", "%", "max"),
     ("search_latency_range_pct", "Search latency range", "%", "max"),
     ("search_energy_range_pct", "Search energy range", "%", "max"),
-    ("minimum_sense_margin_mv", "Minimum sense margin", "mV", "min"),
+    ("minimum_exact_match_sense_margin_mv", "Minimum exact match sense margin", "mV", "min"),
 )
 MAIN_EFFECT_BOUNDS = (
     (
@@ -42,9 +42,9 @@ MAIN_EFFECT_BOUNDS = (
         "Deviation from nominal (%)",
     ),
     (
-        "sense_margin_lower_deviation_mv",
-        "sense_margin_upper_deviation_mv",
-        "Sense margin deviation",
+        "exact_match_sense_margin_lower_deviation_mv",
+        "exact_match_sense_margin_upper_deviation_mv",
+        "Exact match sense margin deviation",
         "Deviation from nominal (mV)",
     ),
 )
@@ -60,9 +60,9 @@ REQUIRED_SUMMARY_FIELDS = {
     "search_dynamic_energy_j_nominal",
     "search_dynamic_energy_j_min",
     "search_dynamic_energy_j_max",
-    "sense_margin_v_nominal",
-    "sense_margin_v_min",
-    "sense_margin_v_max",
+    "exact_match_sense_margin_v_nominal",
+    "exact_match_sense_margin_v_min",
+    "exact_match_sense_margin_v_max",
     *(name for name, _label in PARAMETERS),
 }
 
@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
         "--sense-threshold-mv",
         type=float,
         default=70.0,
-        help="Minimum acceptable sense margin in mV (default: 70).",
+        help="Minimum acceptable exact match sense margin in mV (default: 70).",
     )
     parser.add_argument(
         "--top",
@@ -188,9 +188,9 @@ def derive_rows(summary_rows: list[dict[str, str]]) -> list[dict[str, str | floa
         energy_nominal = as_float(source, "search_dynamic_energy_j_nominal")
         energy_min = as_float(source, "search_dynamic_energy_j_min")
         energy_max = as_float(source, "search_dynamic_energy_j_max")
-        sense_nominal = as_float(source, "sense_margin_v_nominal")
-        sense_min = as_float(source, "sense_margin_v_min")
-        sense_max = as_float(source, "sense_margin_v_max")
+        sense_nominal = as_float(source, "exact_match_sense_margin_v_nominal")
+        sense_min = as_float(source, "exact_match_sense_margin_v_min")
+        sense_max = as_float(source, "exact_match_sense_margin_v_max")
 
         row.update(
             {
@@ -230,12 +230,12 @@ def derive_rows(summary_rows: list[dict[str, str]]) -> list[dict[str, str | floa
                 "search_energy_upper_deviation_pct": percent_deviation(
                     energy_max, energy_nominal
                 ),
-                "sense_margin_nominal_mv": sense_nominal * 1e3,
-                "minimum_sense_margin_mv": sense_min * 1e3,
-                "maximum_sense_margin_mv": sense_max * 1e3,
-                "sense_margin_lower_deviation_mv": (sense_min - sense_nominal)
+                "exact_match_sense_margin_nominal_mv": sense_nominal * 1e3,
+                "minimum_exact_match_sense_margin_mv": sense_min * 1e3,
+                "maximum_exact_match_sense_margin_mv": sense_max * 1e3,
+                "exact_match_sense_margin_lower_deviation_mv": (sense_min - sense_nominal)
                 * 1e3,
-                "sense_margin_upper_deviation_mv": (sense_max - sense_nominal)
+                "exact_match_sense_margin_upper_deviation_mv": (sense_max - sense_nominal)
                 * 1e3,
             }
         )
@@ -402,9 +402,9 @@ DEVIATION_DISTRIBUTIONS = (
         "Deviation from nominal (%)",
     ),
     (
-        "sense_margin_lower_deviation_mv",
-        "sense_margin_upper_deviation_mv",
-        "Sense margin corner deviation",
+        "exact_match_sense_margin_lower_deviation_mv",
+        "exact_match_sense_margin_upper_deviation_mv",
+        "Exact match sense margin corner deviation",
         "Deviation from nominal (mV)",
     ),
 )
@@ -460,7 +460,7 @@ def write_report(
     plots_written: bool,
 ) -> None:
     below_threshold = [
-        row for row in rows if float(row["minimum_sense_margin_mv"]) < threshold_mv
+        row for row in rows if float(row["minimum_exact_match_sense_margin_mv"]) < threshold_mv
     ]
     total_corners = sum(int(row["corners"]) for row in rows)
     status_counts = defaultdict(int)
@@ -472,7 +472,7 @@ def write_report(
         "",
         f"- Analyzed runs: {len(rows):,}",
         f"- Evaluated corners represented: {total_corners:,}",
-        f"- Sense-margin threshold: {threshold_mv:g} mV",
+        f"- Exact-match sense-margin threshold: {threshold_mv:g} mV",
         f"- Runs below threshold: {len(below_threshold):,}",
         "- Manifest status: "
         + ", ".join(
@@ -562,11 +562,11 @@ def main() -> None:
     below_threshold = [
         row
         for row in rows
-        if float(row["minimum_sense_margin_mv"]) < args.sense_threshold_mv
+        if float(row["minimum_exact_match_sense_margin_mv"]) < args.sense_threshold_mv
     ]
     write_csv(
-        rankings_dir / "sense_margin_below_threshold.csv",
-        sorted(below_threshold, key=lambda row: float(row["minimum_sense_margin_mv"])),
+        rankings_dir / "exact_match_sense_margin_below_threshold.csv",
+        sorted(below_threshold, key=lambda row: float(row["minimum_exact_match_sense_margin_mv"])),
         fieldnames=list(rows[0]),
     )
 

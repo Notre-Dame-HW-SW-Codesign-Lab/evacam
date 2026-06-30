@@ -77,7 +77,7 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("matchline_delay", &EvaCamVariationSampleDto::matchlineDelay)
         .def_readonly("search_latency", &EvaCamVariationSampleDto::searchLatency)
         .def_readonly("search_dynamic_energy", &EvaCamVariationSampleDto::searchDynamicEnergy)
-        .def_readonly("sense_margin", &EvaCamVariationSampleDto::senseMargin)
+        .def_readonly("exact_match_sense_margin", &EvaCamVariationSampleDto::senseMargin)
         .def_readonly("reference_delay", &EvaCamVariationSampleDto::referenceDelay);
     module.attr("EvaCAMMonteCarloSample") = module.attr("EvaCAMVariationSample");
 
@@ -88,7 +88,7 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("matchline_delay", &EvaCamVariationDto::matchlineDelay)
         .def_readonly("search_latency", &EvaCamVariationDto::searchLatency)
         .def_readonly("search_dynamic_energy", &EvaCamVariationDto::searchDynamicEnergy)
-        .def_readonly("sense_margin", &EvaCamVariationDto::senseMargin)
+        .def_readonly("exact_match_sense_margin", &EvaCamVariationDto::senseMargin)
         .def_readonly("sample_data", &EvaCamVariationDto::sampleData);
 
     py::class_<EvaCamDesignResultDto>(module, "EvaCAMDesignResult")

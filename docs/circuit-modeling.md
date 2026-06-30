@@ -586,10 +586,10 @@ For each sampled point, the model recomputes:
 - matchline delay
 - search latency
 - all-match sensing delay
-- sense margin
+- exact match sense margin
 - search dynamic energy
 
-If a sampled sense margin falls below the sensing threshold, the sampled timing result is forced to an invalid large-number sentinel.
+If a sampled exact match sense margin falls below the sensing threshold, the sampled timing result is forced to an invalid large-number sentinel.
 
 ### Reported Statistics
 
@@ -607,7 +607,7 @@ for the currently summarized metrics:
 - matchline delay
 - search latency
 - search dynamic energy
-- sense margin
+- exact match sense margin
 
 The subarray’s exported timing and search-energy values are then replaced by the sample mean.
 

@@ -11,7 +11,7 @@ METRICS = [
     ("matchline_delay_s", "Matchline delay", "ps", 1e12, "max"),
     ("search_latency_s", "Search latency", "ps", 1e12, "max"),
     ("search_dynamic_energy_j", "Search dynamic energy", "pJ", 1e12, "max"),
-    ("sense_margin_v", "Sense margin", "mV", 1e3, "min"),
+    ("exact_match_sense_margin_v", "Exact Match Sense Margin", "mV", 1e3, "min"),
 ]
 
 INTERNAL_METRICS = [

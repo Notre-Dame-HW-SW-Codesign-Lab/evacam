@@ -392,12 +392,12 @@ namespace {
                 write_metric_sample(y, "matchline_delay", bank->mat->subarray->variationSummary.matchlineDelay, fmt_second);
                 write_metric_sample(y, "search_latency", bank->mat->subarray->variationSummary.searchLatency, fmt_second);
                 write_metric_sample(y, "search_dynamic_energy", bank->mat->subarray->variationSummary.searchDynamicEnergy, fmt_joule);
-                write_metric_sample(y, "sense_margin", bank->mat->subarray->variationSummary.senseMargin, fmt_voltage);
+                write_metric_sample(y, "exact_match_sense_margin", bank->mat->subarray->variationSummary.senseMargin, fmt_voltage);
             } else {
                 write_metric_stats(y, "matchline_delay", bank->mat->subarray->variationSummary.matchlineDelay, fmt_second);
                 write_metric_stats(y, "search_latency", bank->mat->subarray->variationSummary.searchLatency, fmt_second);
                 write_metric_stats(y, "search_dynamic_energy", bank->mat->subarray->variationSummary.searchDynamicEnergy, fmt_joule);
-                write_metric_stats(y, "sense_margin", bank->mat->subarray->variationSummary.senseMargin, fmt_voltage);
+                write_metric_stats(y, "exact_match_sense_margin", bank->mat->subarray->variationSummary.senseMargin, fmt_voltage);
             }
             y.end_map();
         }

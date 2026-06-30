@@ -27,9 +27,9 @@ void WriteVariationSamplesCsv(std::ostream &os, const Result &result) {
     os << "sample,corner_label,memory_device_res_on_corner,"
        << "memory_device_res_off_corner,"
        << "matchline_delay_s,search_latency_s,search_dynamic_energy_j,"
-       << "sense_margin_v,reference_delay_s,nominal_matchline_delay_s,"
+       << "exact_match_sense_margin_v,reference_delay_s,nominal_matchline_delay_s,"
        << "nominal_search_latency_s,nominal_search_dynamic_energy_j,"
-       << "nominal_sense_margin_v,nominal_reference_delay_s\n";
+       << "nominal_exact_match_sense_margin_v,nominal_reference_delay_s\n";
 
     if (!result.bank || !result.bank->mat || !result.bank->mat->subarray) {
         return;

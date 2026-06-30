@@ -175,7 +175,7 @@ void test_monte_carlo_output_summary_is_emitted() {
     assert(sampleCsv);
     std::string line;
     assert(std::getline(sampleCsv, line));
-    assert(line == "sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s");
+    assert(line == "sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,exact_match_sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_exact_match_sense_margin_v,nominal_reference_delay_s");
     int rowCount = 0;
     while (std::getline(sampleCsv, line)) {
         assert(!line.empty());
@@ -187,7 +187,7 @@ void test_monte_carlo_output_summary_is_emitted() {
         "matchline_delay",
         "search_latency",
         "search_dynamic_energy",
-        "sense_margin",
+        "exact_match_sense_margin",
     };
     const std::vector<std::string> statNames = {
         "nominal",
@@ -289,7 +289,7 @@ void test_single_point_output_summary_is_emitted() {
         "matchline_delay",
         "search_latency",
         "search_dynamic_energy",
-        "sense_margin",
+        "exact_match_sense_margin",
     };
 
     for (const auto &metricName : metricNames) {

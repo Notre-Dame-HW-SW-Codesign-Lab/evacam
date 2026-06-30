@@ -94,7 +94,7 @@ results/2FeFET_TCAM_variation_histograms.svg
 The CSV columns are:
 
 ```csv
-sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_sense_margin_v,nominal_reference_delay_s
+sample,corner_label,memory_device_res_on_corner,memory_device_res_off_corner,matchline_delay_s,search_latency_s,search_dynamic_energy_j,exact_match_sense_margin_v,reference_delay_s,nominal_matchline_delay_s,nominal_search_latency_s,nominal_search_dynamic_energy_j,nominal_exact_match_sense_margin_v,nominal_reference_delay_s
 ```
 
 For Monte Carlo mode, EvaCAM writes the plot automatically with the matplotlib-based Python plotter.
@@ -188,7 +188,7 @@ results/corner_sweep/
 
 `manifest.csv` records the status of each generated case. `summary.csv`
 aggregates nominal, minimum, and maximum values for matchline delay, search
-latency, search dynamic energy, and sense margin.
+latency, search dynamic energy, and exact match sense margin.
 
 Use `--corner-values` to choose different integer percent levels:
 
