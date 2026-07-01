@@ -25,7 +25,7 @@ class CAM_SenseAmp: public FunctionUnit {
                 double _pitchSenseAmp, std::string _fileCustomSA, std::shared_ptr<EvaCamConfig> _config);
         void CalculateArea();
         void CalculateRC();
-        void CalculateLatency(double _rampInput);
+        void CalculateLatency();
         void CalculatePower();
         /* Note that this is a single SA, not yet multiplied by number of columns */
         std::unique_ptr<SenseAmp> customSA;

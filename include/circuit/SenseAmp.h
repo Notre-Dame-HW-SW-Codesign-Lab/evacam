@@ -24,7 +24,7 @@ class SenseAmp: public FunctionUnit {
 
         void CalculateArea();
         void CalculateRC();
-        void CalculateLatency(double _rampInput);
+        void CalculateLatency();
         void CalculatePower();
 
         /* Properties */

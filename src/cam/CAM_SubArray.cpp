@@ -1505,7 +1505,7 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
         ColMux[i]->CalculateLatency(matchlineRamp);
     }
     if (internalSenseAmp) {
-        senseAmp->CalculateLatency(ColMux[indexMatchline]->rampOutput);
+        senseAmp->CalculateLatency();
         senseAmpMuxLev1->CalculateLatency(1e20);
         senseAmpMuxLev2->CalculateLatency(senseAmpMuxLev1->rampOutput);
     } else {

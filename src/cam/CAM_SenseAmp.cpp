@@ -129,7 +129,7 @@ void CAM_SenseAmp::CalculateRC() {
     }
 }
 
-void CAM_SenseAmp::CalculateLatency(double _rampInput) {	/* _rampInput is actually no use in SenseAmp */
+void CAM_SenseAmp::CalculateLatency() {
     if (!initialized) {
         ThrowInitializationError("[CAM_SenseAmp]");
     } else {
@@ -139,7 +139,7 @@ void CAM_SenseAmp::CalculateLatency(double _rampInput) {	/* _rampInput is actual
             writeLatency = readLatency;
         }
         else if (typeSA == nvsim_voltage_sense || typeSA == nvsim_current_sense || typeSA == discharge) {
-            normalSenseAmp->CalculateLatency(_rampInput);
+            normalSenseAmp->CalculateLatency();
             readLatency = normalSenseAmp->readLatency;
             writeLatency = normalSenseAmp->writeLatency;
         }

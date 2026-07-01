@@ -90,8 +90,7 @@ void SenseAmp::CalculateRC() {
     }
 }
 
-void SenseAmp::CalculateLatency(double _rampInput) {	/* TODO: _rampInput is actually no use in SenseAmp */
-    (void)_rampInput;
+void SenseAmp::CalculateLatency() {
     if (!initialized) {
         ThrowInitializationError("[Sense Amp]");
     } else {
