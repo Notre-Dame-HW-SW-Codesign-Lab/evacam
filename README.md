@@ -18,7 +18,7 @@ It reads a system config YAML, loads a cell config YAML, explores valid organiza
 - `src/app/main.cpp`: program entry point
 - `config/`: canonical shipped example tree, with one subdirectory per cell and the configs that use it
 - `docs/`: usage notes and reference docs
-- `old_style_config/`: legacy configuration files kept for reference only
+- `config/old_style_config/`: legacy configuration files kept for reference only
 - `tests/`: small focused tests
 
 ## Requirements
@@ -76,22 +76,25 @@ Options:
 
 - `-t, --threads N`: number of OpenMP threads; default is all available cores
 - `-v, --verbose`: enable verbose logging
+- `-q, --quiet`: suppress normal stdout output
 - `--no-variation-plots`: skip Monte Carlo variation histogram SVG generation
-- `-d, --deep-exploration`: test a wider set of design options during optimization
 - `-o, --output FILE`: write YAML results to a custom path
 - `-h, --help`: print usage and exit
+
+Deep exploration is configured in the system YAML with
+`optimization.deep_exploration: true`; it is not a CLI option.
 
 Examples:
 
 ```bash
 ./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_system_config.yaml
 ./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_system_config.yaml
-./EvaCAM -d config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_system_config.yaml
+./EvaCAM -q config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_system_config.yaml
 ```
 
 ## Python API
 
-Python bindings are available for match evaluation through the `evacam_py` module.
+Python bindings are available for full simulator runs and match evaluation through the `evacam_py` module.
 
 More detail:
 
@@ -104,7 +107,7 @@ EvaCAM consumes a system config file and a separate cell config file.
 - The system config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell config.
 - The cell config describes the device, ports, voltages, currents, related physical parameters, and any variation settings.
 
-Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell config plus the system configs that use it. `old_style_config/` remains in the repository only as legacy reference material.
+Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell config plus the system configs that use it. `config/old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 

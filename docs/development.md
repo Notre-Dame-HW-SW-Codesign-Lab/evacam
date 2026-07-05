@@ -92,7 +92,7 @@ The current tests are small assert-based executables under `tests/`; there is no
   - `cam`: CAM-specific implementations
   - `factories`: object construction helpers
 - Keep new YAML examples under the grouped `config/` tree, which is the canonical layout for active configs
-- Treat `old_style_config/` as legacy reference only; do not add new examples there
+- Treat `config/old_style_config/` as legacy reference only; do not add new examples there
 - Update the matching docs when you add or remove parsed keys
 - Prefer `README.md`, `docs/input-files.md`, `docs/schema.md`, and `docs/results-reference.md` for user-facing changes
 - `docs/system_config_full_example.yaml` and `docs/cell_config_full_example.yaml` are schema references, not physically valid experiments

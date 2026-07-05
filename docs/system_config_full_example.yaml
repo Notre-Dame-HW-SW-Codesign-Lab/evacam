@@ -62,6 +62,7 @@ wires:
   global:
     type: GlobalAggressive # required enum: LocalAggressive | LocalConservative | SemiAggressive | SemiConservative | GlobalAggressive | GlobalConservative | DramWordline
     repeater: RepeatedNone # required enum: RepeatedNone | RepeatedOpt | Repeated5%Penalty | Repeated10%Penalty | Repeated20%Penalty | Repeated30%Penalty | Repeated40%Penalty | Repeated50%Penalty
+    low_swing: false # required bool; true is only supported with RepeatedNone
 
 # Optional parsed section. The top-level key array: is also accepted as a legacy
 # alias for organization.

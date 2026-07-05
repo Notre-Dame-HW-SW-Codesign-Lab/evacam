@@ -120,13 +120,17 @@ variation:
   memory_device_resistance_on_max_var: 0% # optional for corner; fraction or percent
   memory_device_resistance_off_max_var: 0% # optional for corner; fraction or percent
 
-# Optional parsed section, but current model code does not use these values.
+# Optional parsed section. Required for MCAM cells. The experimental MCAM model
+# uses resistance_state for matchline timing and searchline_voltage together
+# with center_voltage for searchline row-driver energy. MCAM voltage mapping
+# requires exactly two searchline row ports.
 mcam:
-  num_resistance_state: 0 # optional int
-  resistance_state: [] # optional sequence or map keyed by integer state index; resistance units: ohm | kohm | Mohm | Gohm; bare numbers default to ohm
-  ml_precharge_voltage: [] # optional sequence or map keyed by integer state index; voltage units: V | mV; bare numbers default to V
-  searchline_voltage: [] # optional sequence or map keyed by integer state index; voltage units: V | mV; bare numbers default to V
-  state_variation: [] # optional sequence or map keyed by integer state index; fraction or percent
+  num_resistance_state: 2 # optional with a sequence; required with a map; MCAM requires 2..64 states
+  resistance_state: [1Mohm, 100kohm] # required for MCAM; sequence or integer-keyed map; units: ohm | kohm | Mohm | Gohm; bare numbers default to ohm
+  ml_precharge_voltage: [1V, 1V] # optional reserved field; sequence or integer-keyed map covering every state; units: V | mV; bare numbers default to V
+  searchline_voltage: [0.5V, 1.5V] # optional, but must be provided with center_voltage; sequence or integer-keyed map covering every state; units: V | mV; bare numbers default to V
+  center_voltage: 1V # optional, but must be provided with searchline_voltage; units: V | mV
+  state_variation: [0%, 0%] # optional reserved field; sequence or integer-keyed map; fraction or percent
 
 # Optional parsed section. Used by CAM/NVM match paths.
 match:
