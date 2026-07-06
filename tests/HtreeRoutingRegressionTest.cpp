@@ -21,7 +21,7 @@ bool Near(double actual, double expected, double tolerance) {
 int main() {
     CliOptions options;
     options.inputFileName =
-        "config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11_system_config.yaml";
+        "config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11_tool_config.yaml";
 
     EvaCamContext context = EvaCamContextBuilder::Build(options);
     EvaCamExplorer explorer(context.config, 1);

@@ -9,6 +9,8 @@ std::string OutputPathBuilder::DefaultResultsYamlPath(const std::string &inputFi
     std::filesystem::path inputPath(inputFile);
     std::string base = inputPath.stem().string();
     const std::vector<std::string> suffixes = {
+        "_tool_config",
+        "-tool-config",
         "_system_config",
         "-system-config",
         "_config",

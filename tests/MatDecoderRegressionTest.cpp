@@ -21,7 +21,7 @@ bool Near(double actual, double expected, double tolerance) {
 int main() {
     CliOptions options;
     options.inputFileName =
-        "config/2FeFET_TCAM/2FeFET_TCAM_explicit_subarray_system_config.yaml";
+        "config/2FeFET_TCAM/2FeFET_TCAM_explicit_subarray_tool_config.yaml";
 
     EvaCamContext context = EvaCamContextBuilder::Build(options);
     EvaCamExplorer explorer(context.config, 1);

@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: FeFET-2Fe1T-DATE-2021
+
+architecture_file: ./FeFET-2Fe1T-DATE-2021_architecture_config.yaml
+cell_file: ./FeFET-2Fe1T-DATE-2021_cell_config.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

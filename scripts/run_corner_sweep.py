@@ -15,7 +15,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_CELL = ROOT / "config" / "2FeFET_TCAM" / "2FeFET_TCAM_corner_cell_config.yaml"
-BASE_SYSTEM = ROOT / "config" / "2FeFET_TCAM" / "2FeFET_TCAM_corner_system_config.yaml"
+BASE_TOOL = ROOT / "config" / "2FeFET_TCAM" / "2FeFET_TCAM_corner_tool_config.yaml"
+BASE_ARCHITECTURE = ROOT / "config" / "2FeFET_TCAM" / "2FeFET_TCAM_architecture_config.yaml"
 EVA_CAM = ROOT / "EvaCAM"
 SWEEP_ROOT = ROOT / "results" / "corner_sweep"
 RUNS_ROOT = SWEEP_ROOT / "runs"
@@ -77,8 +78,8 @@ class RunSpec:
         return self.run_dir / "cell_config.yaml"
 
     @property
-    def system_path(self) -> Path:
-        return self.run_dir / "system_config.yaml"
+    def tool_path(self) -> Path:
+        return self.run_dir / "tool_config.yaml"
 
     @property
     def result_path(self) -> Path:
@@ -182,38 +183,41 @@ def replace_variation_block(text: str, spec: RunSpec) -> str:
     return updated
 
 
-def replace_cell_file(text: str, cell_path: Path) -> str:
+def replace_reference(text: str, key: str, referenced_path: Path, tool_dir: Path) -> str:
+    reference = Path(os.path.relpath(referenced_path, tool_dir)).as_posix()
+    if not reference.startswith("."):
+        reference = f"./{reference}"
     updated, count = re.subn(
-        r"^  cell_file: .*$",
-        f"  cell_file: ./{relative_to_root(cell_path)}",
+        rf"^{re.escape(key)}: .*$",
+        f"{key}: {reference}",
         text,
         count=1,
         flags=re.MULTILINE,
     )
     if count != 1:
-        raise RuntimeError(f"Could not replace memory.cell_file in {BASE_SYSTEM}")
+        raise RuntimeError(f"Could not replace {key} in {BASE_TOOL}")
     return updated
 
 
 def set_output_yaml(text: str, output_path: Path) -> str:
-    replacement = f"  output_yaml_file: {relative_to_root(output_path)}"
-    if re.search(r"^  output_yaml_file: .*$", text, flags=re.MULTILINE):
+    replacement = f"  yaml_file: {relative_to_root(output_path)}"
+    if re.search(r"^  yaml_file: .*$", text, flags=re.MULTILINE):
         return re.sub(
-            r"^  output_yaml_file: .*$",
+            r"^  yaml_file: .*$",
             replacement,
             text,
             count=1,
             flags=re.MULTILINE,
         )
-    if re.search(r"^extra:$", text, flags=re.MULTILINE):
+    if re.search(r"^output:$", text, flags=re.MULTILINE):
         return re.sub(
-            r"^extra:$",
-            f"extra:\n{replacement}",
+            r"^output:$",
+            f"output:\n{replacement}",
             text,
             count=1,
             flags=re.MULTILINE,
         )
-    return text.rstrip() + f"\n\nextra:\n{replacement}\n"
+    return text.rstrip() + f"\n\noutput:\n{replacement}\n"
 
 
 def manifest_row(
@@ -253,16 +257,17 @@ def write_csv_atomic(path: Path, fieldnames: tuple[str, ...], rows: list[dict]) 
 
 def generate_configs(specs: list[RunSpec], overwrite: bool) -> None:
     cell_template = BASE_CELL.read_text()
-    system_template = BASE_SYSTEM.read_text()
+    tool_template = BASE_TOOL.read_text()
     RUNS_ROOT.mkdir(parents=True, exist_ok=True)
 
     for spec in specs:
         spec.run_dir.mkdir(parents=True, exist_ok=True)
         if overwrite or not spec.cell_path.exists():
             spec.cell_path.write_text(replace_variation_block(cell_template, spec))
-        if overwrite or not spec.system_path.exists():
-            system = replace_cell_file(system_template, spec.cell_path)
-            spec.system_path.write_text(set_output_yaml(system, spec.result_path))
+        if overwrite or not spec.tool_path.exists():
+            tool = replace_reference(tool_template, "cell_file", spec.cell_path, spec.run_dir)
+            tool = replace_reference(tool, "architecture_file", BASE_ARCHITECTURE, spec.run_dir)
+            spec.tool_path.write_text(set_output_yaml(tool, spec.result_path))
 
 
 def completed(spec: RunSpec) -> bool:
@@ -325,7 +330,7 @@ def run_one(spec: RunSpec, force: bool, artifacts: bool) -> tuple[str, float, st
                 "--quiet",
                 "--output",
                 str(spec.result_path),
-                str(spec.system_path),
+                str(spec.tool_path),
             ],
             cwd=ROOT,
             stdout=log_file,

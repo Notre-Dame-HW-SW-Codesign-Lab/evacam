@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: 2FeFET_TCAM_SearchEnergy
+
+architecture_file: ./2FeFET_TCAM_512bit_fixed_architecture_config.yaml
+cell_file: ./2FeFET_TCAM_DSE_cell_config.yaml
+optimization:
+  target: ReadDynamicEnergy
+  buffer_design: balance
+  row_driver: balance
+  priority_encoder: balance

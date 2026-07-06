@@ -1,0 +1,54 @@
+# EvaCAM architecture configuration: ReRAM-2T2R
+
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 40nm
+  device_roadmap: HP
+  temperature: 350K
+memory:
+  capacity: 1KB
+  word_width: 32bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: true
+    encoder: true
+    custom_encoder: false
+  output:
+    buffer: true
+    priority_encoder: false
+    accumulator: true
+  write_driver: true
+sensing:
+  internal: true
+  amplifier_type: nvsim_vol
+wires:
+  local:
+    type: LocalConservative
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+organization:
+  banks:
+    total:
+    - 1
+    - 1
+    active:
+    - 1
+    - 1
+  mats:
+    total:
+    - 1
+    - 1
+    active:
+    - 1
+    - 1
+  mux:
+    sense_amp: 8
+    output_level1: 1
+    output_level2: 1

@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: 8T-BCAM_65nm
+
+architecture_file: ./8T-BCAM_65nm_architecture_config.yaml
+cell_file: ./8T-BCAM_65nm_cell_config.yaml
+optimization:
+  target: Area
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

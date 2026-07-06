@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: MRAM-6T2R-VLSIC11
+
+architecture_file: ./MRAM-6T2R-VLSIC11_architecture_config.yaml
+cell_file: ./MRAM-6T2R-VLSIC11_cell_config.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

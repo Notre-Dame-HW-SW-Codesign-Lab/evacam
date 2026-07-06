@@ -2,7 +2,7 @@
 
 EvaCAM is a C++ simulator and design-space exploration tool for content-addressable memory (CAM) arrays and related memory-cell technologies.
 
-It reads a system config YAML, loads a cell config YAML, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
+It reads a tool config that references architecture and cell YAML files, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
 
 ## Repository Layout
 
@@ -46,13 +46,13 @@ This builds the `EvaCAM` binary in the repository root.
 Run one of the shipped example configurations:
 
 ```bash
-./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
+./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
 ```
 
 Or use the `make` wrapper:
 
 ```bash
-make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
 ```
 
 By default, EvaCAM writes YAML results to `results/<config-name>_results.yaml`.
@@ -60,7 +60,7 @@ The `make run` wrapper also saves the console output to `results/<config-name>_r
 
 For example:
 
-- `config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml`
 - `results/2FeFET_TCAM_results.yaml`
 - `results/2FeFET_TCAM_run.log`
 
@@ -69,7 +69,7 @@ For example:
 Usage:
 
 ```text
-./EvaCAM [OPTIONS] <cfg_file>
+./EvaCAM [OPTIONS] <tool_config.yaml>
 ```
 
 Options:
@@ -81,15 +81,15 @@ Options:
 - `-o, --output FILE`: write YAML results to a custom path
 - `-h, --help`: print usage and exit
 
-Deep exploration is configured in the system YAML with
+Deep exploration is configured in the tool YAML with
 `optimization.deep_exploration: true`; it is not a CLI option.
 
 Examples:
 
 ```bash
-./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_system_config.yaml
-./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_system_config.yaml
-./EvaCAM -q config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_system_config.yaml
+./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_tool_config.yaml
+./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_tool_config.yaml
+./EvaCAM -q config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_tool_config.yaml
 ```
 
 ## Python API
@@ -102,12 +102,13 @@ More detail:
 
 ## Input Files
 
-EvaCAM consumes a system config file and a separate cell config file.
+EvaCAM consumes a tool config that references separate architecture and cell files.
 
-- The system config selects design targets, array organization, peripheral options, optimization mode, and the path to the cell config.
+- The tool config selects optimization, exploration, modeling, and output controls and references the other inputs.
+- The architecture config describes capacity, organization, routing, peripherals, sensing, and wires.
 - The cell config describes the device, ports, voltages, currents, related physical parameters, and any variation settings.
 
-Start with the shipped examples under `config/`, which is the canonical layout for active configs. Each subdirectory contains a cell config plus the system configs that use it. `config/old_style_config/` remains in the repository only as legacy reference material.
+Start with the shipped examples under `config/`, which is the canonical layout for active configs. Architecture files are shared by tool configs when the modeled hardware is identical. `config/old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 
@@ -141,7 +142,7 @@ Available make targets:
 High-level flow:
 
 1. Parse CLI options.
-2. Load and validate the system config and referenced cell config.
+2. Load and validate the tool config and its referenced architecture and cell configs.
 3. Build the exploration context.
 4. Explore valid organizations and score results.
 5. Print a console summary and write YAML output.

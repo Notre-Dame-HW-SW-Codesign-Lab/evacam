@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: 2FeFET_TCAM_SearchLatency
+
+architecture_file: ./2FeFET_TCAM_256bit_architecture_config.yaml
+cell_file: ./2FeFET_TCAM_DSE_cell_config.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

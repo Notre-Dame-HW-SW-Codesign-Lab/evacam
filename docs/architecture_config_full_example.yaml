@@ -1,0 +1,73 @@
+# WARNING: REFERENCE INPUT ONLY.
+# This file intentionally contains placeholder values and does not represent a
+# physically valid architecture.
+
+design:
+  target: CAM # currently only CAM is supported
+  search_function: EX # EX | BE | TH
+  system_process_node: 40nm # peripheral/interconnect technology node
+  device_roadmap: HP # HP | LSTP | LOP | FEFET | LP
+  temperature: 350K
+
+memory:
+  capacity: 8KB # logical capacity; optional only with fixed subarray dimensions
+  physical_capacity: 8KB # optional; required for non-power-of-two word widths
+  word_width: 256bits
+
+routing:
+  type: H-tree # non_h_tree parses but is currently rejected
+
+peripherals:
+  input:
+    buffer: true
+    encoder: false
+    custom_encoder: false # parsed but currently rejected when true
+    encoder_type: encoding_two_bit # optional; currently the only supported type
+  output:
+    buffer: true
+    priority_encoder: true
+    accumulator: false
+  write_driver: true
+
+sensing:
+  internal: true
+  amplifier_type: nvsim_vol # nvsim_vol | nvsim_cur | self_clock | dual_the | discharge
+  worst_case_sense_margin: 30mV # optional
+
+wires:
+  local:
+    type: LocalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+
+# Optional. Arrays remain ordered as [row, column].
+organization:
+  banks:
+    total: [1, 1] # [row mats, column mats]
+    active: [1, 1] # [active mats per column, active mats per row]
+  mats:
+    total: [1, 8] # [row subarrays, column subarrays]
+    active: [1, 8] # [active subarrays per column, active subarrays per row]
+  subarray:
+    dimensions: [32, 256] # [rows, columns]
+  mux:
+    sense_amp: 1
+    output_level1: 8
+    output_level2: 1
+  bit_serial_width: 256bits # optional
+
+matchline:
+  additional_cap: 0fF
+
+physical_limits:
+  max_nmos_size: 10F
+  max_driver_current: 0uA # retained for compatibility; currently has no model effect
+
+# Optional system-level NAND organization, distinct from cell flash parameters.
+flash:
+  page_size: 4KB
+  block_size: 256KB

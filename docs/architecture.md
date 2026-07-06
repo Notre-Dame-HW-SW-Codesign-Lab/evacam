@@ -22,7 +22,7 @@ This is the high-level execution flow for the current codebase.
 - `src/app`, `include/app`: exploration orchestration and top-level runtime flow
 - `src/input`, `include/input`: CLI parsing, cell config loading, YAML node helpers, and unit parsing helpers
 - `src/output`, `include/output`: result serialization
-- `src/config`, `include/config`: system config loading, section readers, normalization, validation, and derived exploration settings
+- `src/config`, `include/config`: tool/architecture config loading, section readers, normalization, validation, and derived exploration settings
 - `src/technology`, `include/technology`: technology models, memory-cell models, and built-in technology tables
 - `src/circuit`, `include/circuit`: reusable circuit blocks and shared equations
 - `src/model`, `include/model`: bank, mat, and result abstractions
@@ -33,7 +33,7 @@ This is the high-level execution flow for the current codebase.
 
 `EvaCamConfig` is the central in-memory configuration object shared across exploration and hardware blocks.
 
-- `ReadConfigFromFile()` delegates system config YAML loading to `EvaCamYamlLoader` and then loads technology/cell objects through `TechnologyLoader`
+- `ReadConfigFromFile()` delegates tool and architecture YAML loading to `EvaCamYamlLoader` and then loads technology/cell objects through `TechnologyLoader`
 - Parsed settings are grouped into typed sections such as `InputConfig`, `PeripheralConfig`, `ConstraintConfig`, and `RuntimeSizingConfig`
 - Loaded modeling state lives under `technology`, which is a `TechnologyContext` containing:
   - `tech`: the main CMOS/peripheral technology model
@@ -90,7 +90,7 @@ The config key `optimization.deep_exploration` expands the search space used dur
 ## Where To Extend
 
 - Add or adjust CLI behavior in `src/input/CliOptions.cpp`
-- Add new system config YAML fields in `ConfigSectionReaders` and the typed config structs owned by `EvaCamConfig`
+- Add new tool or architecture YAML fields at the split-config boundary and in the typed config structs owned by `EvaCamConfig`
 - Add new cell-YAML fields in `CellYamlLoader`
 - Add technology-table entries in `src/technology/TechnologyTables.cpp` and update `TechnologyLoader` if new loading rules are required
 - Change result serialization in `src/output/ResultsYaml.cpp`

@@ -1,0 +1,37 @@
+# EvaCAM architecture configuration: 2FeFET_TCAM_DSE
+
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 45nm
+  device_roadmap: HP
+  temperature: 350K
+memory:
+  capacity: 2MB
+  word_width: 512bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: false
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+  write_driver: false
+sensing:
+  internal: true
+  amplifier_type: nvsim_vol
+wires:
+  local:
+    type: LocalConservative
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+matchline:
+  additional_cap: 0fF

@@ -9,18 +9,18 @@ Default behavior:
 - output directory: `results/`
 - filename pattern: `<config-base>_results.yaml`
 
-If the input file ends with `_system_config.yaml` or `-system-config.yaml`, that suffix is removed before the results filename is built. Legacy `_config.yaml` and `-config.yaml` suffixes are also stripped.
+If the input file ends with `_tool_config.yaml` or `-tool-config.yaml`, that suffix is removed before the results filename is built. Legacy system/config suffixes are also stripped.
 
 Examples:
 
-- `config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
-- `config/ReRAM-2T2R/ReRAM-2T2R_system_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
+- `config/ReRAM-2T2R/ReRAM-2T2R_tool_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
 
-You can override the YAML output path with `extra.output_yaml_file` in the config:
+You can override the YAML output path in the tool config:
 
 ```yaml
-extra:
-  output_yaml_file: path/to/output.yaml
+output:
+  yaml_file: path/to/output.yaml
 ```
 
 ## Console Summary
@@ -180,7 +180,7 @@ results/corner_sweep/
 └── runs/
     └── on02_off04/
         ├── cell_config.yaml
-        ├── system_config.yaml
+        ├── tool_config.yaml
         ├── corner_results.yaml
         ├── corner_variation_samples.csv
         └── run.log

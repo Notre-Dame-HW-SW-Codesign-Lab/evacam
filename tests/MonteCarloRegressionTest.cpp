@@ -63,7 +63,9 @@ MonteCarloFixture WriteMonteCarloConfig(
         bool memoryOnlyVariation = false,
         const std::string &monteCarloGranularity = "") {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
-    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml";
+    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml";
+    const std::filesystem::path sourceArchitecture =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match_architecture_config.yaml";
     const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
 
     const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("mc_regression_" + tag);
@@ -103,12 +105,14 @@ MonteCarloFixture WriteMonteCarloConfig(
 
     std::string configText = ReadFile(sourceConfig);
     ReplaceAll(configText,
-            "cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml",
+            "cell_file: ./2FeFET_TCAM_cell_config.yaml",
             "cell_file: " + testCell.string());
-    ReplaceAll(configText, "search_function: BE", "search_function: EX");
+    ReplaceAll(configText,
+            "architecture_file: ./2FeFET_TCAM_match_architecture_config.yaml",
+            "architecture_file: " + sourceArchitecture.string());
     configText +=
-        "\nextra:\n"
-        "  output_yaml_file: " + testOutput.string() + "\n";
+        "\noutput:\n"
+        "  yaml_file: " + testOutput.string() + "\n";
     WriteFile(testConfig, configText);
 
     return {testConfig, testOutput};

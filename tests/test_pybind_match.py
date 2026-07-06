@@ -5,6 +5,8 @@ import pathlib
 import sys
 import tempfile
 
+import yaml
+
 
 def mismatched_query(width, mismatches, offset=0):
     query = [0] * width
@@ -42,16 +44,31 @@ def assert_raises_message(expected_exception, expected_message, callback):
     raise AssertionError(f"expected {expected_exception.__name__}: {expected_message}")
 
 
-def write_config_with_search_function(source_config, search_function, tmp_dir):
-    text = source_config.read_text()
+def write_config_with_search_function(
+    source_config,
+    search_function,
+    tmp_dir,
+    cell_override=None,
+):
+    tool = yaml.safe_load(source_config.read_text())
+    architecture_source = (source_config.parent / tool["architecture_file"]).resolve()
+    text = architecture_source.read_text()
     for token in ("EX", "BE", "TH"):
         text = text.replace(f"search_function: {token}", f"search_function: {search_function}")
-    path = pathlib.Path(tmp_dir) / f"{source_config.stem}_{search_function}.yaml"
-    path.write_text(text)
-    return path
+    architecture_path = pathlib.Path(tmp_dir) / f"{source_config.stem}_{search_function}_architecture.yaml"
+    architecture_path.write_text(text)
+
+    tool["architecture_file"] = str(architecture_path)
+    if cell_override is None:
+        tool["cell_file"] = str((source_config.parent / tool["cell_file"]).resolve())
+    else:
+        tool["cell_file"] = str(cell_override)
+    tool_path = pathlib.Path(tmp_dir) / f"{source_config.stem}_{search_function}_tool.yaml"
+    tool_path.write_text(yaml.safe_dump(tool, sort_keys=False))
+    return tool_path
 
 
-def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir):
+def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir, search_function="TH"):
     repo_root = pathlib.Path(__file__).resolve().parents[1]
     source_cell = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml"
     cell_text = source_cell.read_text()
@@ -59,16 +76,12 @@ def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir):
     cell_path = pathlib.Path(tmp_dir) / "high_sense_cell_config.yaml"
     cell_path.write_text(cell_text)
 
-    config_text = source_config.read_text()
-    config_text = config_text.replace(
-        "./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml",
-        str(cell_path),
+    return write_config_with_search_function(
+        source_config,
+        search_function,
+        tmp_dir,
+        cell_override=cell_path,
     )
-    for token in ("EX", "BE", "TH"):
-        config_text = config_text.replace(f"search_function: {token}", "search_function: TH")
-    config_path = pathlib.Path(tmp_dir) / "high_sense_system_config.yaml"
-    config_path.write_text(config_text)
-    return config_path
 
 
 def main():
@@ -178,7 +191,7 @@ def main():
     )
 
     tcam_be_matcher = evacam_py.EvaCAMMatch(
-        str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml")
+        str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml")
     )
     tcam_be_width = tcam_be_matcher.word_width()
     tcam_be_query = [0] * tcam_be_width
@@ -227,8 +240,8 @@ def main():
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tcam_source = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml"
-        mcam_source = repo_root / "config/2FeFET_MCAM/2FeFET_MCAM_system_config.yaml"
+        tcam_source = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml"
+        mcam_source = repo_root / "config/2FeFET_MCAM/2FeFET_MCAM_tool_config.yaml"
 
         tcam_th_matcher = evacam_py.EvaCAMMatch(
             str(write_config_with_search_function(tcam_source, "TH", tmp_dir))
@@ -272,10 +285,8 @@ def main():
                 tcam_source,
                 guarded_sense_voltage,
                 tmp_dir,
+                search_function="BE",
             )
-            high_sense_best_text = high_sense_best_path.read_text()
-            high_sense_best_text = high_sense_best_text.replace("search_function: TH", "search_function: BE")
-            high_sense_best_path.write_text(high_sense_best_text)
             high_sense_best_matcher = evacam_py.EvaCAMMatch(str(high_sense_best_path))
             assert high_sense_best_matcher.evaluate_array([0, 1])[0].hit
             high_sense_tied = high_sense_best_matcher.evaluate_array([1, 1])

@@ -1,0 +1,11 @@
+# EvaCAM tool configuration: 2FeFET_TCAM_mc1000
+
+architecture_file: ./2FeFET_TCAM_architecture_config.yaml
+cell_file: ./2FeFET_TCAM_mc1000_cell_config.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency
+output:
+  yaml_file: results/2FeFET_TCAM_mc1000_results.yaml

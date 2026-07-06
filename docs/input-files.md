@@ -1,21 +1,49 @@
 # Input Files
 
-EvaCAM expects one system config YAML file. That config file must reference a cell config file through `memory.cell_file`.
+EvaCAM expects one tool config YAML file. It references one architecture config and
+one cell config. An optional third reference supplies custom sense-amplifier data.
 
 ## File Roles
 
-- `config/<cell-group>/*_system_config.yaml`: system-level configurations grouped by the cell they use
-- `config/<cell-group>/*_cell_config.yaml`: the corresponding cell/device description
-- custom sense-amp YAML files referenced by `advanced.custom_sa_input_file` when `sensing.custom_sense_amp` is true
+- `config/<cell-group>/*_tool_config.yaml`: optimization, exploration, modeling, and output controls
+- `config/<cell-group>/*_architecture_config.yaml`: modeled memory architecture; identical architectures may be shared
+- `config/<cell-group>/*_cell_config.yaml`: cell/device descriptions
+- custom sense-amp YAML files referenced by `custom_sense_amplifier_file`
 
 Example:
 
 ```yaml
-memory:
-  cell_file: ./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml
+architecture_file: ./2FeFET_TCAM_architecture_config.yaml
+cell_file: ./2FeFET_TCAM_cell_config.yaml
 ```
 
-## System Config Structure
+All three references are resolved relative to the tool config file.
+
+## Tool Config Structure
+
+Required fields:
+
+- `architecture_file`
+- `cell_file`
+- `optimization`
+
+Optional sections and fields:
+
+- `custom_sense_amplifier_file`
+- `design_constraints`
+- `exploration.use_cacti_assumption`
+- `exploration.enable_pruning`
+- `modeling.use_updated_lib`
+- `modeling.exclude_precharge_latency`
+- `modeling.include_leakage`
+- `modeling.scaled_voltage`
+- `output.yaml_file`
+- `output.exploration_csv_prefix`
+
+New tool configs reject architecture-owned sections instead of applying precedence
+rules. Unified legacy configs remain temporarily supported with a deprecation warning.
+
+## Architecture Config Structure
 
 The shipped configs use these top-level sections:
 
@@ -24,7 +52,6 @@ The shipped configs use these top-level sections:
 - `routing`
 - `peripherals`
 - `sensing`
-- `optimization`
 - `wires`
 - `organization`
 - `matchline`
@@ -36,19 +63,20 @@ Representative fields:
 - `design.system_process_node`: system-level process node used for technology, wire, and peripheral modeling, with units, for example `45nm`
 - `design.device_roadmap`: roadmap such as `HP`
 - `design.temperature`: temperature with units, for example `350K`
-- `memory.cell_file`: path to the cell config
 - `memory.capacity`: capacity with units, for example `512B`; optional or exact scalar `auto` only when fixed `organization.subarray.dimensions` derives capacity
+- `memory.physical_capacity`: implemented capacity for irregular word widths
 - `memory.word_width`: width with units, for example `64bits`
-- `optimization.target`: objective such as `LeakagePower` or `Exploration`
-- `optimization.deep_exploration`: expands the default exploration search space when organization geometry is not pinned
 - `organization.banks.total` and `organization.banks.active`: bank organization
 - `organization.mats.total` and `organization.mats.active`: mat organization
 - `organization.subarray.dimensions`: optional fixed physical subarray `[rows, columns]`; requires explicit bank and mat organization and is not supported with DSE/deep exploration
-- `extra.output_yaml_file`: optional override for the results YAML path
+- `organization.bit_serial_width`: optional fixed bit-serial width
+- `peripherals.input.encoder_type`: currently `encoding_two_bit`
+- `sensing.worst_case_sense_margin`: optional matchline sensing margin
+- `physical_limits.max_nmos_size` and `physical_limits.max_driver_current`
 
 Use the grouped examples under `config/` as the source of truth for current syntax.
 
-Variation is not configured in the system config. Variation enablement and sigma values are defined in the cell config under `variation`.
+Variation is not configured in the tool or architecture config. Variation enablement and sigma values are defined in the cell config under `variation`.
 
 For a fuller list of implemented sections and fields, see [schema.md](schema.md).
 
@@ -129,7 +157,8 @@ Keep units explicit and consistent with the shipped examples.
 
 The files below are not intended for real runs:
 
-- `docs/system_config_full_example.yaml`
+- `docs/tool_config_full_example.yaml`
+- `docs/architecture_config_full_example.yaml`
 - `docs/cell_config_full_example.yaml`
 - `docs/custom_sense_amp_full_example.yaml`
 
@@ -140,6 +169,6 @@ For current runtime restrictions, see [limitations.md](limitations.md).
 ## Practical Advice
 
 - Prefer starting from a real config under `config/`, not the full reference examples.
-- Keep `memory.cell_file` consistent with the working directory you use to launch EvaCAM, or use a stable repo-root-relative path such as `./config/<cell-group>/...`.
+- Keep referenced files near the tool config when practical; relative references are resolved from the tool config directory.
 - If a run fails while parsing YAML, check indentation first.
 - If a run parses but reports no valid solutions, the issue is usually an unsupported parameter combination rather than YAML syntax.

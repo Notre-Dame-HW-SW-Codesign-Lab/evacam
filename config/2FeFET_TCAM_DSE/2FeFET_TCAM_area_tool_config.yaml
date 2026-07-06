@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: 2FeFET_TCAM_area
+
+architecture_file: ./2FeFET_TCAM_512bit_fixed_architecture_config.yaml
+cell_file: ./2FeFET_TCAM_DSE_cell_config.yaml
+optimization:
+  target: Area
+  buffer_design: area
+  row_driver: area
+  priority_encoder: area

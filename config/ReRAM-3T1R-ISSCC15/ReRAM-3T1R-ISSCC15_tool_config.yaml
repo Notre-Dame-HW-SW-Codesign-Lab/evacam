@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: ReRAM-3T1R-ISSCC15
+
+architecture_file: ./ReRAM-3T1R-ISSCC15_architecture_config.yaml
+cell_file: ./ReRAM-3T1R-ISSCC15_cell_config.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

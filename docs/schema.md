@@ -2,7 +2,41 @@
 
 This document covers the YAML fields currently parsed by EvaCAM. Treat this file and the shipped examples under `config/` as the source of truth for real runs.
 
-## Top-Level Config
+## Tool Config
+
+Required fields and sections:
+
+- `architecture_file`
+- `cell_file`
+- `optimization`
+
+`architecture_file`, `cell_file`, and optional `custom_sense_amplifier_file`
+paths are resolved relative to the tool config.
+
+Optional fields and sections:
+
+- `custom_sense_amplifier_file`
+- `design_constraints`
+- `exploration`
+- `modeling`
+- `output`
+
+Optimization keys:
+
+- `optimization.target`: `ReadLatency`, `WriteLatency`, `ReadDynamicEnergy`, `WriteDynamicEnergy`, `ReadEDP`, `WriteEDP`, `LeakagePower`, `Area`, `SearchLatency`, `SearchEnergy`, `SearchEDP`, or `Exploration`
+- `optimization.deep_exploration`: expands default unpinned exploration domains
+- `optimization.buffer_design`, `optimization.row_driver`, and `optimization.priority_encoder`: `latency`, `balance`, or `area`
+
+Other mappings:
+
+- `design_constraints`: legacy constrained-DSE controls, renamed and moved without a behavior change
+- `exploration.use_cacti_assumption`, `exploration.enable_pruning`
+- `modeling.use_updated_lib`, `modeling.exclude_precharge_latency`
+- `modeling.include_leakage`, `modeling.scaled_voltage`: retained but currently have no model effect
+- `output.yaml_file`: overrides the default results YAML path
+- `output.exploration_csv_prefix`: controls exploration CSV naming
+
+## Architecture Config
 
 Required sections:
 
@@ -11,17 +45,14 @@ Required sections:
 - `routing`
 - `peripherals`
 - `sensing`
-- `optimization`
 - `wires`
 
 Optional sections:
 
 - `organization`
 - `matchline`
-- `constraints`
-- `advanced`
 - `flash`
-- `extra`
+- `physical_limits`
 
 Common required keys:
 
@@ -29,22 +60,20 @@ Common required keys:
 - `design.search_function`: `EX`, `BE`, or `TH`
 - `design.system_process_node`: system-level process node used for technology, wire, and peripheral modeling, for example `45nm`
 - `design.device_roadmap`: `HP`, `LSTP`, `LOP`, `FEFET`, or `LP`
-- `memory.cell_file`, `memory.word_width`
+- `memory.word_width`
 - `memory.capacity`: required unless fixed `organization.subarray.dimensions` is supplied; may be exact scalar `auto` only with fixed subarray dimensions
 - `routing.type`: currently only `H-tree`
-- `optimization.target`: `ReadLatency`, `WriteLatency`, `ReadDynamicEnergy`, `WriteDynamicEnergy`, `ReadEDP`, `WriteEDP`, `LeakagePower`, `Area`, `SearchLatency`, `SearchEnergy`, `SearchEDP`, or `Exploration`
 
 Useful optional keys:
 
 - `organization.banks.*`, `organization.mats.*`, `organization.mux.*`: pin exploration to fixed powers-of-two values
 - `organization.subarray.dimensions`: fixed physical subarray `[rows, columns]`; requires explicit `organization.banks` and `organization.mats`, derives or validates `memory.capacity`, and is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
-- `constraints.*`: result limits; setting any value enables constraints
-- `optimization.deep_exploration`: expands the default exploration search space when explicit `organization.*` pinning is omitted
-- `advanced.enable_pruning`, `advanced.bit_serial_width`, `advanced.use_cacti_assumption`
-- `advanced.input_encoder_type`: currently `encoding_two_bit`
-- `extra.real_capacity`: required when `memory.word_width` is not a power of two
-- `extra.output_yaml_file`: overrides the default results YAML path
-- `extra.output_file_prefix`: affects exploration CSV naming
+- `organization.bit_serial_width`: fixed bit-serial width
+- `peripherals.input.encoder_type`: currently `encoding_two_bit`
+- `memory.physical_capacity`: required when `memory.word_width` is not a power of two
+- `sensing.worst_case_sense_margin`: optional matchline sensing margin
+- `physical_limits.max_nmos_size`: transistor-width limit in feature-size multiples
+- `physical_limits.max_driver_current`: retained but currently has no model effect
 
 ## Cell File
 
@@ -73,7 +102,7 @@ Important notes:
 - `cell.cam_type` should be set explicitly in real inputs.
 - Accepted values are `TCAM`, `BCAM`, `MCAM`, and `ACAM`.
 - `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
-- Variation is cell-driven. The system config does not have a supported `variation` section.
+- Variation is cell-driven. Tool and architecture configs do not support a `variation` section.
 - Stochastic variation sampling uses a fixed bounded-Gaussian model; `variation.distribution` is not a supported input.
 - Supported user-facing variation modes are `single_point`, `monte_carlo`, and `corner`.
 - `variation.mode: nominal` is not a supported input; disable variation instead.
@@ -88,10 +117,10 @@ Important notes:
 - `mcam.searchline_voltage` together with `mcam.center_voltage` is used for MCAM searchline row-driver energy. Without these fields, the model falls back to the per-port `search0`/`search1` voltages.
 - `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Some parsed MCAM fields remain reserved for future model extensions.
 - `ports.row` and `ports.column` are maps keyed by integer index.
-- `docs/system_config_full_example.yaml` and `docs/cell_config_full_example.yaml` include reference-only non-sensical numbers. They also may contain conflicting fields.
+- `docs/tool_config_full_example.yaml`, `docs/architecture_config_full_example.yaml`, and `docs/cell_config_full_example.yaml` contain reference-only nonsensical values.
 
-System config notes:
+Architecture and tool config notes:
 
 - `design.system_process_node` is the authoritative modeled technology node. `cell.cell_process_node` records the process node associated with the cell definition.
 - `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
-- `sensing.custom_sense_amp: true` requires `advanced.custom_sa_input_file` to reference a YAML file. The custom sense-amp file uses a `custom_sense_amp` mapping with `latency`, `energy`, `cap_load`, and either `area` or both `height` and `width`; `leakage` is optional.
+- Supplying `custom_sense_amplifier_file` in the tool config enables the custom model. The referenced file uses a `custom_sense_amp` mapping with `latency`, `energy`, `cap_load`, and either `area` or both `height` and `width`; `leakage` is optional.

@@ -30,9 +30,9 @@ Check:
 - malformed lists such as `[1, 1]`
 - invalid unit suffixes
 
-## Missing Or Broken `memory.cell_file`
+## Missing Or Broken Referenced Input
 
-If the system config parses but the referenced cell config is wrong, the run will fail during config loading. Verify the path under `memory.cell_file` first.
+If the tool config parses but a referenced file is missing, loading fails before exploration. Verify `architecture_file`, `cell_file`, and optional `custom_sense_amplifier_file`. Relative paths are resolved from the tool config directory.
 
 ## `No valid solutions.`
 
@@ -65,7 +65,7 @@ The exploration CSV is only written for full-exploration runs without pruning. I
 Use:
 
 ```bash
-./EvaCAM -v config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml
+./EvaCAM -v config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
 ```
 
 Verbose mode is the fastest way to see where startup or config loading stops.

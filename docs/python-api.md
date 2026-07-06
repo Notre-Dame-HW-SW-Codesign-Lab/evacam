@@ -26,7 +26,7 @@ Use `evacam_py.run()` to execute the same simulator path used by the CLI and ret
 
 ```python
 result = evacam_py.run(
-    "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml",
+    "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml",
     threads=1,
     output_yaml_path=None,
     write_yaml=False,
@@ -72,7 +72,7 @@ Example:
 
 ```python
 result = evacam_py.run(
-    "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml",
+    "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml",
     write_yaml=True,
     output_yaml_path="results/python_run.yaml",
 )
@@ -94,11 +94,11 @@ print(search.geometry["bit_serial_width"])
 
 ## EvaCAMMatch
 
-Create a matcher from a system config file:
+Create a matcher from a tool config file:
 
 ```python
 matcher = evacam_py.EvaCAMMatch(
-    "config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml"
+    "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml"
 )
 ```
 
@@ -293,7 +293,7 @@ matcher.evaluate_mismatches(width + 1)
 import evacam_py
 
 matcher = evacam_py.EvaCAMMatch(
-    "config/2FeFET_TCAM/2FeFET_TCAM_match_system_config.yaml"
+    "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml"
 )
 
 width = matcher.word_width()

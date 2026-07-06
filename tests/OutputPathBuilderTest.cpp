@@ -17,7 +17,7 @@ TechnologyContext MakeTechnology(bool readMode) {
 
 void TestDefaultResultsYamlPath() {
     assert(OutputPathBuilder::DefaultResultsYamlPath(
-            "config/2FeFET_TCAM/2FeFET_TCAM_system_config.yaml")
+            "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml")
             == "results/2FeFET_TCAM_results.yaml");
     assert(OutputPathBuilder::DefaultResultsYamlPath("case-config.yaml")
             == "results/case_results.yaml");

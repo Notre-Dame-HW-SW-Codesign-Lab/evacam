@@ -86,7 +86,7 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
 }
 
 void CliOptionsParser::PrintUsage(std::ostream &os) {
-    os << std::endl << "Usage: ./EvaCAM [OPTIONS] <cfg_file>" << std::endl << std::endl;
+    os << std::endl << "Usage: ./EvaCAM [OPTIONS] <tool_config.yaml>" << std::endl << std::endl;
     os << "Options:" << std::endl;
     os << "  -t, --threads N           Number of parallel threads (default: all cores)" << std::endl;
     os << "  -o, --output FILE         Write YAML results to FILE" << std::endl;

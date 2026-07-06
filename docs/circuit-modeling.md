@@ -34,7 +34,7 @@ The implementation is centered on TCAM-style search with matchline discharge. Ot
 
 ## Inputs That Drive the Circuit Model
 
-The circuit model is driven by both the system config YAML and the referenced cell config.
+The circuit model is driven by the architecture config and cell config referenced by the tool config.
 
 Important top-level inputs include:
 
@@ -42,9 +42,9 @@ Important top-level inputs include:
 - `design.device_roadmap`
 - `design.temperature`
 - `design.search_function`
-- `memory.cell_file`
+- tool-level `cell_file`
 - `routing` and `wires` settings used to build wire objects
-- `sensing.custom_sense_amp`
+- optional tool-level `custom_sense_amplifier_file`
 - `sensing.sense`
 - peripheral optimization choices such as buffer, row-driver, and priority-encoder targets
 - array organization values such as bank, mat, and subarray geometry
@@ -384,7 +384,7 @@ Those modes currently emit warnings or throw errors depending on how they are us
 
 ### Built-In Versus Custom Sense Amplifier
 
-If `custom_sense_amp` is false, EvaCAM instantiates the built-in sense-amp model and uses its:
+Without `custom_sense_amplifier_file`, EvaCAM instantiates the built-in sense-amp model and uses its:
 
 - area
 - input capacitance
@@ -392,7 +392,7 @@ If `custom_sense_amp` is false, EvaCAM instantiates the built-in sense-amp model
 - dynamic energy
 - leakage
 
-If `custom_sense_amp` is true, EvaCAM reads these quantities from the YAML custom sense-amp file instead. In that mode, the file becomes the source of truth for the sense amplifier’s modeled area, delay, energy, leakage, and input loading. The file is referenced by `advanced.custom_sa_input_file` and uses a `custom_sense_amp` mapping; see `docs/custom_sense_amp_full_example.yaml`.
+When `custom_sense_amplifier_file` is present, EvaCAM reads these quantities from that YAML file instead. The file becomes the source of truth for modeled area, delay, energy, leakage, and input loading and uses a `custom_sense_amp` mapping; see `docs/custom_sense_amp_full_example.yaml`.
 
 ### Role in the Matchline Model
 
@@ -699,7 +699,7 @@ The shipped `config/2FeFET_TCAM/` example is a good reference point for understa
 
 At a high level:
 
-1. The system config selects process node, search mode, array organization, and peripheral options.
+1. The tool config selects the inputs, and the architecture config supplies process node, search mode, organization, and peripheral options.
 2. The cell config supplies the device resistances, read/write settings, minimum sense voltage, and the row/column port description.
 3. EvaCAM converts the cell geometry into row and column lengths.
 4. Each line receives wire RC plus device capacitance from its attached ports.

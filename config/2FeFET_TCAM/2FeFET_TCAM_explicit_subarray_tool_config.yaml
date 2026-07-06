@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: 2FeFET_TCAM_explicit_subarray
+
+architecture_file: ./2FeFET_TCAM_explicit_subarray_architecture_config.yaml
+cell_file: ./2FeFET_TCAM_cell_config.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

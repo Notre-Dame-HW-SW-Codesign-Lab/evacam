@@ -32,10 +32,10 @@ Known unsupported or incomplete modes:
 - `organization.subarray.dimensions` requires explicit `organization.banks` and `organization.mats` totals and active values
 - `organization.subarray.dimensions` is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
 - `memory.capacity` may be omitted or set to exact scalar `auto` only when `organization.subarray.dimensions` is supplied
-- Non-power-of-two `memory.word_width` requires `extra.real_capacity`
-- `extra.real_capacity` must be at least `memory.capacity`
-- `extra.real_capacity` must be compatible with the selected organization geometry
-- With `organization.subarray.dimensions`, `extra.real_capacity` must exactly match the derived capacity if it is supplied
+- Non-power-of-two `memory.word_width` requires `memory.physical_capacity`
+- `memory.physical_capacity` must be at least `memory.capacity`
+- `memory.physical_capacity` must be compatible with the selected organization geometry
+- With `organization.subarray.dimensions`, `memory.physical_capacity` must exactly match the derived capacity if supplied
 
 ## Practical Guidance
 

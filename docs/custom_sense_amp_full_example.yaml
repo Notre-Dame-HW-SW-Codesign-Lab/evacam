@@ -3,14 +3,11 @@
 # DO NOT run EvaCAM with this file for any legitimate analysis or published results.
 # This file exists only to show supported/expected custom sense amplifier input fields.
 #
-# Reference this file from the system config with:
+# Reference this file from the tool config with:
 #
-# sensing:
-#   custom_sense_amp: true
-# advanced:
-#   custom_sa_input_file: ./docs/custom_sense_amp_full_example.yaml
+# custom_sense_amplifier_file: ./custom_sense_amp_full_example.yaml
 #
-# "Required" means required when sensing.custom_sense_amp is true.
+# "Required" means required when this file is referenced by the tool config.
 
 # Required top-level section. The parser also accepts these fields directly at
 # the file root, but this explicit section is preferred for new inputs.

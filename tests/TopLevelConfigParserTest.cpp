@@ -11,6 +11,9 @@ namespace {
 
 const char *kCellPath = "tests/tmp_top_level_cell_config.yaml";
 const char *kConfigPath = "tests/tmp_top_level_system_config.yaml";
+const char *kArchitecturePath = "tests/tmp_top_level_architecture_config.yaml";
+const char *kToolPath = "tests/tmp_top_level_tool_config.yaml";
+const char *kCustomSenseAmpPath = "tests/tmp_top_level_custom_sa.yaml";
 
 void WriteMinimalCellFile() {
     std::ofstream out(kCellPath);
@@ -253,6 +256,168 @@ void TestOptionalSectionsCanBeOmitted() {
     assert(config.runtimeSizing.realCapacity == 0);
 }
 
+void WriteSplitArchitectureConfig(const std::string &extra = "") {
+    std::ofstream out(kArchitecturePath);
+    out <<
+        "design:\n"
+        "  target: CAM\n"
+        "  search_function: EX\n"
+        "  system_process_node: 45nm\n"
+        "  device_roadmap: HP\n"
+        "  temperature: 300K\n"
+        "memory:\n"
+        "  capacity: 1KB\n"
+        "  physical_capacity: 1KB\n"
+        "  word_width: 64bits\n"
+        "routing:\n"
+        "  type: H-tree\n"
+        "peripherals:\n"
+        "  write_driver: false\n"
+        "  input:\n"
+        "    buffer: false\n"
+        "    encoder: false\n"
+        "    custom_encoder: false\n"
+        "    encoder_type: encoding_two_bit\n"
+        "  output:\n"
+        "    buffer: false\n"
+        "    priority_encoder: false\n"
+        "    accumulator: false\n"
+        "sensing:\n"
+        "  internal: true\n"
+        "  amplifier_type: nvsim_vol\n"
+        "  worst_case_sense_margin: 30mV\n"
+        "wires:\n"
+        "  local:\n"
+        "    type: LocalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+        "  global:\n"
+        "    type: GlobalAggressive\n"
+        "    repeater: RepeatedOpt\n"
+        "    low_swing: false\n"
+        "organization:\n"
+        "  bit_serial_width: 64bits\n"
+        "physical_limits:\n"
+        "  max_nmos_size: 12F\n"
+        "  max_driver_current: 2uA\n";
+    out << extra;
+}
+
+void WriteSplitToolConfig(const std::string &extra = "") {
+    std::ofstream out(kToolPath);
+    out <<
+        "architecture_file: ./tmp_top_level_architecture_config.yaml\n"
+        "cell_file: ./tmp_top_level_cell_config.yaml\n"
+        "optimization:\n"
+        "  target: ReadLatency\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n"
+        "design_constraints:\n"
+        "  enabled: true\n"
+        "  area: 0.5\n"
+        "exploration:\n"
+        "  use_cacti_assumption: true\n"
+        "  enable_pruning: true\n"
+        "modeling:\n"
+        "  use_updated_lib: true\n"
+        "  exclude_precharge_latency: true\n"
+        "  include_leakage: true\n"
+        "  scaled_voltage: 0.9\n"
+        "output:\n"
+        "  yaml_file: results/split.yaml\n"
+        "  exploration_csv_prefix: results/split_points\n";
+    out << extra;
+}
+
+void TestSplitConfigParsesAndMapsMovedFields() {
+    WriteSplitArchitectureConfig();
+    WriteSplitToolConfig();
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kToolPath, config);
+
+    assert(config.input.fileMemCell.find("tests/tmp_top_level_cell_config.yaml") != std::string::npos);
+    assert(config.runtimeSizing.realCapacity == 1024);
+    assert(config.input.maxNmosSize == 12);
+    assert(config.input.maxDriverCurrent == 2e-6);
+    assert(config.peripherals.matchlineSenseMargin == 30e-3);
+    assert(config.peripherals.typeInputEnc == encoding_two_bit);
+    assert(config.constraints.enabled);
+    assert(config.constraints.area == 0.5);
+    assert(config.useCactiAssumption);
+    assert(config.constraints.pruningEnabled);
+    assert(config.peripherals.useUpdatedLib);
+    assert(config.peripherals.noPrechargeInc);
+    assert(config.peripherals.includeLeakage);
+    assert(config.peripherals.scaledVoltage == 0.9);
+    assert(config.input.outputYamlFileName == "results/split.yaml");
+    assert(config.input.outputFilePrefix == "results/split_points");
+}
+
+void TestSplitConfigRejectsMixedOwnership() {
+    WriteSplitArchitectureConfig();
+    WriteSplitToolConfig("memory:\n  capacity: 1KB\n");
+
+    try {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(kToolPath, config);
+        assert(false && "Expected mixed tool/architecture config to throw");
+    } catch (const std::runtime_error &error) {
+        assert(std::string(error.what()).find("field owned by the other config: memory")
+                != std::string::npos);
+    }
+}
+
+void TestSplitArchitectureRejectsToolFields() {
+    WriteSplitArchitectureConfig("optimization:\n  target: ReadLatency\n");
+    WriteSplitToolConfig();
+
+    try {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(kToolPath, config);
+        assert(false && "Expected architecture config with tool fields to throw");
+    } catch (const std::runtime_error &error) {
+        assert(std::string(error.what()).find("field owned by the other config: optimization")
+                != std::string::npos);
+    }
+}
+
+void TestSplitToolRequiresBothReferences() {
+    {
+        std::ofstream out(kToolPath);
+        out << "architecture_file: ./tmp_top_level_architecture_config.yaml\n";
+    }
+    try {
+        EvaCamConfig config;
+        EvaCamYamlLoader::Load(kToolPath, config);
+        assert(false && "Expected incomplete tool references to throw");
+    } catch (const std::runtime_error &error) {
+        assert(std::string(error.what()).find("requires both architecture_file and cell_file")
+                != std::string::npos);
+    }
+}
+
+void TestSplitConfigCustomSenseAmpFileActivatesCustomModel() {
+    WriteSplitArchitectureConfig();
+    {
+        std::ofstream out(kCustomSenseAmpPath);
+        out <<
+            "custom_sense_amp:\n"
+            "  area: 1um^2\n"
+            "  latency: 1ns\n"
+            "  energy: 1pJ\n"
+            "  cap_load: 1fF\n";
+    }
+    WriteSplitToolConfig("custom_sense_amplifier_file: ./tmp_top_level_custom_sa.yaml\n");
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kToolPath, config);
+    assert(config.peripherals.customSenseAmp);
+    assert(config.peripherals.fileCustomSA.find("tests/tmp_top_level_custom_sa.yaml")
+            != std::string::npos);
+}
+
 void TestMissingRequiredTopLevelSectionThrows() {
     std::ofstream out(kConfigPath);
     out <<
@@ -424,6 +589,11 @@ int main() {
     WriteMinimalCellFile();
     TestMinimalTopLevelConfigParses();
     TestOptionalSectionsCanBeOmitted();
+    TestSplitConfigParsesAndMapsMovedFields();
+    TestSplitConfigRejectsMixedOwnership();
+    TestSplitArchitectureRejectsToolFields();
+    TestSplitToolRequiresBothReferences();
+    TestSplitConfigCustomSenseAmpFileActivatesCustomModel();
     TestMissingRequiredTopLevelSectionThrows();
     TestInvalidUnitThrows();
     TestOrganizationAliasParses();

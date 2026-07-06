@@ -1,0 +1,9 @@
+# EvaCAM tool configuration: ReRAM-2T2R
+
+architecture_file: ./ReRAM-2T2R_architecture_config.yaml
+cell_file: ./ReRAM-2T2R_cell_config.yaml
+optimization:
+  target: WriteDynamicEnergy
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

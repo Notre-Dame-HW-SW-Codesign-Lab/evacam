@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -94,6 +95,30 @@ void ReplaceAll(std::string &text, const std::string &from, const std::string &t
         text.replace(pos, from.size(), to);
         pos += to.size();
     }
+}
+
+void WriteMatchToolVariant(const std::string &sourceToolPath,
+        const std::string &toolPath,
+        const std::string &architecturePath,
+        const std::string &searchFunction,
+        const std::string &cellPath) {
+    const std::string sourceArchitecturePath =
+            "config/2FeFET_TCAM/2FeFET_TCAM_match_architecture_config.yaml";
+    std::string architecture = ReadFile(sourceArchitecturePath);
+    for (const std::string token : {"EX", "BE", "TH"}) {
+        ReplaceAll(architecture, "search_function: " + token,
+                "search_function: " + searchFunction);
+    }
+    WriteFile(architecturePath, architecture);
+
+    std::string tool = ReadFile(sourceToolPath);
+    ReplaceAll(tool,
+            "architecture_file: ./2FeFET_TCAM_match_architecture_config.yaml",
+            "architecture_file: " + architecturePath);
+    ReplaceAll(tool,
+            "cell_file: ./2FeFET_TCAM_cell_config.yaml",
+            "cell_file: " + cellPath);
+    WriteFile(toolPath, tool);
 }
 
 int main(int argc, char *argv[]) {
@@ -208,10 +233,11 @@ int main(int argc, char *argv[]) {
             PrintMatchTableRow(mismatches, result);
         }
 
-        const std::string thConfigPath = "/tmp/evacam_match_th_system_config.yaml";
-        std::string thConfig = ReadFile(argv[1]);
-        ReplaceAll(thConfig, "search_function: EX", "search_function: TH");
-        WriteFile(thConfigPath, thConfig);
+        const std::string sourceCellPath = std::filesystem::absolute(
+                "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml").string();
+        const std::string thConfigPath = "/tmp/evacam_match_th_tool_config.yaml";
+        const std::string thArchitecturePath = "/tmp/evacam_match_th_architecture_config.yaml";
+        WriteMatchToolVariant(argv[1], thConfigPath, thArchitecturePath, "TH", sourceCellPath);
 
         EvaCAM_Match thMatcher(thConfigPath);
         std::vector<int> thStored(thMatcher.word_width(), 1);
@@ -227,10 +253,9 @@ int main(int argc, char *argv[]) {
             assert(std::string(ex.what()).find("requires evaluate_threshold") != std::string::npos);
         }
 
-        const std::string beConfigPath = "/tmp/evacam_match_be_system_config.yaml";
-        std::string beConfig = ReadFile(argv[1]);
-        ReplaceAll(beConfig, "search_function: EX", "search_function: BE");
-        WriteFile(beConfigPath, beConfig);
+        const std::string beConfigPath = "/tmp/evacam_match_be_tool_config.yaml";
+        const std::string beArchitecturePath = "/tmp/evacam_match_be_architecture_config.yaml";
+        WriteMatchToolVariant(argv[1], beConfigPath, beArchitecturePath, "BE", sourceCellPath);
 
         EvaCAM_Match beMatcher(beConfigPath);
         std::vector<int> beQuery(beMatcher.word_width(), 1);
@@ -292,17 +317,15 @@ int main(int argc, char *argv[]) {
             voltage << std::scientific << guardedSenseVoltage << "V";
 
             const std::string highSenseCellPath = "/tmp/evacam_match_high_sense_cell_config.yaml";
-            const std::string highSenseConfigPath = "/tmp/evacam_match_high_sense_system_config.yaml";
+            const std::string highSenseConfigPath = "/tmp/evacam_match_high_sense_tool_config.yaml";
+            const std::string highSenseArchitecturePath =
+                    "/tmp/evacam_match_high_sense_architecture_config.yaml";
             std::string highSenseCell = ReadFile("config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml");
             ReplaceAll(highSenseCell, "min_sense_voltage: 70mV", "min_sense_voltage: " + voltage.str());
             WriteFile(highSenseCellPath, highSenseCell);
 
-            std::string highSenseConfig = ReadFile(argv[1]);
-            ReplaceAll(highSenseConfig,
-                    "./config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml",
-                    highSenseCellPath);
-            ReplaceAll(highSenseConfig, "search_function: EX", "search_function: TH");
-            WriteFile(highSenseConfigPath, highSenseConfig);
+            WriteMatchToolVariant(argv[1], highSenseConfigPath, highSenseArchitecturePath,
+                    "TH", highSenseCellPath);
 
             EvaCAM_Match highSenseMatcher(highSenseConfigPath);
             assert(highSenseMatcher.evaluate_threshold(0, 0).hit);
@@ -314,8 +337,8 @@ int main(int argc, char *argv[]) {
                 std::cout << "\nExpected TH sense-margin rejection: " << ex.what() << "\n";
             }
 
-            ReplaceAll(highSenseConfig, "search_function: TH", "search_function: BE");
-            WriteFile(highSenseConfigPath, highSenseConfig);
+            WriteMatchToolVariant(argv[1], highSenseConfigPath, highSenseArchitecturePath,
+                    "BE", highSenseCellPath);
             EvaCAM_Match highSenseBestMatcher(highSenseConfigPath);
             assert(highSenseBestMatcher.evaluate_array(std::vector<int>{0, 1})[0].hit);
             const std::vector<EvaCAMMatchResult> allTiedDetectable = highSenseBestMatcher.evaluate_array(

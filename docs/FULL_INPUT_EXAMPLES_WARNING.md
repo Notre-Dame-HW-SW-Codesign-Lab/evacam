@@ -1,6 +1,7 @@
 # EvaCAM Full Input Examples: Warning
 
-`docs/system_config_full_example.yaml` and `docs/cell_config_full_example.yaml` are **reference-only**.
+`docs/tool_config_full_example.yaml`, `docs/architecture_config_full_example.yaml`,
+and `docs/cell_config_full_example.yaml` are **reference-only**.
 
 - They intentionally include placeholder and nonsensical values.
 - They do **not** represent a physically valid device or experiment.
