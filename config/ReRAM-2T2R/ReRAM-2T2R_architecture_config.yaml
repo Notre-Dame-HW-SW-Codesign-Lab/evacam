@@ -35,19 +35,11 @@ wires:
     low_swing: false
 organization:
   banks:
-    total:
-    - 1
-    - 1
-    active:
-    - 1
-    - 1
+    total: [1, 1]
+    active: [1, 1]
   mats:
-    total:
-    - 1
-    - 1
-    active:
-    - 1
-    - 1
+    total: [1, 1]
+    active: [1, 1]
   mux:
     sense_amp: 8
     output_level1: 1

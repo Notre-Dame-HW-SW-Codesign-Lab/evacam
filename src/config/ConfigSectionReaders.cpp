@@ -26,6 +26,18 @@ bool TryReadOptionalChild(const YAML::Node &parent, const char *key, YAML::Node 
     return false;
 }
 
+std::array<int, 2> ReadCoordinatePair(const YAML::Node &node, const char *what) {
+    if (!node || !node.IsSequence() || node.size() != 2) {
+        throw std::runtime_error(
+                std::string("[Input] Error: ") + what
+                + " must be a two-value sequence [x, y].");
+    }
+    return {
+        YamlHelpers::read_required_index<int>(node, 0, what),
+        YamlHelpers::read_required_index<int>(node, 1, what),
+    };
+}
+
 }  // namespace
 
 namespace ConfigSectionReaders {
@@ -171,12 +183,12 @@ void ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config) {
     if (banks) {
         auto banksTotal = YamlHelpers::child_required(banks, "total");
         auto banksActive = YamlHelpers::child_required(banks, "active");
-        const int numRowMat = YamlHelpers::read_required_index<int>(banksTotal, 0, "organization.banks.total[0]");
-        const int numColumnMat = YamlHelpers::read_required_index<int>(banksTotal, 1, "organization.banks.total[1]");
-        const int numActiveMatPerColumn =
-            YamlHelpers::read_required_index<int>(banksActive, 0, "organization.banks.active[0]");
-        const int numActiveMatPerRow =
-            YamlHelpers::read_required_index<int>(banksActive, 1, "organization.banks.active[1]");
+        const auto total = ReadCoordinatePair(banksTotal, "organization.banks.total");
+        const auto active = ReadCoordinatePair(banksActive, "organization.banks.active");
+        const int numRowMat = total[0];
+        const int numColumnMat = total[1];
+        const int numActiveMatPerColumn = active[0];
+        const int numActiveMatPerRow = active[1];
         config.exploration.geometry.numRowMat = IntValueDomain::PowersOfTwo(numRowMat, numRowMat);
         config.exploration.geometry.numColumnMat = IntValueDomain::PowersOfTwo(numColumnMat, numColumnMat);
         config.exploration.geometry.numActiveMatPerColumn =
@@ -191,12 +203,12 @@ void ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config) {
     if (mats) {
         auto matsTotal = YamlHelpers::child_required(mats, "total");
         auto matsActive = YamlHelpers::child_required(mats, "active");
-        const int numRowSubarray = YamlHelpers::read_required_index<int>(matsTotal, 0, "organization.mats.total[0]");
-        const int numColumnSubarray = YamlHelpers::read_required_index<int>(matsTotal, 1, "organization.mats.total[1]");
-        const int numActiveSubarrayPerColumn =
-            YamlHelpers::read_required_index<int>(matsActive, 0, "organization.mats.active[0]");
-        const int numActiveSubarrayPerRow =
-            YamlHelpers::read_required_index<int>(matsActive, 1, "organization.mats.active[1]");
+        const auto total = ReadCoordinatePair(matsTotal, "organization.mats.total");
+        const auto active = ReadCoordinatePair(matsActive, "organization.mats.active");
+        const int numRowSubarray = total[0];
+        const int numColumnSubarray = total[1];
+        const int numActiveSubarrayPerColumn = active[0];
+        const int numActiveSubarrayPerRow = active[1];
         config.exploration.geometry.numRowSubarray = IntValueDomain::PowersOfTwo(numRowSubarray, numRowSubarray);
         config.exploration.geometry.numColumnSubarray =
             IntValueDomain::PowersOfTwo(numColumnSubarray, numColumnSubarray);
@@ -208,10 +220,10 @@ void ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config) {
 
     if (hasSubarrayDimensions) {
         auto dimensions = YamlHelpers::child_required(subarray, "dimensions");
-        const int numRow = YamlHelpers::read_required_index<int>(
-                dimensions, 0, "organization.subarray.dimensions[0]");
-        const int numColumn = YamlHelpers::read_required_index<int>(
-                dimensions, 1, "organization.subarray.dimensions[1]");
+        const auto coordinate =
+                ReadCoordinatePair(dimensions, "organization.subarray.dimensions");
+        const int numRow = coordinate[0];
+        const int numColumn = coordinate[1];
         if (numRow <= 0 || numColumn <= 0) {
             throw std::runtime_error(
                     "[Input] Error: organization.subarray.dimensions values must be positive.");

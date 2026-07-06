@@ -356,6 +356,12 @@ static void test_explicit_subarray_dimensions() {
     write_explicit_subarray_config(cfgPath, "", "[8, 64]");
     assert(load_config_throws(cfgPath));
 
+    write_explicit_subarray_config(cfgPath, "", "[64]");
+    assert(load_config_throws(cfgPath));
+
+    write_explicit_subarray_config(cfgPath, "", "[64, 64, 64]");
+    assert(load_config_throws(cfgPath));
+
     write_explicit_subarray_config(cfgPath, "", "[64, 64]", "", "  deep_exploration: true\n");
     assert(load_config_throws(cfgPath));
 
