@@ -1,0 +1,89 @@
+schema: cell
+name: 10T-BCAM-28nm
+cam_type: BCAM
+memory_device: ./10T-BCAM_28nm.memory_device.yaml
+layout:
+  cell_process_node: 28nm
+  area: 950F^2
+  aspect_ratio: 4.897
+ports:
+  row:
+    0:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./10T-BCAM_28nm.cmos_nmos_1F_gate.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0.9V
+        search1: 0V
+    1:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./10T-BCAM_28nm.cmos_nmos_1F_gate.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0.9V
+    2:
+      type: bitline
+      connection:
+        kind: access_device
+        device: ./10T-BCAM_28nm.cmos_nmos_1F_drain.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 0.9V
+        set_mrs: 0.9V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    3:
+      type: bitline
+      connection:
+        kind: access_device
+        device: ./10T-BCAM_28nm.cmos_nmos_1F_drain.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 0.9V
+        set_mrs: 0.9V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+  column:
+    0:
+      type: wordline
+      connection:
+        kind: access_device
+        device: ./10T-BCAM_28nm.cmos_nmos_1F_gate.access_device.yaml
+        count: 4
+      wire_width: 1F
+      voltages:
+        set_lrs: 0.9V
+        set_mrs: 0.9V
+        reset: 0.9V
+        search0: 0V
+        search1: 0V
+    1:
+      type: matchline
+      connection:
+        kind: access_device
+        device: ./10T-BCAM_28nm.cmos_nmos_1F_drain.access_device.yaml
+        count: 2
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V

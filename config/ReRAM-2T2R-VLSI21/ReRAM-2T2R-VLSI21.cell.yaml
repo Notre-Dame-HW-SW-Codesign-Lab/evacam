@@ -1,0 +1,63 @@
+schema: cell
+name: ReRAM-2T2R-VLSI21
+cam_type: TCAM
+memory_device: ./ReRAM-2T2R-VLSI21.memory_device.yaml
+layout:
+  cell_process_node: 40nm
+  area: 157F^2
+  aspect_ratio: 2
+ports:
+  row:
+    0:
+      type: wordline
+      connection:
+        kind: access_device
+        device: ./ReRAM-2T2R-VLSI21.cmos_nmos_12F_gate.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 2.5V
+        search1: 0V
+    1:
+      type: wordline
+      connection:
+        kind: access_device
+        device: ./ReRAM-2T2R-VLSI21.cmos_nmos_12F_gate.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 2.5V
+        search1: 0V
+  column:
+    0:
+      type: sourceline
+      connection:
+        kind: access_device
+        device: ./ReRAM-2T2R-VLSI21.cmos_nmos_12F_drain.access_device.yaml
+        count: 1
+      wire_width: 2F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 1.1V
+        search1: 0V
+    1:
+      type: bitline
+      connection:
+        kind: access_device
+        device: ./ReRAM-2T2R-VLSI21.cmos_nmos_12F_drain.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.5V
+        set_mrs: 3.5V
+        reset: 3.5V
+        search0: 0V
+        search1: 1.1V

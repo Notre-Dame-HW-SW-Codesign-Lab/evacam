@@ -19,6 +19,8 @@ YAML::Node child_optional(const YAML::Node& parent, const char* key);
 YAML::Node child_optional_bool_key(const YAML::Node& parent, bool key);
 YAML::Node child_required_index(const YAML::Node& parent, size_t idx, const char* what);
 bool is_yaml_file(const std::string& path);
+bool schema_matches(const YAML::Node& root, const std::string& canonical);
+void require_schema(const YAML::Node& root, const std::string& canonical, const char* fileKind);
 
 template <typename T>
     T read_required(const YAML::Node& parent, const char* key) {

@@ -1,0 +1,39 @@
+# Reference-only run config. See README.md in this directory.
+schema: config
+
+name: sample_run
+
+# Paths are resolved relative to this run config.
+architecture: ./sample.architecture.yaml
+cell: ./sample.cell.yaml
+technology: ./sample.technology.yaml
+
+optimization:
+  target: ReadLatency # ReadLatency | WriteLatency | ReadDynamicEnergy | WriteDynamicEnergy | ReadEDP | WriteEDP | LeakagePower | Area | SearchLatency | SearchEnergy | SearchEDP | Exploration
+  deep_exploration: false
+  buffer_design: latency # latency | balance | area
+  row_driver: latency # latency | balance | area
+  priority_encoder: latency # latency | balance | area
+
+design_constraints:
+  enabled: false
+  read_latency: 1s # units: s | ms | us | ns | ps | fs
+  write_latency: 1s # units: s | ms | us | ns | ps | fs
+  read_dynamic_energy: 1J # units: J | mJ | uJ | nJ | pJ | fJ
+  write_dynamic_energy: 1J # units: J | mJ | uJ | nJ | pJ | fJ
+  leakage: 1W # units: W | mW | uW | nW | pW
+  area: 1 # scalar
+  read_edp: 1 # scalar
+  write_edp: 1 # scalar
+
+exploration:
+  use_cacti_assumption: false
+  enable_pruning: false
+
+modeling:
+  exclude_precharge_latency: false
+  include_leakage: true
+  scaled_voltage: 1.0 # scalar
+
+output:
+  exploration_csv_prefix: results/sample_points

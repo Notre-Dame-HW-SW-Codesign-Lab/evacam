@@ -2,7 +2,7 @@
 
 EvaCAM is a C++ simulator and design-space exploration tool for content-addressable memory (CAM) arrays and related memory-cell technologies.
 
-It reads a tool config that references architecture and cell YAML files, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
+It reads a run config that references architecture, cell, and technology YAML files, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
 
 ## Repository Layout
 
@@ -10,7 +10,7 @@ It reads a tool config that references architecture and cell YAML files, explore
 - `src/input/`, `include/input/`: CLI parsing and YAML input helpers
 - `src/output/`, `include/output/`: result serialization helpers
 - `src/config/`, `include/config/`: configuration parsing, validation, and derived settings
-- `src/technology/`, `include/technology/`: technology models, cell models, and built-in tables
+- `src/technology/`, `include/technology/`: technology models and YAML-backed technology loading
 - `src/circuit/`, `include/circuit/`: reusable circuit primitives and equations
 - `src/model/`, `include/model/`: array/bank/result hierarchy
 - `src/cam/`, `include/cam/`: CAM-specific blocks built on the circuit/model layers
@@ -46,13 +46,13 @@ This builds the `EvaCAM` binary in the repository root.
 Run one of the shipped example configurations:
 
 ```bash
-./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
+./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM.config.yaml
 ```
 
 Or use the `make` wrapper:
 
 ```bash
-make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM.config.yaml
 ```
 
 By default, EvaCAM writes YAML results to `results/<config-name>_results.yaml`.
@@ -60,7 +60,7 @@ The `make run` wrapper also saves the console output to `results/<config-name>_r
 
 For example:
 
-- `config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM.config.yaml`
 - `results/2FeFET_TCAM_results.yaml`
 - `results/2FeFET_TCAM_run.log`
 
@@ -69,7 +69,7 @@ For example:
 Usage:
 
 ```text
-./EvaCAM [OPTIONS] <tool_config.yaml>
+./EvaCAM [OPTIONS] <config.yaml>
 ```
 
 Options:
@@ -87,9 +87,9 @@ Deep exploration is configured in the tool YAML with
 Examples:
 
 ```bash
-./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm_tool_config.yaml
-./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R_tool_config.yaml
-./EvaCAM -q config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_tool_config.yaml
+./EvaCAM -v config/8T-BCAM_65nm/8T-BCAM_65nm.config.yaml
+./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R.config.yaml
+./EvaCAM -q config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE.config.yaml
 ```
 
 ## Python API
@@ -102,20 +102,21 @@ More detail:
 
 ## Input Files
 
-EvaCAM consumes a tool config that references separate architecture and cell files.
+EvaCAM consumes a v2 run config that references separate architecture, cell, and technology files.
 
-- The tool config selects optimization, exploration, modeling, and output controls and references the other inputs.
-- The architecture config describes capacity, organization, routing, peripherals, sensing, and wires.
-- The cell config describes the device, ports, voltages, currents, related physical parameters, and any variation settings.
+- The run config selects optimization, exploration, modeling, and output controls and references the other inputs.
+- The architecture config describes capacity, organization, routing, peripherals, sensing, matchline options, and wires.
+- The cell config describes CAM topology, layout, ports, and references reusable memory/access device definitions.
+- Memory-device, access-device, sensing, sense-amp, and technology YAML files hold reusable electrical/device model data.
 
-Start with the shipped examples under `config/`, which is the canonical layout for active configs. Architecture files are shared by tool configs when the modeled hardware is identical. `config/old_style_config/` remains in the repository only as legacy reference material.
+Start with the shipped v2 examples under `config/`, which are the canonical active configs. Canonical filenames use suffixes such as `*.config.yaml`, `*.architecture.yaml`, `*.cell.yaml`, `*.memory_device.yaml`, `*.access_device.yaml`, and `*.sensing.yaml`; shared defaults live under `config/lib/`. Legacy filenames such as `*_tool_config.yaml`, `*_architecture_config.yaml`, and `*_cell_config.yaml` remain only for migration/reference checks. `config/old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 
 - [Input Files](docs/input-files.md)
 - [Schema Reference](docs/schema.md)
 - [Supported Modes And Limits](docs/limitations.md)
-- [Full Example Warning](docs/FULL_INPUT_EXAMPLES_WARNING.md)
+- [Reference Input Samples](docs/input_samples/README.md)
 
 ## Outputs
 
@@ -133,6 +134,8 @@ More detail:
 Available make targets:
 
 - `make test-yaml`: build and run the YAML helper test
+- `make test-generated-v2-configs`: load every generated v2 config expected to run
+- `make test-v2-output-parity`: compare selected legacy/v2 output pairs with numeric tolerance
 - `make test`: run a sample config under valgrind
 - `make test-all-valgrind`: run a larger set of configs under valgrind
 - `make uml`: build the repository UML PDF from `docs/repo_uml.tex`
@@ -142,7 +145,7 @@ Available make targets:
 High-level flow:
 
 1. Parse CLI options.
-2. Load and validate the tool config and its referenced architecture and cell configs.
+2. Load and validate the run config and its referenced architecture, cell, and technology configs.
 3. Build the exploration context.
 4. Explore valid organizations and score results.
 5. Print a console summary and write YAML output.

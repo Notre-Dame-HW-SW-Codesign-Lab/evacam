@@ -1,0 +1,10 @@
+schema: config
+name: PCM-2T2R-JSSC11
+architecture: PCM-2T2R-JSSC11.architecture.yaml
+cell: PCM-2T2R-JSSC11.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

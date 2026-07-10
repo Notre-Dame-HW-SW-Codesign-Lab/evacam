@@ -34,7 +34,6 @@ write:
     pulse: 10ns
     energy: 2e-05pJ
 variation:
-  with_variation: true
   seed: 33333
   mode: monte_carlo
   monte_carlo_granularity: effective

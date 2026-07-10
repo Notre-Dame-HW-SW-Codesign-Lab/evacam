@@ -122,7 +122,7 @@ void ReadSensingSection(const YAML::Node &root, EvaCamConfig &config) {
     auto sensing = YamlHelpers::child_required(root, "sensing");
     config.input.internalSensing = YamlHelpers::read_required<bool>(sensing, "internal");
     config.peripherals.customSenseAmp = YamlHelpers::read_required<bool>(sensing, "custom_sense_amp");
-    config.peripherals.typeSenseAmp = YamlHelpers::read_enum_required<TypeOfSenseAmp>(sensing, "amplifier_type");
+    config.peripherals.typeSenseAmp = YamlHelpers::read_enum_required<TypeOfSenseAmp>(sensing, "sensing_mode");
 }
 
 void ReadOptimizationSection(const YAML::Node &root, EvaCamConfig &config) {
@@ -258,8 +258,18 @@ void ReadMatchlineSection(const YAML::Node &root, EvaCamConfig &config) {
     if (!matchline) {
         return;
     }
-    config.peripherals.addCapOnML = YamlHelpers::read_quantity_required(
-            matchline, "additional_cap", YamlHelpers::CapacitanceUnits(), 1e-15, "matchline.additional_cap");
+    if (YamlHelpers::child_optional(matchline, "additional_cap")) {
+        config.peripherals.addCapOnML = YamlHelpers::read_quantity_required(
+                matchline, "additional_cap", YamlHelpers::CapacitanceUnits(), 1e-15,
+                "matchline.additional_cap");
+    }
+    auto matchTransistor = YamlHelpers::child_optional(matchline, "match_transistor");
+    if (matchTransistor && YamlHelpers::child_optional(matchTransistor, "cmos_width")) {
+        config.input.camWidthMatchTran = YamlHelpers::read_quantity_required(
+                matchTransistor, "cmos_width", YamlHelpers::FeatureUnits(), 1.0,
+                "matchline.match_transistor.cmos_width");
+        config.input.hasCamWidthMatchTran = true;
+    }
 }
 
 void ReadConstraintSection(const YAML::Node &root, EvaCamConfig &config) {
@@ -334,6 +344,8 @@ void ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config) {
     }
     config.peripherals.fileCustomSA = YamlHelpers::read_optional<std::string>(
             advanced, "custom_sa_input_file", config.peripherals.fileCustomSA);
+    config.peripherals.fileSenseAmp = YamlHelpers::read_optional<std::string>(
+            advanced, "sense_amp_input_file", config.peripherals.fileSenseAmp);
     config.peripherals.useUpdatedLib = YamlHelpers::read_optional<bool>(
             advanced, "use_updated_lib", config.peripherals.useUpdatedLib);
     config.peripherals.noPrechargeInc = YamlHelpers::read_optional<bool>(
@@ -368,6 +380,12 @@ void ReadExtraSection(const YAML::Node &root, EvaCamConfig &config) {
             extra, "output_file_prefix", config.input.outputFilePrefix);
     config.input.outputYamlFileName = YamlHelpers::read_optional<std::string>(
             extra, "output_yaml_file", config.input.outputYamlFileName);
+    if (YamlHelpers::read_optional<bool>(extra, "output_yaml_file_from_config", false)) {
+        config.logger.Log()
+            << "[Input] Warning: output.results is deprecated; prefer CLI --output for YAML results paths.";
+    }
+    config.input.fileTechnology = YamlHelpers::read_optional<std::string>(
+            extra, "technology_file", config.input.fileTechnology);
     if (YamlHelpers::child_optional(extra, "worst_case_sense_margin")) {
         config.peripherals.matchlineSenseMargin = YamlHelpers::read_quantity_required(
                 extra, "worst_case_sense_margin", YamlHelpers::VoltageUnits(), 1.0, "extra.worst_case_sense_margin");

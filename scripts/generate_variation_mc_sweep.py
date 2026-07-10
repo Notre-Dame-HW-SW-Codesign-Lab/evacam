@@ -8,77 +8,73 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 BASE_DIR = ROOT / "config" / "2FeFET_TCAM_var"
 OUT_DIR = BASE_DIR / "mc_sweep"
-RESULT_DIR = "results/variation_mc_sweep"
-BASE_CELL = BASE_DIR / "2FeFET_TCAM_cell_config.yaml"
-BASE_TOOL = BASE_DIR / "2FeFET_TCAM_tool_config.yaml"
+BASE_CELL = ROOT / "config" / "2FeFET_TCAM" / "2FeFET_TCAM.cell.yaml"
+BASE_MEMORY_DEVICE = ROOT / "config" / "2FeFET_TCAM" / "2FeFET_TCAM.memory_device.yaml"
+BASE_CONFIG = BASE_DIR / "2FeFET_TCAM.config.yaml"
 STDEVS = [2, 3, 4, 5, 6, 7, 20, 50]
 SAMPLES = 1000
 SEED = 33333
 
 
-def replace_variation_block(text: str, stdev: int) -> str:
+def replace_or_append_variation_block(text: str, stdev: int) -> str:
     block = (
         "variation:\n"
-        "  with_variation: true\n"
         f"  seed: {SEED}\n"
         "  mode: monte_carlo\n"
         f"  samples: {SAMPLES}\n"
         f"  memory_device_resistance_on_stdev: {stdev}%\n"
         f"  memory_device_resistance_off_stdev: {stdev}%\n"
     )
-    return re.sub(r"variation:\n(?:  .*\n)+", block, text, count=1)
-
-
-def replace_cell_file(text: str, cell_path: str) -> str:
-    return re.sub(r"^cell_file: .*\n", f"cell_file: {cell_path}\n", text, count=1, flags=re.MULTILINE)
-
-
-def replace_architecture_file(text: str) -> str:
-    return re.sub(
-        r"^architecture_file: .*\n",
-        "architecture_file: ../2FeFET_TCAM_var_architecture_config.yaml\n",
+    updated, count = re.subn(
+        r"^variation:\n(?:^  .*\n)*",
+        block,
         text,
         count=1,
         flags=re.MULTILINE,
     )
+    if count == 1:
+        return updated
+    return text.rstrip() + "\n" + block
 
 
-def set_output_yaml(text: str, output_path: str) -> str:
-    if re.search(r"^output:\n(?:  .*\n)*", text, flags=re.MULTILINE):
-        if re.search(r"^  yaml_file: .*$", text, flags=re.MULTILINE):
-            return re.sub(
-                r"^  yaml_file: .*$",
-                f"  yaml_file: {output_path}",
-                text,
-                count=1,
-                flags=re.MULTILINE,
-            )
-        return re.sub(
-            r"^output:\n",
-            f"output:\n  yaml_file: {output_path}\n",
-            text,
-            count=1,
-            flags=re.MULTILINE,
-        )
-    return text.rstrip() + f"\n\noutput:\n  yaml_file: {output_path}\n"
+def replace_scalar(text: str, key: str, value: str) -> str:
+    updated, count = re.subn(
+        rf"^{re.escape(key)}: .*$",
+        f"{key}: {value}",
+        text,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    if count != 1:
+        raise RuntimeError(f"Could not replace {key}")
+    return updated
 
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     cell_template = BASE_CELL.read_text()
-    tool_template = BASE_TOOL.read_text()
+    memory_device_template = BASE_MEMORY_DEVICE.read_text()
+    config_template = BASE_CONFIG.read_text()
 
     for stdev in STDEVS:
         tag = f"stdev{stdev:02d}"
-        cell_rel = f"./2FeFET_TCAM_{tag}_cell_config.yaml"
-        tool_path = OUT_DIR / f"2FeFET_TCAM_{tag}_tool_config.yaml"
-        cell_path = OUT_DIR / f"2FeFET_TCAM_{tag}_cell_config.yaml"
-        output_path = f"{RESULT_DIR}/2FeFET_TCAM_{tag}_results.yaml"
+        name = f"2FeFET_TCAM_{tag}"
+        cell_path = OUT_DIR / f"{name}.cell.yaml"
+        memory_device_path = OUT_DIR / f"{name}.memory_device.yaml"
+        config_path = OUT_DIR / f"{name}.config.yaml"
 
-        cell_path.write_text(replace_variation_block(cell_template, stdev))
-        tool = replace_architecture_file(replace_cell_file(tool_template, cell_rel))
-        tool_path.write_text(set_output_yaml(tool, output_path))
-        print(tool_path.relative_to(ROOT))
+        memory_device_path.write_text(
+            replace_or_append_variation_block(memory_device_template, stdev)
+        )
+        cell = replace_scalar(cell_template, "memory_device", f"./{memory_device_path.name}")
+        cell_path.write_text(cell)
+
+        config = replace_scalar(config_template, "name", name)
+        config = replace_scalar(config, "architecture", "../2FeFET_TCAM_var.architecture.yaml")
+        config = replace_scalar(config, "cell", cell_path.name)
+        config = replace_scalar(config, "technology", "../../lib/technology/cmos.legacy.yaml")
+        config_path.write_text(config)
+        print(config_path.relative_to(ROOT))
 
 
 if __name__ == "__main__":

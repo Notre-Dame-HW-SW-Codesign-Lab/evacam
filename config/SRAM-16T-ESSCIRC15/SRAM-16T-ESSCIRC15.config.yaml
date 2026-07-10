@@ -1,0 +1,10 @@
+schema: config
+name: SRAM-16T-ESSCIRC15
+architecture: SRAM-16T-ESSCIRC15.architecture.yaml
+cell: SRAM-16T-ESSCIRC15.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: Area
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

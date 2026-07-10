@@ -1,0 +1,10 @@
+schema: config
+name: MRAM-2T2R-ASPDAC12
+architecture: MRAM-2T2R-ASPDAC12.architecture.yaml
+cell: MRAM-2T2R-ASPDAC12.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: WriteDynamicEnergy
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

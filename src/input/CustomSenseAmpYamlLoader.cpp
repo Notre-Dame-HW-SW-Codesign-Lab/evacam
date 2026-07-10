@@ -34,7 +34,7 @@ double ReadOptionalQuantity(
         double defaultUnitToBase,
         const char* what) {
     const YAML::Node node = YamlHelpers::child_optional(parent, key);
-    if (!node) {
+    if (!node || node.IsNull()) {
         return 0;
     }
     return YamlHelpers::parse_quantity_node(node, units, defaultUnitToBase, what);
@@ -54,6 +54,46 @@ void ReadCustomSenseAmpFromYaml(
     }
 
     const YAML::Node root = YAML::LoadFile(inputFile);
+    require_schema(root, "sense_amp", "sense amp config");
+    if (YamlHelpers::read_optional<std::string>(root, "model", "") == "scalar") {
+        const YAML::Node geometry = child_required(root, "geometry");
+        const YAML::Node timing = child_required(root, "timing");
+        const YAML::Node power = child_required(root, "power");
+        const YAML::Node load = child_required(root, "load");
+
+        senseAmp.height = ReadOptionalQuantity(
+                geometry, "height", FeatureLengthUnits(featureSize), featureSize,
+                "sense_amp.geometry.height");
+        senseAmp.width = ReadOptionalQuantity(
+                geometry, "width", FeatureLengthUnits(featureSize), featureSize,
+                "sense_amp.geometry.width");
+        senseAmp.area = ReadOptionalQuantity(
+                geometry, "area", AreaUnits(), 1.0, "sense_amp.geometry.area");
+        senseAmp.readLatency = ReadOptionalQuantity(
+                timing, "latency", TimeUnits(), 1.0, "sense_amp.timing.latency");
+        senseAmp.readDynamicEnergy = ReadOptionalQuantity(
+                power, "read_dynamic_energy", EnergyUnits(), 1.0,
+                "sense_amp.power.read_dynamic_energy");
+        senseAmp.leakage = ReadOptionalQuantity(
+                power, "leakage", PowerUnits(), 1.0, "sense_amp.power.leakage");
+        senseAmp.capLoad = ReadOptionalQuantity(
+                load, "capacitance", CapacitanceUnits(), 1.0,
+                "sense_amp.load.capacitance");
+
+        if (senseAmp.area == 0 && !(senseAmp.height > 0 && senseAmp.width > 0)) {
+            throw std::runtime_error(
+                    "[Input] Error: scalar sense amp file is missing required geometry.");
+        }
+        if (senseAmp.readLatency == 0 || senseAmp.readDynamicEnergy == 0 || senseAmp.capLoad == 0) {
+            throw std::runtime_error(
+                    "[Input] Error: scalar sense amp file is missing required fields.");
+        }
+        if (senseAmp.area == 0) {
+            senseAmp.area = senseAmp.height * senseAmp.width;
+        }
+        return;
+    }
+
     const YAML::Node customSenseAmpNode = child_optional(root, "custom_sense_amp");
     const YAML::Node customSenseAmp = customSenseAmpNode ? customSenseAmpNode : root;
 

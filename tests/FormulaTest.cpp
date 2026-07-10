@@ -1,11 +1,13 @@
 #include "formula.h"
 #include "Technology.h"
+#include "input/TechnologyYamlLoader.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 namespace {
 
@@ -15,8 +17,18 @@ bool Near(double actual, double expected, double tolerance = 1e-12) {
 }
 
 Technology MakeTechnology(int processNode = 90, bool useUpdatedLib = false) {
+    const std::vector<TechnologySpec> specs = YamlHelpers::ReadTechnologySpecsFromYaml(
+            useUpdatedLib ? "config/lib/technology/cmos.updated.yaml"
+                          : "config/lib/technology/cmos.legacy.yaml");
+    for (const TechnologySpec &spec : specs) {
+        if (spec.featureSizeInNano == processNode && spec.roadmap == HP) {
+            Technology tech;
+            tech.InitializeFromSpec(spec);
+            return tech;
+        }
+    }
+    assert(false);
     Technology tech;
-    tech.Initialize(processNode, HP, useUpdatedLib);
     return tech;
 }
 

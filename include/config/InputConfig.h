@@ -16,6 +16,9 @@ struct InputConfig {
     long wordWidth = 0;
     DeviceRoadmap deviceRoadmap = HP;
     std::string fileMemCell;
+    std::string fileTechnology;
+    bool hasCamWidthMatchTran = false;
+    double camWidthMatchTran = 0;
     int temperature = 300;
     double maxDriverCurrent = 0;
     WriteScheme writeScheme = normal_write;

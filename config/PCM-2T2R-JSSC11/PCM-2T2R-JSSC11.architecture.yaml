@@ -1,0 +1,54 @@
+schema: architecture
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 90nm
+  device_roadmap: HP
+  temperature: 350K
+memory:
+  capacity: 128KB
+  word_width: 64bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: true
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+  write_driver: false
+wires:
+  local:
+    type: LocalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+organization:
+  banks:
+    total:
+    - 4
+    - 2
+    active:
+    - 4
+    - 2
+  mats:
+    total:
+    - 2
+    - 2
+    active:
+    - 2
+    - 2
+  mux:
+    sense_amp: 1
+    output_level1: 8
+    output_level2: 1
+sensing: ./PCM-2T2R-JSSC11.sensing.yaml
+matchline:
+  match_transistor:
+    cmos_width: 8F

@@ -1,0 +1,25 @@
+schema: memory_device
+name: 2FeFET-MCAM-as-TCAM
+type: FEFETRAM
+resistance:
+  'on': 22900ohm
+  'off': 1600Mohm
+read:
+  mode: voltage
+  voltage: 1V
+  current: 5.62uA
+  power: 5.62uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ

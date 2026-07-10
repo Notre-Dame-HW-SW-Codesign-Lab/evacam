@@ -13,8 +13,13 @@ authors = [{ name = "Notre Dame HW-SW Codesign Lab" }]
 [project.urls]
 Homepage = "https://github.com/Notre-Dame-HW-SW-Codesign-Lab/evacam"
 
-# This project ships a single C++ extension module (evacam_py) and no pure-Python
-# packages. Disable package auto-discovery so setuptools does not try to treat
-# src/, include/, etc. as importable packages.
 [tool.setuptools]
-py-modules = []
+packages = ["evacam"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+evacam = [
+  "data/config/lib/sense_amp/*.yaml",
+  "data/config/lib/sensing/*.yaml",
+  "data/config/lib/technology/*.yaml",
+]

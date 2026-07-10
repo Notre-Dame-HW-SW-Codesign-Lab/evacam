@@ -1,0 +1,7 @@
+schema: access_device
+name: ReRAM-2.5T1R-ISSCC16.cmos_nmos_3F_drain.access_device
+type: cmos
+width: 3F
+connected_terminal: drain
+is_nmos: true
+voltage_drop: 0.15V

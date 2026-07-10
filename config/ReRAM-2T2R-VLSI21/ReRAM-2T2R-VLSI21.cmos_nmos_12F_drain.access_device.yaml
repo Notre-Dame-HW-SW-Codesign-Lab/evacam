@@ -1,0 +1,7 @@
+schema: access_device
+name: ReRAM-2T2R-VLSI21.cmos_nmos_12F_drain.access_device
+type: cmos
+width: 12F
+connected_terminal: drain
+is_nmos: true
+voltage_drop: 0.15V

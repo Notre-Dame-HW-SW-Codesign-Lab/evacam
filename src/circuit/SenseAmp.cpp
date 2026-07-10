@@ -1,5 +1,21 @@
 #include "SenseAmp.h"
 #include "formula.h"
+#include "input/SenseAmpYamlLoader.h"
+
+#include <stdexcept>
+
+namespace {
+
+double LookupNodeValue(const std::vector<SenseAmpModel::NodeValue>& table, double featureSize) {
+    for (const SenseAmpModel::NodeValue& item : table) {
+        if (item.minFeatureSize == 0 || featureSize >= item.minFeatureSize) {
+            return item.value;
+        }
+    }
+    throw std::runtime_error("[Sense Amp] Missing node table entry.");
+}
+
+}  // namespace
 
 void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _senseVoltage, double _pitchSenseAmp,
         std::shared_ptr<EvaCamConfig> _config) {
@@ -12,8 +28,11 @@ void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _sens
     pitchSenseAmp = _pitchSenseAmp;
     config = _config;
     auto& tech = *config->technology.tech;
+    if (!config->peripherals.fileSenseAmp.empty()) {
+        model = YamlHelpers::ReadSenseAmpModelFromYaml(config->peripherals.fileSenseAmp);
+    }
 
-    if (pitchSenseAmp <= tech.featureSize() * 2) {
+    if (pitchSenseAmp <= tech.featureSize() * model.minPitch) {
         /* too small, cannot do the layout */
         invalid = true;
         std::cout << "Sense Amp too small, cannot do the layout" << std::endl;
@@ -36,32 +55,32 @@ void SenseAmp::CalculateArea() {
         auto& tech = *config->technology.tech;
 
         if (currentSense) {	/* current-sensing needs IV converter */
-            area += IV_CONVERTER_AREA * tech.featureSize() * tech.featureSize();
+            area += model.ivConverterArea * tech.featureSize() * tech.featureSize();
         }
         /* the following codes are transformed from CACTI 6.5 */
 
 
-        CalculateGateArea(INV, 1, 0, W_SENSE_P * tech.featureSize(),
+        CalculateGateArea(INV, 1, 0, model.pSenseWidth * tech.featureSize(),
                 pitchSenseAmp, tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = std::max(width, tempWidth);
         height += 2 * tempHeight;
-        CalculateGateArea(INV, 1, 0, W_SENSE_ISO * tech.featureSize(),
+        CalculateGateArea(INV, 1, 0, model.isolationWidth * tech.featureSize(),
                 pitchSenseAmp, tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = std::max(width, tempWidth);
         height += tempHeight;
-        height += 2 * MIN_GAP_BET_SAME_TYPE_DIFFS * tech.featureSize();
+        height += 2 * model.sameTypeDiffGap * tech.featureSize();
 
-        CalculateGateArea(INV, 1, W_SENSE_N * tech.featureSize(), 0,
+        CalculateGateArea(INV, 1, model.nSenseWidth * tech.featureSize(), 0,
                 pitchSenseAmp, tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = std::max(width, tempWidth);
         height += 2 * tempHeight;
-        CalculateGateArea(INV, 1, W_SENSE_EN * tech.featureSize(), 0,
+        CalculateGateArea(INV, 1, model.enableWidth * tech.featureSize(), 0,
                 pitchSenseAmp, tech, &tempWidth, &tempHeight, config->peripherals.useUpdatedLib);	/* exchange width and height for senseamp layout */
         width = std::max(width, tempWidth);
         height += tempHeight;
-        height += 2 * MIN_GAP_BET_SAME_TYPE_DIFFS * tech.featureSize();
+        height += 2 * model.sameTypeDiffGap * tech.featureSize();
 
-        height += MIN_GAP_BET_P_AND_N_DIFFS * tech.featureSize();
+        height += model.pToNDiffGap * tech.featureSize();
 
         /* transformation so that width meets the pitch */
         height = height * width / pitchSenseAmp;
@@ -82,11 +101,11 @@ void SenseAmp::CalculateRC() {
         capLoad = 1e41;
     } else {
         auto& tech = *config->technology.tech;
-        capLoad = CalculateGateCap((W_SENSE_P + W_SENSE_N) * tech.featureSize(), tech)
-            + CalculateDrainCap(W_SENSE_N * tech.featureSize(), NMOS, pitchSenseAmp, tech)
-            + CalculateDrainCap(W_SENSE_P * tech.featureSize(), PMOS, pitchSenseAmp, tech)
-            + CalculateDrainCap(W_SENSE_ISO * tech.featureSize(), PMOS, pitchSenseAmp, tech)
-            + CalculateDrainCap(W_SENSE_MUX * tech.featureSize(), NMOS, pitchSenseAmp, tech);
+        capLoad = CalculateGateCap((model.pSenseWidth + model.nSenseWidth) * tech.featureSize(), tech)
+            + CalculateDrainCap(model.nSenseWidth * tech.featureSize(), NMOS, pitchSenseAmp, tech)
+            + CalculateDrainCap(model.pSenseWidth * tech.featureSize(), PMOS, pitchSenseAmp, tech)
+            + CalculateDrainCap(model.isolationWidth * tech.featureSize(), PMOS, pitchSenseAmp, tech)
+            + CalculateDrainCap(model.muxWidth * tech.featureSize(), NMOS, pitchSenseAmp, tech);
     }
 }
 
@@ -97,24 +116,12 @@ void SenseAmp::CalculateLatency() {
         readLatency = writeLatency = 0;
         auto& tech = *config->technology.tech;
         if (currentSense) {	/* current-sensing needs IV converter */
-            /* all the following values achieved from HSPICE */
-            if (tech.featureSize() >= 119e-9)
-                readLatency += 0.49e-9;		/* 120nm */
-            else if (tech.featureSize() >= 89e-9)
-                readLatency += 0.53e-9;		/* 90nm */
-            else if (tech.featureSize() >= 64e-9)
-                readLatency += 0.62e-9;		/* 65nm */
-            else if (tech.featureSize() >= 44e-9)
-                readLatency += 0.80e-9;		/* 45nm */
-            else if (tech.featureSize() >= 31e-9)
-                readLatency += 1.07e-9;		/* 32nm */
-            else
-                readLatency += 1.45e-9;         /* below 22nm */
+            readLatency += LookupNodeValue(model.currentSenseLatency, tech.featureSize());
         }
 
         /* Voltage sense amplifier */
-        double gm = CalculateTransconductance(W_SENSE_N * tech.featureSize(), NMOS, tech)
-            + CalculateTransconductance(W_SENSE_P * tech.featureSize(), PMOS, tech);
+        double gm = CalculateTransconductance(model.nSenseWidth * tech.featureSize(), NMOS, tech)
+            + CalculateTransconductance(model.pSenseWidth * tech.featureSize(), PMOS, tech);
         double tau = capLoad / gm;
         readLatency += tau * log(tech.vdd() / senseVoltage);
     }
@@ -130,31 +137,13 @@ void SenseAmp::CalculatePower() {
         leakage = 0;
         auto& tech = *config->technology.tech;
         if (currentSense) {	/* current-sensing needs IV converter */
-            /* all the following values achieved from HSPICE */
-            if (tech.featureSize() >= 119e-9) {			/* 120nm */
-                readDynamicEnergy += 8.52e-14;	/* Unit: J */
-                leakage += 1.40e-8;				/* Unit: W */
-            } else if (tech.featureSize() >= 89e-9) {	/* 90nm */
-                readDynamicEnergy += 8.72e-14;
-                leakage += 1.87e-8;
-            } else if (tech.featureSize() >= 64e-9) {	/* 65nm */
-                readDynamicEnergy += 9.00e-14;
-                leakage += 2.57e-8;
-            } else if (tech.featureSize() >= 44e-9) {	/* 45nm */
-                readDynamicEnergy += 10.26e-14;
-                leakage += 4.41e-9;
-            } else if (tech.featureSize() >= 31e-9) {	/* 32nm */
-                readDynamicEnergy += 12.56e-14;
-                leakage += 12.54e-8;
-            } else {                                    /* TODO, need calibration below 22nm */
-                readDynamicEnergy += 15e-14;
-                leakage += 15e-8;
-            }
+            readDynamicEnergy += LookupNodeValue(model.currentSenseEnergy, tech.featureSize());
+            leakage += LookupNodeValue(model.currentSenseLeakage, tech.featureSize());
         }
 
         /* Voltage sense amplifier */
         readDynamicEnergy += capLoad * tech.vdd() * tech.vdd();
-        double idleCurrent =  CalculateGateLeakage(INV, 1, W_SENSE_EN * tech.featureSize(), 0,
+        double idleCurrent =  CalculateGateLeakage(INV, 1, model.enableWidth * tech.featureSize(), 0,
                 config->input.temperature, tech) * tech.vdd();
         leakage += idleCurrent * tech.vdd();
 

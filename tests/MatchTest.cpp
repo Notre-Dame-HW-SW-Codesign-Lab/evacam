@@ -102,22 +102,35 @@ void WriteMatchToolVariant(const std::string &sourceToolPath,
         const std::string &architecturePath,
         const std::string &searchFunction,
         const std::string &cellPath) {
-    const std::string sourceArchitecturePath =
-            "config/2FeFET_TCAM/2FeFET_TCAM_match_architecture_config.yaml";
+    const std::filesystem::path sourceConfig(sourceToolPath);
+    const std::string sourceArchitecturePath = std::filesystem::absolute(
+            sourceConfig.parent_path() / "2FeFET_TCAM_match.architecture.yaml").string();
     std::string architecture = ReadFile(sourceArchitecturePath);
     for (const std::string token : {"EX", "BE", "TH"}) {
         ReplaceAll(architecture, "search_function: " + token,
                 "search_function: " + searchFunction);
     }
+    ReplaceAll(architecture,
+            "sensing: ./2FeFET_TCAM.sensing.yaml",
+            "sensing: " + std::filesystem::absolute(
+                    sourceConfig.parent_path() / "2FeFET_TCAM.sensing.yaml").string());
+    ReplaceAll(architecture,
+            "sensing: ./2FeFET_TCAM_match.sensing.yaml",
+            "sensing: " + std::filesystem::absolute(
+                    sourceConfig.parent_path() / "2FeFET_TCAM_match.sensing.yaml").string());
     WriteFile(architecturePath, architecture);
 
     std::string tool = ReadFile(sourceToolPath);
     ReplaceAll(tool,
-            "architecture_file: ./2FeFET_TCAM_match_architecture_config.yaml",
-            "architecture_file: " + architecturePath);
+            "architecture: 2FeFET_TCAM_match.architecture.yaml",
+            "architecture: " + architecturePath);
     ReplaceAll(tool,
-            "cell_file: ./2FeFET_TCAM_cell_config.yaml",
-            "cell_file: " + cellPath);
+            "cell: 2FeFET_TCAM.cell.yaml",
+            "cell: " + cellPath);
+    ReplaceAll(tool,
+            "technology: ../lib/technology/cmos.legacy.yaml",
+            "technology: " + std::filesystem::absolute(
+                    sourceConfig.parent_path() / "../lib/technology/cmos.legacy.yaml").string());
     WriteFile(toolPath, tool);
 }
 
@@ -234,10 +247,12 @@ int main(int argc, char *argv[]) {
         }
 
         const std::string sourceCellPath = std::filesystem::absolute(
-                "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml").string();
+                "config/2FeFET_TCAM/2FeFET_TCAM.cell.yaml").string();
+        const std::string sourceToolPath =
+                "config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml";
         const std::string thConfigPath = "/tmp/evacam_match_th_tool_config.yaml";
         const std::string thArchitecturePath = "/tmp/evacam_match_th_architecture_config.yaml";
-        WriteMatchToolVariant(argv[1], thConfigPath, thArchitecturePath, "TH", sourceCellPath);
+        WriteMatchToolVariant(sourceToolPath, thConfigPath, thArchitecturePath, "TH", sourceCellPath);
 
         EvaCAM_Match thMatcher(thConfigPath);
         std::vector<int> thStored(thMatcher.word_width(), 1);
@@ -255,7 +270,7 @@ int main(int argc, char *argv[]) {
 
         const std::string beConfigPath = "/tmp/evacam_match_be_tool_config.yaml";
         const std::string beArchitecturePath = "/tmp/evacam_match_be_architecture_config.yaml";
-        WriteMatchToolVariant(argv[1], beConfigPath, beArchitecturePath, "BE", sourceCellPath);
+        WriteMatchToolVariant(sourceToolPath, beConfigPath, beArchitecturePath, "BE", sourceCellPath);
 
         EvaCAM_Match beMatcher(beConfigPath);
         std::vector<int> beQuery(beMatcher.word_width(), 1);
@@ -317,14 +332,25 @@ int main(int argc, char *argv[]) {
             voltage << std::scientific << guardedSenseVoltage << "V";
 
             const std::string highSenseCellPath = "/tmp/evacam_match_high_sense_cell_config.yaml";
+            const std::string highSenseMemoryDevicePath =
+                    "/tmp/evacam_match_high_sense_memory_device.yaml";
             const std::string highSenseConfigPath = "/tmp/evacam_match_high_sense_tool_config.yaml";
             const std::string highSenseArchitecturePath =
                     "/tmp/evacam_match_high_sense_architecture_config.yaml";
-            std::string highSenseCell = ReadFile("config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml");
+            std::string highSenseMemoryDevice =
+                    ReadFile("config/2FeFET_TCAM/2FeFET_TCAM.memory_device.yaml");
+            ReplaceAll(highSenseMemoryDevice, "min_sense_voltage: 70mV",
+                    "min_sense_voltage: " + voltage.str());
+            WriteFile(highSenseMemoryDevicePath, highSenseMemoryDevice);
+
+            std::string highSenseCell =
+                    ReadFile("config/2FeFET_TCAM/2FeFET_TCAM.cell.yaml");
             ReplaceAll(highSenseCell, "min_sense_voltage: 70mV", "min_sense_voltage: " + voltage.str());
+            ReplaceAll(highSenseCell, "memory_device: ./2FeFET_TCAM.memory_device.yaml",
+                    "memory_device: " + highSenseMemoryDevicePath);
             WriteFile(highSenseCellPath, highSenseCell);
 
-            WriteMatchToolVariant(argv[1], highSenseConfigPath, highSenseArchitecturePath,
+            WriteMatchToolVariant(sourceToolPath, highSenseConfigPath, highSenseArchitecturePath,
                     "TH", highSenseCellPath);
 
             EvaCAM_Match highSenseMatcher(highSenseConfigPath);
@@ -337,7 +363,7 @@ int main(int argc, char *argv[]) {
                 std::cout << "\nExpected TH sense-margin rejection: " << ex.what() << "\n";
             }
 
-            WriteMatchToolVariant(argv[1], highSenseConfigPath, highSenseArchitecturePath,
+            WriteMatchToolVariant(sourceToolPath, highSenseConfigPath, highSenseArchitecturePath,
                     "BE", highSenseCellPath);
             EvaCAM_Match highSenseBestMatcher(highSenseConfigPath);
             assert(highSenseBestMatcher.evaluate_array(std::vector<int>{0, 1})[0].hit);

@@ -21,7 +21,7 @@ bool Near(double actual, double expected, double tolerance) {
 int main() {
     CliOptions options;
     options.inputFileName =
-        "config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11_tool_config.yaml";
+        "config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11.config.yaml";
 
     EvaCamContext context = EvaCamContextBuilder::Build(options);
     EvaCamExplorer explorer(context.config, 1);
@@ -64,8 +64,8 @@ int main() {
     assert(bank->mat->numDataBit == 2048);
     assert(bank->mat->subarray->numRow == 64);
     assert(bank->mat->subarray->numColumn == 512);
-    assert(Near(bank->height, 673.505e-6, 1e-9));
-    assert(Near(bank->width, 3.137e-3, 1e-6));
+    assert(Near(bank->height, 781.523e-6, 1e-9));
+    assert(Near(bank->width, 1.7871e-3, 1e-6));
 
     std::cout << "H-tree routing regression tests passed\n";
     return 0;

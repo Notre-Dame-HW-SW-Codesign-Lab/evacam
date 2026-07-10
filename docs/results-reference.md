@@ -124,4 +124,4 @@ The exploration CSV is only emitted for full exploration without pruning. Its na
 <prefix>_<capacity_kib>K_<word_width>_<IN|EX>_<VOL|CUR>.csv
 ```
 
-`<prefix>` comes from `output.exploration_csv_prefix`. For a non-default YAML path, set `output.yaml_file` in the tool config.
+`<prefix>` comes from `output.exploration_csv_prefix`. For a non-default YAML path, use CLI `--output`.

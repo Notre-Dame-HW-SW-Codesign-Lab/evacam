@@ -1,0 +1,87 @@
+# 2FeFET-TCAM Cell Configuration
+# Memory cell definition
+
+cell:
+  name: 2FeFET-TCAM
+  cam_type: TCAM
+  type: FEFETRAM
+  cell_process_node: 45nm
+  area: 300F^2
+  aspect_ratio: 1.76
+access_device:
+  type: none
+  cmos_width: 1F
+  voltage_drop: 0.15V
+resistance:
+  'on': 10000ohm
+  'off': 1600000000ohm
+read:
+  mode: voltage
+  voltage: 1V
+  current: 5.62uA
+  power: 5.62uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ
+variation:
+  with_variation: true
+  seed: 33333
+  mode: monte_carlo
+  samples: 1000
+  memory_device_resistance_on_stdev: 3%
+  memory_device_resistance_off_stdev: 3%
+match:
+  cmos_width: 3F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 4V
+        set_mrs: 4V
+        reset: 4V
+        search0: 1V
+        search1: 1V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 4V
+        set_mrs: 4V
+        reset: 4V
+        search0: 1V
+        search1: 1V
+  column:
+    0:
+      type: matchline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 1V
+        set_mrs: 1V
+        reset: 1V
+        search0: 0V
+        search1: 1V

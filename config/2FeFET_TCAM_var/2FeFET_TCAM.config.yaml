@@ -1,0 +1,10 @@
+schema: config
+name: 2FeFET_TCAM
+architecture: 2FeFET_TCAM_var.architecture.yaml
+cell: 2FeFET_TCAM.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

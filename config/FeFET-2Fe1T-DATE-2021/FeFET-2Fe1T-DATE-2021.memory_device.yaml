@@ -1,0 +1,23 @@
+schema: memory_device
+name: FeFET-2Fe1T-DATE-2021
+type: FEFETRAM
+resistance:
+  'on': 10000ohm
+  'off': 1600000000ohm
+read:
+  mode: voltage
+  power: 1uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ

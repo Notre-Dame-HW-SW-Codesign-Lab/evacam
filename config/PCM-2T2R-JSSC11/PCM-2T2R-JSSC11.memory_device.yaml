@@ -1,0 +1,21 @@
+schema: memory_device
+name: PCM-2T2R-JSSC11
+type: PCRAM
+resistance:
+  'on': 10000ohm
+  'off': 1000000ohm
+read:
+  mode: voltage
+  voltage: 1.2V
+  current: 100uA
+  power: 30uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 150uA
+    pulse: 150ns
+  reset:
+    mode: current
+    current: 300uA
+    pulse: 40ns

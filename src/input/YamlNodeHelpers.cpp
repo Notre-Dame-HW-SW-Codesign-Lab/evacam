@@ -88,6 +88,24 @@ bool is_yaml_file(const std::string& path) {
         || (lower.size() >= 4 && lower.substr(lower.size() - 4) == ".yml");
 }
 
+bool schema_matches(const YAML::Node& root, const std::string& canonical) {
+    const YAML::Node schema = child_optional(root, "schema");
+    if (!schema || !schema.IsScalar()) {
+        return false;
+    }
+    const std::string value = schema.as<std::string>();
+    return value == canonical
+        || value == "evacam." + canonical + ".v2"
+        || (canonical == "access_device" && value == "evacam.access.v2");
+}
+
+void require_schema(const YAML::Node& root, const std::string& canonical, const char* fileKind) {
+    if (!schema_matches(root, canonical)) {
+        throw std::runtime_error(
+                std::string("[Input] Error: ") + fileKind + " schema must be " + canonical + ".");
+    }
+}
+
 const std::vector<std::pair<const char*, MemCellType>>& EnumTraits<MemCellType>::mapping() {
     static const std::vector<std::pair<const char*, MemCellType>> k = {
         {"SRAM", SRAM},

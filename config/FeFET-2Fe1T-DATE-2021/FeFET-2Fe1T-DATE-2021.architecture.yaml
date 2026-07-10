@@ -1,0 +1,54 @@
+schema: architecture
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 45nm
+  device_roadmap: HP
+  temperature: 300K
+memory:
+  capacity: 512B
+  word_width: 64bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: true
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+  write_driver: true
+wires:
+  local:
+    type: LocalConservative
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+organization:
+  banks:
+    total:
+    - 1
+    - 1
+    active:
+    - 1
+    - 1
+  mats:
+    total:
+    - 1
+    - 1
+    active:
+    - 1
+    - 1
+  mux:
+    sense_amp: 1
+    output_level1: 1
+    output_level2: 1
+sensing: ./FeFET-2Fe1T-DATE-2021.sensing.yaml
+matchline:
+  match_transistor:
+    cmos_width: 10F

@@ -67,7 +67,7 @@ Variation policy is also separated from runtime object loading:
 
 `Technology` is a read-mostly model of process parameters used by the circuit equations.
 
-- `Initialize()` selects a `TechnologySpec` from the built-in tables in `TechnologyTables.cpp`
+- `InitializeFromSpec()` loads a `TechnologySpec` parsed from a v2 technology YAML file
 - `ApplySpec()` copies scalar process values such as `vdd`, `vth`, capacitances, mobility terms, and fin geometry from the selected spec
 - `ExpandTemperatureTables()` expands the compact 11-point current tables in `TechnologySpec` into the 101-entry runtime tables used by the formulas
 - `InterpolateWith()` blends between adjacent supported process nodes so EvaCAM can model intermediate nodes between the tabulated anchor points
@@ -92,7 +92,7 @@ The config key `optimization.deep_exploration` expands the search space used dur
 - Add or adjust CLI behavior in `src/input/CliOptions.cpp`
 - Add new tool or architecture YAML fields at the split-config boundary and in the typed config structs owned by `EvaCamConfig`
 - Add new cell-YAML fields in `CellYamlLoader`
-- Add technology-table entries in `src/technology/TechnologyTables.cpp` and update `TechnologyLoader` if new loading rules are required
+- Add or adjust technology YAML entries under `config/lib/technology/` and update `TechnologyLoader` if new loading rules are required
 - Change result serialization in `src/output/ResultsYaml.cpp`
 - Change exploration logic in `src/app/EvaCamExplorer.cpp`
 

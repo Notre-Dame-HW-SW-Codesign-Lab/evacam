@@ -1,0 +1,10 @@
+schema: config
+name: ReRAM-2.5T1R-ISSCC16
+architecture: ReRAM-2.5T1R-ISSCC16.architecture.yaml
+cell: ReRAM-2.5T1R-ISSCC16.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

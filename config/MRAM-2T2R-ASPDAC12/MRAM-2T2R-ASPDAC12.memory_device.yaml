@@ -1,0 +1,22 @@
+schema: memory_device
+name: MRAM-2T2R-ASPDAC12
+type: MRAM
+resistance:
+  'on': 2700ohm
+  'off': 5100ohm
+read:
+  mode: voltage
+  current: 100uA
+  power: 16.5uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 50uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ

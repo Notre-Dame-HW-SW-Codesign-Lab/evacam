@@ -1,2 +1,0 @@
--Height (F): 10
--Width (F): 4

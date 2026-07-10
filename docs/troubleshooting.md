@@ -32,7 +32,7 @@ Check:
 
 ## Missing Or Broken Referenced Input
 
-If the tool config parses but a referenced file is missing, loading fails before exploration. Verify `architecture_file`, `cell_file`, and optional `custom_sense_amplifier_file`. Relative paths are resolved from the tool config directory.
+If the run config parses but a referenced file is missing, loading fails before exploration. Verify `architecture`, `cell`, `technology`, and any nested references such as `sensing`, `sense_amplifier`, `memory_device`, and `access_devices`. Relative paths are resolved from the file that contains each reference.
 
 ## `No valid solutions.`
 
@@ -65,7 +65,7 @@ The exploration CSV is only written for full-exploration runs without pruning. I
 Use:
 
 ```bash
-./EvaCAM -v config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
+./EvaCAM -v config/2FeFET_TCAM/2FeFET_TCAM.config.yaml
 ```
 
 Verbose mode is the fastest way to see where startup or config loading stops.

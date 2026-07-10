@@ -51,18 +51,22 @@ def write_config_with_search_function(
     cell_override=None,
 ):
     tool = yaml.safe_load(source_config.read_text())
-    architecture_source = (source_config.parent / tool["architecture_file"]).resolve()
+    architecture_source = (source_config.parent / tool["architecture"]).resolve()
     text = architecture_source.read_text()
     for token in ("EX", "BE", "TH"):
         text = text.replace(f"search_function: {token}", f"search_function: {search_function}")
+    sensing = yaml.safe_load(architecture_source.read_text()).get("sensing")
+    if sensing:
+        text = text.replace(f"sensing: {sensing}", f"sensing: {(architecture_source.parent / sensing).resolve()}")
     architecture_path = pathlib.Path(tmp_dir) / f"{source_config.stem}_{search_function}_architecture.yaml"
     architecture_path.write_text(text)
 
-    tool["architecture_file"] = str(architecture_path)
+    tool["architecture"] = str(architecture_path)
     if cell_override is None:
-        tool["cell_file"] = str((source_config.parent / tool["cell_file"]).resolve())
+        tool["cell"] = str((source_config.parent / tool["cell"]).resolve())
     else:
-        tool["cell_file"] = str(cell_override)
+        tool["cell"] = str(cell_override)
+    tool["technology"] = str((source_config.parent / tool["technology"]).resolve())
     tool_path = pathlib.Path(tmp_dir) / f"{source_config.stem}_{search_function}_tool.yaml"
     tool_path.write_text(yaml.safe_dump(tool, sort_keys=False))
     return tool_path
@@ -70,10 +74,22 @@ def write_config_with_search_function(
 
 def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir, search_function="TH"):
     repo_root = pathlib.Path(__file__).resolve().parents[1]
-    source_cell = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml"
+    source_cell = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM.cell.yaml"
+    source_memory_device = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM.memory_device.yaml"
+    memory_device_text = source_memory_device.read_text()
+    memory_device_text = memory_device_text.replace(
+        "min_sense_voltage: 70mV",
+        f"min_sense_voltage: {sense_voltage:.12e}V",
+    )
+    memory_device_path = pathlib.Path(tmp_dir) / "high_sense.memory_device.yaml"
+    memory_device_path.write_text(memory_device_text)
+
     cell_text = source_cell.read_text()
-    cell_text = cell_text.replace("min_sense_voltage: 70mV", f"min_sense_voltage: {sense_voltage:.12e}V")
-    cell_path = pathlib.Path(tmp_dir) / "high_sense_cell_config.yaml"
+    cell_text = cell_text.replace(
+        "memory_device: ./2FeFET_TCAM.memory_device.yaml",
+        f"memory_device: {memory_device_path}",
+    )
+    cell_path = pathlib.Path(tmp_dir) / "high_sense.cell.yaml"
     cell_path.write_text(cell_text)
 
     return write_config_with_search_function(
@@ -191,7 +207,7 @@ def main():
     )
 
     tcam_be_matcher = evacam_py.EvaCAMMatch(
-        str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml")
+        str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM.config.yaml")
     )
     tcam_be_width = tcam_be_matcher.word_width()
     tcam_be_query = [0] * tcam_be_width
@@ -240,8 +256,8 @@ def main():
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tcam_source = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml"
-        mcam_source = repo_root / "config/2FeFET_MCAM/2FeFET_MCAM_tool_config.yaml"
+        tcam_source = repo_root / "config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml"
+        mcam_source = repo_root / "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml"
 
         tcam_th_matcher = evacam_py.EvaCAMMatch(
             str(write_config_with_search_function(tcam_source, "TH", tmp_dir))

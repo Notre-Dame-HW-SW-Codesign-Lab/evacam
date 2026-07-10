@@ -1,0 +1,10 @@
+schema: config
+name: FeFET-2Fe1T-DATE-2021
+architecture: FeFET-2Fe1T-DATE-2021.architecture.yaml
+cell: FeFET-2Fe1T-DATE-2021.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

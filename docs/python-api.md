@@ -20,13 +20,25 @@ Run Python from the repository root, or make sure the built extension is on `PYT
 import evacam_py
 ```
 
+The package also ships the default v2 config library used by installed Python
+workflows:
+
+```python
+import evacam
+
+config_lib = evacam.config_lib_path()
+```
+
+`config_lib` points at the installed `config/lib` defaults, including
+technology, sensing, and sense-amplifier YAML files.
+
 ## Full Simulator Run
 
 Use `evacam_py.run()` to execute the same simulator path used by the CLI and return raw SI-valued metrics to Python.
 
 ```python
 result = evacam_py.run(
-    "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml",
+    "config/2FeFET_TCAM/2FeFET_TCAM.config.yaml",
     threads=1,
     output_yaml_path=None,
     write_yaml=False,
@@ -72,7 +84,7 @@ Example:
 
 ```python
 result = evacam_py.run(
-    "config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml",
+    "config/2FeFET_TCAM/2FeFET_TCAM.config.yaml",
     write_yaml=True,
     output_yaml_path="results/python_run.yaml",
 )
@@ -94,11 +106,11 @@ print(search.geometry["bit_serial_width"])
 
 ## EvaCAMMatch
 
-Create a matcher from a tool config file:
+Create a matcher from a run config file:
 
 ```python
 matcher = evacam_py.EvaCAMMatch(
-    "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml"
+    "config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml"
 )
 ```
 
@@ -293,7 +305,7 @@ matcher.evaluate_mismatches(width + 1)
 import evacam_py
 
 matcher = evacam_py.EvaCAMMatch(
-    "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml"
+    "config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml"
 )
 
 width = matcher.word_width()

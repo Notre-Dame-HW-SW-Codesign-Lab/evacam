@@ -42,47 +42,69 @@ void ReplaceAll(std::string &text, const std::string &from, const std::string &t
 
 CornerFixture WriteCornerConfig(const std::string &tag, const std::string &maxVarFields) {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
-    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml";
+    const std::filesystem::path sourceConfig =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml";
     const std::filesystem::path sourceArchitecture =
-            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match_architecture_config.yaml";
-    const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match.architecture.yaml";
+    const std::filesystem::path sourceCell =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM.cell.yaml";
+    const std::filesystem::path sourceSensing =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match.sensing.yaml";
+    const std::filesystem::path sourceMemoryDevice =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM.memory_device.yaml";
+    const std::filesystem::path sourceTechnology =
+            repoRoot / "config/lib/technology/cmos.legacy.yaml";
 
     const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("corner_variation_" + tag);
     std::filesystem::remove_all(tmpDir);
     std::filesystem::create_directories(tmpDir);
 
     const std::filesystem::path testCell = tmpDir / "cell.yaml";
+    const std::filesystem::path testMemoryDevice = tmpDir / "memory_device.yaml";
+    const std::filesystem::path testArchitecture = tmpDir / "architecture.yaml";
     const std::filesystem::path testConfig = tmpDir / "config.yaml";
     const std::filesystem::path testOutput = tmpDir / "results.yaml";
     const std::filesystem::path testLog = tmpDir / "run.log";
 
     std::string cellText = ReadFile(sourceCell);
-    cellText +=
+    ReplaceAll(cellText,
+            "memory_device: ./2FeFET_TCAM.memory_device.yaml",
+            "memory_device: " + testMemoryDevice.string());
+    WriteFile(testCell, cellText);
+
+    std::string memoryDeviceText = ReadFile(sourceMemoryDevice);
+    memoryDeviceText +=
         "\nvariation:\n"
-        "  with_variation: true\n"
         "  mode: corner\n"
         "  seed: 12345\n"
         "  samples: 99\n"
         + maxVarFields;
-    WriteFile(testCell, cellText);
+    WriteFile(testMemoryDevice, memoryDeviceText);
+
+    std::string architectureText = ReadFile(sourceArchitecture);
+    ReplaceAll(architectureText,
+            "sensing: ./2FeFET_TCAM_match.sensing.yaml",
+            "sensing: " + sourceSensing.string());
+    WriteFile(testArchitecture, architectureText);
 
     std::string configText = ReadFile(sourceConfig);
     ReplaceAll(configText,
-            "cell_file: ./2FeFET_TCAM_cell_config.yaml",
-            "cell_file: " + testCell.string());
+            "cell: 2FeFET_TCAM.cell.yaml",
+            "cell: " + testCell.string());
     ReplaceAll(configText,
-            "architecture_file: ./2FeFET_TCAM_match_architecture_config.yaml",
-            "architecture_file: " + sourceArchitecture.string());
-    configText +=
-        "\noutput:\n"
-        "  yaml_file: " + testOutput.string() + "\n";
+            "architecture: 2FeFET_TCAM_match.architecture.yaml",
+            "architecture: " + testArchitecture.string());
+    ReplaceAll(configText,
+            "technology: ../lib/technology/cmos.legacy.yaml",
+            "technology: " + sourceTechnology.string());
     WriteFile(testConfig, configText);
 
     return {testConfig, testOutput, testLog};
 }
 
 int RunEvaCamVerbose(const CornerFixture &fixture) {
-    const std::string command = "./EvaCAM -v " + fixture.configPath.string()
+    const std::string command = "./EvaCAM -v --output " + fixture.outputPath.string()
+        + " " + fixture.configPath.string()
         + " > " + fixture.logPath.string() + " 2>&1";
     return std::system(command.c_str());
 }

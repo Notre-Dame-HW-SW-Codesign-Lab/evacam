@@ -4,6 +4,7 @@ recursive-include src *.cpp *.h
 recursive-include include *.h
 recursive-include bindings *.cpp *.h
 recursive-include compat *.h
+recursive-include evacam/data *.yaml
 include README.md
 include pyproject.toml
 include setup.py

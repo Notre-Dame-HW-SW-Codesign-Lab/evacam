@@ -1,0 +1,57 @@
+# Reference-only cell config. See README.md in this directory.
+schema: cell
+
+name: sample_cell
+cam_type: TCAM # TCAM | BCAM | MCAM | ACAM
+
+# Path is resolved relative to this cell file.
+memory_device: ./sample.memory_device.yaml
+
+access_devices:
+  sample_access: ./sample.access_device.yaml # paths resolved relative to this cell file
+
+layout:
+  cell_process_node: 32nm # units: m | cm | mm | um | nm
+  area: 200F^2 # units: F^2
+  aspect_ratio: 1.5 # scalar
+
+ports:
+  row:
+    0:
+      type: searchline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
+      connection:
+        kind: memory_terminal # memory_terminal | access_device
+        terminal: gate # gate | source | drain | diode | none
+      wire_width: 1F # units: F
+      voltages:
+        set_lrs: 2V # units: V | mV
+        set_mrs: 2V # units: V | mV
+        reset: 2V # units: V | mV
+        search0: 0V # units: V | mV
+        search1: 1V # units: V | mV
+    1:
+      type: wordline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
+      connection:
+        kind: access_device # memory_terminal | access_device
+        device: ./sample.access_device.yaml
+        count: 1 # positive integer
+      wire_width: 1F # units: F
+      voltages:
+        set_lrs: 1V # units: V | mV
+        set_mrs: 1V # units: V | mV
+        reset: 1V # units: V | mV
+        search0: 0V # units: V | mV
+        search1: 1V # units: V | mV
+  column:
+    0:
+      type: matchline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
+      connection:
+        kind: memory_terminal # memory_terminal | access_device
+        terminal: drain # gate | source | drain | diode | none
+      wire_width: 1F # units: F
+      voltages:
+        set_lrs: 0V # units: V | mV
+        set_mrs: 0V # units: V | mV
+        reset: 0V # units: V | mV
+        search0: 0V # units: V | mV
+        search1: 1V # units: V | mV

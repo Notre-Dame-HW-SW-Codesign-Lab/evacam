@@ -1,0 +1,51 @@
+cell:
+  name: 2FeFET-TCAM
+  cam_type: TCAM
+  type: FEFETRAM
+  cell_process_node: 45nm
+  area: 300F^2
+  aspect_ratio: 1.76
+match:
+  cmos_width: 3F
+ports:
+  row:
+    0:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 4V
+        set_mrs: 4V
+        reset: 4V
+        search0: 1V
+        search1: 1V
+    1:
+      type: searchline
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 4V
+        set_mrs: 4V
+        reset: 4V
+        search0: 1V
+        search1: 1V
+  column:
+    0:
+      type: matchline
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
+      wire_width: 1F
+      voltages:
+        set_lrs: 1V
+        set_mrs: 1V
+        reset: 1V
+        search0: 0V
+        search1: 1V

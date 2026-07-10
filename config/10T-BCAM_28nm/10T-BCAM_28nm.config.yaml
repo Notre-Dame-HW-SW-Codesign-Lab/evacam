@@ -1,0 +1,10 @@
+schema: config
+name: 10T-BCAM_28nm
+architecture: 10T-BCAM_28nm.architecture.yaml
+cell: 10T-BCAM_28nm.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: Area
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

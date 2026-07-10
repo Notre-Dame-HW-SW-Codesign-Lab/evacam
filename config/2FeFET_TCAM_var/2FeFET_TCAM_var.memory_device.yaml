@@ -1,0 +1,29 @@
+cell:
+  name: 2FeFET-TCAM
+  cam_type: TCAM
+  type: FEFETRAM
+  cell_process_node: 45nm
+  area: 300F^2
+  aspect_ratio: 1.76
+resistance:
+  on: 10000ohm
+  off: 1600000000ohm
+read:
+  mode: voltage
+  voltage: 1V
+  current: 5.62uA
+  power: 5.62uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ

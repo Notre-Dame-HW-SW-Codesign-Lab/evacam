@@ -9,22 +9,16 @@
 namespace {
 
 const char *kCellPath = "tests/tmp_cell_loader_cell_config.yaml";
+const char *kMemoryDevicePath = "tests/tmp_cell_loader.memory_device.yaml";
 const char *kMissingFieldPath = "tests/tmp_cell_loader_missing.yaml";
 
 void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
-    std::ofstream out(path);
-    out <<
-        "cell:\n"
-        "  name: TestCell\n"
-        "  type: SRAM\n"
-        "  cam_type: TCAM\n"
-        "  cell_process_node: 45nm\n"
-        "  area: 300F^2\n"
-        "  aspect_ratio: 2.0\n"
-        "access_device:\n"
-        "  type: CMOS\n"
-        "  cmos_width: 2F\n"
-        "  voltage_drop: 150mV\n"
+    {
+        std::ofstream out(kMemoryDevicePath);
+        out <<
+        "schema: memory_device\n"
+        "name: TestDevice\n"
+        "type: SRAM\n"
         "resistance:\n"
         "  'on': 1kohm\n"
         "  'off': 1Mohm\n"
@@ -47,17 +41,29 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "    voltage: 3V\n"
         "    current: 2uA\n"
         "    pulse: 20ns\n"
-        "    energy: 3pJ\n"
-        "match:\n"
-        "  cmos_width: 3F\n"
+        "    energy: 3pJ\n";
+        if (!extra.empty()) {
+            out << extra;
+        }
+    }
+
+    std::ofstream out(path);
+    out <<
+        "schema: cell\n"
+        "name: TestCell\n"
+        "cam_type: TCAM\n"
+        "memory_device: ./tmp_cell_loader.memory_device.yaml\n"
+        "layout:\n"
+        "  cell_process_node: 45nm\n"
+        "  area: 300F^2\n"
+        "  aspect_ratio: 2.0\n"
         "ports:\n"
         "  row:\n"
         "    0:\n"
         "      type: searchline\n"
-        "      cmos_region: gate\n"
-        "      num_cmos: 1\n"
-        "      cmos_width: 1F\n"
-        "      is_nmos: true\n"
+        "      connection:\n"
+        "        kind: memory_terminal\n"
+        "        terminal: gate\n"
         "      wire_width: 1F\n"
         "      voltages:\n"
         "        set_lrs: 4V\n"
@@ -68,10 +74,9 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "  column:\n"
         "    0:\n"
         "      type: matchline\n"
-        "      cmos_region: drain\n"
-        "      num_cmos: 1\n"
-        "      cmos_width: 1F\n"
-        "      is_nmos: true\n"
+        "      connection:\n"
+        "        kind: memory_terminal\n"
+        "        terminal: drain\n"
         "      wire_width: 1F\n"
         "      voltages:\n"
         "        set_lrs: 1V\n"
@@ -79,9 +84,6 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "        reset: 1V\n"
         "        search0: 0V\n"
         "        search1: 1V\n";
-    if (!extra.empty()) {
-        out << extra;
-    }
 }
 
 bool LoadCellThrows(const char *path) {
@@ -105,15 +107,12 @@ void TestMinimalCellParses() {
     assert(cell.processNode == 45);
     assert(near(cell.area, 300.0));
     assert(near(cell.aspectRatio, 2.0));
-    assert(near(cell.widthAccessCMOS, 2.0));
-    assert(near(cell.voltageDropAccessDevice, 0.15));
     assert(near(cell.resistanceOn, 1e3));
     assert(near(cell.resistanceOff, 1e6));
     assert(cell.readMode == true);
     assert(near(cell.readVoltage, 1.0));
     assert(near(cell.minSenseVoltage, 0.07));
     assert(cell.resetMode == false);
-    assert(near(cell.camWidthMatchTran, 3.0));
     assert(cell.camNumRow == 1);
     assert(cell.camNumCol == 1);
 }
@@ -143,7 +142,6 @@ void TestVariationSectionParses() {
     WriteMinimalCellFile(
         kCellPath,
         "variation:\n"
-        "  with_variation: true\n"
         "  seed: 12345\n"
         "  mode: monte_carlo\n"
         "  lut_file: variation_lut.csv\n"
@@ -224,9 +222,11 @@ void TestMissingRequiredCellFieldThrows() {
     {
         std::ofstream out(kMissingFieldPath);
         out <<
-            "cell:\n"
-            "  name: TestCell\n"
-            "  type: SRAM\n"
+            "schema: cell\n"
+            "name: TestCell\n"
+            "cam_type: TCAM\n"
+            "memory_device: ./tmp_cell_loader.memory_device.yaml\n"
+            "layout:\n"
             "  cell_process_node: 45nm\n"
             "  area: 300F^2\n";
     }

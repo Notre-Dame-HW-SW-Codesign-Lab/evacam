@@ -1,0 +1,70 @@
+# Reference-only architecture config. See README.md in this directory.
+schema: architecture
+
+design:
+  target: CAM # currently supported: CAM
+  search_function: EX # EX | BE | TH
+  system_process_node: 32nm # units: m | cm | mm | um | nm
+  device_roadmap: HP # HP | LSTP | LOP | FEFET | LP
+  temperature: 330K # units: K
+
+memory:
+  capacity: 1KB # units: B | KB | MB | GB, or exact scalar auto with fixed subarray dimensions
+  physical_capacity: 1KB # optional; units: B | KB | MB | GB
+  word_width: 128bits # units: bit | bits
+
+routing:
+  type: H-tree # currently supported: H-tree
+
+peripherals:
+  input:
+    buffer: false
+    encoder: false
+    custom_encoder: false
+    encoder_type: encoding_two_bit # currently supported: encoding_two_bit
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+  write_driver: true
+
+# Path is resolved relative to this architecture file.
+sensing: ./sample.sensing.yaml
+
+wires:
+  local:
+    type: LocalAggressive # LocalAggressive | LocalConservative | GlobalAggressive | GlobalConservative
+    repeater: RepeatedNone # RepeatedNone | RepeatedOpt | Repeated5 | Repeated10 | Repeated20 | Repeated50
+    low_swing: false
+  global:
+    type: GlobalAggressive # LocalAggressive | LocalConservative | GlobalAggressive | GlobalConservative
+    repeater: RepeatedNone # RepeatedNone | RepeatedOpt | Repeated5 | Repeated10 | Repeated20 | Repeated50
+    low_swing: false
+
+organization:
+  banks:
+    total: [1, 1] # [rows, columns], positive powers of two
+    active: [1, 1] # [active per column, active per row], positive powers of two
+  mats:
+    total: [1, 1] # [rows, columns], positive powers of two
+    active: [1, 1] # [active per column, active per row], positive powers of two
+  subarray:
+    dimensions: [128, 64] # [rows, columns], integers
+  mux:
+    sense_amp: 1 # positive integer
+    output_level1: 1 # positive integer
+    output_level2: 1 # positive integer
+  bit_serial_width: 128bits # units: bit | bits
+
+matchline:
+  additional_cap: 4fF # units: F | mF | uF | nF | pF | fF
+  match_transistor:
+    cmos_width: 2F # units: F
+
+physical_limits:
+  max_nmos_size: 8F # units: F
+  max_driver_current: 2uA # units: A | mA | uA | nA | pA
+
+flash:
+  page_size: 4KB # units: B | KB | MB | GB
+  block_size: 256KB # units: B | KB | MB | GB

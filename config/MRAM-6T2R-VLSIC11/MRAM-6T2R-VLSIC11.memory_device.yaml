@@ -1,0 +1,22 @@
+schema: memory_device
+name: MRAM-6T2R-VLSIC11
+type: MRAM
+resistance:
+  'on': 1100ohm
+  'off': 3000ohm
+read:
+  mode: voltage
+  voltage: 1.2V
+  power: 16.5uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ

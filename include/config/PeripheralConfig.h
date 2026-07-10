@@ -18,6 +18,7 @@ struct PeripheralConfig {
     bool withOutputBuffer = false;
     double matchlineSenseMargin = 3e-8;
     std::string fileCustomSA;
+    std::string fileSenseAmp;
     bool noPrechargeInc = false;
     bool includeLeakage = false;
     double scaledVoltage = 0;

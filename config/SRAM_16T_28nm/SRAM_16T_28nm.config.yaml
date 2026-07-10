@@ -1,0 +1,10 @@
+schema: config
+name: SRAM_16T_28nm
+architecture: SRAM_16T_28nm.architecture.yaml
+cell: SRAM_16T_28nm.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: Area
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

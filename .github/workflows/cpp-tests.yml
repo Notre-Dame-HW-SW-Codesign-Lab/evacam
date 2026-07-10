@@ -18,6 +18,11 @@ jobs:
           - test-top-level-parser
           - test-cell-loader
           - test-cli-options
+          - test-custom-sa-loader
+          - test-technology-loader
+          - test-memory-access-loader
+          - test-new-input-names
+          - test-generated-v2-configs
           - test-input-validation
           - test-output-path-builder
           - test-exploration
@@ -29,6 +34,7 @@ jobs:
           - test-match
           - test-mat-decoder
           - test-htree-routing
+          - test-python-package-data
           - test-pybind-run
 
     steps:

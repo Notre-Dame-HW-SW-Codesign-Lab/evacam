@@ -1,0 +1,10 @@
+schema: config
+name: MRAM-6T2R-VLSIC11
+architecture: MRAM-6T2R-VLSIC11.architecture.yaml
+cell: MRAM-6T2R-VLSIC11.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

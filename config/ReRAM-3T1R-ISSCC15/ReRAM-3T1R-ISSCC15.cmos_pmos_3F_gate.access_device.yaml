@@ -1,0 +1,7 @@
+schema: access_device
+name: ReRAM-3T1R-ISSCC15.cmos_pmos_3F_gate.access_device
+type: cmos
+width: 3F
+connected_terminal: gate
+is_nmos: false
+voltage_drop: 0.15V

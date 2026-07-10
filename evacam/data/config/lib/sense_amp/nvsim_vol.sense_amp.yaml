@@ -1,0 +1,43 @@
+schema: sense_amp
+name: nvsim_vol
+model: nvsim_cmos
+supported_modes:
+  voltage_sense:
+    current_sense: false
+  current_sense:
+    current_sense: true
+  discharge:
+    current_sense: false
+layout:
+  min_pitch: 2F
+  same_type_diff_gap: 1.5F
+  p_to_n_diff_gap: 2F
+transistors:
+  p_sense_width: 30F
+  n_sense_width: 15F
+  isolation_width: 15F
+  enable_width: 5F
+  mux_width: 9F
+iv_converter:
+  area: 5000F^2
+  current_sense_latency:
+    - {min_node: 119nm, latency: 0.49ns}
+    - {min_node: 89nm, latency: 0.53ns}
+    - {min_node: 64nm, latency: 0.62ns}
+    - {min_node: 44nm, latency: 0.80ns}
+    - {min_node: 31nm, latency: 1.07ns}
+    - {min_node: null, latency: 1.45ns}
+  current_sense_energy:
+    - {min_node: 119nm, energy: 85.2fJ}
+    - {min_node: 89nm, energy: 87.2fJ}
+    - {min_node: 64nm, energy: 90.0fJ}
+    - {min_node: 44nm, energy: 102.6fJ}
+    - {min_node: 31nm, energy: 125.6fJ}
+    - {min_node: null, energy: 150fJ}
+  current_sense_leakage:
+    - {min_node: 119nm, leakage: 14nW}
+    - {min_node: 89nm, leakage: 18.7nW}
+    - {min_node: 64nm, leakage: 25.7nW}
+    - {min_node: 44nm, leakage: 4.41nW}
+    - {min_node: 31nm, leakage: 125.4nW}
+    - {min_node: null, leakage: 150nW}

@@ -4,12 +4,14 @@
 #include "Technology.h"
 #include "Wire.h"
 #include "WireProcessTable.h"
+#include "input/TechnologyYamlLoader.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 namespace {
 
@@ -21,8 +23,15 @@ bool Near(double actual, double expected, double tolerance = 1e-12) {
 std::shared_ptr<EvaCamConfig> MakeConfigWithTechnology(int processNode = 90) {
     auto config = std::make_shared<EvaCamConfig>();
     config->technology.tech = std::make_shared<Technology>();
-    config->technology.tech->Initialize(
-            processNode, config->input.deviceRoadmap, config->peripherals.useUpdatedLib);
+    const std::vector<TechnologySpec> specs =
+            YamlHelpers::ReadTechnologySpecsFromYaml("config/lib/technology/cmos.legacy.yaml");
+    for (const TechnologySpec &spec : specs) {
+        if (spec.featureSizeInNano == processNode && spec.roadmap == config->input.deviceRoadmap) {
+            config->technology.tech->InitializeFromSpec(spec);
+            return config;
+        }
+    }
+    assert(false);
     return config;
 }
 

@@ -1,0 +1,54 @@
+schema: architecture
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 65nm
+  device_roadmap: HP
+  temperature: 350K
+memory:
+  capacity: 32KB
+  word_width: 32bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: true
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: true
+    priority_encoder: false
+    accumulator: false
+  write_driver: false
+wires:
+  local:
+    type: LocalConservative
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+organization:
+  banks:
+    total:
+    - 1
+    - 1
+    active:
+    - 1
+    - 1
+  mats:
+    total:
+    - 8
+    - 8
+    active:
+    - 8
+    - 8
+  mux:
+    sense_amp: 1
+    output_level1: 1
+    output_level2: 32
+sensing: ./8T-BCAM_65nm.sensing.yaml
+matchline:
+  match_transistor:
+    cmos_width: 1F

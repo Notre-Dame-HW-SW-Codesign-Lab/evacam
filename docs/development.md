@@ -23,7 +23,7 @@ make
 Run a known-good example:
 
 ```bash
-make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
+make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM.config.yaml
 ```
 
 Run focused tests:
@@ -43,6 +43,14 @@ Run the broader config sweep:
 
 ```bash
 make test-all-valgrind
+```
+
+Synchronize the default configuration library packaged with `evacam_py` after
+changing files under `config/lib/`:
+
+```bash
+make sync-python-package-data
+make test-python-package-data
 ```
 
 Generate the default deterministic corner-sweep configs without running EvaCAM:
@@ -92,7 +100,9 @@ The current tests are small assert-based executables under `tests/`; there is no
   - `cam`: CAM-specific implementations
   - `factories`: object construction helpers
 - Keep new YAML examples under the grouped `config/` tree, which is the canonical layout for active configs
+- Use v2 filenames for active configs: `*.config.yaml`, `*.architecture.yaml`, `*.cell.yaml`, `*.memory_device.yaml`, `*.access_device.yaml`, and `*.sensing.yaml`
+- Do not add new `*_tool_config.yaml`, `*_architecture_config.yaml`, or `*_cell_config.yaml` files except migration/reference fixtures
 - Treat `config/old_style_config/` as legacy reference only; do not add new examples there
 - Update the matching docs when you add or remove parsed keys
 - Prefer `README.md`, `docs/input-files.md`, `docs/schema.md`, and `docs/results-reference.md` for user-facing changes
-- `docs/tool_config_full_example.yaml`, `docs/architecture_config_full_example.yaml`, and `docs/cell_config_full_example.yaml` are schema references, not physically valid experiments
+- `docs/input_samples/` contains reference-only v2 input samples, not physically valid experiments

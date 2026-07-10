@@ -1,0 +1,11 @@
+# Not currently supported: retained as an input example while this design point is fixed.
+schema: config
+name: ReRAM-2T2R-VLSI21
+architecture: ../../ReRAM-2T2R-VLSI21/ReRAM-2T2R-VLSI21.architecture.yaml
+cell: ../../ReRAM-2T2R-VLSI21/ReRAM-2T2R-VLSI21.cell.yaml
+technology: ../../lib/technology/cmos.legacy.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

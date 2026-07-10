@@ -10,24 +10,17 @@
 namespace {
 
 const char *kCellPath = "tests/tmp_top_level_cell_config.yaml";
-const char *kConfigPath = "tests/tmp_top_level_system_config.yaml";
-const char *kArchitecturePath = "tests/tmp_top_level_architecture_config.yaml";
-const char *kToolPath = "tests/tmp_top_level_tool_config.yaml";
-const char *kCustomSenseAmpPath = "tests/tmp_top_level_custom_sa.yaml";
+const char *kConfigPath = "tests/tmp_top_level.config.yaml";
+const char *kArchitecturePath = "tests/tmp_top_level.architecture.yaml";
+const char *kMemoryDevicePath = "tests/tmp_top_level.memory_device.yaml";
+const char *kSensingPath = "tests/tmp_top_level.sensing.yaml";
 
-void WriteMinimalCellFile() {
-    std::ofstream out(kCellPath);
+void WriteMemoryDeviceFile(const std::string &type = "SRAM") {
+    std::ofstream out(kMemoryDevicePath);
     out <<
-        "cell:\n"
-        "  name: TestCell\n"
-        "  type: SRAM\n"
-        "  cam_type: TCAM\n"
-        "  system_process_node: 45nm\n"
-        "  area: 300F^2\n"
-        "  aspect_ratio: 2.0\n"
-        "access_device:\n"
-        "  type: CMOS\n"
-        "  cmos_width: 2F\n"
+        "schema: memory_device\n"
+        "name: TestDevice\n"
+        "type: " << type << "\n"
         "resistance:\n"
         "  'on': 1kohm\n"
         "  'off': 1Mohm\n"
@@ -50,17 +43,29 @@ void WriteMinimalCellFile() {
         "    voltage: 3V\n"
         "    current: 2uA\n"
         "    pulse: 20ns\n"
-        "    energy: 3pJ\n"
-        "match:\n"
-        "  cmos_width: 3F\n"
+        "    energy: 3pJ\n";
+}
+
+void WriteMinimalCellFile() {
+    WriteMemoryDeviceFile();
+
+    std::ofstream out(kCellPath);
+    out <<
+        "schema: cell\n"
+        "name: TestCell\n"
+        "cam_type: TCAM\n"
+        "memory_device: ./tmp_top_level.memory_device.yaml\n"
+        "layout:\n"
+        "  cell_process_node: 45nm\n"
+        "  area: 300F^2\n"
+        "  aspect_ratio: 2.0\n"
         "ports:\n"
         "  row:\n"
         "    0:\n"
         "      type: searchline\n"
-        "      cmos_region: gate\n"
-        "      num_cmos: 1\n"
-        "      cmos_width: 1F\n"
-        "      is_nmos: true\n"
+        "      connection:\n"
+        "        kind: memory_terminal\n"
+        "        terminal: gate\n"
         "      wire_width: 1F\n"
         "      voltages:\n"
         "        set_lrs: 4V\n"
@@ -71,10 +76,9 @@ void WriteMinimalCellFile() {
         "  column:\n"
         "    0:\n"
         "      type: matchline\n"
-        "      cmos_region: drain\n"
-        "      num_cmos: 1\n"
-        "      cmos_width: 1F\n"
-        "      is_nmos: true\n"
+        "      connection:\n"
+        "        kind: memory_terminal\n"
+        "        terminal: drain\n"
         "      wire_width: 1F\n"
         "      voltages:\n"
         "        set_lrs: 1V\n"
@@ -84,72 +88,37 @@ void WriteMinimalCellFile() {
         "        search1: 1V\n";
 }
 
-void WriteBaseTopLevelConfig(const std::string &extra = "") {
-    std::ofstream out(kConfigPath);
+void WriteSensingFile(const std::string &extra = "") {
+    std::ofstream out(kSensingPath);
     out <<
-        "design:\n"
-        "  target: CAM\n"
-        "  search_function: EX\n"
-        "  system_process_node: 45nm\n"
-        "  device_roadmap: HP\n"
-        "  temperature: 300K\n"
-        "memory:\n"
-        "  cell_file: tests/tmp_top_level_cell_config.yaml\n"
-        "  capacity: 1KB\n"
-        "  word_width: 64bits\n"
-        "routing:\n"
-        "  type: H-tree\n"
-        "peripherals:\n"
-        "  write_driver: false\n"
-        "  input:\n"
-        "    buffer: false\n"
-        "    encoder: false\n"
-        "    custom_encoder: false\n"
-        "  output:\n"
-        "    buffer: false\n"
-        "    priority_encoder: false\n"
-        "    accumulator: false\n"
-        "sensing:\n"
-        "  internal: true\n"
-        "  custom_sense_amp: false\n"
-        "  amplifier_type: nvsim_vol\n"
-        "optimization:\n"
-        "  target: ReadLatency\n"
-        "  buffer_design: latency\n"
-        "  row_driver: latency\n"
-        "  priority_encoder: latency\n"
-        "wires:\n"
-        "  local:\n"
-        "    type: LocalAggressive\n"
-        "    repeater: RepeatedOpt\n"
-        "    low_swing: false\n"
-        "  global:\n"
-        "    type: GlobalAggressive\n"
-        "    repeater: RepeatedOpt\n"
-        "    low_swing: false\n";
-    if (!extra.empty()) {
-        out << extra;
-    }
+        "schema: sensing\n"
+        "internal: true\n"
+        "sense_amplifier: ../config/lib/sense_amp/nvsim_vol.sense_amp.yaml\n";
+    out << extra;
 }
 
-void WriteExplicitSubarrayConfig(const std::string &memoryCapacity,
-        const std::string &wordWidth,
-        const std::string &optimizationTarget,
-        const std::string &organizationExtra = "",
-        const std::string &optimizationExtra = "",
-        const std::string &extraSection = "") {
-    std::ofstream out(kConfigPath);
+void WriteArchitectureFile(const std::string &memoryCapacity = "1KB",
+        const std::string &wordWidth = "64bits",
+        const std::string &organization = "",
+        const std::string &extra = "",
+        const std::string &physicalCapacity = "") {
+    WriteSensingFile();
+
+    std::ofstream out(kArchitecturePath);
     out <<
+        "schema: architecture\n"
         "design:\n"
         "  target: CAM\n"
         "  search_function: EX\n"
         "  system_process_node: 45nm\n"
         "  device_roadmap: HP\n"
         "  temperature: 300K\n"
-        "memory:\n"
-        "  cell_file: tests/tmp_top_level_cell_config.yaml\n";
+        "memory:\n";
     if (!memoryCapacity.empty()) {
         out << "  capacity: " << memoryCapacity << "\n";
+    }
+    if (!physicalCapacity.empty()) {
+        out << "  physical_capacity: " << physicalCapacity << "\n";
     }
     out <<
         "  word_width: " << wordWidth << "\n"
@@ -161,23 +130,11 @@ void WriteExplicitSubarrayConfig(const std::string &memoryCapacity,
         "    buffer: false\n"
         "    encoder: false\n"
         "    custom_encoder: false\n"
+        "    encoder_type: encoding_two_bit\n"
         "  output:\n"
         "    buffer: false\n"
         "    priority_encoder: false\n"
         "    accumulator: false\n"
-        "sensing:\n"
-        "  internal: true\n"
-        "  custom_sense_amp: false\n"
-        "  amplifier_type: nvsim_vol\n"
-        "optimization:\n"
-        "  target: " << optimizationTarget << "\n"
-        "  buffer_design: latency\n"
-        "  row_driver: latency\n"
-        "  priority_encoder: latency\n";
-    if (!optimizationExtra.empty()) {
-        out << optimizationExtra;
-    }
-    out <<
         "wires:\n"
         "  local:\n"
         "    type: LocalAggressive\n"
@@ -187,11 +144,52 @@ void WriteExplicitSubarrayConfig(const std::string &memoryCapacity,
         "    type: GlobalAggressive\n"
         "    repeater: RepeatedOpt\n"
         "    low_swing: false\n"
+        "sensing: ./tmp_top_level.sensing.yaml\n";
+    if (!organization.empty()) {
+        out << organization;
+    }
+    if (!extra.empty()) {
+        out << extra;
+    }
+}
+
+void WriteRunConfig(const std::string &optimizationTarget = "ReadLatency",
+        const std::string &extra = "") {
+    std::ofstream out(kConfigPath);
+    out <<
+        "schema: config\n"
+        "name: tmp_top_level\n"
+        "architecture: ./tmp_top_level.architecture.yaml\n"
+        "cell: ./tmp_top_level_cell_config.yaml\n"
+        "technology: ../config/lib/technology/cmos.legacy.yaml\n"
+        "optimization:\n"
+        "  target: " << optimizationTarget << "\n"
+        "  buffer_design: latency\n"
+        "  row_driver: latency\n"
+        "  priority_encoder: latency\n";
+    out << extra;
+}
+
+void WriteBaseTopLevelConfig(const std::string &architectureExtra = "",
+        const std::string &runExtra = "") {
+    WriteMinimalCellFile();
+    WriteArchitectureFile("1KB", "64bits", "", architectureExtra);
+    WriteRunConfig("ReadLatency", runExtra);
+}
+
+void WriteExplicitSubarrayConfig(const std::string &memoryCapacity,
+        const std::string &wordWidth,
+        const std::string &optimizationTarget,
+        const std::string &organizationExtra = "",
+        const std::string &optimizationExtra = "",
+        const std::string &runExtra = "") {
+    WriteMinimalCellFile();
+    std::string organization =
         "organization:\n";
     if (!organizationExtra.empty()) {
-        out << organizationExtra;
+        organization += organizationExtra;
     } else {
-        out <<
+        organization +=
             "  banks:\n"
             "    total: [1, 1]\n"
             "    active: [1, 1]\n"
@@ -199,16 +197,17 @@ void WriteExplicitSubarrayConfig(const std::string &memoryCapacity,
             "    total: [1, 1]\n"
             "    active: [1, 1]\n";
     }
-    out <<
+    organization +=
         "  subarray:\n"
         "    dimensions: [64, 64]\n"
         "  mux:\n"
         "    sense_amp: 1\n"
         "    output_level1: 1\n"
         "    output_level2: 1\n";
-    if (!extraSection.empty()) {
-        out << extraSection;
-    }
+    WriteArchitectureFile(memoryCapacity, wordWidth, organization);
+
+    std::string extra = optimizationExtra + runExtra;
+    WriteRunConfig(optimizationTarget, extra);
 }
 
 bool LoadThrowsWithMessage(const std::string &expectedSubstring) {
@@ -256,63 +255,17 @@ void TestOptionalSectionsCanBeOmitted() {
     assert(config.runtimeSizing.realCapacity == 0);
 }
 
-void WriteSplitArchitectureConfig(const std::string &extra = "") {
-    std::ofstream out(kArchitecturePath);
-    out <<
-        "design:\n"
-        "  target: CAM\n"
-        "  search_function: EX\n"
-        "  system_process_node: 45nm\n"
-        "  device_roadmap: HP\n"
-        "  temperature: 300K\n"
-        "memory:\n"
-        "  capacity: 1KB\n"
-        "  physical_capacity: 1KB\n"
-        "  word_width: 64bits\n"
-        "routing:\n"
-        "  type: H-tree\n"
-        "peripherals:\n"
-        "  write_driver: false\n"
-        "  input:\n"
-        "    buffer: false\n"
-        "    encoder: false\n"
-        "    custom_encoder: false\n"
-        "    encoder_type: encoding_two_bit\n"
-        "  output:\n"
-        "    buffer: false\n"
-        "    priority_encoder: false\n"
-        "    accumulator: false\n"
-        "sensing:\n"
-        "  internal: true\n"
-        "  amplifier_type: nvsim_vol\n"
-        "  worst_case_sense_margin: 30mV\n"
-        "wires:\n"
-        "  local:\n"
-        "    type: LocalAggressive\n"
-        "    repeater: RepeatedOpt\n"
-        "    low_swing: false\n"
-        "  global:\n"
-        "    type: GlobalAggressive\n"
-        "    repeater: RepeatedOpt\n"
-        "    low_swing: false\n"
+void TestSplitConfigParsesAndMapsMovedFields() {
+    WriteMinimalCellFile();
+    WriteArchitectureFile("1KB", "64bits",
         "organization:\n"
         "  bit_serial_width: 64bits\n"
         "physical_limits:\n"
         "  max_nmos_size: 12F\n"
-        "  max_driver_current: 2uA\n";
-    out << extra;
-}
-
-void WriteSplitToolConfig(const std::string &extra = "") {
-    std::ofstream out(kToolPath);
-    out <<
-        "architecture_file: ./tmp_top_level_architecture_config.yaml\n"
-        "cell_file: ./tmp_top_level_cell_config.yaml\n"
-        "optimization:\n"
-        "  target: ReadLatency\n"
-        "  buffer_design: latency\n"
-        "  row_driver: latency\n"
-        "  priority_encoder: latency\n"
+        "  max_driver_current: 2uA\n",
+        "", "1KB");
+    WriteSensingFile("worst_case_sense_margin: 30mV\n");
+    WriteRunConfig("ReadLatency",
         "design_constraints:\n"
         "  enabled: true\n"
         "  area: 0.5\n"
@@ -320,22 +273,15 @@ void WriteSplitToolConfig(const std::string &extra = "") {
         "  use_cacti_assumption: true\n"
         "  enable_pruning: true\n"
         "modeling:\n"
-        "  use_updated_lib: true\n"
         "  exclude_precharge_latency: true\n"
         "  include_leakage: true\n"
         "  scaled_voltage: 0.9\n"
         "output:\n"
-        "  yaml_file: results/split.yaml\n"
-        "  exploration_csv_prefix: results/split_points\n";
-    out << extra;
-}
-
-void TestSplitConfigParsesAndMapsMovedFields() {
-    WriteSplitArchitectureConfig();
-    WriteSplitToolConfig();
+        "  results: results/split.yaml\n"
+        "  exploration_csv_prefix: results/split_points\n");
 
     EvaCamConfig config;
-    EvaCamYamlLoader::Load(kToolPath, config);
+    EvaCamYamlLoader::Load(kConfigPath, config);
 
     assert(config.input.fileMemCell.find("tests/tmp_top_level_cell_config.yaml") != std::string::npos);
     assert(config.runtimeSizing.realCapacity == 1024);
@@ -347,7 +293,6 @@ void TestSplitConfigParsesAndMapsMovedFields() {
     assert(config.constraints.area == 0.5);
     assert(config.useCactiAssumption);
     assert(config.constraints.pruningEnabled);
-    assert(config.peripherals.useUpdatedLib);
     assert(config.peripherals.noPrechargeInc);
     assert(config.peripherals.includeLeakage);
     assert(config.peripherals.scaledVoltage == 0.9);
@@ -355,78 +300,47 @@ void TestSplitConfigParsesAndMapsMovedFields() {
     assert(config.input.outputFilePrefix == "results/split_points");
 }
 
-void TestSplitConfigRejectsMixedOwnership() {
-    WriteSplitArchitectureConfig();
-    WriteSplitToolConfig("memory:\n  capacity: 1KB\n");
-
-    try {
-        EvaCamConfig config;
-        EvaCamYamlLoader::Load(kToolPath, config);
-        assert(false && "Expected mixed tool/architecture config to throw");
-    } catch (const std::runtime_error &error) {
-        assert(std::string(error.what()).find("field owned by the other config: memory")
-                != std::string::npos);
-    }
+void TestRunConfigRejectsArchitectureFields() {
+    WriteBaseTopLevelConfig("", "memory:\n  capacity: 1KB\n");
+    assert(LoadThrowsWithMessage("field owned by the other config: memory"));
 }
 
-void TestSplitArchitectureRejectsToolFields() {
-    WriteSplitArchitectureConfig("optimization:\n  target: ReadLatency\n");
-    WriteSplitToolConfig();
-
-    try {
-        EvaCamConfig config;
-        EvaCamYamlLoader::Load(kToolPath, config);
-        assert(false && "Expected architecture config with tool fields to throw");
-    } catch (const std::runtime_error &error) {
-        assert(std::string(error.what()).find("field owned by the other config: optimization")
-                != std::string::npos);
-    }
+void TestArchitectureRejectsRunFields() {
+    WriteBaseTopLevelConfig("optimization:\n  target: ReadLatency\n");
+    assert(LoadThrowsWithMessage("field owned by the other config: optimization"));
 }
 
-void TestSplitToolRequiresBothReferences() {
+void TestRunConfigRequiresReferences() {
+    WriteMinimalCellFile();
+    WriteArchitectureFile();
     {
-        std::ofstream out(kToolPath);
-        out << "architecture_file: ./tmp_top_level_architecture_config.yaml\n";
-    }
-    try {
-        EvaCamConfig config;
-        EvaCamYamlLoader::Load(kToolPath, config);
-        assert(false && "Expected incomplete tool references to throw");
-    } catch (const std::runtime_error &error) {
-        assert(std::string(error.what()).find("requires both architecture_file and cell_file")
-                != std::string::npos);
-    }
-}
-
-void TestSplitConfigCustomSenseAmpFileActivatesCustomModel() {
-    WriteSplitArchitectureConfig();
-    {
-        std::ofstream out(kCustomSenseAmpPath);
+        std::ofstream out(kConfigPath);
         out <<
-            "custom_sense_amp:\n"
-            "  area: 1um^2\n"
-            "  latency: 1ns\n"
-            "  energy: 1pJ\n"
-            "  cap_load: 1fF\n";
+            "schema: config\n"
+            "name: tmp_top_level\n"
+            "architecture: ./tmp_top_level.architecture.yaml\n"
+            "technology: ../config/lib/technology/cmos.legacy.yaml\n"
+            "optimization:\n"
+            "  target: ReadLatency\n";
     }
-    WriteSplitToolConfig("custom_sense_amplifier_file: ./tmp_top_level_custom_sa.yaml\n");
+    assert(LoadThrowsWithMessage("Missing key: cell"));
+}
+
+void TestSensingFileActivatesSenseAmpModel() {
+    WriteBaseTopLevelConfig();
 
     EvaCamConfig config;
-    EvaCamYamlLoader::Load(kToolPath, config);
-    assert(config.peripherals.customSenseAmp);
-    assert(config.peripherals.fileCustomSA.find("tests/tmp_top_level_custom_sa.yaml")
+    EvaCamYamlLoader::Load(kConfigPath, config);
+    assert(config.peripherals.customSenseAmp == false);
+    assert(config.peripherals.fileSenseAmp.find("config/lib/sense_amp/nvsim_vol.sense_amp.yaml")
             != std::string::npos);
 }
 
 void TestMissingRequiredTopLevelSectionThrows() {
     std::ofstream out(kConfigPath);
     out <<
-        "design:\n"
-        "  target: CAM\n"
-        "  search_function: EX\n"
-        "  system_process_node: 45nm\n"
-        "  device_roadmap: HP\n"
-        "  temperature: 300K\n";
+        "schema: config\n"
+        "name: missing_refs\n";
 
     assert(LoadThrows());
 }
@@ -449,18 +363,12 @@ void TestOrganizationAliasParses() {
         "    total: [4, 8]\n"
         "    active: [2, 4]\n");
 
-    EvaCamConfig config;
-    EvaCamYamlLoader::Load(kConfigPath, config);
-
-    assert(config.exploration.geometry.numRowMat.Min() == 2);
-    assert(config.exploration.geometry.numColumnMat.Min() == 4);
-    assert(config.exploration.geometry.numRowSubarray.Min() == 4);
-    assert(config.exploration.geometry.numColumnSubarray.Min() == 8);
+    assert(LoadThrowsWithMessage("field owned by the other config: array"));
 }
 
 void TestCactiAssumptionNormalizesGeometry() {
-    WriteBaseTopLevelConfig(
-        "advanced:\n"
+    WriteBaseTopLevelConfig("", 
+        "exploration:\n"
         "  use_cacti_assumption: true\n");
 
     EvaCamConfig config;
@@ -476,99 +384,17 @@ void TestCactiAssumptionNormalizesGeometry() {
 }
 
 void TestAutoCapacityRequiresFixedSubarrayDimensions() {
-    {
-        std::ofstream out(kConfigPath);
-        out <<
-            "design:\n"
-            "  target: CAM\n"
-            "  search_function: EX\n"
-            "  system_process_node: 45nm\n"
-            "  device_roadmap: HP\n"
-            "  temperature: 300K\n"
-            "memory:\n"
-            "  cell_file: tests/tmp_top_level_cell_config.yaml\n"
-            "  capacity: auto\n"
-            "  word_width: 64bits\n"
-            "routing:\n"
-            "  type: H-tree\n"
-            "peripherals:\n"
-            "  write_driver: false\n"
-            "  input:\n"
-            "    buffer: false\n"
-            "    encoder: false\n"
-            "    custom_encoder: false\n"
-            "  output:\n"
-            "    buffer: false\n"
-            "    priority_encoder: false\n"
-            "    accumulator: false\n"
-            "sensing:\n"
-            "  internal: true\n"
-            "  custom_sense_amp: false\n"
-            "  amplifier_type: nvsim_vol\n"
-            "optimization:\n"
-            "  target: ReadLatency\n"
-            "  buffer_design: latency\n"
-            "  row_driver: latency\n"
-            "  priority_encoder: latency\n"
-            "wires:\n"
-            "  local:\n"
-            "    type: LocalAggressive\n"
-            "    repeater: RepeatedOpt\n"
-            "    low_swing: false\n"
-            "  global:\n"
-            "    type: GlobalAggressive\n"
-            "    repeater: RepeatedOpt\n"
-            "    low_swing: false\n";
-    }
+    WriteMinimalCellFile();
+    WriteArchitectureFile("auto", "64bits");
+    WriteRunConfig();
 
     assert(LoadThrowsWithMessage("memory.capacity is required unless organization.subarray.dimensions is supplied"));
 }
 
 void TestNonPowerOfTwoWordWidthRequiresRealCapacity() {
-    {
-        std::ofstream out(kConfigPath);
-        out <<
-            "design:\n"
-            "  target: CAM\n"
-            "  search_function: EX\n"
-            "  system_process_node: 45nm\n"
-            "  device_roadmap: HP\n"
-            "  temperature: 300K\n"
-            "memory:\n"
-            "  cell_file: tests/tmp_top_level_cell_config.yaml\n"
-            "  capacity: 1KB\n"
-            "  word_width: 96bits\n"
-            "routing:\n"
-            "  type: H-tree\n"
-            "peripherals:\n"
-            "  write_driver: false\n"
-            "  input:\n"
-            "    buffer: false\n"
-            "    encoder: false\n"
-            "    custom_encoder: false\n"
-            "  output:\n"
-            "    buffer: false\n"
-            "    priority_encoder: false\n"
-            "    accumulator: false\n"
-            "sensing:\n"
-            "  internal: true\n"
-            "  custom_sense_amp: false\n"
-            "  amplifier_type: nvsim_vol\n"
-            "optimization:\n"
-            "  target: ReadLatency\n"
-            "  buffer_design: latency\n"
-            "  row_driver: latency\n"
-            "  priority_encoder: latency\n"
-            "wires:\n"
-            "  local:\n"
-            "    type: LocalAggressive\n"
-            "    repeater: RepeatedOpt\n"
-            "    low_swing: false\n"
-            "  global:\n"
-            "    type: GlobalAggressive\n"
-            "    repeater: RepeatedOpt\n"
-            "    low_swing: false\n";
-    }
+    WriteMinimalCellFile();
+    WriteArchitectureFile("1KB", "96bits");
+    WriteRunConfig();
 
     assert(LoadThrowsWithMessage("non-power-of-two word_width requires extra.real_capacity"));
 }
@@ -586,14 +412,13 @@ void TestFixedSubarrayDimensionsRejectDeepExploration() {
 }  // namespace
 
 int main() {
-    WriteMinimalCellFile();
     TestMinimalTopLevelConfigParses();
     TestOptionalSectionsCanBeOmitted();
     TestSplitConfigParsesAndMapsMovedFields();
-    TestSplitConfigRejectsMixedOwnership();
-    TestSplitArchitectureRejectsToolFields();
-    TestSplitToolRequiresBothReferences();
-    TestSplitConfigCustomSenseAmpFileActivatesCustomModel();
+    TestRunConfigRejectsArchitectureFields();
+    TestArchitectureRejectsRunFields();
+    TestRunConfigRequiresReferences();
+    TestSensingFileActivatesSenseAmpModel();
     TestMissingRequiredTopLevelSectionThrows();
     TestInvalidUnitThrows();
     TestOrganizationAliasParses();

@@ -9,18 +9,25 @@ Default behavior:
 - output directory: `results/`
 - filename pattern: `<config-base>_results.yaml`
 
-If the input file ends with `_tool_config.yaml` or `-tool-config.yaml`, that suffix is removed before the results filename is built. Legacy system/config suffixes are also stripped.
+If the input file ends with `.config.yaml`, that suffix is removed before the results filename is built. Legacy system/config suffixes are also stripped.
 
 Examples:
 
-- `config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml` -> `results/2FeFET_TCAM_results.yaml`
-- `config/ReRAM-2T2R/ReRAM-2T2R_tool_config.yaml` -> `results/ReRAM-2T2R_results.yaml`
+- `config/2FeFET_TCAM/2FeFET_TCAM.config.yaml` -> `results/2FeFET_TCAM_results.yaml`
+- `config/ReRAM-2T2R/ReRAM-2T2R.config.yaml` -> `results/ReRAM-2T2R_results.yaml`
 
-You can override the YAML output path in the tool config:
+Prefer overriding the YAML output path on the command line:
+
+```text
+./EvaCAM --output path/to/output.yaml config/example.config.yaml
+```
+
+For compatibility, the run config can still set the YAML output path, but EvaCAM
+prints a deprecation warning when this is used:
 
 ```yaml
 output:
-  yaml_file: path/to/output.yaml
+  results: path/to/output.yaml
 ```
 
 ## Console Summary
@@ -77,7 +84,7 @@ output_2048K_512_IN_VOL.csv
 
 ## Variation CSV
 
-When cell-level variation uses `mode: monte_carlo`, EvaCAM also emits a
+When memory-device variation uses `mode: monte_carlo`, EvaCAM also emits a
 per-sample CSV and SVG histogram plot next to the YAML results file. When
 variation uses `mode: corner`, EvaCAM emits a deterministic corner CSV but
 does not emit a histogram plot. The YAML `summary.timing.variation.sample_file`
@@ -179,8 +186,8 @@ results/corner_sweep/
 ├── summary.csv
 └── runs/
     └── on02_off04/
-        ├── cell_config.yaml
-        ├── tool_config.yaml
+        ├── cell.yaml
+        ├── config.yaml
         ├── corner_results.yaml
         ├── corner_variation_samples.csv
         └── run.log

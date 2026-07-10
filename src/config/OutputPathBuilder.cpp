@@ -15,6 +15,7 @@ std::string OutputPathBuilder::DefaultResultsYamlPath(const std::string &inputFi
         "-system-config",
         "_config",
         "-config",
+        ".config",
     };
 
     for (const std::string &suffix : suffixes) {

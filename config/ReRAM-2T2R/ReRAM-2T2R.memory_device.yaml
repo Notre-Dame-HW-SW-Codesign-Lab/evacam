@@ -1,0 +1,21 @@
+schema: memory_device
+name: ReRAM-2T2R
+type: ReRAM
+resistance:
+  'on': 327680000ohm
+  'off': 327680000000ohm
+read:
+  mode: voltage
+  voltage: 1.1V
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: current
+    current: 50uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ

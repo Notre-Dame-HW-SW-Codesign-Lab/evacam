@@ -1,0 +1,10 @@
+schema: config
+name: ReRAM-2T2R
+architecture: ReRAM-2T2R.architecture.yaml
+cell: ReRAM-2T2R.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: WriteDynamicEnergy
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

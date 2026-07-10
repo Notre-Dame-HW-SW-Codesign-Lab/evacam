@@ -1,0 +1,10 @@
+schema: config
+name: MRAM-4T2R-VLSIC12
+architecture: MRAM-4T2R-VLSIC12.architecture.yaml
+cell: MRAM-4T2R-VLSIC12.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: ReadLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

@@ -27,6 +27,10 @@ TEST_TOP_LEVEL_BIN=TopLevelConfigParserTest
 TEST_CELL_LOADER_BIN=CellYamlLoaderTest
 TEST_CLI_OPTIONS_BIN=CliOptionsTest
 TEST_CUSTOM_SA_LOADER_BIN=CustomSenseAmpYamlLoaderTest
+TEST_TECHNOLOGY_LOADER_BIN=TechnologyYamlLoaderTest
+TEST_MEMORY_ACCESS_LOADER_BIN=MemoryAccessDeviceYamlLoaderTest
+TEST_NEW_INPUT_NAMES_BIN=NewInputNamesTest
+TEST_GENERATED_V2_CONFIGS_BIN=GeneratedV2ConfigsTest
 TEST_INPUT_VALIDATION_BIN=InputValidationTest
 TEST_OUTPUT_PATH_BUILDER_BIN=OutputPathBuilderTest
 TEST_EXPLORATION_BIN=ExplorationDomainTest
@@ -60,11 +64,11 @@ PYBIND_DEPS=$(PYBIND_OBJECTS:.o=.d) $(PYBIND_BINDING_OBJECT:.o=.d)
 
 
 CONFIG_STEM=$(basename $(notdir $(CONFIG_FILE)))
-RESULT_BASE=$(patsubst %_config,%,$(patsubst %-config,%,$(patsubst %_tool_config,%,$(patsubst %-tool-config,%,$(CONFIG_STEM)))))
+RESULT_BASE=$(patsubst %.config,%,$(patsubst %_config,%,$(patsubst %-config,%,$(CONFIG_STEM))))
 
 RES_YAML=$(RES_DIR)/$(RESULT_BASE)_results.yaml
 RUN_LOG=$(RES_DIR)/$(RESULT_BASE)_run.log
-MATCH_CONFIG_FILE ?= config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml
+MATCH_CONFIG_FILE ?= config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml
 
 all: $(BIN)
 
@@ -89,7 +93,10 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-memory-access-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
+sync-python-package-data:
+	python3 scripts/sync_python_package_config_lib.py
+
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -114,6 +121,26 @@ test-custom-sa-loader: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CUSTOM_SA_LOADER_BIN).d -MT $(TEST_CUSTOM_SA_LOADER_BIN) -o $(TEST_CUSTOM_SA_LOADER_BIN) tests/CustomSenseAmpYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_CUSTOM_SA_LOADER_BIN)
+
+test-technology-loader: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_TECHNOLOGY_LOADER_BIN).d -MT $(TEST_TECHNOLOGY_LOADER_BIN) -o $(TEST_TECHNOLOGY_LOADER_BIN) tests/TechnologyYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_TECHNOLOGY_LOADER_BIN)
+
+test-memory-access-loader: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MEMORY_ACCESS_LOADER_BIN).d -MT $(TEST_MEMORY_ACCESS_LOADER_BIN) -o $(TEST_MEMORY_ACCESS_LOADER_BIN) tests/MemoryAccessDeviceYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_MEMORY_ACCESS_LOADER_BIN)
+
+test-new-input-names: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_NEW_INPUT_NAMES_BIN).d -MT $(TEST_NEW_INPUT_NAMES_BIN) -o $(TEST_NEW_INPUT_NAMES_BIN) tests/NewInputNamesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_NEW_INPUT_NAMES_BIN)
+
+test-generated-v2-configs: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_GENERATED_V2_CONFIGS_BIN).d -MT $(TEST_GENERATED_V2_CONFIGS_BIN) -o $(TEST_GENERATED_V2_CONFIGS_BIN) tests/GeneratedV2ConfigsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_GENERATED_V2_CONFIGS_BIN)
 
 test-input-validation: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
@@ -172,6 +199,9 @@ test-htree-routing: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_HTREE_ROUTING_BIN).d -MT $(TEST_HTREE_ROUTING_BIN) -o $(TEST_HTREE_ROUTING_BIN) tests/HtreeRoutingRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_HTREE_ROUTING_BIN)
 
+test-python-package-data:
+	python3 tests/test_python_package_data.py
+
 test-pybind-match: $(PYBIND_MODULE)
 	python3 tests/test_pybind_match.py $(MATCH_CONFIG_FILE)
 
@@ -206,6 +236,10 @@ clean:
 		$(TEST_CELL_LOADER_BIN) $(TEST_CELL_LOADER_BIN).d \
 		$(TEST_CLI_OPTIONS_BIN) $(TEST_CLI_OPTIONS_BIN).d \
 		$(TEST_CUSTOM_SA_LOADER_BIN) $(TEST_CUSTOM_SA_LOADER_BIN).d \
+		$(TEST_TECHNOLOGY_LOADER_BIN) $(TEST_TECHNOLOGY_LOADER_BIN).d \
+		$(TEST_MEMORY_ACCESS_LOADER_BIN) $(TEST_MEMORY_ACCESS_LOADER_BIN).d \
+		$(TEST_NEW_INPUT_NAMES_BIN) $(TEST_NEW_INPUT_NAMES_BIN).d \
+		$(TEST_GENERATED_V2_CONFIGS_BIN) $(TEST_GENERATED_V2_CONFIGS_BIN).d \
 		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
 		$(TEST_OUTPUT_PATH_BUILDER_BIN) $(TEST_OUTPUT_PATH_BUILDER_BIN).d \
 		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
@@ -219,20 +253,28 @@ clean:
 		$(TEST_PYBIND_MATCH_PERSISTENCE_BIN) $(TEST_PYBIND_MATCH_PERSISTENCE_BIN).d \
 		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
-		tests/tmp_top_level_cell_config.yaml tests/tmp_top_level_system_config.yaml \
-		tests/tmp_top_level_architecture_config.yaml tests/tmp_top_level_tool_config.yaml \
-		tests/tmp_top_level_custom_sa.yaml \
-		tests/tmp_cell_loader_cell_config.yaml tests/tmp_cell_loader_missing.yaml \
+		tests/tmp_top_level.config.yaml tests/tmp_top_level.architecture.yaml \
+		tests/tmp_top_level.cell.yaml tests/tmp_top_level_cell_config.yaml \
+		tests/tmp_top_level.memory_device.yaml tests/tmp_top_level.sensing.yaml \
+		tests/tmp_top_level_system_config.yaml tests/tmp_top_level_architecture_config.yaml tests/tmp_top_level_tool_config.yaml \
+		tests/tmp_top_level_custom_sa.yaml tests/tmp_top_level.sense_amp.yaml \
+		tests/tmp_cell_loader_cell_config.yaml tests/tmp_cell_loader.memory_device.yaml tests/tmp_cell_loader_missing.yaml \
 		tests/tmp_custom_sense_amp_loader.yaml tests/tmp_custom_sense_amp_loader_missing.yaml \
+		tests/tmp_input_validation.config.yaml tests/tmp_input_validation.architecture.yaml \
+		tests/tmp_input_validation.cell.yaml tests/tmp_input_validation.memory_device.yaml \
+		tests/tmp_input_validation.sensing.yaml \
 		tests/tmp_input_validation_cell_config.yaml tests/tmp_input_validation_system_config.yaml \
 		tests/tmp_input_validation_custom_sa.yaml \
+		tests/tmp_yaml_helpers.config.yaml tests/tmp_yaml_helpers.architecture.yaml \
+		tests/tmp_yaml_helpers.cell.yaml tests/tmp_yaml_helpers.memory_device.yaml \
+		tests/tmp_yaml_helpers.sensing.yaml \
 		tests/tmp_explicit_subarray_system_config.yaml tests/tmp_organization_system_config.yaml \
 		$(UML_PDF) $(UML_SLIDE_PDF) \
 		repo_uml.aux repo_uml.log repo_uml_slide.aux repo_uml_slide.log
 
 run: $(BIN)
 	@if [ -z "$(CONFIG_FILE)" ]; then \
-		echo "Usage: make run CONFIG_FILE=path/to/tool_config.yaml"; \
+		echo "Usage: make run CONFIG_FILE=path/to/config.yaml"; \
 		exit 1; \
 	fi
 	@mkdir -p $(RES_DIR)
@@ -247,26 +289,26 @@ run: $(BIN)
 	fi
 
 test: $(BIN)
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM.config.yaml
 
 test-all-valgrind: $(BIN)
 # pass valgrind
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/10T-BCAM_28nm/10T-BCAM_28nm_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/SRAM_16T_28nm/SRAM_16T_28nm_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/SRAM-16T-ESSCIRC15/SRAM-16T-ESSCIRC15_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/8T-BCAM_65nm/8T-BCAM_65nm_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R/ReRAM-2T2R_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-3T1R-ISSCC15/ReRAM-3T1R-ISSCC15_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/FeFET-2Fe1T-DATE-2021/FeFET-2Fe1T-DATE-2021_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-2T2R-ASPDAC12/MRAM-2T2R-ASPDAC12_tool_config.yaml > /dev/null
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-6T2R-VLSIC11/MRAM-6T2R-VLSIC11_tool_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM/2FeFET_TCAM.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/10T-BCAM_28nm/10T-BCAM_28nm.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/SRAM_16T_28nm/SRAM_16T_28nm.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/SRAM-16T-ESSCIRC15/SRAM-16T-ESSCIRC15.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/8T-BCAM_65nm/8T-BCAM_65nm.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-2T2R/ReRAM-2T2R.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-3T1R-ISSCC15/ReRAM-3T1R-ISSCC15.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/FeFET-2Fe1T-DATE-2021/FeFET-2Fe1T-DATE-2021.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-2T2R-ASPDAC12/MRAM-2T2R-ASPDAC12.config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/MRAM-6T2R-VLSIC11/MRAM-6T2R-VLSIC11.config.yaml > /dev/null
 	# ReRAM-2T2R-VLSI21 has only a RAM bitline port and is not a valid CAM configuration.
-	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_MCAM/2FeFET_MCAM_tool_config.yaml > /dev/null
+	valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_MCAM/2FeFET_MCAM.config.yaml > /dev/null
 
 # the following takes 15 mins to pass valgrind, runs much faster without valgrind turned on
-#valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE_tool_config.yaml > /dev/null
+#valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE.config.yaml > /dev/null

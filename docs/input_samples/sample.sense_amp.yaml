@@ -1,0 +1,37 @@
+# Reference-only sense-amplifier config. See README.md in this directory.
+schema: sense_amp
+
+name: sample_sense_amp
+model: nvsim_cmos # currently implemented: nvsim_cmos
+
+supported_modes:
+  voltage_sense:
+    current_sense: false
+  current_sense:
+    current_sense: true
+  discharge:
+    current_sense: false
+
+layout:
+  min_pitch: 2F # units: F
+  same_type_diff_gap: 2F # units: F
+  p_to_n_diff_gap: 3F # units: F
+
+transistors:
+  p_sense_width: 10F # units: F
+  n_sense_width: 5F # units: F
+  isolation_width: 5F # units: F
+  enable_width: 2F # units: F
+  mux_width: 3F # units: F
+
+iv_converter:
+  area: 1000F^2 # units: F^2
+  current_sense_latency:
+    - {min_node: 64nm, latency: 1ns} # min_node units: m | cm | mm | um | nm; latency units: s | ms | us | ns | ps | fs
+    - {min_node: null, latency: 2ns}
+  current_sense_energy:
+    - {min_node: 64nm, energy: 10fJ} # energy units: J | mJ | uJ | nJ | pJ | fJ
+    - {min_node: null, energy: 20fJ}
+  current_sense_leakage:
+    - {min_node: 64nm, leakage: 1nW} # leakage units: W | mW | uW | nW | pW
+    - {min_node: null, leakage: 2nW}

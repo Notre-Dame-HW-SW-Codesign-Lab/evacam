@@ -1,5 +1,4 @@
 #include "Technology.h"
-#include "TechnologyTables.h"
 
 #include <iostream>
 #include <math.h>
@@ -20,20 +19,14 @@ const char *ToString(DeviceRoadmap roadmap) {
 
 }  // namespace
 
-void Technology::Initialize(int _featureSizeInNano, DeviceRoadmap _deviceRoadmap, bool _UseUpdatedLib) {
-    featureSizeInNano_ = _featureSizeInNano;
-    featureSize_ = _featureSizeInNano * 1e-9;
-    deviceRoadmap_ = _deviceRoadmap;
-    useUpdatedLib_ = _UseUpdatedLib;
-
-    if (const TechnologySpec *spec = FindTechnologySpec(_featureSizeInNano, _deviceRoadmap, _UseUpdatedLib)) {
-        ApplySpec(*spec);
-        ExpandTemperatureTables(*spec);
-        initialized_ = true;
-        return;
-    }
-
-    throw std::runtime_error("[Technology] Unsupported technology configuration.");
+void Technology::InitializeFromSpec(const TechnologySpec &spec) {
+    featureSizeInNano_ = spec.featureSizeInNano;
+    featureSize_ = spec.featureSize;
+    deviceRoadmap_ = spec.roadmap;
+    useUpdatedLib_ = spec.useUpdatedLib;
+    ApplySpec(spec);
+    ExpandTemperatureTables(spec);
+    initialized_ = true;
 }
 
 void Technology::ApplySpec(const TechnologySpec &spec) {

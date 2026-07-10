@@ -1,0 +1,44 @@
+# Reference-only technology config. See README.md in this directory.
+schema: technology
+
+name: sample_cmos
+library_model: legacy # updated | legacy
+temperature_grid: [300K, 310K, 320K, 330K, 340K, 350K, 360K, 370K, 380K, 390K, 400K] # units: K
+
+interpolation:
+  temperature: linear
+  process_node: linear
+  off_current: geometric
+
+roadmaps:
+  HP:
+    nodes:
+      - process_node: 32nm # units: m | cm | mm | um | nm
+        roadmap: HP # HP | LSTP | LOP | FEFET | LP
+        operating_point:
+          vdd: 1V # units: V | mV
+          vth: 200mV # units: V | mV
+          physical_gate_length: 36nm # units: m | cm | mm | um | nm
+        capacitance:
+          ideal_gate: 4e-10F/m # units: F/m | pF/m | fF/m
+          fringe: 7e-10F/m # units: F/m | pF/m | fF/m
+          oxide: 0F/m # units: F/m | pF/m | fF/m
+        mobility:
+          electron: 0 # scalar
+          hole: 0 # scalar
+        sizing:
+          pn_size_ratio: 2.0 # scalar
+          effective_resistance_multiplier: 1.5 # scalar
+        gm:
+          nmos: 600 # scalar
+          pmos: 400 # scalar
+        fin:
+          height: 0m # units: m | cm | mm | um | nm
+          width: 0m # units: m | cm | mm | um | nm
+          pitch: 0m # units: m | cm | mm | um | nm
+          polywire_cap: 0F/m # units: F/m | pF/m | fF/m
+        currents:
+          on_nmos: [1000, 990, 980, 970, 960, 950, 940, 930, 920, 910, 900] # 11 scalar entries matching temperature_grid
+          on_pmos: [800, 790, 780, 770, 760, 750, 740, 730, 720, 710, 700] # 11 scalar entries matching temperature_grid
+          off_nmos: [0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2] # 11 scalar entries matching temperature_grid
+          off_pmos: [0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2] # 11 scalar entries matching temperature_grid

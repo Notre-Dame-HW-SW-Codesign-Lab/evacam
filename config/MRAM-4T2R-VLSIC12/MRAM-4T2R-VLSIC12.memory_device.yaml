@@ -1,0 +1,22 @@
+schema: memory_device
+name: MRAM-4T2R-VLSIC12
+type: MRAM
+resistance:
+  'on': 1100ohm
+  'off': 2500ohm
+read:
+  mode: voltage
+  current: 70uA
+  power: 16.5uW
+  min_sense_voltage: 500mV
+write:
+  set:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ

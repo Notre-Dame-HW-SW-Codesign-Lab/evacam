@@ -1,0 +1,8 @@
+schema: memory_device
+name: 8T-BCAM-65nm
+type: SRAM
+read:
+  mode: voltage
+  voltage: 1.2V
+  energy: 0.61fJ
+  min_sense_voltage: 50mV

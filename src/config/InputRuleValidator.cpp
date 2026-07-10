@@ -1,6 +1,7 @@
 #include "config/InputRuleValidator.h"
 
 #include <cctype>
+#include <filesystem>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -8,6 +9,7 @@
 #include "EvaCamConfig.h"
 #include "SenseAmp.h"
 #include "input/CustomSenseAmpYamlLoader.h"
+#include "input/SenseAmpYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
 
@@ -28,6 +30,27 @@ bool IsCamModelMemCellTypeSupported(MemCellType type) {
 
 YAML::Node LoadCellFileForValidation(const std::string &cellFile) {
     return YAML::LoadFile(cellFile);
+}
+
+std::string ResolveReference(const std::string &ownerFile, const std::string &reference) {
+    const std::filesystem::path referencePath(reference);
+    if (referencePath.is_absolute()) {
+        return referencePath.lexically_normal().string();
+    }
+    return (std::filesystem::absolute(ownerFile).parent_path() / referencePath)
+            .lexically_normal().string();
+}
+
+bool IsCellV2(const YAML::Node &root) {
+    return YamlHelpers::schema_matches(root, "cell");
+}
+
+YAML::Node LoadV2MemoryDeviceForValidation(const YAML::Node &cellRoot,
+        const std::string &cellFile) {
+    const YAML::Node reference = YamlHelpers::child_required(cellRoot, "memory_device");
+    return YAML::LoadFile(ResolveReference(cellFile,
+            YamlHelpers::read_scalar_required<std::string>(
+                reference, "memory_device")));
 }
 
 std::string InferCamTypeToken(const YAML::Node &cellNode, const std::string &cellFile) {
@@ -53,12 +76,31 @@ std::string InferCamTypeToken(const YAML::Node &cellNode, const std::string &cel
     return "TCAM";
 }
 
-MemCellType LoadMemCellTypeForValidation(const YAML::Node &root) {
+MemCellType LoadMemCellTypeForValidation(const YAML::Node &root,
+        const std::string &cellFile) {
+    if (IsCellV2(root)) {
+        const YAML::Node memoryDevice = LoadV2MemoryDeviceForValidation(root, cellFile);
+        return YamlHelpers::read_enum_required<MemCellType>(
+                memoryDevice, "type", false);
+    }
     const YAML::Node cellNode = YamlHelpers::child_required(root, "cell");
     return YamlHelpers::read_enum_required<MemCellType>(cellNode, "type", false);
 }
 
 CAMType LoadCamTypeForValidation(const YAML::Node &root, const std::string &cellFile) {
+    if (IsCellV2(root)) {
+        if (YamlHelpers::child_optional(root, "cam_type")) {
+            return YamlHelpers::read_enum_required<CAMType>(root, "cam_type", false);
+        }
+        const std::string camType = InferCamTypeToken(root, cellFile);
+        if (camType == "MCAM") {
+            return MCAM;
+        }
+        if (camType == "ACAM") {
+            return ACAM;
+        }
+        return TCAM;
+    }
     const YAML::Node cellNode = YamlHelpers::child_required(root, "cell");
     if (YamlHelpers::child_optional(cellNode, "cam_type")) {
         return YamlHelpers::read_enum_required<CAMType>(cellNode, "cam_type", false);
@@ -89,7 +131,34 @@ void ValidateCamPortPresence(const YAML::Node &root) {
     }
 }
 
-void ValidateCamColumnTopology(const YAML::Node &root) {
+CAM_CmosRegion LoadPortConnectionRegion(const YAML::Node &portNode,
+        const std::string &cellFile) {
+    const YAML::Node connection = YamlHelpers::child_optional(portNode, "connection");
+    if (!connection) {
+        return YamlHelpers::read_enum_required<CAM_CmosRegion>(
+                portNode, "cmos_region", false);
+    }
+
+    const std::string kind = YamlHelpers::read_required<std::string>(
+            connection, "kind");
+    if (kind == "memory_terminal" || kind == "access_terminal") {
+        return YamlHelpers::read_enum_required<CAM_CmosRegion>(
+                connection, "terminal", false);
+    }
+    if (kind == "access_device") {
+        const std::string accessFile = ResolveReference(
+                cellFile, YamlHelpers::read_required<std::string>(connection, "device"));
+        const YAML::Node accessRoot = YAML::LoadFile(accessFile);
+        const YAML::Node accessNode = YamlHelpers::child_optional(accessRoot, "access_device")
+                ? YamlHelpers::child_optional(accessRoot, "access_device")
+                : accessRoot;
+        return YamlHelpers::read_enum_required<CAM_CmosRegion>(
+                accessNode, "connected_terminal", false);
+    }
+    throw std::runtime_error("[Input] Error: cell.ports.column has unsupported connection.kind.");
+}
+
+void ValidateCamColumnTopology(const YAML::Node &root, const std::string &cellFile) {
     const YAML::Node ports = YamlHelpers::child_required(root, "ports");
     const YAML::Node columnPorts = YamlHelpers::child_required(ports, "column");
     bool foundMatchline = false;
@@ -112,8 +181,7 @@ void ValidateCamColumnTopology(const YAML::Node &root) {
         }
 
         foundMatchline = true;
-        const CAM_CmosRegion region =
-                YamlHelpers::read_enum_required<CAM_CmosRegion>(portNode, "cmos_region", false);
+        const CAM_CmosRegion region = LoadPortConnectionRegion(portNode, cellFile);
         if (region == gate) {
             throw std::runtime_error(
                     "[Input] Error: cell.ports.column matchline connection cannot use cmos_region gate.");
@@ -154,7 +222,10 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
         return;
     }
 
-    const YAML::Node mcam = YamlHelpers::child_required(root, "mcam");
+    const YAML::Node ownerRoot = IsCellV2(root)
+            ? LoadV2MemoryDeviceForValidation(root, config.input.fileMemCell)
+            : root;
+    const YAML::Node mcam = YamlHelpers::child_required(ownerRoot, "mcam");
     int numStates = YamlHelpers::read_optional<int>(mcam, "num_resistance_state", 0);
     const YAML::Node states = YamlHelpers::child_required(mcam, "resistance_state");
     if (!states.IsSequence() && !states.IsMap()) {
@@ -321,6 +392,19 @@ void ValidateCustomSenseAmpFile(const std::string &filePath) {
     }
 }
 
+void ValidateDefaultSenseAmpFile(const std::string &filePath) {
+    if (filePath.empty()) {
+        return;
+    }
+
+    try {
+        (void)YamlHelpers::ReadSenseAmpModelFromYaml(filePath);
+    } catch (const YAML::BadFile &) {
+        throw std::runtime_error(
+                "[Input] Error: sense amp file cannot be found: " + filePath);
+    }
+}
+
 void ValidatePeripheralSupport(const EvaCamConfig &config) {
     if (config.peripherals.customInputEnc) {
         throw std::runtime_error(
@@ -334,11 +418,13 @@ void ValidatePeripheralSupport(const EvaCamConfig &config) {
 
     if (!IsSupportedCamSenseAmpType(config.peripherals.typeSenseAmp)) {
         throw std::runtime_error(
-                "[Input] Error: sensing.amplifier_type is not supported for CAM modeling.");
+                "[Input] Error: sensing.sensing_mode is not supported for CAM modeling.");
     }
 
     if (config.peripherals.customSenseAmp) {
         ValidateCustomSenseAmpFile(config.peripherals.fileCustomSA);
+    } else {
+        ValidateDefaultSenseAmpFile(config.peripherals.fileSenseAmp);
     }
 
     if (config.exploration.wires.isLocalWireLowSwing.Min() != 0
@@ -487,9 +573,9 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
 
 void ValidateMemCellSupport(const EvaCamConfig &config) {
     const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
-    const MemCellType memCellType = LoadMemCellTypeForValidation(root);
+    const MemCellType memCellType = LoadMemCellTypeForValidation(root, config.input.fileMemCell);
     ValidateCamPortPresence(root);
-    ValidateCamColumnTopology(root);
+    ValidateCamColumnTopology(root, config.input.fileMemCell);
     ValidateCamModelSupport(config, root, memCellType);
     ValidateMcamResistanceStates(config, root);
 

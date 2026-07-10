@@ -1,0 +1,10 @@
+schema: config
+name: 8T-BCAM_65nm
+architecture: 8T-BCAM_65nm.architecture.yaml
+cell: 8T-BCAM_65nm.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: Area
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

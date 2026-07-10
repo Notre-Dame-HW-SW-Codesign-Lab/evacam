@@ -1,0 +1,22 @@
+schema: memory_device
+name: ReRAM-2.5T1R-ISSCC16
+type: memristor
+resistance:
+  'on': 8000ohm
+  'off': 1250000ohm
+read:
+  mode: current
+  voltage: 0.25V
+  power: 30uW
+  min_sense_voltage: 25mV
+write:
+  set:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ

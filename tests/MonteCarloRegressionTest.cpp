@@ -63,56 +63,79 @@ MonteCarloFixture WriteMonteCarloConfig(
         bool memoryOnlyVariation = false,
         const std::string &monteCarloGranularity = "") {
     const std::filesystem::path repoRoot = std::filesystem::current_path();
-    const std::filesystem::path sourceConfig = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match_tool_config.yaml";
+    const std::filesystem::path sourceConfig =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml";
     const std::filesystem::path sourceArchitecture =
-            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match_architecture_config.yaml";
-    const std::filesystem::path sourceCell = repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_cell_config.yaml";
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match.architecture.yaml";
+    const std::filesystem::path sourceCell =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM.cell.yaml";
+    const std::filesystem::path sourceSensing =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM_match.sensing.yaml";
+    const std::filesystem::path sourceMemoryDevice =
+            repoRoot / "config/2FeFET_TCAM/2FeFET_TCAM.memory_device.yaml";
+    const std::filesystem::path sourceTechnology =
+            repoRoot / "config/lib/technology/cmos.legacy.yaml";
 
     const std::filesystem::path tmpDir = std::filesystem::temp_directory_path() / ("mc_regression_" + tag);
     std::filesystem::remove_all(tmpDir);
     std::filesystem::create_directories(tmpDir);
 
     const std::filesystem::path testCell = tmpDir / "cell.yaml";
+    const std::filesystem::path testMemoryDevice = tmpDir / "memory_device.yaml";
+    const std::filesystem::path testArchitecture = tmpDir / "architecture.yaml";
     const std::filesystem::path testConfig = tmpDir / "config.yaml";
     const std::filesystem::path testOutput = tmpDir / "results.yaml";
 
     std::string cellText = ReadFile(sourceCell);
-    cellText +=
-        "\nvariation:\n"
-        "  with_variation: " + std::string(variationEnabled ? "true" : "false") + "\n";
+    ReplaceAll(cellText,
+            "memory_device: ./2FeFET_TCAM.memory_device.yaml",
+            "memory_device: " + testMemoryDevice.string());
+    WriteFile(testCell, cellText);
+
+    std::string memoryDeviceText = ReadFile(sourceMemoryDevice);
+    memoryDeviceText += "\nvariation:\n";
+    if (!variationEnabled) {
+        memoryDeviceText += "  with_variation: false\n";
+    }
     if (seed != 0) {
-        cellText += "  seed: " + std::to_string(seed) + "\n";
+        memoryDeviceText += "  seed: " + std::to_string(seed) + "\n";
     }
     if (variationEnabled) {
-        cellText += "  mode: " + mode + "\n";
+        memoryDeviceText += "  mode: " + mode + "\n";
         if (mode == "monte_carlo") {
-            cellText += "  samples: " + std::to_string(samples) + "\n";
+            memoryDeviceText += "  samples: " + std::to_string(samples) + "\n";
             if (!monteCarloGranularity.empty()) {
-                cellText += "  monte_carlo_granularity: " + monteCarloGranularity + "\n";
+                memoryDeviceText += "  monte_carlo_granularity: " + monteCarloGranularity + "\n";
             }
         }
     }
     if (memoryOnlyVariation) {
-        cellText +=
+        memoryDeviceText +=
             "  memory_device_resistance_on_stdev: 20%\n"
             "  memory_device_resistance_off_stdev: 20%\n";
     } else {
-        cellText +=
+        memoryDeviceText +=
             "  memory_device_resistance_on_stdev: 15%\n"
             "  memory_device_resistance_off_stdev: 20%\n";
     }
-    WriteFile(testCell, cellText);
+    WriteFile(testMemoryDevice, memoryDeviceText);
+
+    std::string architectureText = ReadFile(sourceArchitecture);
+    ReplaceAll(architectureText,
+            "sensing: ./2FeFET_TCAM_match.sensing.yaml",
+            "sensing: " + sourceSensing.string());
+    WriteFile(testArchitecture, architectureText);
 
     std::string configText = ReadFile(sourceConfig);
     ReplaceAll(configText,
-            "cell_file: ./2FeFET_TCAM_cell_config.yaml",
-            "cell_file: " + testCell.string());
+            "cell: 2FeFET_TCAM.cell.yaml",
+            "cell: " + testCell.string());
     ReplaceAll(configText,
-            "architecture_file: ./2FeFET_TCAM_match_architecture_config.yaml",
-            "architecture_file: " + sourceArchitecture.string());
-    configText +=
-        "\noutput:\n"
-        "  yaml_file: " + testOutput.string() + "\n";
+            "architecture: 2FeFET_TCAM_match.architecture.yaml",
+            "architecture: " + testArchitecture.string());
+    ReplaceAll(configText,
+            "technology: ../lib/technology/cmos.legacy.yaml",
+            "technology: " + sourceTechnology.string());
     WriteFile(testConfig, configText);
 
     return {testConfig, testOutput};
@@ -157,7 +180,8 @@ void test_monte_carlo_changes_with_variation_toggle() {
 void test_monte_carlo_output_summary_is_emitted() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("yaml", true, 33333u);
 
-    const std::string command = "./EvaCAM " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const std::string command = "./EvaCAM --output " + fixture.outputPath.string()
+        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));
@@ -222,7 +246,8 @@ void test_memory_device_variation_affects_matchline_distribution() {
             21,
             true);
 
-    const std::string command = "./EvaCAM " + fixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
+    const std::string command = "./EvaCAM --output " + fixture.outputPath.string()
+        + " " + fixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));
@@ -256,8 +281,10 @@ void test_monte_carlo_granularity_changes_distribution() {
             true,
             "effective");
 
-    const std::string cellCommand = "./EvaCAM " + cellFixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
-    const std::string effectiveCommand = "./EvaCAM " + effectiveFixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
+    const std::string cellCommand = "./EvaCAM --output " + cellFixture.outputPath.string()
+        + " " + cellFixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
+    const std::string effectiveCommand = "./EvaCAM --output " + effectiveFixture.outputPath.string()
+        + " " + effectiveFixture.configPath.string() + " --no-variation-plots >/dev/null 2>&1";
     assert(std::system(cellCommand.c_str()) == 0);
     assert(std::system(effectiveCommand.c_str()) == 0);
 
@@ -276,7 +303,8 @@ void test_monte_carlo_granularity_changes_distribution() {
 void test_single_point_output_summary_is_emitted() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("single_point", true, 55555u, "single_point");
 
-    const std::string command = "./EvaCAM " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const std::string command = "./EvaCAM --output " + fixture.outputPath.string()
+        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));
@@ -312,7 +340,8 @@ void test_single_point_output_summary_is_emitted() {
 void test_variation_output_summary_is_absent_when_disabled() {
     const MonteCarloFixture fixture = WriteMonteCarloConfig("yaml_off", false, 44444u);
 
-    const std::string command = "./EvaCAM " + fixture.configPath.string() + " >/dev/null 2>&1";
+    const std::string command = "./EvaCAM --output " + fixture.outputPath.string()
+        + " " + fixture.configPath.string() + " >/dev/null 2>&1";
     const int rc = std::system(command.c_str());
     assert(rc == 0);
     assert(std::filesystem::exists(fixture.outputPath));

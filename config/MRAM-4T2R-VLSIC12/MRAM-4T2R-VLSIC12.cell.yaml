@@ -1,0 +1,88 @@
+schema: cell
+name: MRAM-4T2R-VLSIC12
+cam_type: TCAM
+memory_device: ./MRAM-4T2R-VLSIC12.memory_device.yaml
+layout:
+  cell_process_node: 90nm
+  area: 387.85F^2
+  aspect_ratio: 1.7
+ports:
+  row:
+    0:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./MRAM-4T2R-VLSIC12.diode_nmos_7.5F_gate.access_device.yaml
+        count: 1
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 1.2V
+        search0: 1.2V
+        search1: 0V
+    1:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./MRAM-4T2R-VLSIC12.diode_nmos_7.5F_gate.access_device.yaml
+        count: 1
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 1.2V
+        search0: 0V
+        search1: 1.2V
+    2:
+      type: wordline
+      connection:
+        kind: access_device
+        device: ./MRAM-4T2R-VLSIC12.diode_nmos_15F_gate.access_device.yaml
+        count: 1
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 1.2V
+        search0: 0V
+        search1: 0V
+  column:
+    0:
+      type: matchline
+      connection:
+        kind: access_device
+        device: ./MRAM-4T2R-VLSIC12.diode_nmos_2F_diode.access_device.yaml
+        count: 1
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    1:
+      type: bitline
+      connection:
+        kind: access_device
+        device: ./MRAM-4T2R-VLSIC12.diode_pmos_15F_drain.access_device.yaml
+        count: 1
+      wire_width: 1.5F
+      voltages:
+        set_lrs: 1.2V
+        set_mrs: 1.2V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    2:
+      type: bitline
+      connection:
+        kind: memory_terminal
+        terminal: drain
+      wire_width: 6F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 1.2V
+        search0: 0V
+        search1: 0V

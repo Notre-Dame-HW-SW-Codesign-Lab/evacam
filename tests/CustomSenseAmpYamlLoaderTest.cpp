@@ -1,5 +1,7 @@
 #include "SenseAmp.h"
+#include "config/EvaCamConfig.h"
 #include "input/CustomSenseAmpYamlLoader.h"
+#include "input/SenseAmpYamlLoader.h"
 
 #include <cassert>
 #include <cmath>
@@ -20,13 +22,19 @@ bool AlmostEqual(double lhs, double rhs, double tolerance) {
 void TestNestedYamlLoadsQuantities() {
     std::ofstream out(kCustomSenseAmpPath);
     out <<
-        "custom_sense_amp:\n"
+        "schema: sense_amp\n"
+        "name: scalar_test\n"
+        "model: scalar\n"
+        "geometry:\n"
         "  height: 10F\n"
         "  width: 4F\n"
+        "timing:\n"
         "  latency: 20ps\n"
-        "  energy: 4pJ\n"
+        "power:\n"
+        "  read_dynamic_energy: 4pJ\n"
         "  leakage: 10pW\n"
-        "  cap_load: 2fF\n";
+        "load:\n"
+        "  capacitance: 2fF\n";
     out.close();
 
     SenseAmp senseAmp;
@@ -44,10 +52,17 @@ void TestNestedYamlLoadsQuantities() {
 void TestTopLevelYamlLoadsArea() {
     std::ofstream out(kCustomSenseAmpPath);
     out <<
-        "area: 0.001um^2\n"
-        "latency: 12ps\n"
-        "energy: 3pJ\n"
-        "cap_load: 7fF\n";
+        "schema: sense_amp\n"
+        "name: scalar_test\n"
+        "model: scalar\n"
+        "geometry:\n"
+        "  area: 0.001um^2\n"
+        "timing:\n"
+        "  latency: 12ps\n"
+        "power:\n"
+        "  read_dynamic_energy: 3pJ\n"
+        "load:\n"
+        "  capacitance: 7fF\n";
     out.close();
 
     SenseAmp senseAmp;
@@ -61,12 +76,47 @@ void TestTopLevelYamlLoadsArea() {
     assert(AlmostEqual(senseAmp.capLoad, 7e-15, 1e-27));
 }
 
+void TestV2ScalarYamlLoadsQuantities() {
+    std::ofstream out(kCustomSenseAmpPath);
+    out <<
+        "schema: sense_amp\n"
+        "name: scalar_test\n"
+        "model: scalar\n"
+        "geometry:\n"
+        "  height: 10F\n"
+        "  width: 4F\n"
+        "  area: null\n"
+        "timing:\n"
+        "  latency: 20ps\n"
+        "power:\n"
+        "  read_dynamic_energy: 4pJ\n"
+        "  leakage: 10pW\n"
+        "load:\n"
+        "  capacitance: 2fF\n";
+    out.close();
+
+    SenseAmp senseAmp;
+    YamlHelpers::ReadCustomSenseAmpFromYaml(senseAmp, kCustomSenseAmpPath, 45e-9);
+
+    assert(AlmostEqual(senseAmp.height, 450e-9, 1e-18));
+    assert(AlmostEqual(senseAmp.width, 180e-9, 1e-18));
+    assert(AlmostEqual(senseAmp.area, 450e-9 * 180e-9, 1e-24));
+    assert(AlmostEqual(senseAmp.readLatency, 20e-12, 1e-24));
+    assert(AlmostEqual(senseAmp.readDynamicEnergy, 4e-12, 1e-24));
+    assert(AlmostEqual(senseAmp.leakage, 10e-12, 1e-24));
+    assert(AlmostEqual(senseAmp.capLoad, 2e-15, 1e-27));
+}
+
 void TestMissingRequiredFieldThrows() {
     std::ofstream out(kMissingFieldPath);
     out <<
-        "custom_sense_amp:\n"
+        "schema: sense_amp\n"
+        "name: scalar_test\n"
+        "model: scalar\n"
+        "geometry:\n"
         "  height: 10F\n"
         "  width: 4F\n"
+        "timing:\n"
         "  latency: 20ps\n";
     out.close();
 
@@ -74,10 +124,43 @@ void TestMissingRequiredFieldThrows() {
         SenseAmp senseAmp;
         YamlHelpers::ReadCustomSenseAmpFromYaml(senseAmp, kMissingFieldPath, 45e-9);
     } catch (const std::runtime_error &e) {
-        assert(std::string(e.what()).find("missing required fields") != std::string::npos);
+        assert(std::string(e.what()).find("Missing key: power") != std::string::npos);
         return;
     }
     assert(false && "expected missing required fields error");
+}
+
+void TestDefaultSenseAmpYamlParses() {
+    const SenseAmpModel model = YamlHelpers::ReadSenseAmpModelFromYaml(
+            "config/lib/sense_amp/nvsim_vol.sense_amp.yaml");
+    assert(model.loaded);
+    assert(model.model == "nvsim_cmos");
+    assert(AlmostEqual(model.pSenseWidth, 30, 1e-12));
+    assert(AlmostEqual(model.currentSenseLatency[3].value, 0.80e-9, 1e-24));
+    assert(AlmostEqual(model.currentSenseEnergy[4].value, 12.56e-14, 1e-24));
+    assert(AlmostEqual(model.currentSenseLeakage[5].value, 150e-9, 1e-18));
+}
+
+void TestDefaultSenseAmpYamlInitializes() {
+    auto config = std::make_shared<EvaCamConfig>();
+    config->ReadConfigFromFile("config/2FeFET_TCAM/2FeFET_TCAM.config.yaml");
+    assert(!config->peripherals.fileSenseAmp.empty());
+
+    SenseAmp voltage;
+    voltage.Initialize(64, false, 0.07, 1e-6, config);
+    assert(voltage.area > 0);
+    assert(voltage.capLoad > 0);
+    voltage.CalculateLatency();
+    voltage.CalculatePower();
+    assert(voltage.readLatency > 0);
+    assert(voltage.readDynamicEnergy > 0);
+
+    SenseAmp current;
+    current.Initialize(64, true, 0.07, 1e-6, config);
+    current.CalculateLatency();
+    current.CalculatePower();
+    assert(current.readLatency > 0);
+    assert(current.readDynamicEnergy > 0);
 }
 
 }  // namespace
@@ -85,7 +168,10 @@ void TestMissingRequiredFieldThrows() {
 int main() {
     TestNestedYamlLoadsQuantities();
     TestTopLevelYamlLoadsArea();
+    TestV2ScalarYamlLoadsQuantities();
     TestMissingRequiredFieldThrows();
+    TestDefaultSenseAmpYamlParses();
+    TestDefaultSenseAmpYamlInitializes();
     std::cout << "CustomSenseAmpYamlLoader tests passed" << std::endl;
     return 0;
 }

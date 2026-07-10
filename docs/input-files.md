@@ -1,47 +1,53 @@
 # Input Files
 
-EvaCAM expects one tool config YAML file. It references one architecture config and
-one cell config. An optional third reference supplies custom sense-amplifier data.
+EvaCAM expects one run config YAML file. It references one architecture
+config, one cell config, and one technology file. The architecture and cell
+files then reference reusable sensing, memory-device, and access-device files.
 
 ## File Roles
 
-- `config/<cell-group>/*_tool_config.yaml`: optimization, exploration, modeling, and output controls
-- `config/<cell-group>/*_architecture_config.yaml`: modeled memory architecture; identical architectures may be shared
-- `config/<cell-group>/*_cell_config.yaml`: cell/device descriptions
-- custom sense-amp YAML files referenced by `custom_sense_amplifier_file`
+- `config/<cell-group>/*.config.yaml`: optimization, exploration, modeling, and output controls
+- `config/<cell-group>/*.architecture.yaml`: modeled memory architecture and sensing reference
+- `config/<cell-group>/*.cell.yaml`: CAM cell topology, layout, ports, and device references
+- `config/<cell-group>/*.memory_device.yaml`: reusable memory-device electrical model data
+- `config/<cell-group>/*.access_device.yaml`: reusable selector/access-device model data
+- `config/<cell-group>/*.sensing.yaml`: sensing mode and sense-amplifier reference
+- `config/lib/technology/*.yaml`: reusable technology tables
+- `config/lib/sense_amp/*.sense_amp.yaml`: reusable sense-amplifier model data
 
 Example:
 
 ```yaml
-architecture_file: ./2FeFET_TCAM_architecture_config.yaml
-cell_file: ./2FeFET_TCAM_cell_config.yaml
+architecture: ./2FeFET_TCAM.architecture.yaml
+cell: ./2FeFET_TCAM.cell.yaml
+technology: ../lib/technology/cmos.updated.yaml
 ```
 
-All three references are resolved relative to the tool config file.
+All references are resolved relative to the file that contains them.
 
-## Tool Config Structure
+## Run Config Structure
 
 Required fields:
 
-- `architecture_file`
-- `cell_file`
+- `architecture`
+- `cell`
+- `technology`
 - `optimization`
 
 Optional sections and fields:
 
-- `custom_sense_amplifier_file`
 - `design_constraints`
 - `exploration.use_cacti_assumption`
 - `exploration.enable_pruning`
-- `modeling.use_updated_lib`
 - `modeling.exclude_precharge_latency`
 - `modeling.include_leakage`
 - `modeling.scaled_voltage`
-- `output.yaml_file`
 - `output.exploration_csv_prefix`
 
-New tool configs reject architecture-owned sections instead of applying precedence
-rules. Unified legacy configs remain temporarily supported with a deprecation warning.
+New run configs reject architecture-owned sections and legacy aliases instead of
+applying precedence rules. Use `schema: config`, `architecture`,
+`cell`, and `technology`. Prefer CLI `--output` for non-default YAML results
+paths. `output.results` is still accepted for compatibility but emits a warning.
 
 ## Architecture Config Structure
 
@@ -71,12 +77,20 @@ Representative fields:
 - `organization.subarray.dimensions`: optional fixed physical subarray `[rows, columns]`; requires explicit bank and mat organization and is not supported with DSE/deep exploration
 - `organization.bit_serial_width`: optional fixed bit-serial width
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
-- `sensing.worst_case_sense_margin`: optional matchline sensing margin
+- `sensing`: reference to a `*.sensing.yaml` file
+- `matchline.additional_cap`: optional additional matchline capacitance
+- `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size` and `physical_limits.max_driver_current`
+- `sensing.sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from the referenced sense-amplifier name when omitted
 
 Use the grouped examples under `config/` as the source of truth for current syntax.
+Reference-only samples for every input role live under
+[`docs/input_samples/`](input_samples/). Those samples use neutral placeholder
+values and include inline comments with accepted unit suffixes.
 
-Variation is not configured in the tool or architecture config. Variation enablement and sigma values are defined in the cell config under `variation`.
+Variation is not configured in the run or architecture config. Variation
+enablement and sigma values are defined in the memory-device config under
+`variation`.
 
 For a fuller list of implemented sections and fields, see [schema.md](schema.md).
 
@@ -84,40 +98,53 @@ For a fuller list of implemented sections and fields, see [schema.md](schema.md)
 
 The shipped cell configs use these top-level sections:
 
-- `cell`
-- `access_device`
-- `resistance`
-- `read`
-- `write`
-- `multilevel`
-- `variation`
-- `match`
+- `schema`
+- `name`
+- `cam_type`
+- `memory_device`
+- `access_devices`
+- `layout`
 - `ports`
 
 Representative fields:
 
-- `cell.type`
-- `cell.cell_process_node`
-- `cell.area`
-- `read.mode`
-- `read.voltage`
-- `write.set.pulse`
-- `write.reset.energy`
-- `variation.with_variation`
-- `variation.mode`
-- `variation.lut_file`
-- `variation.samples`
-- `variation.seed`
-- `variation.memory_device_resistance_on_stdev`
-- `variation.memory_device_resistance_off_stdev`
-- `variation.memory_device_resistance_on_max_var`
-- `variation.memory_device_resistance_off_max_var`
+- `cam_type`: `TCAM`, `BCAM`, `MCAM`, or `ACAM`
+- `memory_device`: path to a `*.memory_device.yaml` file
+- `access_devices`: optional named map of reusable `*.access_device.yaml` files
+- `layout.cell_process_node`
+- `layout.area`
+- `layout.aspect_ratio`
 - `ports.row`
 - `ports.column`
+- `ports.*.*.connection.kind`: `memory_terminal` or `access_device`
+- `ports.*.*.connection.terminal`: memory-device terminal for `memory_terminal`
+- `ports.*.*.connection.device` and `terminal`: selector name and terminal for `access_device`
 
-If `variation.with_variation` is enabled in the cell config, EvaCAM uses its built-in resistance variation model. There is no top-level variation block. You may also provide `variation.lut_file` as a future-facing hook for an external variation lookup table path; EvaCAM currently accepts and propagates the filename but does not consume the LUT yet.
+Memory-device files own electrical behavior and variation. Common sections are:
 
-Supported cell-level variation controls:
+- `type`
+- `resistance`
+- `capacitance`
+- `device`
+- `read`
+- `write`
+- `match`
+- `dram`
+- `sram`
+- `flash`
+- `variation`
+- `mcam`
+
+Access-device files describe reusable transistor or diode selectors referenced by cell ports. Common fields include `type`, `role`, `cmos_type`, `terminals`, `resistance`, `capacitance`, and `voltage_drop`.
+
+If the memory-device config contains a `variation` section, EvaCAM uses its
+built-in resistance variation model. Omit the section for nominal-only runs.
+There is no top-level variation block. You may also provide
+`variation.lut_file` as a future-facing hook for an external variation lookup
+table path; EvaCAM currently accepts and propagates the filename but does not
+consume the LUT yet.
+
+Supported memory-device variation controls:
 
 - `variation.mode: single_point` for one sampled run
 - `variation.mode: monte_carlo` with `variation.samples: <N>` for Monte Carlo analysis
@@ -130,20 +157,27 @@ For `single_point` and `monte_carlo`, use `*_stdev` fields such as `memory_devic
 
 ## Units and Formatting
 
-The current examples rely on unit-suffixed scalar values. Common forms include:
+The current examples rely on unit-suffixed scalar values. Keep units explicit
+and consistent with the shipped examples.
 
-- `45nm`
-- `350K`
-- `512B`
-- `64bits`
-- `1V`
-- `70mV`
-- `10000ohm`
-- `10ns`
-- `6fF`
-- `300F^2`
+Valid unit suffixes used by the input parsers:
 
-Keep units explicit and consistent with the shipped examples.
+- Length: `m`, `cm`, `mm`, `um`, `nm`
+- Feature width: `F`
+- Feature area: `F^2`
+- Area: `m^2`, `cm^2`, `mm^2`, `um^2`, `nm^2`
+- Capacitance: `F`, `mF`, `uF`, `nF`, `pF`, `fF`
+- Capacitance per length: `F/m`, `pF/m`, `fF/m`
+- Current: `A`, `mA`, `uA`, `nA`, `pA`
+- Data size: `B`, `KB`, `MB`, `GB`
+- Energy: `J`, `mJ`, `uJ`, `nJ`, `pJ`, `fJ`
+- Power: `W`, `mW`, `uW`, `nW`, `pW`
+- Resistance: `ohm`, `kohm`, `Mohm`, `Gohm`
+- Temperature: `K`
+- Time: `s`, `ms`, `us`, `ns`, `ps`, `fs`
+- Voltage: `V`, `mV`
+- Word width: `bit`, `bits`
+- Variation fractions: bare fractions such as `0.05` or percentages such as `5%`
 
 ## Minimal Workflow
 
@@ -153,22 +187,33 @@ Keep units explicit and consistent with the shipped examples.
 4. Run EvaCAM after each change.
 5. Only move to larger structural edits after the small edits run cleanly.
 
-## Reference-Only Full Examples
+## Reference-Only Samples
 
-The files below are not intended for real runs:
+The files under [`docs/input_samples/`](input_samples/) are not intended for
+real runs. They show every v2 input role with generic placeholder values and
+unit comments:
 
-- `docs/tool_config_full_example.yaml`
-- `docs/architecture_config_full_example.yaml`
-- `docs/cell_config_full_example.yaml`
-- `docs/custom_sense_amp_full_example.yaml`
+- [`sample.config.yaml`](input_samples/sample.config.yaml)
+- [`sample.architecture.yaml`](input_samples/sample.architecture.yaml)
+- [`sample.cell.yaml`](input_samples/sample.cell.yaml)
+- [`sample.memory_device.yaml`](input_samples/sample.memory_device.yaml)
+- [`sample.access_device.yaml`](input_samples/sample.access_device.yaml)
+- [`sample.sensing.yaml`](input_samples/sample.sensing.yaml)
+- [`sample.sense_amp.yaml`](input_samples/sample.sense_amp.yaml)
+- [`sample.technology.yaml`](input_samples/sample.technology.yaml)
 
-See [FULL_INPUT_EXAMPLES_WARNING.md](FULL_INPUT_EXAMPLES_WARNING.md).
+Read [`docs/input_samples/README.md`](input_samples/README.md) before using
+those samples.
+
+Legacy shipped files with names such as `*_tool_config.yaml`,
+`*_architecture_config.yaml`, and `*_cell_config.yaml` are migration/reference
+fixtures. Do not use them as the starting point for new active configs.
 
 For current runtime restrictions, see [limitations.md](limitations.md).
 
 ## Practical Advice
 
 - Prefer starting from a real config under `config/`, not the full reference examples.
-- Keep referenced files near the tool config when practical; relative references are resolved from the tool config directory.
+- Keep referenced files near the run config when practical; relative references are resolved from the file that contains them.
 - If a run fails while parsing YAML, check indentation first.
 - If a run parses but reports no valid solutions, the issue is usually an unsupported parameter combination rather than YAML syntax.

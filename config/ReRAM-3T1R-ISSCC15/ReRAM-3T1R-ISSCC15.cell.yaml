@@ -1,0 +1,87 @@
+schema: cell
+name: ReRAM-3T1R-ISSCC15
+cam_type: TCAM
+memory_device: ./ReRAM-3T1R-ISSCC15.memory_device.yaml
+layout:
+  cell_process_node: 90nm
+  area: 192.82F^2
+  aspect_ratio: 5.016
+ports:
+  row:
+    0:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./ReRAM-3T1R-ISSCC15.cmos_nmos_6F_gate.access_device.yaml
+        count: 1
+      wire_width: 2F
+      voltages:
+        set_lrs: 1V
+        set_mrs: 1V
+        reset: 0V
+        search0: 1V
+        search1: 0V
+    1:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./ReRAM-3T1R-ISSCC15.cmos_pmos_3F_gate.access_device.yaml
+        count: 1
+      wire_width: 2F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 0V
+        search0: 1V
+        search1: 0V
+    2:
+      type: sourceline
+      connection:
+        kind: memory_terminal
+        terminal: drain
+      wire_width: 2F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 0V
+        search0: 1V
+        search1: 0V
+  column:
+    0:
+      type: matchline
+      connection:
+        kind: access_device
+        device: ./ReRAM-3T1R-ISSCC15.cmos_nmos_3F_drain.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 1V
+        search1: 1V
+    1:
+      type: bitline
+      connection:
+        kind: access_device
+        device: ./ReRAM-3T1R-ISSCC15.cmos_nmos_6F_drain.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    2:
+      type: bitline
+      connection:
+        kind: memory_terminal
+        terminal: drain
+      wire_width: 1F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 1.8V
+        search0: 1V
+        search1: 1V

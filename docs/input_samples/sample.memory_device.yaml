@@ -1,0 +1,87 @@
+# Reference-only memory-device config. See README.md in this directory.
+schema: memory_device
+
+name: sample_memory_device
+type: SRAM # SRAM | DRAM | eDRAM | MRAM | PCRAM | memristor | FBRAM | SLCNAND | MLCNAND | FEFETRAM
+
+resistance:
+  'on': 2kohm # units: ohm | kohm | Mohm | Gohm
+  'off': 2Mohm # units: ohm | kohm | Mohm | Gohm
+  at_set:
+    'on': 2kohm # units: ohm | kohm | Mohm | Gohm
+    'off': 2Mohm # units: ohm | kohm | Mohm | Gohm
+  at_reset:
+    'on': 2kohm # units: ohm | kohm | Mohm | Gohm
+    'off': 2Mohm # units: ohm | kohm | Mohm | Gohm
+  at_read:
+    'on': 2kohm # units: ohm | kohm | Mohm | Gohm
+    'off': 2Mohm # units: ohm | kohm | Mohm | Gohm
+  at_half_read:
+    'on': 4kohm # units: ohm | kohm | Mohm | Gohm
+    'off': 4Mohm # units: ohm | kohm | Mohm | Gohm
+
+capacitance:
+  'on': 1fF # units: F | mF | uF | nF | pF | fF
+  'off': 1fF # units: F | mF | uF | nF | pF | fF
+
+device:
+  gate_ox_thickness_factor: 1.0 # scalar
+  soi_width: 1F # units: F
+
+read:
+  mode: voltage # voltage | current
+  voltage: 1V # units: V | mV
+  current: 10uA # units: A | mA | uA | nA | pA
+  power: 10uW # units: W | mW | uW | nW | pW
+  energy: 10fJ # units: J | mJ | uJ | nJ | pJ | fJ
+  min_sense_voltage: 50mV # units: V | mV
+  wordline_boost_ratio: 1.0 # scalar
+  read_floating: false
+
+write:
+  set:
+    mode: voltage # voltage | current
+    voltage: 2V # units: V | mV
+    current: 20uA # units: A | mA | uA | nA | pA
+    pulse: 10ns # units: s | ms | us | ns | ps | fs
+    energy: 1pJ # units: J | mJ | uJ | nJ | pJ | fJ
+  reset:
+    mode: voltage # voltage | current
+    voltage: 2V # units: V | mV
+    current: 20uA # units: A | mA | uA | nA | pA
+    pulse: 10ns # units: s | ms | us | ns | ps | fs
+    energy: 1pJ # units: J | mJ | uJ | nJ | pJ | fJ
+
+dram:
+  cell_capacitance: 1fF # units: F | mF | uF | nF | pF | fF
+
+sram:
+  nmos_width: 2F # units: F
+  pmos_width: 4F # units: F
+
+flash:
+  erase_voltage: 3V # units: V | mV
+  program_voltage: 3V # units: V | mV
+  pass_voltage: 1V # units: V | mV
+  erase_time: 1ms # units: s | ms | us | ns | ps | fs
+  program_time: 1us # units: s | ms | us | ns | ps | fs
+  gate_coupling_ratio: 0.5 # scalar
+
+variation:
+  mode: monte_carlo # single_point | monte_carlo | corner
+  monte_carlo_granularity: cell # cell | effective
+  samples: 8 # integer greater than 1 for monte_carlo
+  seed: 1234 # unsigned integer
+  lut_file: ./sample_variation_lut.csv
+  memory_device_resistance_on_stdev: 5% # fraction or percent
+  memory_device_resistance_off_stdev: 5% # fraction or percent
+  memory_device_resistance_on_max_var: 10% # fraction or percent
+  memory_device_resistance_off_max_var: 10% # fraction or percent
+
+mcam:
+  num_resistance_state: 2 # integer 2..64
+  resistance_state: [2Mohm, 1Mohm] # units: ohm | kohm | Mohm | Gohm
+  ml_precharge_voltage: [1V, 1V] # units: V | mV
+  searchline_voltage: [0V, 1V] # units: V | mV
+  center_voltage: 500mV # units: V | mV
+  state_variation: [0%, 0%] # fraction or percent

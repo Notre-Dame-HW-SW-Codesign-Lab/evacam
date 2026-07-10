@@ -1,0 +1,39 @@
+schema: architecture
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 45nm
+  device_roadmap: HP
+  temperature: 350K
+memory:
+  capacity: 2MB
+  word_width: 256bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: false
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: true
+    priority_encoder: false
+    accumulator: false
+  write_driver: true
+wires:
+  local:
+    type: LocalConservative
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+organization:
+  mux:
+    sense_amp: 1
+sensing: ./2FeFET_TCAM_256bit.sensing.yaml
+matchline:
+  additional_cap: 0fF
+  match_transistor:
+    cmos_width: 3F

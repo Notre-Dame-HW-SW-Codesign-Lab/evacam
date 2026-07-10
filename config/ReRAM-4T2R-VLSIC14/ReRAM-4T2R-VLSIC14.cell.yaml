@@ -1,0 +1,63 @@
+schema: cell
+name: ReRAM-4T2R-VLSIC14
+cam_type: TCAM
+memory_device: ./ReRAM-4T2R-VLSIC14.memory_device.yaml
+layout:
+  cell_process_node: 40nm
+  area: 299F^2
+  aspect_ratio: 1.6
+ports:
+  row:
+    0:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./ReRAM-4T2R-VLSIC14.cmos_nmos_3F_gate.access_device.yaml
+        count: 1
+      wire_width: 2F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 0V
+        search0: 1.8V
+        search1: 0V
+    1:
+      type: searchline
+      connection:
+        kind: access_device
+        device: ./ReRAM-4T2R-VLSIC14.cmos_nmos_3F_gate.access_device.yaml
+        count: 1
+      wire_width: 2F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 1.8V
+        search0: 0V
+        search1: 1.8V
+  column:
+    0:
+      type: matchline
+      connection:
+        kind: access_device
+        device: ./ReRAM-4T2R-VLSIC14.cmos_nmos_1F_drain.access_device.yaml
+        count: 1
+      wire_width: 5F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 0V
+        search0: 0V
+        search1: 0V
+    1:
+      type: wordline
+      connection:
+        kind: access_device
+        device: ./ReRAM-4T2R-VLSIC14.cmos_pmos_6F_gate.access_device.yaml
+        count: 1
+      wire_width: 1F
+      voltages:
+        set_lrs: 1.8V
+        set_mrs: 1.8V
+        reset: 1.8V
+        search0: 1.8V
+        search1: 1.8V

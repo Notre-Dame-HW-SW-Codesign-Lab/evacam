@@ -34,7 +34,8 @@ The implementation is centered on TCAM-style search with matchline discharge. Ot
 
 ## Inputs That Drive the Circuit Model
 
-The circuit model is driven by the architecture config and cell config referenced by the tool config.
+The circuit model is driven by the architecture config, cell config, technology
+config, and nested device/sensing configs referenced by the run config.
 
 Important top-level inputs include:
 
@@ -42,19 +43,25 @@ Important top-level inputs include:
 - `design.device_roadmap`
 - `design.temperature`
 - `design.search_function`
-- tool-level `cell_file`
+- run-level `cell`
 - `routing` and `wires` settings used to build wire objects
-- optional tool-level `custom_sense_amplifier_file`
-- `sensing.sense`
+- architecture-level `sensing` file reference
+- sensing-level `sense_amplifier` file reference
 - peripheral optimization choices such as buffer, row-driver, and priority-encoder targets
 - array organization values such as bank, mat, and subarray geometry
 
 Important cell-YAML inputs include:
 
-- `cell.type`
-- `cell.area`
-- `access_device.type`
-- `access_device.voltage_drop`
+- `cam_type`
+- `layout.area`
+- `ports`
+- `memory_device`
+- `access_devices`
+
+Important memory/access-device YAML inputs include:
+
+- `type`
+- `voltage_drop`
 - `resistance.on`
 - `resistance.off`
 - `read.mode`
@@ -382,9 +389,9 @@ The following modes exist in the type system but are not modeled as complete pro
 
 Those modes currently emit warnings or throw errors depending on how they are used.
 
-### Built-In Versus Custom Sense Amplifier
+### YAML-Backed Sense Amplifier
 
-Without `custom_sense_amplifier_file`, EvaCAM instantiates the built-in sense-amp model and uses its:
+EvaCAM loads the sense-amplifier model referenced by the v2 sensing file and uses its:
 
 - area
 - input capacitance
@@ -392,7 +399,7 @@ Without `custom_sense_amplifier_file`, EvaCAM instantiates the built-in sense-am
 - dynamic energy
 - leakage
 
-When `custom_sense_amplifier_file` is present, EvaCAM reads these quantities from that YAML file instead. The file becomes the source of truth for modeled area, delay, energy, leakage, and input loading and uses a `custom_sense_amp` mapping; see `docs/custom_sense_amp_full_example.yaml`.
+Legacy `custom_sense_amplifier_file` inputs remain compatibility-only migration fixtures. New active configs should use `*.sensing.yaml` plus `config/lib/sense_amp/*.sense_amp.yaml`.
 
 ### Role in the Matchline Model
 
@@ -541,18 +548,20 @@ As with other metrics, this is a compact analytical estimate, not a transistor-l
 
 ## Variation Model
 
-Variation is controlled from the cell config under `variation` and loaded through [src/config/TechnologyLoader.cpp](../src/config/TechnologyLoader.cpp).
+Variation is controlled by the presence of a memory-device `variation` section
+and loaded through [src/config/TechnologyLoader.cpp](../src/config/TechnologyLoader.cpp).
 
 ### Supported Modes
 
 The current implementation supports:
 
-- variation disabled
+- variation omitted
 - `single_point`
 - `monte_carlo`
 - `corner`
 
-If variation is disabled, the model uses nominal resistances everywhere.
+If the memory-device config omits `variation`, the model uses nominal
+resistances everywhere.
 
 If `single_point` is selected, EvaCAM draws one deterministic sample from the configured seeded RNG streams and overwrites the nominal timing and search-energy results with that single sampled point.
 
@@ -699,15 +708,15 @@ The shipped `config/2FeFET_TCAM/` example is a good reference point for understa
 
 At a high level:
 
-1. The tool config selects the inputs, and the architecture config supplies process node, search mode, organization, and peripheral options.
-2. The cell config supplies the device resistances, read/write settings, minimum sense voltage, and the row/column port description.
+1. The run config selects the inputs, and the architecture config supplies process node, search mode, organization, and peripheral options.
+2. The cell and memory-device configs supply the device resistances, read/write settings, minimum sense voltage, and the row/column port description.
 3. EvaCAM converts the cell geometry into row and column lengths.
 4. Each line receives wire RC plus device capacitance from its attached ports.
 5. The matchline-bearing column determines the effective on-state and off-state matchline path resistance.
 6. The subarray builds a one-mismatch RC delay for nominal search timing and an all-match RC delay for sense-margin validation.
 7. Peripheral latencies are added around the matchline event.
 8. Matchline, cell, driver, and peripheral energies are summed into search/read/write metrics.
-9. If variation is enabled in the cell config, the matchline-path resistances are resampled and the timing and search-energy summaries are recomputed.
+9. If the memory-device config contains `variation`, the matchline-path resistances are resampled and the timing and search-energy summaries are recomputed.
 
 For a new cell technology, the most important calibration knobs are usually:
 

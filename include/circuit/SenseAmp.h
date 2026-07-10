@@ -2,6 +2,7 @@
 #define SENSEAMP_H_
 
 #include "FunctionUnit.h"
+#include "input/SenseAmpYamlLoader.h"
 
 class SenseAmp: public FunctionUnit {
     public:
@@ -35,6 +36,7 @@ class SenseAmp: public FunctionUnit {
         double senseVoltage;	/* Minimum sensible voltage */
         double capLoad;		/* Load capacitance of sense amplifier */
         double pitchSenseAmp;	/* The maximum width allowed for one sense amplifier layout */
+        SenseAmpModel model;
 };
 
 #endif /* SENSEAMP_H_ */

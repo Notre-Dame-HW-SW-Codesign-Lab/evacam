@@ -1,0 +1,10 @@
+schema: config
+name: 2FeFET_TCAM_mc1000_cell_granularity
+architecture: 2FeFET_TCAM.architecture.yaml
+cell: 2FeFET_TCAM_mc1000_cell_granularity.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

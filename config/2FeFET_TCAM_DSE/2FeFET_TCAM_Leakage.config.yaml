@@ -1,0 +1,10 @@
+schema: config
+name: 2FeFET_TCAM_Leakage
+architecture: 2FeFET_TCAM_512bit_fixed.architecture.yaml
+cell: 2FeFET_TCAM_DSE.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: balance
+  row_driver: balance
+  priority_encoder: balance

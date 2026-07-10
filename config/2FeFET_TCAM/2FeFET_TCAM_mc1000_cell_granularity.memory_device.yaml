@@ -1,0 +1,32 @@
+schema: memory_device
+name: 2FeFET-TCAM
+type: FEFETRAM
+resistance:
+  'on': 10000ohm
+  'off': 1600000000ohm
+read:
+  mode: voltage
+  voltage: 1V
+  current: 5.62uA
+  power: 5.62uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ
+variation:
+  seed: 33333
+  mode: monte_carlo
+  monte_carlo_granularity: cell
+  samples: 1000
+  memory_device_resistance_on_stdev: 5%
+  memory_device_resistance_off_stdev: 5%

@@ -1,0 +1,9 @@
+# Reference-only sensing config. See README.md in this directory.
+schema: sensing
+
+internal: true
+sensing_mode: nvsim_vol # nvsim_vol | nvsim_cur | self_clock | dual_the | discharge
+worst_case_sense_margin: 25mV # units: V | mV
+
+# Path is resolved relative to this sensing file.
+sense_amplifier: ./sample.sense_amp.yaml

@@ -1,21 +1,23 @@
 # Schema Reference
 
-This document covers the YAML fields currently parsed by EvaCAM. Treat this file and the shipped examples under `config/` as the source of truth for real runs.
+This document covers the YAML fields currently parsed by EvaCAM. Treat this file
+and the shipped examples under `config/` as the source of truth for real
+runs.
 
-## Tool Config
+## Run Config
 
 Required fields and sections:
 
-- `architecture_file`
-- `cell_file`
+- `schema: config`
+- `architecture`
+- `cell`
+- `technology`
 - `optimization`
 
-`architecture_file`, `cell_file`, and optional `custom_sense_amplifier_file`
-paths are resolved relative to the tool config.
+`architecture`, `cell`, and `technology` paths are resolved relative to the run config.
 
 Optional fields and sections:
 
-- `custom_sense_amplifier_file`
 - `design_constraints`
 - `exploration`
 - `modeling`
@@ -31,10 +33,14 @@ Other mappings:
 
 - `design_constraints`: legacy constrained-DSE controls, renamed and moved without a behavior change
 - `exploration.use_cacti_assumption`, `exploration.enable_pruning`
-- `modeling.use_updated_lib`, `modeling.exclude_precharge_latency`
+- `modeling.exclude_precharge_latency`
 - `modeling.include_leakage`, `modeling.scaled_voltage`: retained but currently have no model effect
-- `output.yaml_file`: overrides the default results YAML path
+- `output.results`: deprecated compatibility option for overriding the default results YAML path; prefer CLI `--output`
 - `output.exploration_csv_prefix`: controls exploration CSV naming
+
+Legacy fields such as `custom_sense_amplifier_file`, `modeling.use_updated_lib`,
+and `output.yaml_file` are rejected. New configs must reference technology and
+sensing files instead.
 
 ## Architecture Config
 
@@ -71,19 +77,49 @@ Useful optional keys:
 - `organization.bit_serial_width`: fixed bit-serial width
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
 - `memory.physical_capacity`: required when `memory.word_width` is not a power of two
-- `sensing.worst_case_sense_margin`: optional matchline sensing margin
+- `sensing`: reference to a `*.sensing.yaml` file
+- `matchline.additional_cap`: optional additional matchline capacitance
+- `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size`: transistor-width limit in feature-size multiples
 - `physical_limits.max_driver_current`: retained but currently has no model effect
 
 ## Cell File
 
-Required section:
+Required fields and sections:
 
-- `cell` with `type`, `cell_process_node`, `area`, and `aspect_ratio`
+- `name`
+- `cam_type`
+- `memory_device`
+- `layout` with `cell_process_node`, `area`, and `aspect_ratio`
+- `ports`
 
 Common implemented optional sections:
 
-- `access_device`
+- `schema`
+- `access_devices`
+
+Important notes:
+
+- `cam_type` should be set explicitly in real inputs.
+- Accepted values are `TCAM`, `BCAM`, `MCAM`, and `ACAM`.
+- `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
+- `memory_device` references a `*.memory_device.yaml` file.
+- `access_devices` is a named map of reusable `*.access_device.yaml` files.
+- `ports.row` and `ports.column` are maps keyed by integer index.
+- Port `connection.kind` is either `memory_terminal` or `access_device`.
+- `memory_terminal` connections use `connection.terminal` to name the memory-device terminal.
+- `access_device` connections use `connection.device` and `connection.terminal` to identify the selector and terminal.
+
+## Memory Device File
+
+Required fields:
+
+- `name`
+- `type`
+
+Common implemented optional sections:
+
+- `schema`
 - `resistance`
 - `capacitance`
 - `device`
@@ -95,32 +131,68 @@ Common implemented optional sections:
 - `flash`
 - `variation`
 - `mcam`
-- `ports`
 
 Important notes:
 
-- `cell.cam_type` should be set explicitly in real inputs.
-- Accepted values are `TCAM`, `BCAM`, `MCAM`, and `ACAM`.
-- `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
-- Variation is cell-driven. Tool and architecture configs do not support a `variation` section.
+- Variation is memory-device-driven. A memory-device `variation` section enables variation; omit the section for nominal-only runs. Run and architecture configs do not support a `variation` section.
 - Stochastic variation sampling uses a fixed bounded-Gaussian model; `variation.distribution` is not a supported input.
 - Supported user-facing variation modes are `single_point`, `monte_carlo`, and `corner`.
 - `variation.mode: nominal` is not a supported input; disable variation instead.
 - `variation.samples` is required for `monte_carlo` and must be greater than 1.
 - `variation.monte_carlo_granularity` is optional for `monte_carlo`; supported values are `cell` and `effective`, and the default is `cell`.
-- `variation.seed` is an optional cell-level override intended for reproducible testing; otherwise the variation seed is derived from the current time.
+- `variation.seed` is an optional memory-device override intended for reproducible testing; otherwise the variation seed is derived from the current time.
 - `variation.mode: corner` uses deterministic `*_max_var` fields, derives `samples`, and ignores user-provided `samples` and `seed`.
 - `multilevel.enabled` appears in some shipped legacy configs but is not currently parsed.
-- `flash.mlc` is not a parsed cell key; MLC/SLC behavior comes from `cell.type`.
+- `flash.mlc` is not a parsed memory-device key; MLC/SLC behavior comes from `type`.
 - `read.wordline_boost_ratio` and `read.read_floating` are parsed but currently have no model effect.
 - `mcam.resistance_state` is used by the experimental MCAM matchline timing model. The model evaluates the nonzero MCAM states and uses the state that produces the largest one-mismatch matchline delay.
 - `mcam.searchline_voltage` together with `mcam.center_voltage` is used for MCAM searchline row-driver energy. Without these fields, the model falls back to the per-port `search0`/`search1` voltages.
 - `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Some parsed MCAM fields remain reserved for future model extensions.
-- `ports.row` and `ports.column` are maps keyed by integer index.
-- `docs/tool_config_full_example.yaml`, `docs/architecture_config_full_example.yaml`, and `docs/cell_config_full_example.yaml` contain reference-only nonsensical values.
 
-Architecture and tool config notes:
+## Access Device File
 
-- `design.system_process_node` is the authoritative modeled technology node. `cell.cell_process_node` records the process node associated with the cell definition.
+Access-device files describe reusable transistor or diode selectors referenced by cell ports.
+
+Common implemented fields:
+
+- `schema`
+- `name`
+- `type`
+- `role`
+- `cmos_type`
+- `terminals`
+- `resistance`
+- `capacitance`
+- `voltage_drop`
+
+## Sensing File
+
+Required or common fields:
+
+- `schema`
+- `internal`: whether the architecture uses internal sensing
+- `sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from `sense_amplifier` when omitted
+- `sense_amplifier`: reference to a `*.sense_amp.yaml` file
+- `worst_case_sense_margin`: optional matchline sensing margin
+
+## Sense-Amp File
+
+Sense-amp files live under `config/lib/sense_amp/` by default.
+
+Common implemented fields:
+
+- `schema`
+- `name`
+- `model`
+- `supported_modes`
+- `layout`
+- `transistors`
+- `iv_converter`
+
+`model: nvsim_cmos` uses the built-in NVSim-style equations with YAML-backed parameters.
+
+Architecture and run config notes:
+
+- `design.system_process_node` is the authoritative modeled technology node. `layout.cell_process_node` records the process node associated with the cell definition.
 - `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
-- Supplying `custom_sense_amplifier_file` in the tool config enables the custom model. The referenced file uses a `custom_sense_amp` mapping with `latency`, `energy`, `cap_load`, and either `area` or both `height` and `width`; `leakage` is optional.
+- `docs/input_samples/` contains reference-only v2 sample files for every input role. They use generic placeholder values and are not physically valid experiments.

@@ -1,0 +1,59 @@
+schema: cell
+name: ReRAM-2T2R
+cam_type: TCAM
+memory_device: ./ReRAM-2T2R.memory_device.yaml
+layout:
+  cell_process_node: 40nm
+  area: 150F^2
+  aspect_ratio: 2
+ports:
+  row:
+    0:
+      type: searchline
+      connection:
+        kind: memory_terminal
+        terminal: gate
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.3V
+        set_mrs: 1.1V
+        reset: 3.5V
+        search0: 1.1V
+        search1: 0V
+    1:
+      type: searchline
+      connection:
+        kind: memory_terminal
+        terminal: gate
+      wire_width: 1F
+      voltages:
+        set_lrs: 3.3V
+        set_mrs: 1.1V
+        reset: 3.5V
+        search0: 0V
+        search1: 1.1V
+  column:
+    0:
+      type: matchline_bitline
+      connection:
+        kind: memory_terminal
+        terminal: drain
+      wire_width: 6F
+      voltages:
+        set_lrs: 0V
+        set_mrs: 0V
+        reset: 1.5V
+        search0: 0V
+        search1: 0V
+    1:
+      type: bitline
+      connection:
+        kind: memory_terminal
+        terminal: drain
+      wire_width: 6F
+      voltages:
+        set_lrs: 1.5V
+        set_mrs: 1.5V
+        reset: 0V
+        search0: 0V
+        search1: 0V

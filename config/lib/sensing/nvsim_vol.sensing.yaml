@@ -1,0 +1,3 @@
+schema: sensing
+internal: true
+sense_amplifier: ../sense_amp/nvsim_vol.sense_amp.yaml

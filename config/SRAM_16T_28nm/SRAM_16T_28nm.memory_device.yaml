@@ -1,0 +1,8 @@
+schema: memory_device
+name: SRAM-16T-28nm
+type: SRAM
+read:
+  mode: voltage
+  voltage: 0.9V
+  energy: 0.96fJ
+  min_sense_voltage: 50mV
