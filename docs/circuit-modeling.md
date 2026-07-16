@@ -585,7 +585,7 @@ Each resistance category uses a stable deterministic RNG stream derived from:
 
 The sampled values are produced by `VariationSampler::SampleResistance()`. The user interface describes this as a bounded-Gaussian resistance-variation model.
 
-Corner mode does not use the RNG. It applies deterministic low/high scaling to the effective resistance components in this bit order: matchline wire, access on, access off, match on, match off.
+Corner mode does not use the RNG. It applies deterministic low/high scaling to the active memory-device resistance components in this bit order: on-state resistance, off-state resistance.
 
 ### Effect on Timing and Energy
 

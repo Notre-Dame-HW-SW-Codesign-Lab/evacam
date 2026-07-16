@@ -88,9 +88,22 @@ def opposite_bound(bound):
     return "min" if bound == "max" else "max"
 
 
+def corner_code(point):
+    row = point["row"]
+    on_corner = row.get("memory_device_res_on_corner", "")
+    off_corner = row.get("memory_device_res_off_corner", "")
+    abbreviations = {"low": "L", "high": "H", "nominal": "–"}
+    if on_corner in abbreviations and off_corner in abbreviations:
+        return abbreviations[on_corner] + abbreviations[off_corner]
+    return point["corner_label"]
+
+
 def ordered_points(points, order):
     if order == "sample":
         return sorted(points, key=lambda point: point["sample"])
+    if order == "corner":
+        corner_order = {"LL": 0, "LH": 1, "HL": 2, "HH": 3, "L–": 4, "H–": 5, "–L": 6, "–H": 7}
+        return sorted(points, key=lambda point: (corner_order.get(corner_code(point), 99), point["sample"]))
     return sorted(points, key=lambda point: point["value"])
 
 
@@ -98,7 +111,7 @@ def format_value(value, unit):
     return f"{value:.3g} {unit}"
 
 
-def plot_corner_variation(rows, output_path, include_internal=False, order="metric"):
+def plot_corner_variation(rows, output_path, include_internal=False, order="corner"):
     os.environ.setdefault("MPLCONFIGDIR", "/tmp/evacam-matplotlib")
 
     import matplotlib
@@ -113,18 +126,16 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
     fig, axes = plt.subplots(
         panel_rows,
         cols,
-        figsize=(11.4, 4.1 * panel_rows),
+        figsize=(14, 5.0 * panel_rows),
         squeeze=False,
         constrained_layout=True,
     )
-
-    fig.suptitle("EvaCAM Corner Variation", fontsize=14, fontweight="bold")
-    subtitle = f"{len(rows)} deterministic corners"
-    if order == "sample":
-        subtitle += ", original sample order"
-    else:
-        subtitle += ", sorted by metric value"
-    fig.text(0.5, 0.945, subtitle, ha="center", fontsize=10)
+    fig.suptitle(
+        "EvaCAM Memory-Device Corner Analysis\n"
+        f"{len(rows)} deterministic resistance corners  |  Corner code: R_on / R_off (L = low, H = high)",
+        fontsize=16,
+        fontweight="bold",
+    )
     legend_handles = None
     legend_labels = None
 
@@ -165,15 +176,6 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
             label="Nominal",
             zorder=2,
         )
-        ax.axhline(
-            min_value,
-            color="#8c959f",
-            linewidth=1.0,
-            linestyle="--",
-            alpha=0.9,
-            label="Min/max range",
-        )
-        ax.axhline(max_value, color="#8c959f", linewidth=1.0, linestyle="--", alpha=0.9)
         ax.scatter(
             [risky_x],
             [risky["value"]],
@@ -181,7 +183,7 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
             color="#cf222e",
             edgecolor="#24292f",
             linewidth=0.8,
-            label=f"Worst case ({bound})",
+            label="Worst case",
             zorder=4,
         )
         ax.scatter(
@@ -191,40 +193,29 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
             color="#1a7f37",
             edgecolor="#24292f",
             linewidth=0.8,
-            label=f"Best case ({best_bound})",
+            label="Best case",
             zorder=4,
         )
 
-        ax.set_title(title, fontsize=11.5, fontweight="bold", pad=7)
-        ax.set_xlabel("Sample Index" if order == "sample" else "Sorted Corner Index")
+        y_padding = max((max_value - min_value) * 0.18, abs(nominal) * 0.003)
+        ax.set_ylim(min(min_value, nominal) - y_padding, max(max_value, nominal) + y_padding)
+        ax.set_title(title, fontsize=14, fontweight="bold", pad=10)
+        ax.set_xlabel("Corner")
         ax.set_ylabel(unit)
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=6, integer=True))
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
+        ax.set_xticks(x_values, [corner_code(point) for point in plot_points])
+        ax.tick_params(axis="x", labelsize=11, pad=5)
+        ax.tick_params(axis="y", labelsize=10)
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
-        ax.grid(axis="y", color="#d8dee4", linewidth=0.8, alpha=0.8)
+        ax.grid(axis="y", color="#d8dee4", linewidth=0.9, alpha=0.85)
         ax.set_axisbelow(True)
-        ax.text(
-            0.02,
-            0.96,
-            f"nominal {format_value(nominal, unit)}\n"
-            f"min {format_value(min_value, unit)}\n"
-            f"max {format_value(max_value, unit)}",
-            transform=ax.transAxes,
-            ha="left",
-            va="top",
-            fontsize=8.0,
-            bbox={
-                "boxstyle": "round,pad=0.28",
-                "facecolor": "white",
-                "edgecolor": "#d0d7de",
-                "alpha": 0.92,
-            },
-        )
+        ax.text(0.02, 0.95, f"Nominal: {format_value(nominal, unit)}", transform=ax.transAxes,
+                ha="left", va="top", fontsize=10, fontweight="medium")
         handles, labels = ax.get_legend_handles_labels()
         if legend_handles is None:
-            legend_handles = handles[:5]
-            legend_labels = labels[:5]
+            legend_handles = handles[:4]
+            legend_labels = labels[:4]
 
     for index in range(len(metrics), panel_rows * cols):
         axes[index // cols][index % cols].set_visible(False)
@@ -234,8 +225,8 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
         legend_labels,
         loc="upper center",
         bbox_to_anchor=(0.5, -0.01),
-        ncol=5,
-        fontsize=8.0,
+        ncol=4,
+        fontsize=10,
         frameon=True,
         framealpha=0.95,
         edgecolor="#d0d7de",
@@ -246,7 +237,7 @@ def plot_corner_variation(rows, output_path, include_internal=False, order="metr
     plt.close(fig)
 
 
-def default_output_path(csv_path, order="metric"):
+def default_output_path(csv_path, order="corner"):
     stem = csv_path.stem
     if stem.endswith("_variation_samples"):
         stem = stem[: -len("_variation_samples")] + "_variation"
@@ -273,9 +264,9 @@ def main():
     )
     parser.add_argument(
         "--order",
-        choices=["metric", "sample"],
-        default="metric",
-        help="Plot corners sorted by each metric value or in original sample-index order.",
+        choices=["corner", "metric", "sample"],
+        default="corner",
+        help="Plot in low/high corner order, metric-sorted order, or original sample-index order.",
     )
     args = parser.parse_args()
 

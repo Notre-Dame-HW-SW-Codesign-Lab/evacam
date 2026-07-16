@@ -508,9 +508,11 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
 
     const int subarrayRows = config.runtimeSizing.fixedSubarrayRows;
     const int subarrayColumns = config.runtimeSizing.fixedSubarrayColumns;
-    if (subarrayRows < 16 || subarrayRows > 512) {
+    const YAML::Node cellRoot = LoadCellFileForValidation(config.input.fileMemCell);
+    const bool isMcam = LoadCamTypeForValidation(cellRoot, config.input.fileMemCell) == MCAM;
+    if (subarrayRows < 8 || subarrayRows > 512) {
         throw std::runtime_error(
-                "[Input] Error: organization.subarray.dimensions row count must be between 16 and 512.");
+                "[Input] Error: organization.subarray.dimensions row count must be between 8 and 512.");
     }
     if (subarrayColumns < 8 || subarrayColumns > 512) {
         throw std::runtime_error(
@@ -538,11 +540,11 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
                 "[Input] Error: word_width is incompatible with active bank/mat partitioning.");
     }
     const long long effectiveSubarrayRows = config.input.wordWidth / partitionFactor;
-    if (effectiveSubarrayRows != subarrayRows) {
+    if (!isMcam && effectiveSubarrayRows != subarrayRows) {
         throw std::runtime_error(
                 "[Input] Error: organization.subarray.dimensions row count is incompatible with word_width.");
     }
-    if ((effectiveSubarrayRows & (effectiveSubarrayRows - 1)) != 0) {
+    if (!isMcam && (effectiveSubarrayRows & (effectiveSubarrayRows - 1)) != 0) {
         throw std::runtime_error(
                 "[Input] Error: organization.subarray.dimensions row count must match a power-of-two effective row count.");
     }

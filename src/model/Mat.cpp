@@ -138,7 +138,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         // modified for EvaCAM
         numRow = 1 << _numAddressBit;
     }
-    if (numRow < 16) {
+    if (numRow < 16 && camType != MCAM) {
         MarkInvalid(*this, "[Mat]: Word width is impractically small.");
         return;
     } else if (numRow > 512) {

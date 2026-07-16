@@ -1,0 +1,10 @@
+schema: config
+name: 2FeFET_MCAM_explicit_subarray
+architecture: 2FeFET_MCAM_explicit_subarray.architecture.yaml
+cell: 2FeFET_MCAM.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

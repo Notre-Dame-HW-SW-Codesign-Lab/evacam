@@ -304,6 +304,53 @@ void TestFixedSubarrayDimensionsDeriveCapacity() {
     assert(config.runtimeSizing.hasFixedSubarrayDimensions == true);
 }
 
+void TestFixedSubarrayDimensionsAllowEightRows() {
+    WriteConfig("  word_width: 8bits\n", kReadLatencyOptimization,
+        "organization:\n"
+        "  banks:\n"
+        "    total: [1, 1]\n"
+        "    active: [1, 1]\n"
+        "  mats:\n"
+        "    total: [1, 1]\n"
+        "    active: [1, 1]\n"
+        "  subarray:\n"
+        "    dimensions: [8, 64]\n"
+        "  mux:\n"
+        "    sense_amp: 1\n"
+        "    output_level1: 1\n"
+        "    output_level2: 1\n");
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kConfigPath, config);
+    assert(config.input.capacity == 64);
+}
+
+void TestMcamFixedSubarrayDimensionsAllowIndependentRows() {
+    WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
+        "mcam:\n"
+        "  num_resistance_state: 2\n"
+        "  resistance_state: [1Mohm, 500kohm]\n");
+    WriteConfig("  word_width: 64bits\n", kReadLatencyOptimization,
+        "organization:\n"
+        "  banks:\n"
+        "    total: [1, 1]\n"
+        "    active: [1, 1]\n"
+        "  mats:\n"
+        "    total: [1, 1]\n"
+        "    active: [1, 1]\n"
+        "  subarray:\n"
+        "    dimensions: [10, 256]\n"
+        "  mux:\n"
+        "    sense_amp: 1\n"
+        "    output_level1: 1\n"
+        "    output_level2: 1\n");
+
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kConfigPath, config);
+    assert(config.input.capacity == 320);
+    WriteMinimalCellFile();
+}
+
 void TestAutoCapacityWithoutFixedSubarrayDimensionsThrows() {
     WriteConfig("  capacity: auto\n  word_width: 64bits\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("memory.capacity is required unless organization.subarray.dimensions is supplied"));
@@ -642,6 +689,8 @@ int main() {
     TestNonHTreeRoutingThrows();
     TestMissingRequiredTopLevelKeyThrows();
     TestFixedSubarrayDimensionsDeriveCapacity();
+    TestFixedSubarrayDimensionsAllowEightRows();
+    TestMcamFixedSubarrayDimensionsAllowIndependentRows();
     TestAutoCapacityWithoutFixedSubarrayDimensionsThrows();
     TestFixedSubarrayDimensionsRejectExploration();
     TestNonPowerOfTwoWordWidthRequiresRealCapacity();

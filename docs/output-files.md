@@ -121,8 +121,9 @@ For corner mode, generate a deterministic corner plot with:
 python3 scripts/plot_corner_variation.py results/<name>_variation_samples.csv
 ```
 
-By default, each subplot sorts corners by its metric value. To plot the original
-sample order instead, run:
+By default, each subplot uses a consistent low/high corner order and labels
+each point with a compact memory-device `R_on`/`R_off` corner code. To plot the
+original sample order instead, run:
 
 ```bash
 python3 scripts/plot_corner_variation.py results/<name>_variation_samples.csv --order sample

@@ -1,8 +1,8 @@
 schema: architecture
 design:
   target: CAM
-  search_function: BE
-  system_process_node: 45nm
+  search_function: TH
+  system_process_node: 22nm
   device_roadmap: HP
   temperature: 350K
 memory:
@@ -18,7 +18,7 @@ peripherals:
     buffer: false
     priority_encoder: false
     accumulator: false
-  write_driver: true
+  write_driver: false
 wires:
   local:
     type: LocalConservative
@@ -30,27 +30,19 @@ wires:
     low_swing: false
 organization:
   banks:
-    total:
-    - 1
-    - 1
-    active:
-    - 1
-    - 1
+    total: [1, 1]
+    active: [1, 1]
   mats:
-    total:
-    - 1
-    - 1
-    active:
-    - 1
-    - 1
+    total: [1, 1]
+    active: [1, 1]
   subarray:
-    dimensions: [64, 64]
+    dimensions: [32, 32]
   mux:
     sense_amp: 1
     output_level1: 1
     output_level2: 1
-sensing: ./2FeFET_TCAM_explicit_subarray.sensing.yaml
+sensing: ./2FeFET_MCAM.sensing.yaml
 matchline:
-  additional_cap: 6fF
+  additional_cap: 0fF
   match_transistor:
-    cmos_width: 3F
+    cmos_width: 5F
