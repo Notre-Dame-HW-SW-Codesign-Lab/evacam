@@ -1,7 +1,0 @@
-schema: access_device
-name: MRAM-4T2R-VLSIC12.diode_pmos_15F_drain.access_device
-type: diode
-width: 15F
-connected_terminal: drain
-is_nmos: false
-voltage_drop: 0.15V

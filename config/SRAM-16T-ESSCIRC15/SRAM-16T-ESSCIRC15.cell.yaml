@@ -2,6 +2,10 @@ schema: cell
 name: SRAM-16T-ESSCIRC15
 cam_type: TCAM
 memory_device: ./SRAM-16T-ESSCIRC15.memory_device.yaml
+access_device:
+  type: cmos
+  cmos_width: 1F
+  voltage_drop: 0.15V
 layout:
   cell_process_node: 28nm
   area: 1210F^2
@@ -10,10 +14,10 @@ ports:
   row:
     0:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./SRAM-16T-ESSCIRC15.cmos_nmos_1F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V
@@ -23,10 +27,10 @@ ports:
         search1: 0V
     1:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./SRAM-16T-ESSCIRC15.cmos_nmos_1F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V
@@ -36,10 +40,10 @@ ports:
         search1: 0.9V
     2:
       type: bitline
-      connection:
-        kind: access_device
-        device: ./SRAM-16T-ESSCIRC15.cmos_nmos_1F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0.9V
@@ -49,10 +53,10 @@ ports:
         search1: 0V
     3:
       type: bitline
-      connection:
-        kind: access_device
-        device: ./SRAM-16T-ESSCIRC15.cmos_nmos_1F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0.9V
@@ -63,10 +67,10 @@ ports:
   column:
     0:
       type: wordline
-      connection:
-        kind: access_device
-        device: ./SRAM-16T-ESSCIRC15.cmos_nmos_1F_gate.access_device.yaml
-        count: 4
+      cmos_region: gate
+      num_cmos: 4
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0.9V
@@ -76,10 +80,10 @@ ports:
         search1: 0V
     1:
       type: matchline
-      connection:
-        kind: access_device
-        device: ./SRAM-16T-ESSCIRC15.cmos_nmos_1F_drain.access_device.yaml
-        count: 2
+      cmos_region: drain
+      num_cmos: 2
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V

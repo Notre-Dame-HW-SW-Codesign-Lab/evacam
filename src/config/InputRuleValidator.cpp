@@ -131,8 +131,7 @@ void ValidateCamPortPresence(const YAML::Node &root) {
     }
 }
 
-CAM_CmosRegion LoadPortConnectionRegion(const YAML::Node &portNode,
-        const std::string &cellFile) {
+CAM_CmosRegion LoadPortConnectionRegion(const YAML::Node &portNode) {
     const YAML::Node connection = YamlHelpers::child_optional(portNode, "connection");
     if (!connection) {
         return YamlHelpers::read_enum_required<CAM_CmosRegion>(
@@ -145,20 +144,10 @@ CAM_CmosRegion LoadPortConnectionRegion(const YAML::Node &portNode,
         return YamlHelpers::read_enum_required<CAM_CmosRegion>(
                 connection, "terminal", false);
     }
-    if (kind == "access_device") {
-        const std::string accessFile = ResolveReference(
-                cellFile, YamlHelpers::read_required<std::string>(connection, "device"));
-        const YAML::Node accessRoot = YAML::LoadFile(accessFile);
-        const YAML::Node accessNode = YamlHelpers::child_optional(accessRoot, "access_device")
-                ? YamlHelpers::child_optional(accessRoot, "access_device")
-                : accessRoot;
-        return YamlHelpers::read_enum_required<CAM_CmosRegion>(
-                accessNode, "connected_terminal", false);
-    }
     throw std::runtime_error("[Input] Error: cell.ports.column has unsupported connection.kind.");
 }
 
-void ValidateCamColumnTopology(const YAML::Node &root, const std::string &cellFile) {
+void ValidateCamColumnTopology(const YAML::Node &root) {
     const YAML::Node ports = YamlHelpers::child_required(root, "ports");
     const YAML::Node columnPorts = YamlHelpers::child_required(ports, "column");
     bool foundMatchline = false;
@@ -181,7 +170,7 @@ void ValidateCamColumnTopology(const YAML::Node &root, const std::string &cellFi
         }
 
         foundMatchline = true;
-        const CAM_CmosRegion region = LoadPortConnectionRegion(portNode, cellFile);
+        const CAM_CmosRegion region = LoadPortConnectionRegion(portNode);
         if (region == gate) {
             throw std::runtime_error(
                     "[Input] Error: cell.ports.column matchline connection cannot use cmos_region gate.");
@@ -577,7 +566,7 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
     const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
     const MemCellType memCellType = LoadMemCellTypeForValidation(root, config.input.fileMemCell);
     ValidateCamPortPresence(root);
-    ValidateCamColumnTopology(root, config.input.fileMemCell);
+    ValidateCamColumnTopology(root);
     ValidateCamModelSupport(config, root, memCellType);
     ValidateMcamResistanceStates(config, root);
 

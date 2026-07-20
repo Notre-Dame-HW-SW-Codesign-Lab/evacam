@@ -56,7 +56,7 @@ Important cell-YAML inputs include:
 - `layout.area`
 - `ports`
 - `memory_device`
-- `access_devices`
+- cell-level `access_device` and per-port CMOS fields
 
 Important memory/access-device YAML inputs include:
 

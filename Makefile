@@ -28,7 +28,6 @@ TEST_CELL_LOADER_BIN=CellYamlLoaderTest
 TEST_CLI_OPTIONS_BIN=CliOptionsTest
 TEST_CUSTOM_SA_LOADER_BIN=CustomSenseAmpYamlLoaderTest
 TEST_TECHNOLOGY_LOADER_BIN=TechnologyYamlLoaderTest
-TEST_MEMORY_ACCESS_LOADER_BIN=MemoryAccessDeviceYamlLoaderTest
 TEST_NEW_INPUT_NAMES_BIN=NewInputNamesTest
 TEST_GENERATED_V2_CONFIGS_BIN=GeneratedV2ConfigsTest
 TEST_INPUT_VALIDATION_BIN=InputValidationTest
@@ -93,7 +92,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-memory-access-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
@@ -126,11 +125,6 @@ test-technology-loader: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_TECHNOLOGY_LOADER_BIN).d -MT $(TEST_TECHNOLOGY_LOADER_BIN) -o $(TEST_TECHNOLOGY_LOADER_BIN) tests/TechnologyYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_TECHNOLOGY_LOADER_BIN)
-
-test-memory-access-loader: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MEMORY_ACCESS_LOADER_BIN).d -MT $(TEST_MEMORY_ACCESS_LOADER_BIN) -o $(TEST_MEMORY_ACCESS_LOADER_BIN) tests/MemoryAccessDeviceYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_MEMORY_ACCESS_LOADER_BIN)
 
 test-new-input-names: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR)

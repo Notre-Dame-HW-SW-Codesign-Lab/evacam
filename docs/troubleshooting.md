@@ -32,7 +32,7 @@ Check:
 
 ## Missing Or Broken Referenced Input
 
-If the run config parses but a referenced file is missing, loading fails before exploration. Verify `architecture`, `cell`, `technology`, and any nested references such as `sensing`, `sense_amplifier`, `memory_device`, and `access_devices`. Relative paths are resolved from the file that contains each reference.
+If the run config parses but a referenced file is missing, loading fails before exploration. Verify `architecture`, `cell`, `technology`, and any nested references such as `sensing`, `sense_amplifier`, and `memory_device`. Relative paths are resolved from the file that contains each reference.
 
 ## `No valid solutions.`
 

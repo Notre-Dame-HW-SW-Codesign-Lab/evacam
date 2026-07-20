@@ -109,7 +109,7 @@ EvaCAM consumes a v2 run config that references separate architecture, cell, and
 - The cell config describes CAM topology, layout, ports, and references reusable memory/access device definitions.
 - Memory-device, access-device, sensing, sense-amp, and technology YAML files hold reusable electrical/device model data.
 
-Start with the shipped v2 examples under `config/`, which are the canonical active configs. Canonical filenames use suffixes such as `*.config.yaml`, `*.architecture.yaml`, `*.cell.yaml`, `*.memory_device.yaml`, `*.access_device.yaml`, and `*.sensing.yaml`; shared defaults live under `config/lib/`. Legacy filenames such as `*_tool_config.yaml`, `*_architecture_config.yaml`, and `*_cell_config.yaml` remain only for migration/reference checks. `config/old_style_config/` remains in the repository only as legacy reference material.
+Start with the shipped v2 examples under `config/`, which are the canonical active configs. Canonical filenames use suffixes such as `*.config.yaml`, `*.architecture.yaml`, `*.cell.yaml`, `*.memory_device.yaml`, and `*.sensing.yaml`; shared defaults live under `config/lib/`. Legacy filenames such as `*_tool_config.yaml`, `*_architecture_config.yaml`, and `*_cell_config.yaml` remain only for migration/reference checks. `config/old_style_config/` remains in the repository only as legacy reference material.
 
 More detail:
 

@@ -2,7 +2,8 @@
 
 EvaCAM expects one run config YAML file. It references one architecture
 config, one cell config, and one technology file. The architecture and cell
-files then reference reusable sensing, memory-device, and access-device files.
+files then reference reusable sensing and memory-device files. Access-device
+parameters are defined directly in each cell file.
 
 ## File Roles
 
@@ -10,7 +11,6 @@ files then reference reusable sensing, memory-device, and access-device files.
 - `config/<cell-group>/*.architecture.yaml`: modeled memory architecture and sensing reference
 - `config/<cell-group>/*.cell.yaml`: CAM cell topology, layout, ports, and device references
 - `config/<cell-group>/*.memory_device.yaml`: reusable memory-device electrical model data
-- `config/<cell-group>/*.access_device.yaml`: reusable selector/access-device model data
 - `config/<cell-group>/*.sensing.yaml`: sensing mode and sense-amplifier reference
 - `config/lib/technology/*.yaml`: reusable technology tables
 - `config/lib/sense_amp/*.sense_amp.yaml`: reusable sense-amplifier model data
@@ -102,7 +102,7 @@ The shipped cell configs use these top-level sections:
 - `name`
 - `cam_type`
 - `memory_device`
-- `access_devices`
+- `access_device`
 - `layout`
 - `ports`
 
@@ -110,15 +110,15 @@ Representative fields:
 
 - `cam_type`: `TCAM`, `BCAM`, `MCAM`, or `ACAM`
 - `memory_device`: path to a `*.memory_device.yaml` file
-- `access_devices`: optional named map of reusable `*.access_device.yaml` files
+- `access_device`: cell-level selector model with `type`, optional `cmos_width`,
+  `voltage_drop`, and `leakage_current`
 - `layout.cell_process_node`
 - `layout.area`
 - `layout.aspect_ratio`
 - `ports.row`
 - `ports.column`
-- `ports.*.*.connection.kind`: `memory_terminal` or `access_device`
-- `ports.*.*.connection.terminal`: memory-device terminal for `memory_terminal`
-- `ports.*.*.connection.device` and `terminal`: selector name and terminal for `access_device`
+- `ports.*.*.cmos_region`, `num_cmos`, `cmos_width`, and `is_nmos`: per-port
+  selector connection and sizing fields
 
 Memory-device files own electrical behavior and variation. Common sections are:
 
@@ -134,8 +134,6 @@ Memory-device files own electrical behavior and variation. Common sections are:
 - `flash`
 - `variation`
 - `mcam`
-
-Access-device files describe reusable transistor or diode selectors referenced by cell ports. Common fields include `type`, `role`, `cmos_type`, `terminals`, `resistance`, `capacitance`, and `voltage_drop`.
 
 If the memory-device config contains a `variation` section, EvaCAM uses its
 built-in resistance variation model. Omit the section for nominal-only runs.
@@ -197,7 +195,6 @@ unit comments:
 - [`sample.architecture.yaml`](input_samples/sample.architecture.yaml)
 - [`sample.cell.yaml`](input_samples/sample.cell.yaml)
 - [`sample.memory_device.yaml`](input_samples/sample.memory_device.yaml)
-- [`sample.access_device.yaml`](input_samples/sample.access_device.yaml)
 - [`sample.sensing.yaml`](input_samples/sample.sensing.yaml)
 - [`sample.sense_amp.yaml`](input_samples/sample.sense_amp.yaml)
 - [`sample.technology.yaml`](input_samples/sample.technology.yaml)

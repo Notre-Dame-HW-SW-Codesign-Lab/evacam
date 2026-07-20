@@ -1,7 +1,0 @@
-schema: access_device
-name: FeFET-2Fe1T-DATE-2021.cmos_nmos_1F_gate.access_device
-type: cmos
-width: 1F
-connected_terminal: gate
-is_nmos: true
-voltage_drop: 0.15V

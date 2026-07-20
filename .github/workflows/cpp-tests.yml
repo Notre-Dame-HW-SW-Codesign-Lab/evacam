@@ -20,7 +20,6 @@ jobs:
           - test-cli-options
           - test-custom-sa-loader
           - test-technology-loader
-          - test-memory-access-loader
           - test-new-input-names
           - test-generated-v2-configs
           - test-input-validation

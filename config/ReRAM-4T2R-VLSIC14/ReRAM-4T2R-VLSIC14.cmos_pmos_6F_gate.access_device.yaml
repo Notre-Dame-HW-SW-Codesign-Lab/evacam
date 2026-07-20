@@ -1,7 +1,0 @@
-schema: access_device
-name: ReRAM-4T2R-VLSIC14.cmos_pmos_6F_gate.access_device
-type: cmos
-width: 6F
-connected_terminal: gate
-is_nmos: false
-voltage_drop: 0.15V

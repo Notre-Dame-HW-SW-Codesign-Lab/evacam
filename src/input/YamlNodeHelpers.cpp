@@ -94,9 +94,7 @@ bool schema_matches(const YAML::Node& root, const std::string& canonical) {
         return false;
     }
     const std::string value = schema.as<std::string>();
-    return value == canonical
-        || value == "evacam." + canonical + ".v2"
-        || (canonical == "access_device" && value == "evacam.access.v2");
+    return value == canonical || value == "evacam." + canonical + ".v2";
 }
 
 void require_schema(const YAML::Node& root, const std::string& canonical, const char* fileKind) {

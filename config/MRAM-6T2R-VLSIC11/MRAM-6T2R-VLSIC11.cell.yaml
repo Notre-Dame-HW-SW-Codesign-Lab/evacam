@@ -2,6 +2,10 @@ schema: cell
 name: MRAM-6T2R-VLSIC11
 cam_type: TCAM
 memory_device: ./MRAM-6T2R-VLSIC11.memory_device.yaml
+access_device:
+  type: diode
+  cmos_width: 15F
+  voltage_drop: 0.15V
 layout:
   cell_process_node: 90nm
   area: 1277.7F^2
@@ -10,10 +14,10 @@ ports:
   row:
     0:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_nmos_15F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 15F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 0V
@@ -23,10 +27,10 @@ ports:
         search1: 0V
     1:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_nmos_15F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 15F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 0V
@@ -36,10 +40,10 @@ ports:
         search1: 1.2V
     2:
       type: wordline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_nmos_25F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 25F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 1.2V
@@ -49,10 +53,10 @@ ports:
         search1: 0V
     3:
       type: wordline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_nmos_25F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 25F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 1.2V
@@ -63,10 +67,10 @@ ports:
   column:
     0:
       type: matchline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_nmos_2F_diode.access_device.yaml
-        count: 1
+      cmos_region: diode
+      num_cmos: 1
+      cmos_width: 2F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 0V
@@ -76,10 +80,10 @@ ports:
         search1: 0V
     1:
       type: bitline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_nmos_25F_drain.access_device.yaml
-        count: 2
+      cmos_region: drain
+      num_cmos: 2
+      cmos_width: 25F
+      is_nmos: true
       wire_width: 6F
       voltages:
         set_lrs: 1.2V
@@ -89,9 +93,10 @@ ports:
         search1: 0V
     2:
       type: bitline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 6F
       voltages:
         set_lrs: 0V
@@ -101,10 +106,10 @@ ports:
         search1: 0V
     3:
       type: wordline
-      connection:
-        kind: access_device
-        device: ./MRAM-6T2R-VLSIC11.diode_pmos_2F_gate.access_device.yaml
-        count: 2
+      cmos_region: gate
+      num_cmos: 2
+      cmos_width: 2F
+      is_nmos: false
       wire_width: 1F
       voltages:
         set_lrs: 1.2V
@@ -114,9 +119,10 @@ ports:
         search1: 0V
     4:
       type: bitline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V

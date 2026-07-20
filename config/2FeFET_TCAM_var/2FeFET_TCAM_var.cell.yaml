@@ -1,12 +1,6 @@
-cell:
-  name: 2FeFET-TCAM
-  cam_type: TCAM
-  type: FEFETRAM
-  cell_process_node: 45nm
-  area: 300F^2
-  aspect_ratio: 1.76
-match:
-  cmos_width: 3F
+access_device:
+  type: none
+  cmos_width: 1F
 ports:
   row:
     0:
@@ -49,3 +43,12 @@ ports:
         reset: 1V
         search0: 0V
         search1: 1V
+cell:
+  name: 2FeFET-TCAM
+  cam_type: TCAM
+  type: FEFETRAM
+  cell_process_node: 45nm
+  area: 300F^2
+  aspect_ratio: 1.76
+match:
+  cmos_width: 3F

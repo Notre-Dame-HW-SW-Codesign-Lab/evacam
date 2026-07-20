@@ -2,6 +2,10 @@ schema: cell
 name: FeFET-2Fe1T-DATE-2021
 cam_type: TCAM
 memory_device: ./FeFET-2Fe1T-DATE-2021.memory_device.yaml
+access_device:
+  type: cmos
+  cmos_width: 1F
+  voltage_drop: 0.15V
 layout:
   cell_process_node: 45nm
   area: 350F^2
@@ -10,10 +14,10 @@ ports:
   row:
     0:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./FeFET-2Fe1T-DATE-2021.cmos_nmos_1F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 2F
       voltages:
         set_lrs: 0V
@@ -23,10 +27,10 @@ ports:
         search1: 0V
     1:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./FeFET-2Fe1T-DATE-2021.cmos_nmos_1F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 2F
       voltages:
         set_lrs: 0V
@@ -37,10 +41,10 @@ ports:
   column:
     0:
       type: matchline
-      connection:
-        kind: access_device
-        device: ./FeFET-2Fe1T-DATE-2021.cmos_nmos_1F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V
@@ -50,10 +54,10 @@ ports:
         search1: 1V
     1:
       type: wordline
-      connection:
-        kind: access_device
-        device: ./FeFET-2Fe1T-DATE-2021.cmos_nmos_1F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 4V
@@ -63,10 +67,10 @@ ports:
         search1: 1V
     2:
       type: wordline
-      connection:
-        kind: access_device
-        device: ./FeFET-2Fe1T-DATE-2021.cmos_nmos_1F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 4V

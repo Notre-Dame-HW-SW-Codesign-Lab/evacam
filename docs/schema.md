@@ -96,7 +96,7 @@ Required fields and sections:
 Common implemented optional sections:
 
 - `schema`
-- `access_devices`
+- `access_device`
 
 Important notes:
 
@@ -104,11 +104,12 @@ Important notes:
 - Accepted values are `TCAM`, `BCAM`, `MCAM`, and `ACAM`.
 - `BCAM` is currently parsed as an alias for the existing `TCAM` modeling path.
 - `memory_device` references a `*.memory_device.yaml` file.
-- `access_devices` is a named map of reusable `*.access_device.yaml` files.
+- `access_device` defines the cell-level selector model. Its `type` is
+  `none`, `cmos`, or `diode`; it can also define `cmos_width`, `voltage_drop`,
+  and `leakage_current`.
 - `ports.row` and `ports.column` are maps keyed by integer index.
-- Port `connection.kind` is either `memory_terminal` or `access_device`.
-- `memory_terminal` connections use `connection.terminal` to name the memory-device terminal.
-- `access_device` connections use `connection.device` and `connection.terminal` to identify the selector and terminal.
+- Each port defines `cmos_region`, `num_cmos`, `cmos_width`, and `is_nmos`
+  directly. A `num_cmos` value of zero means no access device is present.
 
 ## Memory Device File
 
@@ -148,22 +149,6 @@ Important notes:
 - `mcam.resistance_state` is used by the experimental MCAM matchline timing model. The model evaluates the nonzero MCAM states and uses the state that produces the largest one-mismatch matchline delay.
 - `mcam.searchline_voltage` together with `mcam.center_voltage` is used for MCAM searchline row-driver energy. Without these fields, the model falls back to the per-port `search0`/`search1` voltages.
 - `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Some parsed MCAM fields remain reserved for future model extensions.
-
-## Access Device File
-
-Access-device files describe reusable transistor or diode selectors referenced by cell ports.
-
-Common implemented fields:
-
-- `schema`
-- `name`
-- `type`
-- `role`
-- `cmos_type`
-- `terminals`
-- `resistance`
-- `capacitance`
-- `voltage_drop`
 
 ## Sensing File
 

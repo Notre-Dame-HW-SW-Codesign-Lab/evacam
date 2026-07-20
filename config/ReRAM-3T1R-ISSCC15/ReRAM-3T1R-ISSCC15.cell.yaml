@@ -2,6 +2,10 @@ schema: cell
 name: ReRAM-3T1R-ISSCC15
 cam_type: TCAM
 memory_device: ./ReRAM-3T1R-ISSCC15.memory_device.yaml
+access_device:
+  type: cmos
+  cmos_width: 6F
+  voltage_drop: 0.15V
 layout:
   cell_process_node: 90nm
   area: 192.82F^2
@@ -10,10 +14,10 @@ ports:
   row:
     0:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./ReRAM-3T1R-ISSCC15.cmos_nmos_6F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 6F
+      is_nmos: true
       wire_width: 2F
       voltages:
         set_lrs: 1V
@@ -23,10 +27,10 @@ ports:
         search1: 0V
     1:
       type: searchline
-      connection:
-        kind: access_device
-        device: ./ReRAM-3T1R-ISSCC15.cmos_pmos_3F_gate.access_device.yaml
-        count: 1
+      cmos_region: gate
+      num_cmos: 1
+      cmos_width: 3F
+      is_nmos: false
       wire_width: 2F
       voltages:
         set_lrs: 1.8V
@@ -36,9 +40,10 @@ ports:
         search1: 0V
     2:
       type: sourceline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 2F
       voltages:
         set_lrs: 1.8V
@@ -49,10 +54,10 @@ ports:
   column:
     0:
       type: matchline
-      connection:
-        kind: access_device
-        device: ./ReRAM-3T1R-ISSCC15.cmos_nmos_3F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 3F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V
@@ -62,10 +67,10 @@ ports:
         search1: 1V
     1:
       type: bitline
-      connection:
-        kind: access_device
-        device: ./ReRAM-3T1R-ISSCC15.cmos_nmos_6F_drain.access_device.yaml
-        count: 1
+      cmos_region: drain
+      num_cmos: 1
+      cmos_width: 6F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 0V
@@ -75,9 +80,10 @@ ports:
         search1: 0V
     2:
       type: bitline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 1.8V

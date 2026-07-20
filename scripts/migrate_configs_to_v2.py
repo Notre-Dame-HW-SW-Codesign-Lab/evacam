@@ -188,12 +188,6 @@ def convert_architecture(architecture_file: Path) -> tuple[Path, Path]:
     return arch_out, sensing_out
 
 
-def access_file_name(base: str, access_type: str, region: str, width: Any, is_nmos: Any) -> str:
-    width_token = str(width).replace("/", "_").replace(" ", "")
-    polarity = "nmos" if bool(is_nmos) else "pmos"
-    return f"{base}.{access_type.lower()}_{polarity}_{width_token}_{region}.access_device.yaml"
-
-
 def make_memory_device(root: dict[str, Any], base: str) -> dict[str, Any]:
     cell = root["cell"]
     data: dict[str, Any] = {
@@ -246,8 +240,8 @@ def convert_cell(cell_file: Path, report_rows: list[dict[str, Any]]) -> list[Pat
         },
         "ports": {},
     }
-
-    access_specs: dict[tuple[str, str, str, bool], Path] = {}
+    if access_root:
+        data["access_device"] = deepcopy(access_root)
 
     for axis in ("row", "column"):
         ports = root.get("ports", {}).get(axis, {})
@@ -260,45 +254,20 @@ def convert_cell(cell_file: Path, report_rows: list[dict[str, Any]]) -> list[Pat
             width = port.get("cmos_width", access_root.get("cmos_width", "1F"))
             is_nmos = bool(port.get("is_nmos", True))
             if num_cmos == 0 or access_type == "none":
-                kind = "memory_terminal"
+                kind = "inline"
                 reason = "num_cmos == 0" if num_cmos == 0 else "cell access_device.type == none"
-                connection = {
-                    "kind": "memory_terminal",
-                    "terminal": region if region != "none" else "drain",
-                }
             elif access_type in ("cmos", "diode"):
-                kind = "access_device"
+                kind = "inline"
                 reason = f"cell access_device.type == {access_type}"
-                key = (access_type, region, str(width), is_nmos)
-                access_path = access_specs.get(key)
-                if access_path is None:
-                    access_path = cell_file.with_name(
-                        access_file_name(base, access_type, region, width, is_nmos)
-                    )
-                    access_specs[key] = access_path
-                    access_data = {
-                        "schema": "access_device",
-                        "name": access_path.stem,
-                        "type": access_root.get("type", "CMOS"),
-                        "width": width,
-                        "connected_terminal": region,
-                        "is_nmos": is_nmos,
-                    }
-                    for key_name in ("voltage_drop", "leakage_current"):
-                        if key_name in access_root:
-                            access_data[key_name] = access_root[key_name]
-                    write_yaml(access_path, access_data)
-                connection = {
-                    "kind": "access_device",
-                    "device": f"./{access_path.name}",
-                    "count": num_cmos,
-                }
             else:
                 raise ValueError(f"Unclassified port in {cell_file}: access type {access_type}")
 
             converted = {
                 "type": port["type"],
-                "connection": connection,
+                "cmos_region": region if region != "none" else "drain",
+                "num_cmos": num_cmos,
+                "cmos_width": width,
+                "is_nmos": is_nmos,
                 "wire_width": port["wire_width"],
             }
             for key in ("leak", "is_nvm_discharge"):
@@ -327,7 +296,7 @@ def convert_cell(cell_file: Path, report_rows: list[dict[str, Any]]) -> list[Pat
 
     write_yaml(memory_out, make_memory_device(root, base))
     write_yaml(cell_out, data)
-    return [cell_out, memory_out, *access_specs.values()]
+    return [cell_out, memory_out]
 
 
 def iter_legacy_files(pattern: str) -> list[Path]:

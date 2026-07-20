@@ -1,7 +1,0 @@
-schema: access_device
-name: MRAM-6T2R-VLSIC11.diode_pmos_2F_gate.access_device
-type: diode
-width: 2F
-connected_terminal: gate
-is_nmos: false
-voltage_drop: 0.15V

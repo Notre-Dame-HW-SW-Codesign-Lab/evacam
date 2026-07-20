@@ -1,7 +1,0 @@
-schema: access_device
-name: MRAM-6T2R-VLSIC11.diode_nmos_25F_gate.access_device
-type: diode
-width: 25F
-connected_terminal: gate
-is_nmos: true
-voltage_drop: 0.15V

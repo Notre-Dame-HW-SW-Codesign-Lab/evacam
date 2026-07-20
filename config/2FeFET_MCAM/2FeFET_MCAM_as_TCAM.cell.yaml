@@ -2,6 +2,9 @@ schema: cell
 name: 2FeFET-MCAM-as-TCAM
 cam_type: TCAM
 memory_device: ./2FeFET_MCAM_as_TCAM.memory_device.yaml
+access_device:
+  type: none
+  cmos_width: 1F
 layout:
   cell_process_node: 22nm
   area: 300F^2
@@ -10,9 +13,10 @@ ports:
   row:
     0:
       type: searchline
-      connection:
-        kind: memory_terminal
-        terminal: gate
+      cmos_region: gate
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 4V
@@ -22,9 +26,10 @@ ports:
         search1: 1V
     1:
       type: searchline
-      connection:
-        kind: memory_terminal
-        terminal: gate
+      cmos_region: gate
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 4V
@@ -35,9 +40,10 @@ ports:
   column:
     0:
       type: matchline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 1V
@@ -47,9 +53,10 @@ ports:
         search1: 1V
     1:
       type: matchline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1F
       voltages:
         set_lrs: 1V

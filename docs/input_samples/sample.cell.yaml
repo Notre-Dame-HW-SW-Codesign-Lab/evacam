@@ -7,8 +7,11 @@ cam_type: TCAM # TCAM | BCAM | MCAM | ACAM
 # Path is resolved relative to this cell file.
 memory_device: ./sample.memory_device.yaml
 
-access_devices:
-  sample_access: ./sample.access_device.yaml # paths resolved relative to this cell file
+access_device:
+  type: cmos # none | cmos | diode
+  cmos_width: 1F # units: F
+  voltage_drop: 100mV # units: V | mV
+  leakage_current: 1nA # units: A | mA | uA | nA | pA
 
 layout:
   cell_process_node: 32nm # units: m | cm | mm | um | nm
@@ -19,9 +22,10 @@ ports:
   row:
     0:
       type: searchline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
-      connection:
-        kind: memory_terminal # memory_terminal | access_device
-        terminal: gate # gate | source | drain | diode | none
+      cmos_region: gate # gate | source | drain | diode | none
+      num_cmos: 0 # nonnegative integer
+      cmos_width: 1F # units: F
+      is_nmos: true # boolean
       wire_width: 1F # units: F
       voltages:
         set_lrs: 2V # units: V | mV
@@ -31,10 +35,10 @@ ports:
         search1: 1V # units: V | mV
     1:
       type: wordline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
-      connection:
-        kind: access_device # memory_terminal | access_device
-        device: ./sample.access_device.yaml
-        count: 1 # positive integer
+      cmos_region: gate # gate | source | drain | diode | none
+      num_cmos: 1 # nonnegative integer
+      cmos_width: 1F # units: F
+      is_nmos: true # boolean
       wire_width: 1F # units: F
       voltages:
         set_lrs: 1V # units: V | mV
@@ -45,9 +49,10 @@ ports:
   column:
     0:
       type: matchline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
-      connection:
-        kind: memory_terminal # memory_terminal | access_device
-        terminal: drain # gate | source | drain | diode | none
+      cmos_region: drain # gate | source | drain | diode | none
+      num_cmos: 0 # nonnegative integer
+      cmos_width: 1F # units: F
+      is_nmos: true # boolean
       wire_width: 1F # units: F
       voltages:
         set_lrs: 0V # units: V | mV

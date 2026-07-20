@@ -53,6 +53,11 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "name: TestCell\n"
         "cam_type: TCAM\n"
         "memory_device: ./tmp_cell_loader.memory_device.yaml\n"
+        "access_device:\n"
+        "  type: cmos\n"
+        "  cmos_width: 2F\n"
+        "  voltage_drop: 100mV\n"
+        "  leakage_current: 5nA\n"
         "layout:\n"
         "  cell_process_node: 45nm\n"
         "  area: 300F^2\n"
@@ -61,9 +66,10 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "  row:\n"
         "    0:\n"
         "      type: searchline\n"
-        "      connection:\n"
-        "        kind: memory_terminal\n"
-        "        terminal: gate\n"
+        "      cmos_region: gate\n"
+        "      num_cmos: 0\n"
+        "      cmos_width: 1F\n"
+        "      is_nmos: true\n"
         "      wire_width: 1F\n"
         "      voltages:\n"
         "        set_lrs: 4V\n"
@@ -74,9 +80,10 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "  column:\n"
         "    0:\n"
         "      type: matchline\n"
-        "      connection:\n"
-        "        kind: memory_terminal\n"
-        "        terminal: drain\n"
+        "      cmos_region: drain\n"
+        "      num_cmos: 0\n"
+        "      cmos_width: 1F\n"
+        "      is_nmos: true\n"
         "      wire_width: 1F\n"
         "      voltages:\n"
         "        set_lrs: 1V\n"
@@ -105,6 +112,10 @@ void TestMinimalCellParses() {
     auto near = [](double a, double b) { return std::fabs(a - b) < 1e-18; };
     assert(cell.memCellType == SRAM);
     assert(cell.processNode == 45);
+    assert(cell.accessType == CMOS_access);
+    assert(near(cell.widthAccessCMOS, 2.0));
+    assert(near(cell.voltageDropAccessDevice, 0.1));
+    assert(near(cell.leakageCurrentAccessDevice, 5e-9));
     assert(near(cell.area, 300.0));
     assert(near(cell.aspectRatio, 2.0));
     assert(near(cell.resistanceOn, 1e3));

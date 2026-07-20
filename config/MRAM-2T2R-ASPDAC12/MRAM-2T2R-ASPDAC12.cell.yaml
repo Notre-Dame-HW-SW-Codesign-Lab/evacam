@@ -2,6 +2,9 @@ schema: cell
 name: MRAM-2T2R-ASPDAC12
 cam_type: TCAM
 memory_device: ./MRAM-2T2R-ASPDAC12.memory_device.yaml
+access_device:
+  type: none
+  cmos_width: 1F
 layout:
   cell_process_node: 140nm
   area: 127.55F^2
@@ -10,9 +13,10 @@ ports:
   row:
     0:
       type: searchline
-      connection:
-        kind: memory_terminal
-        terminal: gate
+      cmos_region: gate
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 1.5V
@@ -22,9 +26,10 @@ ports:
         search1: 0V
     1:
       type: searchline
-      connection:
-        kind: memory_terminal
-        terminal: gate
+      cmos_region: gate
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 1.5F
       voltages:
         set_lrs: 1.5V
@@ -35,9 +40,10 @@ ports:
   column:
     0:
       type: matchline_bitline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 6F
       voltages:
         set_lrs: 0V
@@ -47,9 +53,10 @@ ports:
         search1: 0V
     1:
       type: bitline
-      connection:
-        kind: memory_terminal
-        terminal: drain
+      cmos_region: drain
+      num_cmos: 0
+      cmos_width: 1F
+      is_nmos: true
       wire_width: 6F
       voltages:
         set_lrs: 1.5V

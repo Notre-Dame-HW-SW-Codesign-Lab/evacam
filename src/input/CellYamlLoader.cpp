@@ -9,7 +9,6 @@
 #include <string>
 
 #include "MemCell.h"
-#include "input/AccessDeviceYamlLoader.h"
 #include "input/MemoryDeviceYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
@@ -109,19 +108,6 @@ CAM_CmosRegion terminal_to_region(const YAML::Node& connection, const char* what
             + terminal);
 }
 
-void apply_access_spec(MemCell& cell, CAMPort& port,
-        const YamlHelpers::AccessDeviceSpec& spec, int count) {
-    cell.accessType = spec.type;
-    cell.widthAccessCMOS = spec.width;
-    cell.voltageDropAccessDevice = spec.voltageDrop;
-    cell.leakageCurrentAccessDevice = spec.leakageCurrent;
-
-    port.ConnectedRegion = spec.connectedTerminal;
-    port.numCmos = count;
-    port.isNMOS = spec.isNmos;
-    port.widthCmos = spec.width;
-}
-
 void parse_voltage_fields(const YAML::Node& volts, CAMPort& port) {
     if (!volts || !volts.IsMap())
         return;
@@ -142,58 +128,26 @@ void parse_voltage_fields(const YAML::Node& volts, CAMPort& port) {
                 YamlHelpers::child_optional(volts, "search1"), YamlHelpers::VoltageUnits(), 1.0, "voltages.search1");
 }
 
-void parse_port_connection(const YAML::Node& p, CAMPort& port, MemCell& cell,
-        const std::string& ownerFile, bool isV2, const char* what) {
+void parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2,
+        const char* what) {
     const YAML::Node connection = YamlHelpers::child_optional(p, "connection");
     if (connection) {
+        if (isV2) {
+            throw std::runtime_error(std::string("connection is not allowed in ")
+                    + what + " for cell; define CMOS fields directly on the port");
+        }
         const std::string kind = to_lower(YamlHelpers::read_required<std::string>(
                 connection, "kind"));
         if (kind == "memory_terminal") {
-            if (isV2 && (has_key(p, "cmos_region")
-                        || has_key(p, "num_cmos")
-                        || has_key(p, "cmos_width")
-                        || has_key(p, "is_nmos"))) {
-                throw std::runtime_error(std::string("Legacy CMOS port fields are not allowed in ")
-                        + what + " for cell");
-            }
             port.ConnectedRegion = terminal_to_region(connection, what);
             port.numCmos = 1;
             port.isNMOS = true;
             port.widthCmos = 1.0;
             return;
         }
-        if (kind == "access_device") {
-            if (!isV2) {
-                throw std::runtime_error(std::string("access_device connections require cell in ")
-                        + what);
-            }
-            const std::string deviceFile = resolve_reference(ownerFile,
-                    YamlHelpers::read_required<std::string>(connection, "device"));
-            const int count = YamlHelpers::read_optional<int>(connection, "count", 1);
-            if (count <= 0) {
-                throw std::runtime_error(std::string("Invalid ") + what
-                        + ".connection.count: must be positive");
-            }
-            const YamlHelpers::AccessDeviceSpec spec =
-                    YamlHelpers::ReadAccessDeviceSpecFromYaml(deviceFile);
-            if (spec.type == none_access) {
-                throw std::runtime_error(std::string("Invalid ") + what
-                        + ".connection.device: access type cannot be none");
-            }
-            if (spec.connectedTerminal == none) {
-                throw std::runtime_error(std::string("Invalid ") + what
-                        + ".connection.device: connected_terminal is required");
-            }
-            apply_access_spec(cell, port, spec, count);
-            return;
-        }
         if (kind != "access_terminal") {
             throw std::runtime_error(std::string("Invalid ") + what + ".connection.kind: "
                     + kind);
-        }
-        if (isV2) {
-            throw std::runtime_error(std::string("access_terminal is not allowed in ")
-                    + what + " for cell; use access_device");
         }
         port.ConnectedRegion = terminal_to_region(connection, what);
         port.numCmos = YamlHelpers::read_optional<int>(p, "num_cmos", 1);
@@ -215,8 +169,7 @@ void parse_port_connection(const YAML::Node& p, CAMPort& port, MemCell& cell,
             what);
 }
 
-void parse_ports(const YAML::Node& ports, MemCell& cell, const std::string& inputFile,
-        bool isV2) {
+void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
     CAMPort (&camPort)[2][MAX_PORT] = cell.camPort;
     int& numRow = cell.camNumRow;
     int& numCol = cell.camNumCol;
@@ -246,7 +199,7 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, const std::string& inpu
             const YAML::Node p = it.second;
             CAMPort& port = camPort[0][idx];
             port.Type = YamlHelpers::read_enum_required<CAM_PortType>(p, "type", false);
-            parse_port_connection(p, port, cell, inputFile, isV2, "ports.row");
+            parse_port_connection(p, port, isV2, "ports.row");
             port.leak = YamlHelpers::read_optional<bool>(p, "leak", false);
             port.isNVMdischarge = YamlHelpers::read_optional<bool>(p, "is_nvm_discharge", false);
             port.widthWire = YamlHelpers::read_quantity_required(p, "wire_width", YamlHelpers::FeatureUnits(), 1.0, "ports.row.wire_width");
@@ -279,7 +232,7 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, const std::string& inpu
             const YAML::Node p = it.second;
             CAMPort& port = camPort[1][idx];
             port.Type = YamlHelpers::read_enum_required<CAM_PortType>(p, "type", false);
-            parse_port_connection(p, port, cell, inputFile, isV2, "ports.column");
+            parse_port_connection(p, port, isV2, "ports.column");
             port.leak = YamlHelpers::read_optional<bool>(p, "leak", false);
             port.isNVMdischarge = YamlHelpers::read_optional<bool>(p, "is_nvm_discharge", false);
             port.widthWire = YamlHelpers::read_quantity_required(p, "wire_width", YamlHelpers::FeatureUnits(), 1.0, "ports.column.wire_width");
@@ -353,7 +306,7 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
 
 void RejectV2DeviceSections(const YAML::Node& root) {
     const char* sections[] = {
-        "access_device", "resistance", "capacitance", "device", "read", "write",
+        "resistance", "capacitance", "device", "read", "write",
         "match", "dram", "sram", "flash", "variation", "mcam"
     };
     for (const char* section : sections) {
@@ -366,8 +319,11 @@ void RejectV2DeviceSections(const YAML::Node& root) {
 
 void ReadAccessDeviceSection(MemCell& cell, const YAML::Node& root) {
     auto access = YamlHelpers::child_optional(root, "access_device");
-    if (!access || !access.IsMap()) {
+    if (!access) {
         return;
+    }
+    if (!access.IsMap()) {
+        throw std::runtime_error("access_device must be an inline mapping in cell config");
     }
 
     cell.accessType = YamlHelpers::read_enum_required<CellAccessType>(access, "type", false);
@@ -754,11 +710,10 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
     }
 }
 
-void ReadPortsSection(MemCell& cell, const YAML::Node& root,
-        const std::string& inputFile, bool isV2) {
+void ReadPortsSection(MemCell& cell, const YAML::Node& root, bool isV2) {
     auto ports = YamlHelpers::child_optional(root, "ports");
     if (ports)
-        parse_ports(ports, cell, inputFile, isV2);
+        parse_ports(ports, cell, isV2);
 }
 
 void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
@@ -785,18 +740,6 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     ReadMcamSection(cell, deviceRoot);
 }
 
-void ReadAccessDeviceReference(MemCell& cell, const YAML::Node& root,
-        const std::string& inputFile) {
-    const YAML::Node reference = YamlHelpers::child_optional(root, "access_device");
-    if (!reference || !reference.IsScalar()) {
-        return;
-    }
-
-    const YAML::Node accessRoot = YAML::LoadFile(resolve_reference(
-            inputFile, reference.as<std::string>()));
-    ReadAccessDeviceSection(cell, accessRoot);
-}
-
 }  // namespace
 
 namespace YamlHelpers {
@@ -814,9 +757,8 @@ void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile) {
         ReadCellSection(cell, cellNode, inputFile);
     }
     ReadMemoryDeviceReference(cell, root, inputFile);
-    ReadAccessDeviceReference(cell, root, inputFile);
+    ReadAccessDeviceSection(cell, root);
     if (!isV2) {
-        ReadAccessDeviceSection(cell, root);
         ReadResistanceSection(cell, root);
         ReadCapacitanceSection(cell, root);
         ReadDeviceSection(cell, root);
@@ -829,7 +771,7 @@ void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile) {
         ReadVariationSection(cell, root);
         ReadMcamSection(cell, root);
     }
-    ReadPortsSection(cell, root, inputFile, isV2);
+    ReadPortsSection(cell, root, isV2);
 }
 
 }  // namespace YamlHelpers
