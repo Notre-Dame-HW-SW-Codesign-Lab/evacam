@@ -118,7 +118,8 @@ Representative fields:
 - `ports.row`
 - `ports.column`
 - `ports.*.*.cmos_region`, `num_cmos`, `cmos_width`, and `is_nmos`: per-port
-  selector connection and sizing fields
+  selector connection and sizing fields. `num_cmos` must be positive when
+  `cmos_region` is an electrical terminal (`gate`, `source`, `drain`, or `diode`).
 
 Memory-device files own electrical behavior and variation. Common sections are:
 

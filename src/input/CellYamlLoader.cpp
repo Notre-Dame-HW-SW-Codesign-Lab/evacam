@@ -151,6 +151,10 @@ void parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2,
         }
         port.ConnectedRegion = terminal_to_region(connection, what);
         port.numCmos = YamlHelpers::read_optional<int>(p, "num_cmos", 1);
+        if (port.numCmos <= 0) {
+            throw std::runtime_error(std::string(what)
+                    + ".num_cmos must be positive for an electrical port");
+        }
         port.isNMOS = YamlHelpers::read_optional<bool>(p, "is_nmos", true);
         port.widthCmos = 1.0;
         if (YamlHelpers::child_optional(p, "cmos_width")) {
@@ -163,6 +167,10 @@ void parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2,
 
     port.ConnectedRegion = YamlHelpers::read_enum_required<CAM_CmosRegion>(p, "cmos_region", false);
     port.numCmos = YamlHelpers::read_required<int>(p, "num_cmos");
+    if (port.ConnectedRegion != none && port.numCmos <= 0) {
+        throw std::runtime_error(std::string(what)
+                + ".num_cmos must be positive for an electrical port");
+    }
     port.isNMOS = YamlHelpers::read_required<bool>(p, "is_nmos");
     port.widthCmos = YamlHelpers::read_quantity_required(
             p, "cmos_width", YamlHelpers::FeatureUnits(), 1.0,

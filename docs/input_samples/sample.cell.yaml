@@ -23,7 +23,7 @@ ports:
     0:
       type: searchline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
       cmos_region: gate # gate | source | drain | diode | none
-      num_cmos: 0 # nonnegative integer
+      num_cmos: 1 # positive integer for electrical ports
       cmos_width: 1F # units: F
       is_nmos: true # boolean
       wire_width: 1F # units: F
@@ -36,7 +36,7 @@ ports:
     1:
       type: wordline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
       cmos_region: gate # gate | source | drain | diode | none
-      num_cmos: 1 # nonnegative integer
+      num_cmos: 1 # positive integer for electrical ports
       cmos_width: 1F # units: F
       is_nmos: true # boolean
       wire_width: 1F # units: F
@@ -50,7 +50,7 @@ ports:
     0:
       type: matchline # Wordline | Sourceline | Searchline | Bitline | Dataline | Matchline | Matchline_Bitline | Searchline_Bitline
       cmos_region: drain # gate | source | drain | diode | none
-      num_cmos: 0 # nonnegative integer
+      num_cmos: 1 # positive integer for electrical ports
       cmos_width: 1F # units: F
       is_nmos: true # boolean
       wire_width: 1F # units: F

@@ -12,7 +12,7 @@ const char *kCellPath = "tests/tmp_cell_loader_cell_config.yaml";
 const char *kMemoryDevicePath = "tests/tmp_cell_loader.memory_device.yaml";
 const char *kMissingFieldPath = "tests/tmp_cell_loader_missing.yaml";
 
-void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
+void WriteMinimalCellFile(const char *path, const std::string &extra = "", int numCmos = 1) {
     {
         std::ofstream out(kMemoryDevicePath);
         out <<
@@ -67,7 +67,7 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "    0:\n"
         "      type: searchline\n"
         "      cmos_region: gate\n"
-        "      num_cmos: 0\n"
+        "      num_cmos: " << numCmos << "\n"
         "      cmos_width: 1F\n"
         "      is_nmos: true\n"
         "      wire_width: 1F\n"
@@ -81,7 +81,7 @@ void WriteMinimalCellFile(const char *path, const std::string &extra = "") {
         "    0:\n"
         "      type: matchline\n"
         "      cmos_region: drain\n"
-        "      num_cmos: 0\n"
+        "      num_cmos: " << numCmos << "\n"
         "      cmos_width: 1F\n"
         "      is_nmos: true\n"
         "      wire_width: 1F\n"
@@ -245,6 +245,11 @@ void TestMissingRequiredCellFieldThrows() {
     assert(LoadCellThrows(kMissingFieldPath));
 }
 
+void TestElectricalPortRequiresPositiveCmosCount() {
+    WriteMinimalCellFile(kCellPath, "", 0);
+    assert(LoadCellThrows(kCellPath));
+}
+
 }  // namespace
 
 int main() {
@@ -253,6 +258,7 @@ int main() {
     TestVariationSectionParses();
     TestMcamVoltagesParse();
     TestMissingRequiredCellFieldThrows();
+    TestElectricalPortRequiresPositiveCmosCount();
     std::cout << "CellYamlLoader tests passed" << std::endl;
     return 0;
 }

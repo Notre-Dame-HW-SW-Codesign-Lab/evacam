@@ -94,7 +94,7 @@ ports:
     2:
       type: bitline
       cmos_region: drain
-      num_cmos: 0
+      num_cmos: 1
       cmos_width: 1F
       is_nmos: true
       wire_width: 6F
@@ -120,7 +120,7 @@ ports:
     4:
       type: bitline
       cmos_region: drain
-      num_cmos: 0
+      num_cmos: 1
       cmos_width: 1F
       is_nmos: true
       wire_width: 1F

@@ -14,7 +14,7 @@ ports:
     0:
       type: searchline
       cmos_region: gate
-      num_cmos: 0
+      num_cmos: 1
       cmos_width: 1F
       is_nmos: true
       wire_width: 1F
@@ -27,7 +27,7 @@ ports:
     1:
       type: searchline
       cmos_region: gate
-      num_cmos: 0
+      num_cmos: 1
       cmos_width: 1F
       is_nmos: true
       wire_width: 1F
@@ -41,7 +41,7 @@ ports:
     0:
       type: matchline
       cmos_region: drain
-      num_cmos: 0
+      num_cmos: 1
       cmos_width: 1F
       is_nmos: true
       wire_width: 1F
@@ -54,7 +54,7 @@ ports:
     1:
       type: matchline
       cmos_region: drain
-      num_cmos: 0
+      num_cmos: 1
       cmos_width: 1F
       is_nmos: true
       wire_width: 1F

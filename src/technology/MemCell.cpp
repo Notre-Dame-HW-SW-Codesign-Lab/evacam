@@ -230,14 +230,15 @@ double MemCell::CalculateReadPower() { /* TODO consider charge pumped read volta
 
 void MemCell::PrintCell()
 {
-    char *type[6];
-    type[0] = (char*)"Wordline";
-    type[1] = (char*)"Searchline";
-    type[2] = (char*)"Bitline";
-    type[3] = (char*)"Sourceline";
-    type[4] = (char*)"Matchline";
-    type[5] = (char*)"Matchline_Bitline";
-    type[6] = (char*)"Searchline_Bitline";
+    const char *type[] = {
+        "Wordline",
+        "Searchline",
+        "Bitline",
+        "Sourceline",
+        "Matchline",
+        "Matchline_Bitline",
+        "Searchline_Bitline"
+    };
 
     char *region[5];
     region[0] = (char*)"gate";
