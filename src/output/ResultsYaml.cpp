@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "UnitFormatter.h"
+#include "EvaCamConfig.h"
 
 namespace {
 
@@ -133,6 +134,39 @@ namespace {
             default:
                 return "Unknown";
         }
+    }
+
+    std::string roadmap_name(DeviceRoadmap roadmap) {
+        switch (roadmap) {
+            case HP: return "HP";
+            case LSTP: return "LSTP";
+            case LOP: return "LOP";
+            case FEFET: return "FEFET";
+            case LP: return "LP";
+            default: return "Unknown";
+        }
+    }
+
+    std::string bool_name(bool value) {
+        return value ? "true" : "false";
+    }
+
+    void write_assumptions(YamlWriter& y, const EvaCamConfig &config) {
+        y.begin_map("assumptions");
+        y.line("model_identifier", "evacam-cam-v1");
+        y.line("design_target", "CAM");
+        y.line("routing", config.input.routingMode == h_tree ? "h_tree" : "non_h_tree");
+        y.begin_map("technology");
+        y.line("process_node", std::to_string(config.input.processNode) + "nm");
+        y.line("roadmap", roadmap_name(config.input.deviceRoadmap));
+        y.end_map();
+        y.begin_map("modeling_options");
+        y.line("exclude_precharge_latency", bool_name(config.peripherals.noPrechargeInc));
+        y.line("include_leakage", bool_name(config.peripherals.includeLeakage));
+        y.line("scaled_voltage", fmt_voltage(config.peripherals.scaledVoltage));
+        y.end_map();
+        y.line("limitations_reference", "docs/limitations.md");
+        y.end_map();
     }
 
     void write_metric_stats(
@@ -498,6 +532,7 @@ void WriteResultsYaml(std::ostream& os, const Result& result,
         const std::string &variationSamplesFile,
         const std::string &variationPlotFile) {
     YamlWriter y(os);
+    write_assumptions(y, *result.config);
     write_results_body(y, result, variationSamplesFile, variationPlotFile);
 }
 
@@ -505,6 +540,12 @@ void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<R
         const std::unordered_map<OptimizationTarget, std::string> &variationSamplesFiles,
         const std::unordered_map<OptimizationTarget, std::string> &variationPlotFiles) {
     YamlWriter y(os);
+    for (const auto& res : results) {
+        if (res && res->config) {
+            write_assumptions(y, *res->config);
+            break;
+        }
+    }
     for (const auto& res : results) {
         if (!res || !res->bank || !res->bank->initialized)
             continue;
@@ -525,7 +566,8 @@ void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<R
     }
 }
 
-void WriteResultsYamlNoSolutions(std::ostream& os) {
+void WriteResultsYamlNoSolutions(std::ostream& os, const EvaCamConfig &config) {
     YamlWriter y(os);
+    write_assumptions(y, config);
     y.line("status", "no_valid_solutions");
 }

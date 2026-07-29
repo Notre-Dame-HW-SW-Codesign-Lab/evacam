@@ -50,6 +50,8 @@ See [results-reference.md](results-reference.md) for the current output shapes a
 
 Representative sections include:
 
+- `assumptions`: model identifier, design/routing choices, technology node and
+  roadmap, modeling options, and a limitations-reference path
 - `summary`
 - `breakdown`
 

@@ -3,9 +3,11 @@
 
 #include <yaml.h>
 
+#include <cmath>
 #include <initializer_list>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -23,10 +25,20 @@ bool schema_matches(const YAML::Node& root, const std::string& canonical);
 void require_schema(const YAML::Node& root, const std::string& canonical, const char* fileKind);
 
 template <typename T>
+    T require_finite(T value, const std::string& what) {
+        if constexpr (std::is_floating_point_v<T>) {
+            if (!std::isfinite(value)) {
+                throw std::runtime_error("Non-finite value for " + what);
+            }
+        }
+        return value;
+    }
+
+template <typename T>
     T read_required(const YAML::Node& parent, const char* key) {
         YAML::Node n = child_required(parent, key);
         try {
-            return n.as<T>();
+            return require_finite(n.as<T>(), "key '" + std::string(key) + "'");
         } catch (const YAML::Exception& e) {
             std::string msg = "Bad conversion for key '" + std::string(key) + "': " + e.what();
             throw std::runtime_error(msg);
@@ -39,7 +51,7 @@ template <typename T>
             throw std::runtime_error(std::string("Missing node for ") + what);
         }
         try {
-            return node.as<T>();
+            return require_finite(node.as<T>(), what);
         } catch (const YAML::Exception& e) {
             std::string msg = "Bad conversion for " + std::string(what) + ": " + e.what();
             throw std::runtime_error(msg);
@@ -50,7 +62,7 @@ template <typename T>
     T read_required_index(const YAML::Node& parent, size_t idx, const char* what) {
         YAML::Node n = child_required_index(parent, idx, what);
         try {
-            return n.as<T>();
+            return require_finite(n.as<T>(), what);
         } catch (const YAML::Exception& e) {
             std::string msg = "Bad conversion for " + std::string(what) + ": " + e.what();
             throw std::runtime_error(msg);
@@ -63,7 +75,7 @@ template <typename T>
         if (!n)
             return def;
         try {
-            return n.as<T>();
+            return require_finite(n.as<T>(), "key '" + std::string(key) + "'");
         } catch (const YAML::Exception& e) {
             std::string msg = "Bad conversion for key '" + std::string(key) + "': " + e.what();
             throw std::runtime_error(msg);

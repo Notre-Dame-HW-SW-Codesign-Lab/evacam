@@ -142,6 +142,12 @@ def main():
         assert yaml_result.output_yaml_path == str(output_yaml_path)
         assert output_yaml_path.exists()
         assert "summary:" in output_yaml_path.read_text()
+        yaml_scalars = parse_yaml_scalars(output_yaml_path)
+        assert yaml_scalars["assumptions.model_identifier"] == "evacam-cam-v1"
+        assert yaml_scalars["assumptions.design_target"] == "CAM"
+        assert yaml_scalars["assumptions.routing"] == "h_tree"
+        assert yaml_scalars["assumptions.technology.process_node"].endswith("nm")
+        assert yaml_scalars["assumptions.limitations_reference"] == "docs/limitations.md"
         assert_run_result_matches_yaml(yaml_result, output_yaml_path)
 
     print("Pybind run test passed")

@@ -355,6 +355,36 @@ void TestInvalidUnitThrows() {
     assert(LoadThrowsWithMessage("Unknown unit"));
 }
 
+void TestUnknownConfigKeysThrow() {
+    WriteBaseTopLevelConfig();
+    {
+        std::ofstream out(kConfigPath, std::ios::app);
+        out << "unknown_run_option: true\n";
+    }
+    assert(LoadThrowsWithMessage("unknown key 'run config.unknown_run_option'"));
+
+    WriteBaseTopLevelConfig();
+    {
+        std::ofstream out(kArchitecturePath, std::ios::app);
+        out << "unknown_architecture_option: true\n";
+    }
+    assert(LoadThrowsWithMessage("unknown key 'architecture config.unknown_architecture_option'"));
+
+    WriteBaseTopLevelConfig();
+    {
+        std::ofstream out(kArchitecturePath, std::ios::app);
+        out << "physical_limits:\n  unknown_limit: 1F\n";
+    }
+    assert(LoadThrowsWithMessage("unknown key 'physical_limits.unknown_limit'"));
+
+    WriteBaseTopLevelConfig();
+    {
+        std::ofstream out(kSensingPath, std::ios::app);
+        out << "unknown_sensing_option: true\n";
+    }
+    assert(LoadThrowsWithMessage("unknown key 'sensing.unknown_sensing_option'"));
+}
+
 void TestOrganizationAliasParses() {
     WriteBaseTopLevelConfig(
         "array:\n"
@@ -423,6 +453,7 @@ int main() {
     TestSensingFileActivatesSenseAmpModel();
     TestMissingRequiredTopLevelSectionThrows();
     TestInvalidUnitThrows();
+    TestUnknownConfigKeysThrow();
     TestOrganizationAliasParses();
     TestCactiAssumptionNormalizesGeometry();
     TestAutoCapacityRequiresFixedSubarrayDimensions();

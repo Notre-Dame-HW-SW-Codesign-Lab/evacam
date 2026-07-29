@@ -147,6 +147,39 @@ static void test_units() {
     assert(rejectedUppercaseMilli);
 }
 
+static void test_non_finite_numbers_are_rejected() {
+    const YAML::Node quantities = YAML::Load(
+        "root:\n"
+        "  nan: nanV\n"
+        "  infinity: infV\n"
+        "  overflow: 1e309V\n");
+    const auto quantityRoot = YamlHelpers::child_required(quantities, "root");
+
+    for (const char *key : {"nan", "infinity", "overflow"}) {
+        try {
+            (void)YamlHelpers::read_quantity_required(
+                    quantityRoot, key, VoltageUnits(), 1.0, key);
+            assert(false && "Expected non-finite quantity to throw");
+        } catch (const std::runtime_error&) {
+            // expected
+        }
+    }
+
+    const YAML::Node scalars = YAML::Load(
+        "root:\n"
+        "  nan: .nan\n"
+        "  infinity: .inf\n");
+    const auto scalarRoot = YamlHelpers::child_required(scalars, "root");
+    for (const char *key : {"nan", "infinity"}) {
+        try {
+            (void)YamlHelpers::read_required<double>(scalarRoot, key);
+            assert(false && "Expected non-finite scalar to throw");
+        } catch (const std::runtime_error&) {
+            // expected
+        }
+    }
+}
+
 static void write_v2_cell_fixture(const std::string &variationBlock = "") {
     {
         std::ofstream out("tests/tmp_yaml_helpers.memory_device.yaml");
@@ -685,6 +718,7 @@ int main() {
     test_enum_read();
     test_bcam_alias();
     test_units();
+    test_non_finite_numbers_are_rejected();
     test_memcell_yaml();
     test_organization_section();
     test_explicit_subarray_dimensions();

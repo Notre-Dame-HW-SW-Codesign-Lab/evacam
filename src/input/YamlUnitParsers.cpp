@@ -1,6 +1,7 @@
 #include "input/YamlUnitParsers.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
@@ -48,15 +49,26 @@ double parse_quantity_string(
     if (end == begin) {
         throw std::runtime_error(std::string("Invalid numeric value for ") + what + ": " + raw);
     }
+    if (!std::isfinite(value)) {
+        throw std::runtime_error(std::string("Non-finite value for ") + what + ": " + raw);
+    }
 
     std::string unit = trim(std::string(end));
     if (unit.empty()) {
-        return value * default_unit_to_base;
+        const double converted = value * default_unit_to_base;
+        if (!std::isfinite(converted)) {
+            throw std::runtime_error(std::string("Non-finite value for ") + what + ": " + raw);
+        }
+        return converted;
     }
 
     for (const auto& u : units) {
         if (unit_suffix_matches(unit, u.suffix)) {
-            return value * u.to_base;
+            const double converted = value * u.to_base;
+            if (!std::isfinite(converted)) {
+                throw std::runtime_error(std::string("Non-finite value for ") + what + ": " + raw);
+            }
+            return converted;
         }
     }
 

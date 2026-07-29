@@ -15,6 +15,7 @@ Required fields and sections:
 - `optimization`
 
 `architecture`, `cell`, and `technology` paths are resolved relative to the run config.
+Unknown keys in run, architecture, and sensing configurations are rejected.
 
 Optional fields and sections:
 

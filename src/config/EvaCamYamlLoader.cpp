@@ -1,6 +1,8 @@
 #include "config/EvaCamYamlLoader.h"
 
 #include <filesystem>
+#include <initializer_list>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -26,6 +28,115 @@ void RejectKeys(const YAML::Node &node, const std::vector<const char *> &keys,
                     + " config contains field owned by the other config: " + key);
         }
     }
+}
+
+void RejectUnknownKeys(const YAML::Node &node,
+        std::initializer_list<const char *> allowedKeys, const std::string &path) {
+    if (!node || !node.IsMap()) {
+        return;
+    }
+
+    for (auto it = node.begin(); it != node.end(); ++it) {
+        if (!it->first.IsScalar()) {
+            throw std::runtime_error("[Input] Error: " + path + " contains a non-scalar key.");
+        }
+        const std::string key = it->first.as<std::string>();
+        bool allowed = false;
+        for (const char *allowedKey : allowedKeys) {
+            if (key == allowedKey) {
+                allowed = true;
+                break;
+            }
+        }
+        if (allowed) {
+            continue;
+        }
+
+        std::ostringstream message;
+        message << "[Input] Error: unknown key '" << path << "." << key << "'";
+        if (it->first.Mark().line != -1) {
+            message << " near line " << (it->first.Mark().line + 1);
+        }
+        message << "; expected one of: ";
+        bool first = true;
+        for (const char *expected : allowedKeys) {
+            if (!first) {
+                message << ", ";
+            }
+            message << expected;
+            first = false;
+        }
+        message << ".";
+        throw std::runtime_error(message.str());
+    }
+}
+
+void ValidateRunConfigKeys(const YAML::Node &root) {
+    RejectUnknownKeys(root,
+            {"schema", "name", "architecture", "cell", "technology", "optimization",
+             "design_constraints", "exploration", "modeling", "output"},
+            "run config");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "optimization"),
+            {"target", "deep_exploration", "buffer_design", "row_driver", "priority_encoder"},
+            "optimization");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "design_constraints"),
+            {"enabled", "read_latency", "write_latency", "read_dynamic_energy",
+             "write_dynamic_energy", "leakage", "area", "read_edp", "write_edp"},
+            "design_constraints");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "exploration"),
+            {"use_cacti_assumption", "enable_pruning"}, "exploration");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "modeling"),
+            {"exclude_precharge_latency", "include_leakage", "scaled_voltage", "use_updated_lib"},
+            "modeling");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "output"),
+            {"results", "exploration_csv_prefix", "yaml_file"}, "output");
+}
+
+void ValidateArchitectureConfigKeys(const YAML::Node &root) {
+    RejectUnknownKeys(root,
+            {"schema", "name", "design", "memory", "routing", "peripherals", "sensing",
+             "wires", "organization", "matchline", "flash", "physical_limits"},
+            "architecture config");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "design"),
+            {"target", "search_function", "system_process_node", "device_roadmap", "temperature"},
+            "design");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "memory"),
+            {"capacity", "physical_capacity", "word_width"}, "memory");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "routing"), {"type"}, "routing");
+
+    const YAML::Node peripherals = YamlHelpers::child_optional(root, "peripherals");
+    RejectUnknownKeys(peripherals, {"write_driver", "input", "output"}, "peripherals");
+    RejectUnknownKeys(YamlHelpers::child_optional(peripherals, "input"),
+            {"buffer", "encoder", "custom_encoder", "encoder_type"}, "peripherals.input");
+    RejectUnknownKeys(YamlHelpers::child_optional(peripherals, "output"),
+            {"buffer", "priority_encoder", "accumulator"}, "peripherals.output");
+
+    const YAML::Node wires = YamlHelpers::child_optional(root, "wires");
+    RejectUnknownKeys(wires, {"local", "global"}, "wires");
+    RejectUnknownKeys(YamlHelpers::child_optional(wires, "local"),
+            {"type", "repeater", "low_swing"}, "wires.local");
+    RejectUnknownKeys(YamlHelpers::child_optional(wires, "global"),
+            {"type", "repeater", "low_swing"}, "wires.global");
+
+    const YAML::Node organization = YamlHelpers::child_optional(root, "organization");
+    RejectUnknownKeys(organization, {"banks", "mats", "mux", "subarray", "bit_serial_width"},
+            "organization");
+    for (const char *section : {"banks", "mats"}) {
+        RejectUnknownKeys(YamlHelpers::child_optional(organization, section), {"total", "active"},
+                std::string("organization.") + section);
+    }
+    RejectUnknownKeys(YamlHelpers::child_optional(organization, "mux"),
+            {"sense_amp", "output_level1", "output_level2"}, "organization.mux");
+    RejectUnknownKeys(YamlHelpers::child_optional(organization, "subarray"), {"dimensions"},
+            "organization.subarray");
+
+    const YAML::Node matchline = YamlHelpers::child_optional(root, "matchline");
+    RejectUnknownKeys(matchline, {"additional_cap", "match_transistor"}, "matchline");
+    RejectUnknownKeys(YamlHelpers::child_optional(matchline, "match_transistor"), {"cmos_width"},
+            "matchline.match_transistor");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "flash"), {"page_size", "block_size"}, "flash");
+    RejectUnknownKeys(YamlHelpers::child_optional(root, "physical_limits"),
+            {"max_nmos_size", "max_driver_current"}, "physical_limits");
 }
 
 std::string ResolveReference(const std::string &toolFile, const std::string &reference) {
@@ -61,6 +172,10 @@ YAML::Node ResolveSensingNode(const std::string &architectureFile, const YAML::N
         resolved = YAML::LoadFile(sensingFile);
         YamlHelpers::require_schema(resolved, "sensing", "sensing config");
     }
+    RejectUnknownKeys(resolved,
+            {"schema", "name", "internal", "custom_sense_amp", "sensing_mode",
+             "sense_amplifier", "worst_case_sense_margin"},
+            "sensing");
     if (HasKey(resolved, "amplifier_type")) {
         throw std::runtime_error(
                 "[Input] Error: sensing.amplifier_type was renamed; use sensing.sensing_mode.");
@@ -115,6 +230,7 @@ YAML::Node BuildMergedRootV2(const std::string &configFile, const YAML::Node &ro
     RejectKeys(root,
             {"architecture_file", "cell_file", "custom_sense_amplifier_file"},
             "run");
+    ValidateRunConfigKeys(root);
 
     const std::string architectureReference =
             YamlHelpers::read_required<std::string>(root, "architecture");
@@ -129,6 +245,7 @@ YAML::Node BuildMergedRootV2(const std::string &configFile, const YAML::Node &ro
              "optimization", "design_constraints", "exploration", "modeling", "output",
              "constraints", "advanced", "extra", "array"},
             "architecture");
+    ValidateArchitectureConfigKeys(architectureRoot);
 
     const YAML::Node architectureMemory =
             YamlHelpers::child_required(architectureRoot, "memory");

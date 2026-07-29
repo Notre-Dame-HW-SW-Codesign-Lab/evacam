@@ -271,7 +271,7 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         if (!yamlOut) {
             throw std::runtime_error("Failed to open YAML output file: " + outputYamlFileName);
         }
-        WriteResultsYamlNoSolutions(yamlOut);
+        WriteResultsYamlNoSolutions(yamlOut, config);
     } else if (DerivedValueHelpers::IsFullExploration(config.input)) {
         std::unordered_map<OptimizationTarget, std::string> variationSamplesFiles;
         std::unordered_map<OptimizationTarget, std::string> variationPlotFiles;
