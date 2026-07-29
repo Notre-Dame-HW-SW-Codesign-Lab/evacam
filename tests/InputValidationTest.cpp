@@ -411,6 +411,15 @@ void TestUnsupportedCamMemCellTypeThrows() {
     WriteMinimalCellFile();
 }
 
+void TestDramSectionThrows() {
+    WriteMinimalCellFile("SRAM", "TCAM", "matchline", "drain",
+            "dram:\n"
+            "  cell_capacitance: 1fF\n");
+    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    assert(LoadThrowsWithMessage("dram is not supported"));
+    WriteMinimalCellFile();
+}
+
 void TestExternalSensingRejectsNonSramCam() {
     WriteMinimalCellFile("MRAM");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
@@ -698,6 +707,7 @@ int main() {
     TestNonPowerOfTwoWordWidthRequiresRealCapacity();
     TestNonPowerOfTwoWordWidthParsesWithRealCapacity();
     TestUnsupportedCamMemCellTypeThrows();
+    TestDramSectionThrows();
     TestExternalSensingRejectsNonSramCam();
     TestMissingCamRowPortsThrows();
     TestMissingCamColumnPortsThrows();

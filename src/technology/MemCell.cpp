@@ -44,7 +44,6 @@ MemCell::MemCell() {
     widthAccessCMOS   = 0;
     voltageDropAccessDevice = 0;
     leakageCurrentAccessDevice = 0;
-    capDRAMCell		  = 0;
     widthSRAMCellNMOS = 2.08;	/* Default NMOS width in SRAM cells is 2.08 (from CACTI) */
     widthSRAMCellPMOS = 1.23;	/* Default PMOS width in SRAM cells is 1.23 (from CACTI) */
 

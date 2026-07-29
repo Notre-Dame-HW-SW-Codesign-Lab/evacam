@@ -313,15 +313,26 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
 }
 
 void RejectV2DeviceSections(const YAML::Node& root) {
+    if (has_key(root, "dram")) {
+        throw std::runtime_error(
+                "[Input] Error: dram is not supported and must not be specified.");
+    }
     const char* sections[] = {
         "resistance", "capacitance", "device", "read", "write",
-        "match", "dram", "sram", "flash", "variation", "mcam"
+        "match", "sram", "flash", "variation", "mcam"
     };
     for (const char* section : sections) {
         if (has_key(root, section)) {
             throw std::runtime_error(std::string("cell does not allow top-level ")
                     + section + "; move it to the referenced device or architecture file");
         }
+    }
+}
+
+void RejectUnsupportedDramSection(const YAML::Node& root) {
+    if (has_key(root, "dram")) {
+        throw std::runtime_error(
+                "[Input] Error: dram is not supported and must not be specified.");
     }
 }
 
@@ -516,14 +527,6 @@ void ReadMatchSection(MemCell& cell, const YAML::Node& root) {
         cell.camWidthMatchTran = YamlHelpers::read_quantity_required(match, "cmos_width", YamlHelpers::FeatureUnits(), 1.0, "match.cmos_width");
     }
     cell.isNVMdischarge = YamlHelpers::read_optional<bool>(match, "is_nvm_discharge", cell.isNVMdischarge);
-}
-
-void ReadDramSection(MemCell& cell, const YAML::Node& root) {
-    auto dram = YamlHelpers::child_optional(root, "dram");
-    if (dram && YamlHelpers::child_optional(dram, "cell_capacitance")) {
-        cell.capDRAMCell = YamlHelpers::read_quantity_required(
-                dram, "cell_capacitance", YamlHelpers::CapacitanceUnits(), 1.0, "dram.cell_capacitance");
-    }
 }
 
 void ReadSramSection(MemCell& cell, const YAML::Node& root) {
@@ -734,6 +737,7 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     const YAML::Node deviceRoot = YAML::LoadFile(resolve_reference(
             inputFile, reference.as<std::string>()));
     YamlHelpers::require_schema(deviceRoot, "memory_device", "memory device config");
+    RejectUnsupportedDramSection(deviceRoot);
     cell.memCellType = YamlHelpers::read_enum_required<MemCellType>(
             deviceRoot, "type", false);
     ReadResistanceSection(cell, deviceRoot);
@@ -741,7 +745,6 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     ReadDeviceSection(cell, deviceRoot);
     ReadReadSection(cell, deviceRoot);
     ReadWriteSection(cell, deviceRoot);
-    ReadDramSection(cell, deviceRoot);
     ReadSramSection(cell, deviceRoot);
     ReadFlashSection(cell, deviceRoot);
     ReadVariationSection(cell, deviceRoot);
@@ -767,13 +770,13 @@ void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile) {
     ReadMemoryDeviceReference(cell, root, inputFile);
     ReadAccessDeviceSection(cell, root);
     if (!isV2) {
+        RejectUnsupportedDramSection(root);
         ReadResistanceSection(cell, root);
         ReadCapacitanceSection(cell, root);
         ReadDeviceSection(cell, root);
         ReadReadSection(cell, root);
         ReadWriteSection(cell, root);
         ReadMatchSection(cell, root);
-        ReadDramSection(cell, root);
         ReadSramSection(cell, root);
         ReadFlashSection(cell, root);
         ReadVariationSection(cell, root);

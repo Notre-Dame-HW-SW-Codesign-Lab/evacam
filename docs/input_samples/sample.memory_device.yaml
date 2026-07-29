@@ -52,9 +52,6 @@ write:
     pulse: 10ns # units: s | ms | us | ns | ps | fs
     energy: 1pJ # units: J | mJ | uJ | nJ | pJ | fJ
 
-dram:
-  cell_capacitance: 1fF # units: F | mF | uF | nF | pF | fF
-
 sram:
   nmos_width: 2F # units: F
   pmos_width: 4F # units: F

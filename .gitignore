@@ -41,3 +41,4 @@ dist/
 *.egg-info/
 *.whl
 __pycache__/
+.aider*

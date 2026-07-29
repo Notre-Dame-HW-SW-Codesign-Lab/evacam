@@ -130,7 +130,6 @@ Memory-device files own electrical behavior and variation. Common sections are:
 - `read`
 - `write`
 - `match`
-- `dram`
 - `sram`
 - `flash`
 - `variation`

@@ -564,6 +564,14 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
 
 void ValidateMemCellSupport(const EvaCamConfig &config) {
     const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
+    if (IsCellV2(root)) {
+        const YAML::Node memoryDevice = LoadV2MemoryDeviceForValidation(
+                root, config.input.fileMemCell);
+        if (YamlHelpers::child_optional(memoryDevice, "dram")) {
+            throw std::runtime_error(
+                    "[Input] Error: dram is not supported and must not be specified.");
+        }
+    }
     const MemCellType memCellType = LoadMemCellTypeForValidation(root, config.input.fileMemCell);
     ValidateCamPortPresence(root);
     ValidateCamColumnTopology(root);

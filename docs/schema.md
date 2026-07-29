@@ -127,7 +127,6 @@ Common implemented optional sections:
 - `read`
 - `write`
 - `match`
-- `dram`
 - `sram`
 - `flash`
 - `variation`
