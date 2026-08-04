@@ -107,6 +107,10 @@ std::size_t ReadTemperatureGridSize(const YAML::Node& root) {
 
 TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
         DeviceRoadmap expectedRoadmap, std::size_t temperatureGridSize) {
+    YamlHelpers::reject_unknown_keys(node,
+            {"process_node", "roadmap", "operating_point", "capacitance", "mobility",
+             "sizing", "gm", "fin", "currents"},
+            "technology.roadmaps.nodes");
     TechnologySpec spec{};
     spec.featureSizeInNano = static_cast<int>(std::lround(
             read_quantity_required(node, "process_node", LengthUnits(), 1.0,
@@ -119,6 +123,9 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.featureSize = spec.featureSizeInNano * 1e-9;
 
     const YAML::Node operatingPoint = child_required(node, "operating_point");
+    YamlHelpers::reject_unknown_keys(operatingPoint,
+            {"vdd", "vth", "physical_gate_length"},
+            "technology.roadmaps.nodes.operating_point");
     spec.vdd = read_quantity_required(
             operatingPoint, "vdd", YamlHelpers::VoltageUnits(), 1.0, "technology.vdd");
     spec.vth = read_quantity_required(
@@ -128,6 +135,8 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
             "technology.physical_gate_length");
 
     const YAML::Node capacitance = child_required(node, "capacitance");
+    YamlHelpers::reject_unknown_keys(capacitance, {"ideal_gate", "fringe", "oxide"},
+            "technology.roadmaps.nodes.capacitance");
     spec.capIdealGate = read_quantity_required(
             capacitance, "ideal_gate", CapacitancePerLengthUnits(), 1.0,
             "technology.capacitance.ideal_gate");
@@ -144,21 +153,30 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.buildInPotential = kBuildInPotential;
 
     const YAML::Node mobility = child_required(node, "mobility");
+    YamlHelpers::reject_unknown_keys(mobility, {"electron", "hole"},
+            "technology.roadmaps.nodes.mobility");
     spec.effectiveElectronMobility = YamlHelpers::read_required<double>(mobility, "electron");
     spec.effectiveHoleMobility = YamlHelpers::read_required<double>(mobility, "hole");
     spec.vdsatNmos = ComputeVdsat(spec.phyGateLength, spec.effectiveElectronMobility);
     spec.vdsatPmos = ComputeVdsat(spec.phyGateLength, spec.effectiveHoleMobility);
 
     const YAML::Node sizing = child_required(node, "sizing");
+    YamlHelpers::reject_unknown_keys(sizing,
+            {"pn_size_ratio", "effective_resistance_multiplier"},
+            "technology.roadmaps.nodes.sizing");
     spec.pnSizeRatio = YamlHelpers::read_required<double>(sizing, "pn_size_ratio");
     spec.effectiveResistanceMultiplier =
             YamlHelpers::read_required<double>(sizing, "effective_resistance_multiplier");
 
     const YAML::Node gm = child_required(node, "gm");
+    YamlHelpers::reject_unknown_keys(gm, {"nmos", "pmos"},
+            "technology.roadmaps.nodes.gm");
     spec.currentGmNmos = YamlHelpers::read_required<double>(gm, "nmos");
     spec.currentGmPmos = YamlHelpers::read_required<double>(gm, "pmos");
 
     const YAML::Node fin = child_required(node, "fin");
+    YamlHelpers::reject_unknown_keys(fin, {"height", "width", "pitch", "polywire_cap"},
+            "technology.roadmaps.nodes.fin");
     spec.heightFin = read_quantity_required(
             fin, "height", LengthUnits(), 1.0, "technology.fin.height");
     spec.widthFin = read_quantity_required(
@@ -170,6 +188,9 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
             "technology.fin.polywire_cap");
 
     const YAML::Node currents = child_required(node, "currents");
+    YamlHelpers::reject_unknown_keys(currents,
+            {"on_nmos", "on_pmos", "off_nmos", "off_pmos"},
+            "technology.roadmaps.nodes.currents");
     spec.currentOnNmos = ReadTable(
             child_required(currents, "on_nmos"), "technology.currents.on_nmos",
             temperatureGridSize);
@@ -193,6 +214,12 @@ namespace YamlHelpers {
 std::vector<TechnologySpec> ReadTechnologySpecsFromYaml(const std::string& inputFile) {
     const YAML::Node root = YAML::LoadFile(inputFile);
     require_schema(root, "technology", "technology config");
+    reject_unknown_keys(root,
+            {"schema", "name", "library_model", "temperature_grid", "interpolation",
+             "roadmaps"},
+            "technology");
+    reject_unknown_keys(child_optional(root, "interpolation"),
+            {"temperature", "process_node", "off_current"}, "technology.interpolation");
     const std::size_t temperatureGridSize = ReadTemperatureGridSize(root);
     const bool useUpdatedLib = ReadUseUpdatedLib(root);
     const YAML::Node roadmaps = child_required(root, "roadmaps");
@@ -203,6 +230,7 @@ std::vector<TechnologySpec> ReadTechnologySpecsFromYaml(const std::string& input
     std::vector<TechnologySpec> specs;
     for (const auto& entry : roadmaps) {
         const DeviceRoadmap roadmap = ReadRoadmapKey(entry.first);
+        reject_unknown_keys(entry.second, {"nodes"}, "technology.roadmaps");
         const YAML::Node nodes = child_required(entry.second, "nodes");
         if (!nodes.IsSequence()) {
             throw std::runtime_error("technology roadmap nodes must be a sequence");

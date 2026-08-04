@@ -122,7 +122,9 @@ More detail:
 
 EvaCAM always prints a console summary and writes a YAML results file.
 
-When the optimization target is `Exploration`, EvaCAM may also write a CSV of explored points. The CSV is emitted only for unpruned full-exploration runs.
+When the optimization target is `Exploration`, EvaCAM also writes a CSV of
+explored points. Pruning is reserved for future work; current runs use
+exhaustive exploration.
 
 More detail:
 

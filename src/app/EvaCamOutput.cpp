@@ -189,10 +189,6 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
     }
 
     std::cout << std::endl << explorationOutputFileName << " generated successfully!" << std::endl;
-    if (config.constraints.pruningEnabled) {
-        std::cout << "The results are pruned" << std::endl;
-    }
-
     for (int i = 0; i < (int)full_exploration; i++) {
         std::cout << "[" << std::left << std::setw(2) << i << "]" << " ";
         std::cout << std::left << std::setw(8) << bestResults[i]->bank->readLatency * 1e12 << "    ";

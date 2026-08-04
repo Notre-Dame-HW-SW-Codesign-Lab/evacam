@@ -180,6 +180,29 @@ static void test_non_finite_numbers_are_rejected() {
     }
 }
 
+static void test_unknown_keys_are_rejected() {
+    const YAML::Node valid = YAML::Load(
+        "model:\n"
+        "  name: example\n"
+        "  enabled: true\n");
+    const YAML::Node validModel = YamlHelpers::child_required(valid, "model");
+    YamlHelpers::reject_unknown_keys(validModel, {"name", "enabled"}, "model");
+
+    const YAML::Node invalid = YAML::Load(
+        "model:\n"
+        "  name: example\n"
+        "  enabeld: true\n");
+    const YAML::Node invalidModel = YamlHelpers::child_required(invalid, "model");
+    try {
+        YamlHelpers::reject_unknown_keys(invalidModel, {"name", "enabled"}, "model");
+        assert(false && "Expected an unknown key to throw");
+    } catch (const std::runtime_error& error) {
+        const std::string message = error.what();
+        assert(message.find("unknown key 'model.enabeld'") != std::string::npos);
+        assert(message.find("expected one of: name, enabled") != std::string::npos);
+    }
+}
+
 static void write_v2_cell_fixture(const std::string &variationBlock = "") {
     {
         std::ofstream out("tests/tmp_yaml_helpers.memory_device.yaml");
@@ -719,6 +742,7 @@ int main() {
     test_bcam_alias();
     test_units();
     test_non_finite_numbers_are_rejected();
+    test_unknown_keys_are_rejected();
     test_memcell_yaml();
     test_organization_section();
     test_explicit_subarray_dimensions();

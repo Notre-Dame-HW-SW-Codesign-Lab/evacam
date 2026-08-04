@@ -111,6 +111,9 @@ CAM_CmosRegion terminal_to_region(const YAML::Node& connection, const char* what
 void parse_voltage_fields(const YAML::Node& volts, CAMPort& port) {
     if (!volts || !volts.IsMap())
         return;
+    YamlHelpers::reject_unknown_keys(volts,
+            {"set_lrs", "set_mrs", "reset", "search0", "search1"},
+            "cell.ports.voltages");
     if (YamlHelpers::child_optional(volts, "set_lrs"))
         port.volSetLRS = YamlHelpers::parse_quantity_node(
                 YamlHelpers::child_optional(volts, "set_lrs"), YamlHelpers::VoltageUnits(), 1.0, "voltages.set_lrs");
@@ -178,6 +181,7 @@ void parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2,
 }
 
 void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
+    YamlHelpers::reject_unknown_keys(ports, {"row", "column"}, "cell.ports");
     CAMPort (&camPort)[2][MAX_PORT] = cell.camPort;
     int& numRow = cell.camNumRow;
     int& numCol = cell.camNumCol;
@@ -205,6 +209,12 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
         for (const auto& it : rows) {
             int idx = YamlHelpers::read_scalar_required<int>(it.first, "ports.row index");
             const YAML::Node p = it.second;
+            YamlHelpers::reject_unknown_keys(p,
+                    {"type", "connection", "cmos_region", "num_cmos", "cmos_width",
+                     "is_nmos", "leak", "is_nvm_discharge", "wire_width", "voltages"},
+                    "cell.ports.row");
+            YamlHelpers::reject_unknown_keys(YamlHelpers::child_optional(p, "connection"),
+                    {"kind", "terminal"}, "cell.ports.row.connection");
             CAMPort& port = camPort[0][idx];
             port.Type = YamlHelpers::read_enum_required<CAM_PortType>(p, "type", false);
             parse_port_connection(p, port, isV2, "ports.row");
@@ -238,6 +248,12 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
         for (const auto& it : cols) {
             int idx = YamlHelpers::read_scalar_required<int>(it.first, "ports.column index");
             const YAML::Node p = it.second;
+            YamlHelpers::reject_unknown_keys(p,
+                    {"type", "connection", "cmos_region", "num_cmos", "cmos_width",
+                     "is_nmos", "leak", "is_nvm_discharge", "wire_width", "voltages"},
+                    "cell.ports.column");
+            YamlHelpers::reject_unknown_keys(YamlHelpers::child_optional(p, "connection"),
+                    {"kind", "terminal"}, "cell.ports.column.connection");
             CAMPort& port = camPort[1][idx];
             port.Type = YamlHelpers::read_enum_required<CAM_PortType>(p, "type", false);
             parse_port_connection(p, port, isV2, "ports.column");
@@ -310,6 +326,18 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
         else if (probe.find("tcam") != std::string::npos)
             cell.camType = TCAM;
     }
+}
+
+void ValidateV2CellKeys(const YAML::Node& root) {
+    YamlHelpers::reject_unknown_keys(root,
+            {"schema", "name", "cam_type", "memory_device", "access_device", "layout",
+             "ports"},
+            "cell");
+    YamlHelpers::reject_unknown_keys(YamlHelpers::child_optional(root, "access_device"),
+            {"type", "cmos_width", "voltage_drop", "leakage_current"},
+            "cell.access_device");
+    YamlHelpers::reject_unknown_keys(YamlHelpers::child_optional(root, "layout"),
+            {"cell_process_node", "area", "aspect_ratio"}, "cell.layout");
 }
 
 void RejectV2DeviceSections(const YAML::Node& root) {
@@ -737,6 +765,7 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     const YAML::Node deviceRoot = YAML::LoadFile(resolve_reference(
             inputFile, reference.as<std::string>()));
     YamlHelpers::require_schema(deviceRoot, "memory_device", "memory device config");
+    YamlHelpers::validate_memory_device_keys(deviceRoot);
     RejectUnsupportedDramSection(deviceRoot);
     cell.memCellType = YamlHelpers::read_enum_required<MemCellType>(
             deviceRoot, "type", false);
@@ -762,6 +791,7 @@ void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile) {
     if (isV2) {
         cell.accessType = none_access;
         RejectV2DeviceSections(root);
+        ValidateV2CellKeys(root);
         ReadV2CellSection(cell, root, inputFile);
     } else {
         const YAML::Node cellNode = child_required(root, "cell");

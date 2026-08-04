@@ -279,6 +279,14 @@ void TestNonHTreeRoutingThrows() {
     assert(LoadThrowsWithMessage("non H-tree is under development"));
 }
 
+void TestPruningIsRejectedUntilDefined() {
+    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
+            kReadLatencyOptimization, "", "",
+            "exploration:\n  enable_pruning: true\n");
+    assert(LoadThrowsWithMessage(
+            "exploration.enable_pruning is not implemented"));
+}
+
 void TestMissingRequiredTopLevelKeyThrows() {
     WriteConfig("  capacity: 1KB\n", kReadLatencyOptimization);
     assert(LoadThrows());
@@ -698,6 +706,7 @@ int main() {
     WriteMinimalCellFile();
     TestNonCamDesignTargetsThrow();
     TestNonHTreeRoutingThrows();
+    TestPruningIsRejectedUntilDefined();
     TestMissingRequiredTopLevelKeyThrows();
     TestFixedSubarrayDimensionsDeriveCapacity();
     TestFixedSubarrayDimensionsAllowEightRows();

@@ -29,24 +29,17 @@ class EvaCamExplorer {
     private:
         void InitializeExploration();
         void InitializeBestResults();
+        void InitializeWireCandidates();
         std::vector<std::shared_ptr<Result>> CreateBestResultsBuffer() const;
         void OpenExplorationCsv();
-        void RunPrimaryExploration();
+        void RunExplorationPass(const ResultLimits *limits);
+        void PrintSolutionCount();
         void EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
                 std::vector<std::shared_ptr<Result>> &bestResults,
                 long long &numSolutions,
                 std::ostream *csvStream,
-                const Wire &localWire,
-                const Wire &globalWire);
-        void RefineWires();
-        void RefineLocalWires();
-        void RefineGlobalWires();
-        std::shared_ptr<Result> ReevaluateBestResultWithWires(int optimizationIndex,
-                const Wire &localWire,
-                const Wire &globalWire);
-        void BuildPruningResults();
+                const ResultLimits *limits);
         void RunConstrainedExploration();
-        void EvaluateConstrainedGeometry(int numRowMat, int numColumnMat, int numRowSubarray);
         std::shared_ptr<Bank> BuildBank(int numRowMat, int numColumnMat, int numRowSubarray,
                 int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
@@ -57,21 +50,20 @@ class EvaCamExplorer {
                 const Wire &localWire,
                 const Wire &globalWire) const;
         bool IsValidCandidate(const std::shared_ptr<Bank> &bank) const;
+        bool MeetsConstraints(const std::shared_ptr<Bank> &bank,
+                const ResultLimits *limits) const;
         void ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const;
-        void UpdateBestResults(const std::shared_ptr<Result> &result);
         void UpdateBestResults(std::vector<std::shared_ptr<Result>> &bestResults,
                 const std::shared_ptr<Result> &result) const;
         void MergeBestResults(const std::vector<std::shared_ptr<Result>> &bestResults);
         void FlushExplorationCsvBuffer(const std::string &buffer);
-        void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result);
         void MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const;
 
         std::shared_ptr<EvaCamConfig> config_;
         int numThreads_ = 1;
         std::vector<std::shared_ptr<Result>> bestResults_;
-        Wire localWire_;
-        Wire globalWire_;
-        CAM_Opt camOpt_{};
+        std::vector<Wire> localWireCandidates_;
+        std::vector<Wire> globalWireCandidates_;
         std::optional<OutputFileLock> explorationCsvLock_;
         std::string explorationCsvPath_;
         long long numSolution_ = 0;
@@ -81,8 +73,6 @@ class EvaCamExplorer {
         std::vector<int> numRowMatValues_;
         std::vector<int> numColumnMatValues_;
         std::vector<int> numRowSubarrayValues_;
-        bool hasConstraintLimits_ = false;
-        ResultLimits constraintLimits_{};
         std::mutex bestResultsMutex_;
         std::mutex explorationCsvMutex_;
         std::mutex numSolutionsMutex_;

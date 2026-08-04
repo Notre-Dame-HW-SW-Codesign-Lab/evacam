@@ -1,3 +1,5 @@
+#include <yaml.h>
+
 #include "SenseAmp.h"
 #include "config/EvaCamConfig.h"
 #include "input/CustomSenseAmpYamlLoader.h"
@@ -130,6 +132,35 @@ void TestMissingRequiredFieldThrows() {
     assert(false && "expected missing required fields error");
 }
 
+void TestUnknownScalarSenseAmpKeyThrows() {
+    std::ofstream out(kCustomSenseAmpPath);
+    out <<
+        "schema: sense_amp\n"
+        "name: scalar_test\n"
+        "model: scalar\n"
+        "geometry:\n"
+        "  height: 10F\n"
+        "  width: 4F\n"
+        "  widht: 4F\n"
+        "timing:\n"
+        "  latency: 20ps\n"
+        "power:\n"
+        "  read_dynamic_energy: 4pJ\n"
+        "load:\n"
+        "  capacitance: 2fF\n";
+    out.close();
+
+    try {
+        SenseAmp senseAmp;
+        YamlHelpers::ReadCustomSenseAmpFromYaml(senseAmp, kCustomSenseAmpPath, 45e-9);
+    } catch (const std::runtime_error& error) {
+        assert(std::string(error.what()).find(
+                "unknown key 'sense_amp.geometry.widht'") != std::string::npos);
+        return;
+    }
+    assert(false && "Expected unknown scalar sense amp key to throw");
+}
+
 void TestDefaultSenseAmpYamlParses() {
     const SenseAmpModel model = YamlHelpers::ReadSenseAmpModelFromYaml(
             "config/lib/sense_amp/nvsim_vol.sense_amp.yaml");
@@ -139,6 +170,23 @@ void TestDefaultSenseAmpYamlParses() {
     assert(AlmostEqual(model.currentSenseLatency[3].value, 0.80e-9, 1e-24));
     assert(AlmostEqual(model.currentSenseEnergy[4].value, 12.56e-14, 1e-24));
     assert(AlmostEqual(model.currentSenseLeakage[5].value, 150e-9, 1e-18));
+}
+
+void TestUnknownDefaultSenseAmpKeyThrows() {
+    YAML::Node root = YAML::LoadFile("config/lib/sense_amp/nvsim_vol.sense_amp.yaml");
+    root["transistors"]["p_sense_wdith"] = "10F";
+    std::ofstream out(kCustomSenseAmpPath);
+    out << root;
+    out.close();
+
+    try {
+        (void)YamlHelpers::ReadSenseAmpModelFromYaml(kCustomSenseAmpPath);
+    } catch (const std::runtime_error& error) {
+        assert(std::string(error.what()).find(
+                "unknown key 'sense_amp.transistors.p_sense_wdith'") != std::string::npos);
+        return;
+    }
+    assert(false && "Expected unknown default sense amp key to throw");
 }
 
 void TestDefaultSenseAmpYamlInitializes() {
@@ -170,7 +218,9 @@ int main() {
     TestTopLevelYamlLoadsArea();
     TestV2ScalarYamlLoadsQuantities();
     TestMissingRequiredFieldThrows();
+    TestUnknownScalarSenseAmpKeyThrows();
     TestDefaultSenseAmpYamlParses();
+    TestUnknownDefaultSenseAmpKeyThrows();
     TestDefaultSenseAmpYamlInitializes();
     std::cout << "CustomSenseAmpYamlLoader tests passed" << std::endl;
     return 0;

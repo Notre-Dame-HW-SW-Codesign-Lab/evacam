@@ -38,7 +38,8 @@ Optional sections and fields:
 
 - `design_constraints`
 - `exploration.use_cacti_assumption`
-- `exploration.enable_pruning`
+- `exploration.enable_pruning`: reserved but currently rejected when `true`;
+  omit it or set it to `false` for exhaustive exploration
 - `modeling.exclude_precharge_latency`
 - `modeling.include_leakage`
 - `modeling.scaled_voltage`

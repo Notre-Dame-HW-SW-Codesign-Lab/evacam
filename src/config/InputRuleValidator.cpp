@@ -445,6 +445,11 @@ long long CheckedTotalProduct(const IntValueDomain &first, const IntValueDomain 
 }
 
 void ValidateDerivedInputs(const EvaCamConfig &config) {
+    if (config.constraints.pruningEnabled) {
+        throw std::runtime_error(
+                "[Input] Error: exploration.enable_pruning is not implemented; "
+                "use exhaustive exploration with enable_pruning: false.");
+    }
     if (config.input.wordWidth <= 0) {
         throw std::runtime_error("[Input] Error: word_width must be > 0.");
     }

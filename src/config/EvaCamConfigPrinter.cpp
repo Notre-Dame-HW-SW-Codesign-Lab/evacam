@@ -185,8 +185,8 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
         PrintConstraintIfSet("Leakage", constraints.leakage);
     }
 
-    if (peripherals.useUpdatedLib || peripherals.noPrechargeInc || peripherals.includeLeakage || peripherals.scaledVoltage != 0
-            || !peripherals.fileCustomSA.empty() || constraints.pruningEnabled) {
+    if (peripherals.useUpdatedLib || peripherals.noPrechargeInc || peripherals.includeLeakage
+            || peripherals.scaledVoltage != 0 || !peripherals.fileCustomSA.empty()) {
         std::cout << "Advanced Options:" << std::endl;
         if (peripherals.useUpdatedLib)
             std::cout << " - Updated Library Enabled" << std::endl;
@@ -198,8 +198,6 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
             std::cout << " - Scaled Voltage: " << peripherals.scaledVoltage << std::endl;
         if (!peripherals.fileCustomSA.empty())
             std::cout << " - Custom Sense Amp File: " << peripherals.fileCustomSA << std::endl;
-        if (constraints.pruningEnabled)
-            std::cout << " - Exploration Pruning Enabled" << std::endl;
     }
 
     if (input.optimizationTarget == full_exploration) {

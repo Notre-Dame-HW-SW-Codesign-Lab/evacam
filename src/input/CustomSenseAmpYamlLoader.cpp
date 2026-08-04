@@ -56,10 +56,19 @@ void ReadCustomSenseAmpFromYaml(
     const YAML::Node root = YAML::LoadFile(inputFile);
     require_schema(root, "sense_amp", "sense amp config");
     if (YamlHelpers::read_optional<std::string>(root, "model", "") == "scalar") {
+        reject_unknown_keys(root,
+                {"schema", "name", "model", "geometry", "timing", "power", "load"},
+                "sense_amp");
         const YAML::Node geometry = child_required(root, "geometry");
         const YAML::Node timing = child_required(root, "timing");
         const YAML::Node power = child_required(root, "power");
         const YAML::Node load = child_required(root, "load");
+        reject_unknown_keys(geometry, {"height", "width", "area"},
+                "sense_amp.geometry");
+        reject_unknown_keys(timing, {"latency"}, "sense_amp.timing");
+        reject_unknown_keys(power, {"read_dynamic_energy", "leakage"},
+                "sense_amp.power");
+        reject_unknown_keys(load, {"capacitance"}, "sense_amp.load");
 
         senseAmp.height = ReadOptionalQuantity(
                 geometry, "height", FeatureLengthUnits(featureSize), featureSize,
@@ -94,11 +103,20 @@ void ReadCustomSenseAmpFromYaml(
         return;
     }
 
+    reject_unknown_keys(root,
+            {"schema", "name", "model", "custom_sense_amp", "height", "width", "area",
+             "latency", "energy", "leakage", "cap_load"},
+            "sense_amp");
     const YAML::Node customSenseAmpNode = child_optional(root, "custom_sense_amp");
     const YAML::Node customSenseAmp = customSenseAmpNode ? customSenseAmpNode : root;
 
     if (!customSenseAmp || !customSenseAmp.IsMap()) {
         throw std::runtime_error("custom sense amp file must contain a mapping.");
+    }
+    if (customSenseAmpNode) {
+        reject_unknown_keys(customSenseAmp,
+                {"height", "width", "area", "latency", "energy", "leakage", "cap_load"},
+                "sense_amp.custom_sense_amp");
     }
 
     senseAmp.height = ReadOptionalQuantity(

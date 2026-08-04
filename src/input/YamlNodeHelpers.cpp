@@ -104,6 +104,43 @@ void require_schema(const YAML::Node& root, const std::string& canonical, const 
     }
 }
 
+void reject_unknown_keys(const YAML::Node& node,
+        std::initializer_list<const char*> allowedKeys, const std::string& path) {
+    if (!node || !node.IsMap()) {
+        return;
+    }
+
+    for (auto it = node.begin(); it != node.end(); ++it) {
+        if (!it->first.IsScalar()) {
+            throw std::runtime_error("[Input] Error: " + path + " contains a non-scalar key.");
+        }
+
+        const std::string key = it->first.as<std::string>();
+        const bool allowed = std::any_of(allowedKeys.begin(), allowedKeys.end(),
+                [&key](const char* allowedKey) { return key == allowedKey; });
+        if (allowed) {
+            continue;
+        }
+
+        std::ostringstream message;
+        message << "[Input] Error: unknown key '" << path << "." << key << "'";
+        if (it->first.Mark().line != -1) {
+            message << " near line " << (it->first.Mark().line + 1);
+        }
+        message << "; expected one of: ";
+        bool first = true;
+        for (const char* expected : allowedKeys) {
+            if (!first) {
+                message << ", ";
+            }
+            message << expected;
+            first = false;
+        }
+        message << ".";
+        throw std::runtime_error(message.str());
+    }
+}
+
 const std::vector<std::pair<const char*, MemCellType>>& EnumTraits<MemCellType>::mapping() {
     static const std::vector<std::pair<const char*, MemCellType>> k = {
         {"SRAM", SRAM},

@@ -37,6 +37,8 @@ std::vector<SenseAmpModel::NodeValue> ReadNodeTable(
         throw std::runtime_error(std::string("sense_amp.") + key + " must be a sequence");
     }
     for (const YAML::Node& entry : nodes) {
+        YamlHelpers::reject_unknown_keys(entry, {"min_node", valueKey},
+                std::string("sense_amp.iv_converter.") + key);
         SenseAmpModel::NodeValue item;
         const YAML::Node minNode = YamlHelpers::child_optional(entry, "min_node");
         item.minFeatureSize = minNode && !minNode.IsNull()
@@ -57,6 +59,18 @@ namespace YamlHelpers {
 SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     const YAML::Node root = YAML::LoadFile(inputFile);
     require_schema(root, "sense_amp", "sense amp config");
+    reject_unknown_keys(root,
+            {"schema", "name", "model", "supported_modes", "layout", "transistors",
+             "iv_converter"},
+            "sense_amp");
+
+    const YAML::Node supportedModes = child_optional(root, "supported_modes");
+    reject_unknown_keys(supportedModes, {"voltage_sense", "current_sense", "discharge"},
+            "sense_amp.supported_modes");
+    for (const char* mode : {"voltage_sense", "current_sense", "discharge"}) {
+        reject_unknown_keys(child_optional(supportedModes, mode), {"current_sense"},
+                std::string("sense_amp.supported_modes.") + mode);
+    }
     SenseAmpModel model;
     model.loaded = true;
     model.model = YamlHelpers::read_required<std::string>(root, "model");
@@ -65,12 +79,18 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     }
 
     const YAML::Node layout = YamlHelpers::child_required(root, "layout");
+    reject_unknown_keys(layout, {"min_pitch", "same_type_diff_gap", "p_to_n_diff_gap"},
+            "sense_amp.layout");
     model.minPitch = ReadOptionalFeatureWidth(layout, "min_pitch", model.minPitch);
     model.sameTypeDiffGap = ReadOptionalFeatureWidth(
             layout, "same_type_diff_gap", model.sameTypeDiffGap);
     model.pToNDiffGap = ReadOptionalFeatureWidth(layout, "p_to_n_diff_gap", model.pToNDiffGap);
 
     const YAML::Node transistors = YamlHelpers::child_required(root, "transistors");
+    reject_unknown_keys(transistors,
+            {"p_sense_width", "n_sense_width", "isolation_width", "enable_width",
+             "mux_width"},
+            "sense_amp.transistors");
     model.pSenseWidth = ReadOptionalFeatureWidth(
             transistors, "p_sense_width", model.pSenseWidth);
     model.nSenseWidth = ReadOptionalFeatureWidth(
@@ -82,6 +102,10 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     model.muxWidth = ReadOptionalFeatureWidth(transistors, "mux_width", model.muxWidth);
 
     const YAML::Node ivConverter = YamlHelpers::child_required(root, "iv_converter");
+    reject_unknown_keys(ivConverter,
+            {"area", "current_sense_latency", "current_sense_energy",
+             "current_sense_leakage"},
+            "sense_amp.iv_converter");
     model.ivConverterArea = ReadOptionalFeatureArea(
             ivConverter, "area", model.ivConverterArea);
     model.currentSenseLatency = ReadNodeTable(

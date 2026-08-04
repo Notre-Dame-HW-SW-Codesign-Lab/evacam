@@ -58,7 +58,9 @@ Use `-o` if you need an explicit path.
 
 ## Exploration Run Did Not Write CSV
 
-The exploration CSV is only written for full-exploration runs without pruning. If pruning is enabled, the YAML results still exist but the CSV may not.
+The exploration CSV is written for `optimization.target: Exploration`. Pruning
+is not currently implemented, and `exploration.enable_pruning: true` is
+rejected instead of silently suppressing the CSV.
 
 ## Verbose Logging
 

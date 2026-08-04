@@ -1,4 +1,5 @@
 #include "MemCell.h"
+#include "input/MemoryDeviceYamlLoader.h"
 
 #include <cassert>
 #include <cmath>
@@ -99,6 +100,16 @@ bool LoadCellThrows(const char *path) {
         cell.ReadCellFromFile(path, CAM_chip, 1.0);
     } catch (const std::runtime_error&) {
         return true;
+    }
+    return false;
+}
+
+bool LoadCellThrowsWithMessage(const char *path, const std::string& expected) {
+    try {
+        MemCell cell;
+        cell.ReadCellFromFile(path, CAM_chip, 1.0);
+    } catch (const std::runtime_error& error) {
+        return std::string(error.what()).find(expected) != std::string::npos;
     }
     return false;
 }
@@ -250,6 +261,30 @@ void TestElectricalPortRequiresPositiveCmosCount() {
     assert(LoadCellThrows(kCellPath));
 }
 
+void TestUnknownCellKeyThrows() {
+    WriteMinimalCellFile(kCellPath);
+    std::ofstream out(kCellPath, std::ios::app);
+    out << "layuot: {}\n";
+    out.close();
+
+    assert(LoadCellThrowsWithMessage(kCellPath, "unknown key 'cell.layuot'"));
+}
+
+void TestUnknownMemoryDeviceKeyThrows() {
+    WriteMinimalCellFile(kCellPath, "min_sense_voltge: 70mV\n");
+    assert(LoadCellThrowsWithMessage(
+            kCellPath, "unknown key 'memory_device.min_sense_voltge'"));
+}
+
+void TestLegacyMemoryDeviceLoaderStillParses() {
+    MemCell cell;
+    YamlHelpers::ReadMemoryDeviceFromYaml(
+            cell, "config/2FeFET_TCAM_var/2FeFET_TCAM_var.memory_device.yaml");
+    assert(cell.memCellType == FEFETRAM);
+    assert(cell.processNode == 45);
+    assert(std::fabs(cell.resistanceOn - 10000.0) < 1e-12);
+}
+
 }  // namespace
 
 int main() {
@@ -259,6 +294,9 @@ int main() {
     TestMcamVoltagesParse();
     TestMissingRequiredCellFieldThrows();
     TestElectricalPortRequiresPositiveCmosCount();
+    TestUnknownCellKeyThrows();
+    TestUnknownMemoryDeviceKeyThrows();
+    TestLegacyMemoryDeviceLoaderStillParses();
     std::cout << "CellYamlLoader tests passed" << std::endl;
     return 0;
 }

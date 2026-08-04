@@ -1,3 +1,5 @@
+#include <yaml.h>
+
 #include "config/EvaCamYamlLoader.h"
 #include "config/EvaCamConfig.h"
 #include "config/TechnologyLoader.h"
@@ -67,6 +69,17 @@ void ExpectTechnologyLoadFailure(const std::string& path) {
     assert(failed);
 }
 
+void ExpectTechnologyLoadFailureWithMessage(
+        const std::string& path, const std::string& expected) {
+    try {
+        (void)YamlHelpers::ReadTechnologySpecsFromYaml(path);
+    } catch (const std::runtime_error& error) {
+        assert(std::string(error.what()).find(expected) != std::string::npos);
+        return;
+    }
+    assert(false && "Expected technology load to fail");
+}
+
 void TestValidationFailures() {
     WriteFile("/tmp/evacam_bad_technology_grid.yaml",
             "schema: technology\n"
@@ -107,6 +120,18 @@ void TestValidationFailures() {
             "        fin: {height: 0m, width: 0m, pitch: 0m, polywire_cap: 0F/m}\n"
             "        currents: *currents\n");
     ExpectTechnologyLoadFailure("/tmp/evacam_bad_technology_duplicate.yaml");
+}
+
+void TestUnknownTechnologyKeyThrows() {
+    YAML::Node root = YAML::LoadFile("config/lib/technology/cmos.updated.yaml");
+    root["roadmaps"]["HP"]["nodes"][0]["operating_point"]["supply_voltage"] = "1V";
+    std::ofstream output("/tmp/evacam_unknown_technology_key.yaml");
+    output << root;
+    output.close();
+
+    ExpectTechnologyLoadFailureWithMessage(
+            "/tmp/evacam_unknown_technology_key.yaml",
+            "unknown key 'technology.roadmaps.nodes.operating_point.supply_voltage'");
 }
 
 void TestRuntimeUsesTechnologyFile() {
@@ -171,6 +196,7 @@ int main() {
              {32, LSTP}, {22, LSTP}, {45, FEFET}, {22, FEFET}},
             false);
     TestValidationFailures();
+    TestUnknownTechnologyKeyThrows();
     TestRuntimeUsesTechnologyFile();
     TestRuntimeRequiresTechnologyFile();
     TestMissingRoadmapFailsAtRuntime();

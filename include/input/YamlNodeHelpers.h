@@ -23,6 +23,8 @@ YAML::Node child_required_index(const YAML::Node& parent, size_t idx, const char
 bool is_yaml_file(const std::string& path);
 bool schema_matches(const YAML::Node& root, const std::string& canonical);
 void require_schema(const YAML::Node& root, const std::string& canonical, const char* fileKind);
+void reject_unknown_keys(const YAML::Node& node,
+        std::initializer_list<const char*> allowedKeys, const std::string& path);
 
 template <typename T>
     T require_finite(T value, const std::string& what) {

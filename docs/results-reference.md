@@ -118,7 +118,7 @@ using the objective name in the file stem.
 
 ## Exploration CSV
 
-The exploration CSV is only emitted for full exploration without pruning. Its name is:
+The exploration CSV is emitted for full exploration. Its name is:
 
 ```text
 <prefix>_<capacity_kib>K_<word_width>_<IN|EX>_<VOL|CUR>.csv

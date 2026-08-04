@@ -40,7 +40,7 @@ For non-exploration runs:
 For full-exploration runs:
 
 - EvaCAM prints a compact table of the best results across multiple objectives.
-- If pruning is enabled, the console output states that the results are pruned.
+- EvaCAM uses exhaustive exploration; pruning is not currently implemented.
 
 ## YAML Result Content
 
@@ -69,7 +69,7 @@ When the optimization target is `Exploration`, EvaCAM may also emit a CSV contai
 
 Current behavior:
 
-- CSV is written only for full exploration without pruning
+- CSV is written for full exploration
 - filename comes from the config-derived output prefix and key run parameters
 
 The generated name follows this pattern:

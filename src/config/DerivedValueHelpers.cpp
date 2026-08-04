@@ -12,14 +12,8 @@ bool DerivedValueHelpers::IsFullExploration(const InputConfig &input) {
     return input.optimizationTarget == full_exploration;
 }
 
-bool DerivedValueHelpers::ShouldWriteExplorationCsv(const InputConfig &input,
-        const ConstraintConfig &constraints) {
-    return IsFullExploration(input) && !constraints.pruningEnabled;
-}
-
-bool DerivedValueHelpers::IsPruningEnabledForExploration(const InputConfig &input,
-        const ConstraintConfig &constraints) {
-    return IsFullExploration(input) && constraints.pruningEnabled;
+bool DerivedValueHelpers::ShouldWriteExplorationCsv(const InputConfig &input) {
+    return IsFullExploration(input);
 }
 
 bool DerivedValueHelpers::HasFixedOuterGeometry(const ResolvedExplorationSpace &resolvedExploration) {

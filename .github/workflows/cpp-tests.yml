@@ -33,6 +33,7 @@ jobs:
           - test-match
           - test-mat-decoder
           - test-htree-routing
+          - test-exhaustive-search
           - test-python-package-data
           - test-pybind-run
 

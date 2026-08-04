@@ -41,6 +41,7 @@ TEST_FORMULA_BIN=FormulaTest
 TEST_MATCH_BIN=MatchTest
 TEST_MAT_DECODER_BIN=MatDecoderRegressionTest
 TEST_HTREE_ROUTING_BIN=HtreeRoutingRegressionTest
+TEST_EXHAUSTIVE_SEARCH_BIN=ExhaustiveSearchRegressionTest
 TEST_PYBIND_MATCH_PERSISTENCE_BIN=PybindMatchPersistenceTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
@@ -92,7 +93,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
@@ -193,6 +194,11 @@ test-htree-routing: $(OBJECTS_NO_MAIN)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_HTREE_ROUTING_BIN).d -MT $(TEST_HTREE_ROUTING_BIN) -o $(TEST_HTREE_ROUTING_BIN) tests/HtreeRoutingRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	./$(TEST_HTREE_ROUTING_BIN)
 
+test-exhaustive-search: $(OBJECTS_NO_MAIN)
+	@mkdir -p $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_EXHAUSTIVE_SEARCH_BIN).d -MT $(TEST_EXHAUSTIVE_SEARCH_BIN) -o $(TEST_EXHAUSTIVE_SEARCH_BIN) tests/ExhaustiveSearchRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	./$(TEST_EXHAUSTIVE_SEARCH_BIN)
+
 test-python-package-data:
 	python3 tests/test_python_package_data.py
 
@@ -244,6 +250,7 @@ clean:
 		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
 		$(TEST_MAT_DECODER_BIN) $(TEST_MAT_DECODER_BIN).d \
 		$(TEST_HTREE_ROUTING_BIN) $(TEST_HTREE_ROUTING_BIN).d \
+		$(TEST_EXHAUSTIVE_SEARCH_BIN) $(TEST_EXHAUSTIVE_SEARCH_BIN).d \
 		$(TEST_PYBIND_MATCH_PERSISTENCE_BIN) $(TEST_PYBIND_MATCH_PERSISTENCE_BIN).d \
 		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \

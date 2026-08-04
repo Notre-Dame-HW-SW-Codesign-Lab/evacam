@@ -273,7 +273,7 @@ void TestSplitConfigParsesAndMapsMovedFields() {
         "  area: 0.5\n"
         "exploration:\n"
         "  use_cacti_assumption: true\n"
-        "  enable_pruning: true\n"
+        "  enable_pruning: false\n"
         "modeling:\n"
         "  exclude_precharge_latency: true\n"
         "  include_leakage: true\n"
@@ -294,7 +294,7 @@ void TestSplitConfigParsesAndMapsMovedFields() {
     assert(config.constraints.enabled);
     assert(config.constraints.area == 0.5);
     assert(config.useCactiAssumption);
-    assert(config.constraints.pruningEnabled);
+    assert(!config.constraints.pruningEnabled);
     assert(config.peripherals.noPrechargeInc);
     assert(config.peripherals.includeLeakage);
     assert(config.peripherals.scaledVoltage == 0.9);
