@@ -1,23 +1,22 @@
 # Unit Test Inventory
 
-`unit_test_inventory.tsv` is the Phase 1 source of truth for dedicated unit-test
+`unit_test_inventory.tsv` is the source of truth for dedicated unit-test
 coverage. It inventories maintained callable definitions in `include/`, `src/`,
 `bindings/`, `evacam/`, and `scripts/`.
 
-The current inventory contains 966 callables:
+The current inventory contains 968 callables:
 
-- 660 `covered`
-- 190 `missing`
+- 852 `covered`
+- 0 `missing`
 - 116 `exempt`
-- 811 C++ callables and 155 Python callables
+- 811 C++ callables and 157 Python callables
 
 The deliberately conservative classification counts a callable as covered only
 when a named `Test*` or `test_*` case reaches a matching call in a focused test
 module. Calls made only from a broad `main`, calls from regression tests, and
-ambiguous same-arity overloads without an explicit public-behavior mapping remain
-missing. This avoids treating incidental execution as dedicated coverage. The
-behavior column is derived from the names of the focused cases that exercise the
-callable.
+ambiguous same-arity overloads require an explicit public-behavior mapping. This
+avoids treating incidental execution as dedicated coverage. The behavior column
+is derived from the names of the focused cases that exercise the callable.
 
 The C++ inventory uses a tree-sitter C++ syntax tree, including inline methods,
 templates, overloads, file-local helpers, custom special members, and
