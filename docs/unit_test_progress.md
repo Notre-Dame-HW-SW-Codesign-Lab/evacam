@@ -148,6 +148,14 @@ to `.github/workflows/cpp-tests.yml` as required by the repository guidelines.
 
 ## Phase 3: Close gaps in pure helpers, configuration, and input
 
+**Status:** Implemented. Dedicated targets cover the configuration helpers and
+validators, technology and variation loading, output locking, YAML primitives
+and units, physical-domain validation, and the cell/device, sense-amplifier, and
+technology YAML loader branches listed below. File-local helpers are tied to
+named public-behavior cases in the generated inventory. The unreachable legacy
+cell-loader branch was removed; cell loading and validation now consistently
+require the supported schema-based cell and referenced memory-device format.
+
 Implement these first because they are fast and establish reusable fixtures.
 
 ### Configuration and exploration

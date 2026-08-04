@@ -58,7 +58,8 @@ Important cell-YAML inputs include:
 - `memory_device`
 - cell-level `access_device` and per-port CMOS fields
 
-Important memory/access-device YAML inputs include:
+Important device inputs, split between the referenced memory-device YAML file
+and the cell file's inline `access_device` mapping, include:
 
 - `type`
 - `voltage_drop`

@@ -4,19 +4,20 @@
 coverage. It inventories maintained callable definitions in `include/`, `src/`,
 `bindings/`, `evacam/`, and `scripts/`.
 
-The current baseline contains 975 callables:
+The current baseline contains 971 callables:
 
-- 49 `covered`
-- 827 `missing`
+- 208 `covered`
+- 664 `missing`
 - 99 `exempt`
-- 821 C++ callables and 154 Python callables
+- 816 C++ callables and 155 Python callables
 
 The deliberately conservative classification counts a callable as covered only
 when a named `Test*` or `test_*` case reaches a matching call in a focused test
 module. Calls made only from a broad `main`, calls from regression tests, and
-ambiguous same-arity overloads remain missing. This avoids treating incidental
-execution as dedicated coverage. The behavior column is derived from the names
-of the focused cases that exercise the callable.
+ambiguous same-arity overloads without an explicit public-behavior mapping remain
+missing. This avoids treating incidental execution as dedicated coverage. The
+behavior column is derived from the names of the focused cases that exercise the
+callable.
 
 The C++ inventory uses a tree-sitter C++ syntax tree, including inline methods,
 templates, overloads, file-local helpers, custom special members, and

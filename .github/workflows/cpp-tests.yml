@@ -15,6 +15,18 @@ jobs:
       matrix:
         target:
           - test-test-support
+          - test-derived-values
+          - test-config-normalizer
+          - test-config-sections
+          - test-output-file-lock
+          - test-evacam-config
+          - test-config-validators
+          - test-technology-variation-config
+          - test-yaml-primitives
+          - test-physical-domain-validators
+          - test-cell-memory-loader-branches
+          - test-sense-amp-loader-branches
+          - test-technology-yaml-branches
           - test-yaml
           - test-top-level-parser
           - test-cell-loader

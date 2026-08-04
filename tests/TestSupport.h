@@ -27,7 +27,7 @@ inline void Require(bool condition, const std::string &message) {
 inline void AssertNear(
         double actual,
         double expected,
-        double absoluteTolerance = 1e-12,
+        double absoluteTolerance = 0,
         double relativeTolerance = 1e-12) {
     Require(absoluteTolerance >= 0, "absolute tolerance must be non-negative");
     Require(relativeTolerance >= 0, "relative tolerance must be non-negative");

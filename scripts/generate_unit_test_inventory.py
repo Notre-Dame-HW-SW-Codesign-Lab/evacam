@@ -495,14 +495,212 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "IntValueDomain": {"ExplorationDomain"},
         "ExplorationSpec": {"ExplorationDomain"},
         "ExplorationSpaceResolver": {"ExplorationDomain"},
-        "YamlNodeHelpers": {"YamlHelpers"},
-        "YamlUnitParsers": {"YamlHelpers"},
+        "YamlNodeHelpers": {"YamlHelpers", "YamlPrimitiveCoverage"},
+        "YamlUnitParsers": {"YamlHelpers", "YamlPrimitiveCoverage"},
         "Technology": {"TechnologyYamlLoader"},
-        "TechnologyLoader": {"TechnologyYamlLoader"},
-        "VariationConfigBuilder": {"YamlHelpers"},
-        "MemoryDeviceYamlLoader": {"CellYamlLoader"},
-        "EvaCamConfig": {"TopLevelConfigParser"},
+        "TechnologyLoader": {"TechnologyYamlLoader", "TechnologyAndVariationConfig"},
+        "VariationConfigBuilder": {"YamlHelpers", "TechnologyAndVariationConfig"},
+        "CellYamlLoader": {"CellYamlLoader", "CellAndMemoryLoaderBranches"},
+        "MemoryDeviceYamlLoader": {"CellYamlLoader", "CellAndMemoryLoaderBranches"},
+        "PhysicalDomainValidators": {"PhysicalDomainValidators"},
+        "CustomSenseAmpYamlLoader": {"CustomSenseAmpYamlLoader", "SenseAmpLoaderBranches"},
+        "SenseAmpYamlLoader": {"CustomSenseAmpYamlLoader", "SenseAmpLoaderBranches"},
+        "TechnologyYamlLoader": {"TechnologyYamlLoader", "TechnologyYamlLoaderBranches"},
+        "EvaCamConfig": {"TopLevelConfigParser", "EvaCamConfig"},
+        "EvaCamConfigValidator": {"ConfigValidators"},
+        "InputRuleValidator": {"ConfigValidators", "InputValidation"},
+        "OutputFileLock": {"OutputFileLock"},
     }
+    indirect_test_cases = {
+        ("src/config/ConfigNormalizer.cpp", "SameDomain"): [
+            ("tests/ConfigNormalizerTest.cpp", "TestDeepExplorationExpandsOnlyDefaultDomains", "test-config-normalizer"),
+            ("tests/ConfigNormalizerTest.cpp", "TestExplicitGeometryAndFixedDomainArePreserved", "test-config-normalizer"),
+        ],
+        ("src/config/ConfigNormalizer.cpp", "ApplyExplorationDefaults"): [
+            ("tests/ConfigNormalizerTest.cpp", "TestOrdinaryDefaultsRestrictDefaultGeometry", "test-config-normalizer"),
+            ("tests/ConfigNormalizerTest.cpp", "TestDeepExplorationExpandsOnlyDefaultDomains", "test-config-normalizer"),
+            ("tests/ConfigNormalizerTest.cpp", "TestExplicitGeometryAndFixedDomainArePreserved", "test-config-normalizer"),
+        ],
+        ("src/config/ConfigNormalizer.cpp", "ApplyCactiAssumption"): [
+            ("tests/ConfigNormalizerTest.cpp", "TestCactiAssumptionOverridesActiveGeometry", "test-config-normalizer"),
+            ("tests/ConfigNormalizerTest.cpp", "TestCactiAssumptionRejectsNonPositiveColumnDomain", "test-config-normalizer"),
+        ],
+        ("src/config/ConfigSectionReaders.cpp", "TryReadOptionalChild"): [
+            ("tests/ConfigSectionReadersTest.cpp", "TestReadOrganizationSection", "test-config-sections"),
+        ],
+        ("src/config/ConfigSectionReaders.cpp", "ReadCoordinatePair"): [
+            ("tests/ConfigSectionReadersTest.cpp", "TestReadOrganizationSection", "test-config-sections"),
+        ],
+    }
+
+    def map_indirect(file: str, names: list[str],
+            test_file: str, test_case: str, target: str) -> None:
+        mapping = (test_file, test_case, target)
+        for name in names:
+            indirect_test_cases.setdefault((file, name), []).append(mapping)
+
+    map_indirect("src/config/OutputFileLock.cpp",
+            ["OutputFileLock", "~OutputFileLock", "Release"], "tests/OutputFileLockTest.cpp",
+            "TestAcquireCreatesParentAndDestructorReleasesLock", "test-output-file-lock")
+    map_indirect("src/config/OutputFileLock.cpp", ["OutputFileLock"],
+            "tests/OutputFileLockTest.cpp", "TestMoveConstructionTransfersOwnership",
+            "test-output-file-lock")
+    map_indirect("src/config/OutputFileLock.cpp", ["operator=", "Release"],
+            "tests/OutputFileLockTest.cpp", "TestMoveAssignmentReleasesOldLockAndTransfersNewLock",
+            "test-output-file-lock")
+    map_indirect("src/config/OutputFileLock.cpp", ["OutputFileLock"],
+            "tests/OutputFileLockTest.cpp", "TestPathConstructorOwnsAndReleasesAnExistingLockDirectory",
+            "test-output-file-lock")
+
+    map_indirect("src/config/TechnologyLoader.cpp",
+            ["FindYamlSpec", "BuildTechFromSpec", "LoadTechFromYaml"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestTechnologyLoaderLoadsExactUpdatedAndLegacyNodes",
+            "test-technology-variation-config")
+    map_indirect("src/config/TechnologyLoader.cpp",
+            ["LegacyBucketNode", "FindYamlBaseSpec", "LoadCell"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestTechnologyLoaderUsesLegacyBucketsAndLoadsCellRelativeToCellFile",
+            "test-technology-variation-config")
+    map_indirect("src/config/TechnologyLoader.cpp",
+            ["HighInterpolationNode", "InterpolationAlpha", "LoadTechFromYaml"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestTechnologyLoaderInterpolatesBetweenUpdatedNodes",
+            "test-technology-variation-config")
+    map_indirect("src/config/TechnologyLoader.cpp", ["LoadFefetTech"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestTechnologyLoaderRejectsUnavailableNodesAndRoadmaps",
+            "test-technology-variation-config")
+    map_indirect("src/config/VariationConfigBuilder.cpp", ["DefaultVariationSeed"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestVariationConfigBuilderDerivesCornerCountsAndSeeds",
+            "test-technology-variation-config")
+    map_indirect("src/config/VariationConfigBuilder.cpp", ["ValidateCornerVariation"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestVariationConfigBuilderRejectsInvalidValues",
+            "test-technology-variation-config")
+    map_indirect("src/config/VariationConfigBuilder.cpp", ["CornerDimensionCount"],
+            "tests/TechnologyAndVariationConfigTest.cpp",
+            "TestVariationConfigBuilderDerivesCornerCountsAndSeeds",
+            "test-technology-variation-config")
+
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["LoadCellFileForValidation", "ResolveReference", "LoadMemoryDeviceForValidation",
+             "LoadMemCellTypeForValidation", "ValidateMemCellSupport"],
+            "tests/ConfigValidatorsTest.cpp",
+            "TestInputRuleValidatorAcceptsV2ReferencePathsAndRejectsLegacyCells",
+            "test-config-validators")
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["InferCamTypeToken", "LoadCamTypeForValidation"],
+            "tests/ConfigValidatorsTest.cpp", "TestInputRuleValidatorInfersCamTypeFromCellName",
+            "test-config-validators")
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["IsCamModelMemCellTypeSupported", "ValidateCamModelSupport"],
+            "tests/ConfigValidatorsTest.cpp",
+            "TestInputRuleValidatorAcceptsAndRejectsEveryCamMemoryType",
+            "test-config-validators")
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["ValidateCamPortPresence", "LoadPortConnectionRegion", "ValidateCamColumnTopology"],
+            "tests/ConfigValidatorsTest.cpp",
+            "TestInputRuleValidatorValidatesCamPortPresenceAndConnections",
+            "test-config-validators")
+    map_indirect("src/config/InputRuleValidator.cpp", ["ValidateMcamResistanceStates"],
+            "tests/ConfigValidatorsTest.cpp", "TestInputRuleValidatorValidatesMcamMapsAndVoltages",
+            "test-config-validators")
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["IsSupportedCamSenseAmpType", "ValidateCustomSenseAmpFile",
+             "ValidateDefaultSenseAmpFile", "ValidatePeripheralSupport"],
+            "tests/ConfigValidatorsTest.cpp", "TestInputRuleValidatorValidatesPeripheralVariants",
+            "test-config-validators")
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["CheckedMultiply", "CheckedTotalProduct", "ValidateScalarDomains",
+             "ValidateDerivedInputs", "ValidateAndResolveExplicitSubarrayDimensions"],
+            "tests/ConfigValidatorsTest.cpp",
+            "TestInputRuleValidatorCoversRemainingSizingAndScalarRules",
+            "test-config-validators")
+
+    map_indirect("src/input/YamlNodeHelpers.cpp",
+            ["mapping"], "tests/YamlPrimitiveCoverageTest.cpp",
+            "TestEnumMappingsCaseBehaviorAndInitializerList", "test-yaml-primitives")
+    map_indirect("src/input/YamlUnitParsers.cpp",
+            ["trim", "unit_suffix_matches", "parse_quantity_string"],
+            "tests/YamlPrimitiveCoverageTest.cpp",
+            "TestQuantityPrivateParserBehaviorAndErrors", "test-yaml-primitives")
+    map_indirect("src/input/PhysicalDomainValidators.cpp", ["ValidateOptionalPositive"],
+            "tests/PhysicalDomainValidatorsTest.cpp",
+            "TestValidateMemCellChecksOptionalResistanceAndFlashFields",
+            "test-physical-domain-validators")
+    map_indirect("src/input/PhysicalDomainValidators.cpp", ["ValidateCurrentArray"],
+            "tests/PhysicalDomainValidatorsTest.cpp",
+            "TestValidateTechnologyChecksEveryCurrentTable",
+            "test-physical-domain-validators")
+
+    map_indirect("src/input/CellYamlLoader.cpp",
+            ["to_lower", "parse_voltage_fields", "ReadV2CellSection", "ReadAccessDeviceSection",
+             "ReadResistanceSection", "ReadCapacitanceSection", "ReadDeviceSection",
+             "ReadReadSection", "ReadWriteSection", "ReadSramSection", "ReadFlashSection",
+             "ReadVariationSection", "ReadMcamSection", "ReadPortsSection",
+             "ReadMemoryDeviceReference", "ReadMemCellFromYaml"],
+            "tests/CellAndMemoryLoaderBranchesTest.cpp",
+            "TestReadMemCellFromYamlV2ResolvesRelativeDeviceAndParsesEverySection",
+            "test-cell-memory-loader-branches")
+    map_indirect("src/input/CellYamlLoader.cpp",
+            ["trim", "parse_fraction_or_percent_node", "resolve_reference"],
+            "tests/CellAndMemoryLoaderBranchesTest.cpp",
+            "TestReadMemCellFromYamlV2ResolvesRelativeDeviceAndParsesEverySection",
+            "test-cell-memory-loader-branches")
+    map_indirect("src/input/CellYamlLoader.cpp",
+            ["has_key", "parse_port_connection", "parse_ports", "ValidateV2CellKeys",
+             "RejectV2DeviceSections", "RejectUnsupportedDramSection"],
+            "tests/CellAndMemoryLoaderBranchesTest.cpp",
+            "TestLoadersRejectSchemasKeysAndUnsupportedForms",
+            "test-cell-memory-loader-branches")
+    map_indirect("src/input/MemoryDeviceYamlLoader.cpp",
+            ["ReadResistanceSection", "ReadReadSection", "ReadWriteSection", "ReadMcamSection",
+             "validate_memory_device_keys"],
+            "tests/CellAndMemoryLoaderBranchesTest.cpp",
+            "TestReadMemoryDeviceFromYamlLegacyCellAndSections",
+            "test-cell-memory-loader-branches")
+
+    map_indirect("src/input/CustomSenseAmpYamlLoader.cpp",
+            ["AreaUnits", "FeatureLengthUnits", "ReadOptionalQuantity"],
+            "tests/SenseAmpLoaderBranchesTest.cpp",
+            "TestCustomNestedAndTopLevelLegacyShapesConvertUnits",
+            "test-sense-amp-loader-branches")
+    map_indirect("src/input/CustomSenseAmpYamlLoader.cpp", ["ValidateScalarSenseAmp"],
+            "tests/SenseAmpLoaderBranchesTest.cpp",
+            "TestCustomScalarRejectsSchemaShapeUnitsAndPhysicalDomains",
+            "test-sense-amp-loader-branches")
+    map_indirect("src/input/SenseAmpYamlLoader.cpp",
+            ["ReadOptionalFeatureWidth", "ReadOptionalFeatureArea", "ReadNodeTable"],
+            "tests/SenseAmpLoaderBranchesTest.cpp",
+            "TestDefaultModelReadsTablesUnitsAndFallbacks",
+            "test-sense-amp-loader-branches")
+    map_indirect("src/input/TechnologyYamlLoader.cpp",
+            ["CapacitancePerLengthUnits", "ComputeJunctionCap", "ComputeSidewallCap",
+             "ComputeDrainToChannelCap", "ComputeVdsat", "ReadUseUpdatedLib"],
+            "tests/TechnologyYamlLoaderBranchesTest.cpp",
+            "TestUpdatedAndLegacyModelsAndDerivedValues", "test-technology-yaml-branches")
+    map_indirect("src/input/TechnologyYamlLoader.cpp",
+            ["ReadRoadmapKey", "BuildSpec"],
+            "tests/TechnologyYamlLoaderBranchesTest.cpp",
+            "TestRoadmapsMultipleSpecsAndFinGeometry", "test-technology-yaml-branches")
+    map_indirect("src/input/TechnologyYamlLoader.cpp",
+            ["ReadTable", "ReadTemperatureGridSize", "ValidateCurrentTable"],
+            "tests/TechnologyYamlLoaderBranchesTest.cpp",
+            "TestGridTablesAndNumericDomains", "test-technology-yaml-branches")
+    known_test_cases = {
+        (reference.file, reference.case, reference.target)
+        for references_for_name in references.values()
+        for reference in references_for_name
+    }
+    for mappings in indirect_test_cases.values():
+        for mapping in mappings:
+            if mapping not in known_test_cases:
+                raise RuntimeError(
+                    "indirect inventory mapping references an unknown test case: "
+                    + "::".join(mapping)
+                )
 
     def relevant_reference(callable_: Callable, reference: TestReference) -> bool:
         if reference.file.endswith("RegressionTest.cpp"):
@@ -530,9 +728,18 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         matched = references.get(exact_key, []) if exact_key else []
         if len(owners_by_name[callable_.name]) == 1:
             matched = [*matched, *references.get(callable_.name, [])]
+        for file, case, target in indirect_test_cases.get(
+                (callable_.file, callable_.name), []):
+            matched.append(TestReference(
+                file=file,
+                case=case,
+                target=target,
+                arity=callable_.arity,
+            ))
         matched = [item for item in matched if item.arity == callable_.arity]
         matched = [item for item in matched if relevant_reference(callable_, item)]
-        if overload_counts[(callable_.owner, callable_.name, callable_.arity)] > 1:
+        if (overload_counts[(callable_.owner, callable_.name, callable_.arity)] > 1
+                and not indirect_test_cases.get((callable_.file, callable_.name))):
             matched = []
         matched = sorted(set(matched), key=lambda item: (item.file, item.case, item.target))
         if callable_.exemption:
@@ -546,7 +753,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             cases = "; ".join(f"{item.file}::{item.case}" for item in matched)
             targets = "; ".join(sorted({item.target for item in matched if item.target}))
             behavior = behavior_names(matched)
-            note = ""
+            note = "n/a"
         else:
             status = "missing"
             cases = ""

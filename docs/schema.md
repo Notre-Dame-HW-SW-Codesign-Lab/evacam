@@ -109,7 +109,8 @@ Important notes:
 - `memory_device` references a `*.memory_device.yaml` file.
 - `access_device` defines the cell-level selector model. Its `type` is
   `none`, `cmos`, or `diode`; it can also define `cmos_width`, `voltage_drop`,
-  and `leakage_current`.
+  and `leakage_current`. It must be an inline mapping; standalone
+  access-device files and path references are not supported.
 - `ports.row` and `ports.column` are maps keyed by integer index.
 - Each port defines `cmos_region`, `num_cmos`, `cmos_width`, and `is_nmos`
   directly. A `num_cmos` value of zero means no access device is present.

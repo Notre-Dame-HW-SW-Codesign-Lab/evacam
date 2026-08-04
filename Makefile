@@ -44,6 +44,18 @@ TEST_MAT_DECODER_BIN=$(TEST_BIN_DIR)/MatDecoderRegressionTest
 TEST_HTREE_ROUTING_BIN=$(TEST_BIN_DIR)/HtreeRoutingRegressionTest
 TEST_EXHAUSTIVE_SEARCH_BIN=$(TEST_BIN_DIR)/ExhaustiveSearchRegressionTest
 TEST_SUPPORT_BIN=$(TEST_BIN_DIR)/TestSupportTest
+TEST_DERIVED_VALUES_BIN=$(TEST_BIN_DIR)/DerivedValueHelpersTest
+TEST_CONFIG_NORMALIZER_BIN=$(TEST_BIN_DIR)/ConfigNormalizerTest
+TEST_CONFIG_SECTIONS_BIN=$(TEST_BIN_DIR)/ConfigSectionReadersTest
+TEST_OUTPUT_FILE_LOCK_BIN=$(TEST_BIN_DIR)/OutputFileLockTest
+TEST_EVACAM_CONFIG_BIN=$(TEST_BIN_DIR)/EvaCamConfigTest
+TEST_CONFIG_VALIDATORS_BIN=$(TEST_BIN_DIR)/ConfigValidatorsTest
+TEST_TECHNOLOGY_VARIATION_CONFIG_BIN=$(TEST_BIN_DIR)/TechnologyAndVariationConfigTest
+TEST_YAML_PRIMITIVE_COVERAGE_BIN=$(TEST_BIN_DIR)/YamlPrimitiveCoverageTest
+TEST_PHYSICAL_DOMAIN_VALIDATORS_BIN=$(TEST_BIN_DIR)/PhysicalDomainValidatorsTest
+TEST_CELL_MEMORY_LOADER_BRANCHES_BIN=$(TEST_BIN_DIR)/CellAndMemoryLoaderBranchesTest
+TEST_SENSE_AMP_LOADER_BRANCHES_BIN=$(TEST_BIN_DIR)/SenseAmpLoaderBranchesTest
+TEST_TECHNOLOGY_YAML_BRANCHES_BIN=$(TEST_BIN_DIR)/TechnologyYamlLoaderBranchesTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
 PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
@@ -94,7 +106,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
@@ -104,7 +116,12 @@ unit-test-inventory:
 check-unit-test-inventory:
 	python3 scripts/generate_unit_test_inventory.py --check
 
-test-unit: test-test-support test-yaml test-top-level-parser test-cell-loader test-cli-options \
+test-unit: test-test-support test-derived-values test-config-normalizer test-config-sections \
+		test-output-file-lock \
+		test-evacam-config test-config-validators test-technology-variation-config \
+		test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches \
+		test-sense-amp-loader-branches test-technology-yaml-branches \
+		test-yaml test-top-level-parser test-cell-loader test-cli-options \
 		test-custom-sa-loader test-technology-loader test-new-input-names \
 		test-input-validation test-output-path-builder test-exploration \
 		test-variation test-wire test-formula test-python-package-data
@@ -117,6 +134,66 @@ test-test-support: $(OBJECTS_NO_MAIN) tests/TestSupportTest.cpp tests/TestSuppor
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_SUPPORT_BIN)).d -MT $(TEST_SUPPORT_BIN) -o $(TEST_SUPPORT_BIN) tests/TestSupportTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	$(TEST_SUPPORT_BIN)
+
+test-derived-values: $(OBJECTS_NO_MAIN) tests/DerivedValueHelpersTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_DERIVED_VALUES_BIN)).d -MT $(TEST_DERIVED_VALUES_BIN) -o $(TEST_DERIVED_VALUES_BIN) tests/DerivedValueHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_DERIVED_VALUES_BIN)
+
+test-config-normalizer: $(OBJECTS_NO_MAIN) tests/ConfigNormalizerTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CONFIG_NORMALIZER_BIN)).d -MT $(TEST_CONFIG_NORMALIZER_BIN) -o $(TEST_CONFIG_NORMALIZER_BIN) tests/ConfigNormalizerTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CONFIG_NORMALIZER_BIN)
+
+test-config-sections: $(OBJECTS_NO_MAIN) tests/ConfigSectionReadersTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CONFIG_SECTIONS_BIN)).d -MT $(TEST_CONFIG_SECTIONS_BIN) -o $(TEST_CONFIG_SECTIONS_BIN) tests/ConfigSectionReadersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CONFIG_SECTIONS_BIN)
+
+test-output-file-lock: $(OBJECTS_NO_MAIN) tests/OutputFileLockTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_OUTPUT_FILE_LOCK_BIN)).d -MT $(TEST_OUTPUT_FILE_LOCK_BIN) -o $(TEST_OUTPUT_FILE_LOCK_BIN) tests/OutputFileLockTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_OUTPUT_FILE_LOCK_BIN)
+
+test-evacam-config: $(OBJECTS_NO_MAIN) tests/EvaCamConfigTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_EVACAM_CONFIG_BIN)).d -MT $(TEST_EVACAM_CONFIG_BIN) -o $(TEST_EVACAM_CONFIG_BIN) tests/EvaCamConfigTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_EVACAM_CONFIG_BIN)
+
+test-config-validators: $(OBJECTS_NO_MAIN) tests/ConfigValidatorsTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CONFIG_VALIDATORS_BIN)).d -MT $(TEST_CONFIG_VALIDATORS_BIN) -o $(TEST_CONFIG_VALIDATORS_BIN) tests/ConfigValidatorsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CONFIG_VALIDATORS_BIN)
+
+test-technology-variation-config: $(OBJECTS_NO_MAIN) tests/TechnologyAndVariationConfigTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_TECHNOLOGY_VARIATION_CONFIG_BIN)).d -MT $(TEST_TECHNOLOGY_VARIATION_CONFIG_BIN) -o $(TEST_TECHNOLOGY_VARIATION_CONFIG_BIN) tests/TechnologyAndVariationConfigTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_TECHNOLOGY_VARIATION_CONFIG_BIN)
+
+test-yaml-primitives: $(OBJECTS_NO_MAIN) tests/YamlPrimitiveCoverageTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_YAML_PRIMITIVE_COVERAGE_BIN)).d -MT $(TEST_YAML_PRIMITIVE_COVERAGE_BIN) -o $(TEST_YAML_PRIMITIVE_COVERAGE_BIN) tests/YamlPrimitiveCoverageTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_YAML_PRIMITIVE_COVERAGE_BIN)
+
+test-physical-domain-validators: $(OBJECTS_NO_MAIN) tests/PhysicalDomainValidatorsTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_PHYSICAL_DOMAIN_VALIDATORS_BIN)).d -MT $(TEST_PHYSICAL_DOMAIN_VALIDATORS_BIN) -o $(TEST_PHYSICAL_DOMAIN_VALIDATORS_BIN) tests/PhysicalDomainValidatorsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_PHYSICAL_DOMAIN_VALIDATORS_BIN)
+
+test-cell-memory-loader-branches: $(OBJECTS_NO_MAIN) tests/CellAndMemoryLoaderBranchesTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CELL_MEMORY_LOADER_BRANCHES_BIN)).d -MT $(TEST_CELL_MEMORY_LOADER_BRANCHES_BIN) -o $(TEST_CELL_MEMORY_LOADER_BRANCHES_BIN) tests/CellAndMemoryLoaderBranchesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CELL_MEMORY_LOADER_BRANCHES_BIN)
+
+test-sense-amp-loader-branches: $(OBJECTS_NO_MAIN) tests/SenseAmpLoaderBranchesTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_SENSE_AMP_LOADER_BRANCHES_BIN)).d -MT $(TEST_SENSE_AMP_LOADER_BRANCHES_BIN) -o $(TEST_SENSE_AMP_LOADER_BRANCHES_BIN) tests/SenseAmpLoaderBranchesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_SENSE_AMP_LOADER_BRANCHES_BIN)
+
+test-technology-yaml-branches: $(OBJECTS_NO_MAIN) tests/TechnologyYamlLoaderBranchesTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_TECHNOLOGY_YAML_BRANCHES_BIN)).d -MT $(TEST_TECHNOLOGY_YAML_BRANCHES_BIN) -o $(TEST_TECHNOLOGY_YAML_BRANCHES_BIN) tests/TechnologyYamlLoaderBranchesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_TECHNOLOGY_YAML_BRANCHES_BIN)
 
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)

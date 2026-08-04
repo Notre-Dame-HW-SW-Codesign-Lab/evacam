@@ -2,6 +2,9 @@
 #include "Result.h"
 #include "config/EvaCamYamlLoader.h"
 #include "config/TechnologyLoader.h"
+
+#include <array>
+#include <stdexcept>
 //#include <magic_enum.hpp>
 
 namespace {
@@ -30,6 +33,25 @@ void EvaCamConfig::SetDeepExploration(bool enabled) {
 }
 
 ResultLimits EvaCamConfig::BuildResultLimits(const std::vector<std::shared_ptr<Result>> &bestResults) const {
+    constexpr std::array<OptimizationTarget, 8> requiredTargets = {
+        read_latency_optimized,
+        write_latency_optimized,
+        read_energy_optimized,
+        write_energy_optimized,
+        read_edp_optimized,
+        write_edp_optimized,
+        leakage_optimized,
+        area_optimized,
+    };
+    for (OptimizationTarget target : requiredTargets) {
+        const std::size_t index = static_cast<std::size_t>(target);
+        if (index >= bestResults.size() || !bestResults[index]
+                || !bestResults[index]->bank) {
+            throw std::invalid_argument(
+                    "BuildResultLimits requires a populated result and bank for every constraint target.");
+        }
+    }
+
     ResultLimits limits{};
     limits.readLatency = bestResults[read_latency_optimized]->bank->readLatency * (constraints.readLatency + 1);
     limits.writeLatency = bestResults[write_latency_optimized]->bank->writeLatency * (constraints.writeLatency + 1);
@@ -48,6 +70,12 @@ ResultLimits EvaCamConfig::BuildResultLimits(const std::vector<std::shared_ptr<R
 
 void EvaCamConfig::ApplyResultLimits(const ResultLimits &limits,
         const std::vector<std::shared_ptr<Result>> &results) const {
+    for (const auto &result : results) {
+        if (!result || !result->bank) {
+            throw std::invalid_argument(
+                    "ApplyResultLimits requires every result to contain a bank.");
+        }
+    }
     for (const auto &result : results) {
         result->reset();
         result->limitReadLatency = limits.readLatency;

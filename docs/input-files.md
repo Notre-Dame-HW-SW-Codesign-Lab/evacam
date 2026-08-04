@@ -3,7 +3,8 @@
 EvaCAM expects one run config YAML file. It references one architecture
 config, one cell config, and one technology file. The architecture and cell
 files then reference reusable sensing and memory-device files. Access-device
-parameters are defined directly in each cell file.
+parameters are defined directly in each cell file. Standalone access-device
+files and access-device path references are not supported.
 
 ## File Roles
 

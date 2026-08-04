@@ -41,11 +41,7 @@ std::string ResolveReference(const std::string &ownerFile, const std::string &re
             .lexically_normal().string();
 }
 
-bool IsCellV2(const YAML::Node &root) {
-    return YamlHelpers::schema_matches(root, "cell");
-}
-
-YAML::Node LoadV2MemoryDeviceForValidation(const YAML::Node &cellRoot,
+YAML::Node LoadMemoryDeviceForValidation(const YAML::Node &cellRoot,
         const std::string &cellFile) {
     const YAML::Node reference = YamlHelpers::child_required(cellRoot, "memory_device");
     return YAML::LoadFile(ResolveReference(cellFile,
@@ -78,34 +74,16 @@ std::string InferCamTypeToken(const YAML::Node &cellNode, const std::string &cel
 
 MemCellType LoadMemCellTypeForValidation(const YAML::Node &root,
         const std::string &cellFile) {
-    if (IsCellV2(root)) {
-        const YAML::Node memoryDevice = LoadV2MemoryDeviceForValidation(root, cellFile);
-        return YamlHelpers::read_enum_required<MemCellType>(
-                memoryDevice, "type", false);
-    }
-    const YAML::Node cellNode = YamlHelpers::child_required(root, "cell");
-    return YamlHelpers::read_enum_required<MemCellType>(cellNode, "type", false);
+    const YAML::Node memoryDevice = LoadMemoryDeviceForValidation(root, cellFile);
+    return YamlHelpers::read_enum_required<MemCellType>(
+            memoryDevice, "type", false);
 }
 
 CAMType LoadCamTypeForValidation(const YAML::Node &root, const std::string &cellFile) {
-    if (IsCellV2(root)) {
-        if (YamlHelpers::child_optional(root, "cam_type")) {
-            return YamlHelpers::read_enum_required<CAMType>(root, "cam_type", false);
-        }
-        const std::string camType = InferCamTypeToken(root, cellFile);
-        if (camType == "MCAM") {
-            return MCAM;
-        }
-        if (camType == "ACAM") {
-            return ACAM;
-        }
-        return TCAM;
+    if (YamlHelpers::child_optional(root, "cam_type")) {
+        return YamlHelpers::read_enum_required<CAMType>(root, "cam_type", false);
     }
-    const YAML::Node cellNode = YamlHelpers::child_required(root, "cell");
-    if (YamlHelpers::child_optional(cellNode, "cam_type")) {
-        return YamlHelpers::read_enum_required<CAMType>(cellNode, "cam_type", false);
-    }
-    const std::string camType = InferCamTypeToken(cellNode, cellFile);
+    const std::string camType = InferCamTypeToken(root, cellFile);
     if (camType == "MCAM") {
         return MCAM;
     }
@@ -211,9 +189,8 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
         return;
     }
 
-    const YAML::Node ownerRoot = IsCellV2(root)
-            ? LoadV2MemoryDeviceForValidation(root, config.input.fileMemCell)
-            : root;
+    const YAML::Node ownerRoot = LoadMemoryDeviceForValidation(
+            root, config.input.fileMemCell);
     const YAML::Node mcam = YamlHelpers::child_required(ownerRoot, "mcam");
     int numStates = YamlHelpers::read_optional<int>(mcam, "num_resistance_state", 0);
     const YAML::Node states = YamlHelpers::child_required(mcam, "resistance_state");
@@ -622,13 +599,13 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
 
 void ValidateMemCellSupport(const EvaCamConfig &config) {
     const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
-    if (IsCellV2(root)) {
-        const YAML::Node memoryDevice = LoadV2MemoryDeviceForValidation(
-                root, config.input.fileMemCell);
-        if (YamlHelpers::child_optional(memoryDevice, "dram")) {
-            throw std::runtime_error(
-                    "[Input] Error: dram is not supported and must not be specified.");
-        }
+    YamlHelpers::require_schema(root, "cell", "cell config");
+    const YAML::Node memoryDevice = LoadMemoryDeviceForValidation(
+            root, config.input.fileMemCell);
+    YamlHelpers::require_schema(memoryDevice, "memory_device", "memory device config");
+    if (YamlHelpers::child_optional(memoryDevice, "dram")) {
+        throw std::runtime_error(
+                "[Input] Error: dram is not supported and must not be specified.");
     }
     const MemCellType memCellType = LoadMemCellTypeForValidation(root, config.input.fileMemCell);
     ValidateCamPortPresence(root);
