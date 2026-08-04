@@ -1,6 +1,7 @@
 #include "EvaCamContextBuilder.h"
 
 #include <filesystem>
+#include <fstream>
 
 #include "EvaCamConfig.h"
 #include "config/OutputPathBuilder.h"
@@ -10,6 +11,13 @@ namespace {
 void ValidateInputFile(const std::string &inputFileName) {
     if (!std::filesystem::exists(inputFileName)) {
         throw std::runtime_error("Config file: " + inputFileName + " does not exist.");
+    }
+    if (!std::filesystem::is_regular_file(inputFileName)) {
+        throw std::runtime_error("Config file: " + inputFileName + " is not a regular file.");
+    }
+    std::ifstream input(inputFileName);
+    if (!input) {
+        throw std::runtime_error("Config file: " + inputFileName + " is not readable.");
     }
 }
 

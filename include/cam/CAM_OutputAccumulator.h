@@ -10,7 +10,7 @@ class CAM_OutputAccumulator: public FunctionUnit {
         CAM_OutputAccumulator();
         CAM_OutputAccumulator(const CAM_OutputAccumulator&) = delete;
         CAM_OutputAccumulator& operator=(const CAM_OutputAccumulator&) = delete;
-        virtual ~CAM_OutputAccumulator() {}
+        virtual ~CAM_OutputAccumulator() = default;
 
         /* Functions */
         void PrintProperty();

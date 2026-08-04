@@ -511,6 +511,57 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "Precharger": {"ChargingAndSensingComponents"},
         "RowDecoder": {"ChargingAndSensingComponents"},
         "SenseAmp": {"ChargingAndSensingComponents"},
+        "CAM_BasicEncoder": {"CamEncoderComponents"},
+        "CAM_Encoder": {"CamEncoderComponents"},
+        "CAM_PriorityEncoder": {"CamEncoderComponents"},
+        "CAM_InputEncoder": {"CamInputPeripheralComponents"},
+        "CAM_DataBuffer": {"CamInputPeripheralComponents"},
+        "CAM_LevelShifter": {"CamInputPeripheralComponents"},
+        "CAM_BasicMMR": {"CamMmrSenseComponents"},
+        "CAM_MMR": {"CamMmrSenseComponents"},
+        "CAM_OutputAccumulator": {"CamMmrSenseComponents"},
+        "CAM_SenseAmp": {"CamMmrSenseComponents"},
+        "CAM_Line": {"CamLine"},
+        "CAM_SubArray": {"CamSubArrayTopology", "CamSubArrayMatch", "CamSubArrayVariation"},
+        "Mat": {"MatAndBank"},
+        "Bank": {"MatAndBank"},
+        "BankWithoutHtree": {"MatAndBank", "BankWithoutHtreeAndFactory"},
+        "BankWithHtree": {"BankWithHtreeCoverage"},
+        "BankFactory": {"BankWithoutHtreeAndFactory"},
+        "Result": {"ResultModel"},
+        "UnitFormatter": {"UnitFormatter"},
+        "ResultsYaml": {"ResultsSerialization"},
+        "VariationSamplesCsv": {"ResultsSerialization"},
+        "EvaCamResultExtractor": {"OutputServices"},
+        "EvaCamConfigPrinter": {"OutputServices"},
+        "EvaCamOutput": {"OutputServices"},
+        "EvaCamOutputDetail": {"OutputServices"},
+        "Logger": {"AppServices"},
+        "EvaCamContextBuilder": {"AppServices"},
+        "EvaCamExplorer": {"EvaCamExplorer"},
+        "EvaCAM_Match": {"EvaCAMMatchFocused"},
+        "EvaCamRun": {"RunEvaCamBoundary"},
+        "main": {"RunEvaCamBoundary"},
+        "VariationSampler": {"VariationSampler"},
+        "EvaCamYamlLoader": {"TopLevelConfigParser"},
+        "__init__": {"test_python_package_data"},
+        "generate_unit_test_inventory": {"test_unit_test_inventory_generator"},
+        "migrate_configs_to_v2": {"test_config_migration_scripts"},
+        "sync_python_package_config_lib": {"test_config_sync_script"},
+        "generate_variation_mc_sweep": {
+            "test_generation_scripts", "test_sweep_analysis_scripts"
+        },
+        "run_corner_sweep": {"test_sweep_analysis_scripts"},
+        "analyze_corner_sweep": {"test_sweep_analysis_scripts"},
+        "generate_corner_variation_table": {
+            "test_generation_scripts", "test_sweep_analysis_scripts"
+        },
+        "plot_corner_variation": {"test_plotting_scripts"},
+        "plot_variation_histograms": {"test_plotting_scripts"},
+        "plot_variation_qq": {"test_plotting_scripts"},
+        "poster_figures": {"test_plotting_scripts"},
+        "test_variation_normality": {"test_plotting_scripts"},
+        "EvaCAM_Pybind": {"test_pybind_match", "test_pybind_run"},
         "TechnologyLoader": {"TechnologyYamlLoader", "TechnologyAndVariationConfig"},
         "VariationConfigBuilder": {"YamlHelpers", "TechnologyAndVariationConfig"},
         "CellYamlLoader": {"CellYamlLoader", "CellAndMemoryLoaderBranches"},
@@ -863,6 +914,344 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             ["ReadTable", "ReadTemperatureGridSize", "ValidateCurrentTable"],
             "tests/TechnologyYamlLoaderBranchesTest.cpp",
             "TestGridTablesAndNumericDomains", "test-technology-yaml-branches")
+
+    for file, names, test_file, test_case, target in [
+        ("src/cam/CAM_BasicEncoder.cpp", ["CAM_BasicEncoder"],
+         "tests/CamEncoderComponentsTest.cpp", "TestEncodersRequireInitialization",
+         "test-cam-encoder-components"),
+        ("src/cam/CAM_Encoder.cpp", ["CAM_Encoder"],
+         "tests/CamEncoderComponentsTest.cpp", "TestEncodersRequireInitialization",
+         "test-cam-encoder-components"),
+        ("src/cam/CAM_PriorityEncoder.cpp", ["CAM_PriorityEncoder"],
+         "tests/CamEncoderComponentsTest.cpp", "TestEncodersRequireInitialization",
+         "test-cam-encoder-components"),
+        ("src/cam/CAM_InputEncoder.cpp", ["CAM_InputEncoder"],
+         "tests/CamInputPeripheralComponentsTest.cpp",
+         "TestUninitializedComponentsRejectCalculations",
+         "test-cam-input-peripheral-components"),
+        ("src/cam/CAM_DataBuffer.cpp", ["CAM_DataBuffer"],
+         "tests/CamInputPeripheralComponentsTest.cpp",
+         "TestUninitializedComponentsRejectCalculations",
+         "test-cam-input-peripheral-components"),
+        ("src/cam/CAM_LevelShifter.cpp", ["CAM_LevelShifter"],
+         "tests/CamInputPeripheralComponentsTest.cpp",
+         "TestUninitializedComponentsRejectCalculations",
+         "test-cam-input-peripheral-components"),
+        ("src/cam/CAM_BasicMMR.cpp", ["CAM_BasicMMR"],
+         "tests/CamMmrSenseComponentsTest.cpp",
+         "TestUninitializedCamComponentsRejectCalculations",
+         "test-cam-mmr-sense-components"),
+        ("src/cam/CAM_MMR.cpp", ["CAM_MMR"],
+         "tests/CamMmrSenseComponentsTest.cpp",
+         "TestUninitializedCamComponentsRejectCalculations",
+         "test-cam-mmr-sense-components"),
+        ("src/cam/CAM_OutputAccumulator.cpp", ["CAM_OutputAccumulator"],
+         "tests/CamMmrSenseComponentsTest.cpp",
+         "TestUninitializedCamComponentsRejectCalculations",
+         "test-cam-mmr-sense-components"),
+        ("src/cam/CAM_SenseAmp.cpp", ["CAM_SenseAmp"],
+         "tests/CamMmrSenseComponentsTest.cpp",
+         "TestUninitializedCamComponentsRejectCalculations",
+         "test-cam-mmr-sense-components"),
+        ("include/cam/CAM_Line.h", ["CAM_Line"], "tests/CamLineTest.cpp",
+         "TestConstructorAndCopySemantics", "test-cam-line"),
+        ("include/cam/CAM_SubArray.h", ["CAM_SubArray"],
+         "tests/CamSubArrayTopologyTest.cpp",
+         "TestPreInitializationAndCalculationOrderGuards", "test-cam-subarray-topology"),
+        ("include/model/Mat.h", ["Mat"], "tests/MatAndBankTest.cpp",
+         "TestMatGuardsAndInvalidConfigurations", "test-mat-bank"),
+        ("include/model/Bank.h", ["Bank"], "tests/MatAndBankTest.cpp",
+         "TestMatVariantsAndBankBaseBehavior", "test-mat-bank"),
+        ("include/model/BankWithoutHtree.h", ["BankWithoutHtree"],
+         "tests/BankWithoutHtreeAndFactoryTest.cpp", "TestPreInitializationGuards",
+         "test-bank-without-htree-factory"),
+        ("include/model/Result.h", ["Result"], "tests/ResultModelTest.cpp",
+         "TestConstructorInitializeAndReset", "test-result-model"),
+    ]:
+        map_indirect(file, names, test_file, test_case, target)
+
+    map_indirect("src/cam/CAM_SubArray.cpp",
+            ["UsesSramStyleCamModel", "UsesResistiveCamModel", "MatchlineMosType",
+             "MatchlineOffCurrent", "UsesMemoryResistanceInMatchPath",
+             "BuildDrainSourceMatchlineParams", "BuildDiodeMatchlineParams",
+             "BuildFloatingMatchlineParams", "CamDecoderNandInputCount", "Initialize"],
+            "tests/CamSubArrayTopologyTest.cpp", "TestResistiveTcamAggregateCalculations",
+            "test-cam-subarray-topology")
+    map_indirect("src/cam/CAM_SubArray.cpp",
+            ["CornerName", "NextCorner", "BuildCornerSelection", "ApplyCornerVariation"],
+            "tests/CamSubArrayVariationTest.cpp",
+            "TestMonteCarloCellAndCornerResistanceSamples", "test-cam-subarray-variation")
+    map_indirect("src/cam/CAM_SubArray.cpp",
+            ["MixVariationSeed", "BuildResistanceSample",
+             "BuildCellMonteCarloResistanceSample", "BuildCornerResistanceSample"],
+            "tests/CamSubArrayVariationTest.cpp",
+            "TestResistanceSamplingIsDeterministicAndStreamSeparated",
+            "test-cam-subarray-variation")
+    map_indirect("src/cam/CAM_SubArray.cpp",
+            ["BuildMetricStats", "BuildSinglePointMetric"],
+            "tests/CamSubArrayVariationTest.cpp",
+            "TestTimingSummaryHandlesDisabledSinglePointAndMonteCarlo",
+            "test-cam-subarray-variation")
+    map_indirect("src/cam/CAM_SubArray.cpp",
+            ["McamStateTau", "McamStateDelays", "CalculateSearchPathLatenciesAfterMatchline",
+             "MatchlineAllMatchTau"],
+            "tests/CamSubArrayMatchTest.cpp", "TestMcamAndSearchlineHelpers",
+            "test-cam-subarray-match")
+
+    map_indirect("src/model/Bank.cpp",
+            ["SumRowDrivers", "SumColumnMuxes", "PrintSubarrayAreaBreakdown",
+             "PrintSearchLatencyBreakdown", "PrintSearchEnergyBreakdown",
+             "PrintWriteEnergyBreakdown", "PrintLeakageBreakdown"],
+            "tests/MatAndBankTest.cpp", "TestMatVariantsAndBankBaseBehavior",
+            "test-mat-bank")
+    map_indirect("src/model/Mat.cpp",
+            ["Log2Rounded", "MarkInvalid"], "tests/MatAndBankTest.cpp",
+            "TestMatGuardsAndInvalidConfigurations", "test-mat-bank")
+    map_indirect("src/model/Mat.cpp",
+            ["SplitPredecoderAddressBits", "InitializePredecoderPair",
+             "ForEachPredecoderBlock", "SumPredecoderMetric", "MaxPairReadLatency",
+             "Initialize"],
+            "tests/MatAndBankTest.cpp", "TestMatTopologyAndMetrics", "test-mat-bank")
+
+    map_indirect("src/model/BankWithHtree.cpp", ["BankWithHtree"],
+            "tests/BankWithHtreeCoverageTest.cpp", "TestConstructorAndPreInitializationGuards",
+            "test-bank-with-htree-coverage")
+    map_indirect("src/model/BankWithHtree.cpp",
+            ["MarkInvalid", "MarkInvalidInitialized", "HasRoutableBits"],
+            "tests/BankWithHtreeCoverageTest.cpp",
+            "TestInvalidConfigurationsAndReinitialization", "test-bank-with-htree-coverage")
+    map_indirect("src/model/BankWithHtree.cpp",
+            ["TotalHorizontalBits", "TotalVerticalBits", "GetWireAreaModel",
+             "AccumulateHtreeLevelLatencyAndPower"],
+            "tests/BankWithHtreeCoverageTest.cpp",
+            "TestActiveCountClampingAndWireAreaModels", "test-bank-with-htree-coverage")
+    map_indirect("src/model/BankWithHtree.cpp",
+            ["CreateInitialRoutingState", "InitializeFirstHorizontalLevel",
+             "ReduceExtraHorizontalLevels", "ReduceExtraVerticalLevels",
+             "ReducePairedHorizontalAndVerticalLevels", "FinalizeMatRoutingBits"],
+            "tests/BankWithHtreeCoverageTest.cpp",
+            "TestExtraHorizontalAndVerticalRoutingLevels", "test-bank-with-htree-coverage")
+
+    map_indirect("src/model/ResultConsole.cpp", ["print"],
+            "tests/ResultModelTest.cpp", "TestConsolePrintForCalculatedResult",
+            "test-result-model")
+
+    map_indirect("include/output/UnitFormatter.h", ["operator<<"],
+            "tests/UnitFormatterTest.cpp", "TestFormattedUnitStreamInsertion",
+            "test-unit-formatter")
+
+    map_indirect("include/app/Logger.h",
+            ["Logger", "Line", "~Line", "operator<<"],
+            "tests/AppServicesTest.cpp", "TestLoggerOutputAndManipulators",
+            "test-app-services")
+    map_indirect("include/app/Logger.h", ["Line", "~Line"],
+            "tests/AppServicesTest.cpp", "TestLoggerMoveFlushesOnce",
+            "test-app-services")
+    map_indirect("include/app/Logger.h", ["OutputMutex"],
+            "tests/AppServicesTest.cpp", "TestLoggerConcurrentWritesAreCompleteLines",
+            "test-app-services")
+
+    map_indirect("src/app/EvaCamContextBuilder.cpp", ["ValidateInputFile"],
+            "tests/AppServicesTest.cpp", "TestContextBuilderRejectsMissingAndUnreadableInputs",
+            "test-app-services")
+
+    map_indirect("src/config/EvaCamConfigPrinter.cpp",
+            ["ToString", "PrintConstraintIfSet"],
+            "tests/OutputServicesTest.cpp", "TestConfigPrinterAndConsoleSummary",
+            "test-output-services")
+
+    map_indirect("src/app/EvaCamResultExtractor.cpp",
+            ["OptimizationTargetName", "SafeCellArea", "SafeRatio", "HasUnit",
+             "AddCoreSummary", "AddGeometry", "AddBreakdown", "ExtractDesignResult"],
+            "tests/OutputServicesTest.cpp", "TestExtractorCompletePartialAndNoSolutions",
+            "test-output-services")
+    map_indirect("src/app/EvaCamResultExtractor.cpp",
+            ["ExtractMetricStats", "ExtractVariation"],
+            "tests/OutputServicesTest.cpp", "TestExtractorVariation",
+            "test-output-services")
+
+    map_indirect("src/app/EvaCamOutput.cpp", ["OptimizationTargetName"],
+            "tests/OutputServicesTest.cpp", "TestYamlAndVariationSampleWrites",
+            "test-output-services")
+    map_indirect("src/app/EvaCamOutput.cpp",
+            ["HasVariationSamples", "WriteVariationSamplesFile"],
+            "tests/OutputServicesTest.cpp", "TestYamlAndVariationSampleWrites",
+            "test-output-services")
+    map_indirect("src/app/EvaCamOutput.cpp",
+            ["PrintVariationMetric", "PrintVariationSampleMetric"],
+            "tests/OutputServicesTest.cpp", "TestConfigPrinterAndConsoleSummary",
+            "test-output-services")
+
+    map_indirect("src/output/ResultsYaml.cpp",
+            ["YamlWriter", "begin_map", "end_map", "line", "indent", "fmt_second",
+             "fmt_bps", "fmt_joule", "fmt_watt", "fmt_voltage", "fmt_meter", "fmt_sqm",
+             "fmt_percent", "safe_cell_area", "safe_percent", "write_assumptions",
+             "write_breakdown", "write_summary", "write_results_body"],
+            "tests/ResultsSerializationTest.cpp",
+            "TestSingleResultStructureAssumptionsAndBreakdowns",
+            "test-results-serialization")
+    map_indirect("src/output/ResultsYaml.cpp",
+            ["write_metric_stats", "write_metric_sample"],
+            "tests/ResultsSerializationTest.cpp",
+            "TestVariationSummarySinglePointAndMonteCarlo",
+            "test-results-serialization")
+    map_indirect("src/output/ResultsYaml.cpp", ["optimization_target_name", "roadmap_name", "bool_name"],
+            "tests/ResultsSerializationTest.cpp",
+            "TestMultiResultTargetNamesAndRoadmapsAndNoSolutions",
+            "test-results-serialization")
+    map_indirect("src/output/VariationSamplesCsv.cpp", ["CsvString"],
+            "tests/ResultsSerializationTest.cpp",
+            "TestVariationSamplesCsvHeaderQuotingAndSamples",
+            "test-results-serialization")
+
+    map_indirect("src/app/EvaCamExplorer.cpp",
+            ["InitializeExploration", "InitializeBestResults", "InitializeWireCandidates",
+             "CreateBestResultsBuffer"],
+            "tests/EvaCamExplorerTest.cpp", "TestInitializationAndDeterministicThreading",
+            "test-evacam-explorer")
+    map_indirect("src/app/EvaCamExplorer.cpp",
+            ["OpenExplorationCsv", "FlushExplorationCsvBuffer", "MaybeWriteExplorationCsv"],
+            "tests/EvaCamExplorerTest.cpp", "TestWireCandidateFilteringAndCsvBuffering",
+            "test-evacam-explorer")
+    map_indirect("src/app/EvaCamExplorer.cpp",
+            ["RunExplorationPass", "EvaluateGeometry", "RunConstrainedExploration",
+             "BuildBank", "MakeResult", "IsValidCandidate", "MeetsConstraints",
+             "ValidateCapacityOrThrow", "UpdateBestResults", "MergeBestResults"],
+            "tests/EvaCamExplorerTest.cpp", "TestUnconstrainedAndConstrainedPasses",
+            "test-evacam-explorer")
+    map_indirect("src/app/EvaCamExplorer.cpp", ["PrintSolutionCount"],
+            "tests/EvaCamExplorerTest.cpp", "TestConstrainedPassCanReturnZeroSolutions",
+            "test-evacam-explorer")
+
+    map_indirect("src/app/EvaCAM_Match.cpp", ["EvaCAM_Match", "InitializeConfiguredBank",
+            "BuildMismatchLut", "EnsureInitialized", "CreateLocalWire", "CreateGlobalWire"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestConstructorWordWidthAndExactPublicOverloads",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp",
+            ["evaluate_vector", "EvaluateExactVector", "EvaluateExactTcamVector",
+             "LookupMismatchResult", "CountTcamMismatches"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestConstructorWordWidthAndExactPublicOverloads",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp",
+            ["evaluate_array", "EvaluateBestVector", "EvaluateBestTcamArray",
+             "MaxDetectableMismatches", "ValidateTcamMismatchCounts",
+             "ValidateBestMatchSenseMargin"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestBestArrayOverloadsAndValidationRules",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp",
+            ["EvaluateThresholdVector", "ValidateMaxMismatches", "ValidateThresholdSenseMargin"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestThresholdOverloadsAndValidationRules",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp",
+            ["ValidateTcamMismatchCount", "ValidateMismatchCount", "ValidateBinaryVector",
+             "ValidateVectorLength", "ValidateTcamStoredVector"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestExactTcamValidationRules",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp", ["evaluate_vector", "evaluate_array",
+            "EvaluateBestVector", "EvaluateThresholdVector", "ValidateAnalogVector",
+            "ValidateAcamRangeVector"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestNonTcamAndAnalogPublicOverloadGaps",
+            "test-evacam-match-focused")
+
+    map_indirect("src/app/EvaCamRun.cpp",
+            ["ScopedStdoutRedirect", "~ScopedStdoutRedirect", "BuildCliOptions", "RunEvaCam"],
+            "tests/RunEvaCamBoundaryTest.cpp",
+            "TestRunEvaCamQuietSuccessWritesOverrideAndRestoresStdout",
+            "test-run-evacam-boundary")
+    map_indirect("src/app/EvaCamRun.cpp", ["ScopedStdoutRedirect", "~ScopedStdoutRedirect", "RunEvaCam"],
+            "tests/RunEvaCamBoundaryTest.cpp", "TestRunEvaCamErrorRestoresStdout",
+            "test-run-evacam-boundary")
+    map_indirect("src/app/main.cpp", ["ScopedStdoutRedirect", "~ScopedStdoutRedirect", "main"],
+            "tests/RunEvaCamBoundaryTest.cpp", "TestExecutableHelpDiagnosticsQuietAndOutputPath",
+            "test-run-evacam-boundary")
+
+    # Phase 8 closes the remaining inventory links that are necessarily
+    # indirect: these helpers are deliberately exercised through their public
+    # parser, script, or binding boundary rather than exposed for testing.
+    map_indirect("bindings/EvaCAM_Pybind.cpp", ["PYBIND11_MODULE"],
+            "tests/test_pybind_run.py", "test_pybind_run_module", "test-pybind-run")
+    map_indirect("include/config/EvaCamConfig.h", ["EvaCamConfig", "~EvaCamConfig"],
+            "tests/EvaCamConfigTest.cpp", "TestConstructionDefaults", "test-evacam-config")
+    map_indirect("include/input/YamlNodeHelpers.h",
+            ["checked_integer", "read_required", "read_scalar_required", "read_required_index", "read_optional", "read_enum_required"],
+            "tests/YamlPrimitiveCoverageTest.cpp", "TestReadTemplatesAndValidationTemplates", "test-yaml-primitives")
+    map_indirect("include/input/YamlNodeHelpers.h", ["read_enum_required"],
+            "tests/YamlPrimitiveCoverageTest.cpp", "TestEnumMappingsCaseBehaviorAndInitializerList", "test-yaml-primitives")
+    map_indirect("src/config/EvaCamYamlLoader.cpp",
+            ["HasKey", "RejectKeys", "ValidateRunConfigKeys", "ValidateArchitectureConfigKeys"],
+            "tests/TopLevelConfigParserTest.cpp", "TestUnknownConfigKeysThrow", "test-top-level-parser")
+    map_indirect("src/config/EvaCamYamlLoader.cpp",
+            ["ResolveReference", "CopyIfPresent", "CopyMappedIfPresent", "ResolveSensingNode", "ReadMergedConfig", "BuildMergedRootV2"],
+            "tests/TopLevelConfigParserTest.cpp", "TestSplitConfigParsesAndMapsMovedFields", "test-top-level-parser")
+    map_indirect("src/config/EvaCamYamlLoader.cpp", ["ResolveSensingNode"],
+            "tests/TopLevelConfigParserTest.cpp", "TestSensingFileActivatesSenseAmpModel", "test-top-level-parser")
+    map_indirect("src/config/ExplorationSpaceResolver.cpp", ["ValidateNotEmpty"],
+            "tests/ExplorationDomainTest.cpp", "TestDependentDomains", "test-exploration")
+    map_indirect("src/config/ExplorationSpec.cpp", ["BuildPow2ClampedValues"],
+            "tests/ExplorationDomainTest.cpp", "TestDependentDomains", "test-exploration")
+    map_indirect("src/config/IntValueDomain.cpp", ["NormalizeFixedValues", "IntValueDomain"],
+            "tests/ExplorationDomainTest.cpp", "TestIntValueDomain", "test-exploration")
+    map_indirect("src/model/VariationSampler.cpp", ["VariationSampler"],
+            "tests/VariationSamplerTest.cpp", "test_same_seed_same_sequence", "test-variation")
+
+    map_indirect("scripts/generate_unit_test_inventory.py",
+            ["visit_ClassDef", "visit_FunctionDef", "visit_AsyncFunctionDef", "_add_function"],
+            "tests/test_unit_test_inventory_generator.py", "test_python_signature_visitor_and_discovery", "test-inventory-generator")
+    map_indirect("scripts/generate_unit_test_inventory.py",
+            ["map_indirect", "relevant_reference", "behavior_names"],
+            "tests/test_unit_test_inventory_generator.py", "test_deduplicate_and_render_classify_coverage_exemptions_and_missing", "test-inventory-generator")
+    map_indirect("scripts/generate_unit_test_inventory.py", ["parse_args", "main"],
+            "tests/test_unit_test_inventory_generator.py", "test_parse_args_and_main_write_and_check_without_repository_mutation", "test-inventory-generator")
+
+    map_indirect("scripts/migrate_configs_to_v2.py",
+            ["load_yaml", "relpath", "relative_reference", "normalize_type", "make_memory_device", "iter_legacy_files", "referenced_legacy_cell_files"],
+            "tests/test_config_migration_scripts.py", "test_conversion_resolves_references_and_is_idempotent", "test-config-migration-scripts")
+    map_indirect("scripts/migrate_configs_to_v2.py", ["main"],
+            "tests/test_config_migration_scripts.py", "test_main_converts_discovered_files_and_writes_report", "test-config-migration-scripts")
+    map_indirect("scripts/sync_python_package_config_lib.py", ["main"],
+            "tests/test_config_sync_script.py", "test_main_checks_and_synchronizes", "test-config-sync-script")
+    map_indirect("scripts/generate_variation_mc_sweep.py", ["main"],
+            "tests/test_generation_scripts.py", "test_mc_main_generates_consistent_local_references_on_repeat", "test-generation-scripts")
+
+    map_indirect("scripts/run_corner_sweep.py", ["parse_args", "main"],
+            "tests/test_sweep_analysis_scripts.py", "test_main_generates_configs_or_runs_sweep", "test-sweep-analysis-scripts")
+    map_indirect("scripts/run_corner_sweep.py", ["main"],
+            "tests/test_sweep_analysis_scripts.py", "test_main_generates_configs_or_runs_sweep", "test-sweep-analysis-scripts")
+    map_indirect("scripts/run_corner_sweep.py",
+            ["run_id", "run_dir", "expected_corners", "cell_path", "memory_device_path", "tool_path", "result_path", "samples_path", "log_path", "relative_to_root", "replace_variation_block", "replace_reference", "manifest_row", "generate_configs", "generate_artifacts", "write_summary", "run_sweep"],
+            "tests/test_sweep_analysis_scripts.py", "test_config_generation_artifacts_and_summary_helpers", "test-sweep-analysis-scripts")
+    map_indirect("scripts/run_corner_sweep.py",
+            ["manifest_row", "write_summary", "run_sweep"],
+            "tests/test_sweep_analysis_scripts.py", "test_completion_resume_summary_and_atomic_csv", "test-sweep-analysis-scripts")
+    map_indirect("scripts/run_corner_sweep.py", ["generate_artifacts", "run_sweep"],
+            "tests/test_sweep_analysis_scripts.py", "test_run_one_propagates_tool_and_artifact_subprocess_failures", "test-sweep-analysis-scripts")
+    map_indirect("scripts/analyze_corner_sweep.py",
+            ["parse_args", "read_csv", "write_csv", "build_main_effects", "build_sensitivity", "format_number", "write_report", "main"],
+            "tests/test_sweep_analysis_scripts.py", "test_analysis_main_generates_csv_rankings_and_report_without_plots", "test-sweep-analysis-scripts")
+    map_indirect("scripts/analyze_corner_sweep.py", ["build_main_effects", "build_sensitivity", "format_number"],
+            "tests/test_sweep_analysis_scripts.py", "test_percent_helpers_derived_metrics_ranking_and_validation", "test-sweep-analysis-scripts")
+    map_indirect("scripts/analyze_corner_sweep.py", ["setup_matplotlib", "plot_main_effects", "plot_distributions"],
+            "tests/test_sweep_analysis_scripts.py", "test_analysis_plot_helpers_render_headlessly", "test-sweep-analysis-scripts")
+    map_indirect("scripts/generate_corner_variation_table.py",
+            ["sample_key", "read_rows", "available_metrics", "metric_value", "sorted_metric_rows", "metric_ranks", "format_value", "format_changed", "column_name", "markdown_table", "default_output_path", "main"],
+            "tests/test_sweep_analysis_scripts.py", "test_table_reads_metrics_ranks_escapes_and_writes_markdown", "test-sweep-analysis-scripts")
+
+    map_indirect("scripts/plot_corner_variation.py", ["read_rows", "available_metrics", "main"],
+            "tests/test_plotting_scripts.py", "test_corner_and_poster_entry_points_render_from_real_csvs", "test-plotting-scripts")
+    map_indirect("scripts/plot_variation_histograms.py", ["read_samples", "column_values", "available_metrics", "default_output_path", "main"],
+            "tests/test_plotting_scripts.py", "test_histogram_main_validates_bins_and_uses_default_output", "test-plotting-scripts")
+    map_indirect("scripts/plot_variation_histograms.py", ["column_values", "available_metrics", "default_output_path"],
+            "tests/test_plotting_scripts.py", "test_readers_columns_metric_discovery_statistics_and_default_paths", "test-plotting-scripts")
+    map_indirect("scripts/plot_variation_qq.py", ["read_samples", "column_values", "default_output_path", "main"],
+            "tests/test_plotting_scripts.py", "test_qq_main_uses_default_output_path", "test-plotting-scripts")
+    map_indirect("scripts/plot_variation_qq.py", ["column_values", "default_output_path"],
+            "tests/test_plotting_scripts.py", "test_readers_columns_metric_discovery_statistics_and_default_paths", "test-plotting-scripts")
+    map_indirect("scripts/poster_figures.py", ["read_rows", "style_matplotlib", "clean_axis", "save_figure", "main"],
+            "tests/test_plotting_scripts.py", "test_corner_and_poster_entry_points_render_from_real_csvs", "test-plotting-scripts")
+    map_indirect("scripts/test_variation_normality.py", ["read_samples", "available_metrics", "main"],
+            "tests/test_plotting_scripts.py", "test_empty_malformed_short_and_main_decisions", "test-plotting-scripts")
+    map_indirect("scripts/test_variation_normality.py", ["available_metrics"],
+            "tests/test_plotting_scripts.py", "test_readers_metric_discovery_and_statistical_decision_boundaries", "test-plotting-scripts")
     known_test_cases = {
         (reference.file, reference.case, reference.target)
         for references_for_name in references.values()
@@ -900,7 +1289,8 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
     for callable_ in callables:
         exact_key = f"{callable_.owner}::{callable_.name}" if callable_.owner else ""
         matched = references.get(exact_key, []) if exact_key else []
-        if len(owners_by_name[callable_.name]) == 1:
+        if (len(owners_by_name[callable_.name]) == 1
+                or Path(callable_.file).stem in focused_test_stems):
             matched = [*matched, *references.get(callable_.name, [])]
         for file, case, target in indirect_test_cases.get(
                 (callable_.file, callable_.name), []):

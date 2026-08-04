@@ -1,6 +1,9 @@
 #include "CAM_MMR.h"
 #include "formula.h"
+
+#include <algorithm>
 #include <math.h>
+#include <stdexcept>
 
 CAM_MMR::CAM_MMR() {
     initialized = false;
@@ -22,14 +25,18 @@ void CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimization
     numInputBits = _numInputBits;
     areaOptimizationLevel = _areaOptimizationLevel;
     config = _config;
+    if (numInputBits <= 0) {
+        throw std::invalid_argument("[CAM_MMR] Error: number of input bits must be positive.");
+    }
     // 3-level folding partition
     // TODO: only 2-level folding is supported
     // TODO: only 8-to-3 basicMMR is supported
     numBasicMMR = (int)(numInputBits/8) + ( (numInputBits%8)>0 );
-    foldA = (int)( (int)log2(numBasicMMR) - 3 )/2;
-    foldB = (int)( (int)log2(numBasicMMR) - 3 - foldA)/2;
-    foldA = (int)pow(2, foldA);
-    foldB = (int)pow(2, foldB);
+    const int blockAddressBits = static_cast<int>(log2(numBasicMMR));
+    const int foldAExponent = std::max(0, (blockAddressBits - 3) / 2);
+    const int foldBExponent = std::max(0, (blockAddressBits - 3 - foldAExponent) / 2);
+    foldA = static_cast<int>(pow(2, foldAExponent));
+    foldB = static_cast<int>(pow(2, foldBExponent));
 
     CAM_BasicMMR tmp;
     tmp.Initialize(8, 0, 0, 0, 0, config);
@@ -73,7 +80,8 @@ void CAM_MMR::CalculateLatency(double _rampInput) {
     } else {
         rampInput = _rampInput;
         BasicMMR.CalculateLatency(rampInput);
-        outputDriver.CalculateLatency(BasicMMR.rampOutput);
+        const double driverRamp = BasicMMR.rampOutput > 0 ? BasicMMR.rampOutput : rampInput;
+        outputDriver.CalculateLatency(driverRamp);
         // calculate longest path for the look ahead
         int longestLA = foldB-1 + foldA/foldB-1;
         double lastRamp = rampInput;
@@ -85,7 +93,7 @@ void CAM_MMR::CalculateLatency(double _rampInput) {
         }
         readLatency = LookAheadLatency + BasicMMR.readLatency;
         writeLatency = readLatency;
-        rampOutput = outputDriver.rampOutput;
+        rampOutput = outputDriver.numStage > 0 ? outputDriver.rampOutput : rampInput;
     }
 }
 

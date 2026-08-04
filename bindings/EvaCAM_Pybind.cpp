@@ -89,6 +89,7 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("search_latency", &EvaCamVariationDto::searchLatency)
         .def_readonly("search_dynamic_energy", &EvaCamVariationDto::searchDynamicEnergy)
         .def_readonly("exact_match_sense_margin", &EvaCamVariationDto::senseMargin)
+        .def_readonly("reference_delay", &EvaCamVariationDto::referenceDelay)
         .def_readonly("sample_data", &EvaCamVariationDto::sampleData);
 
     py::class_<EvaCamDesignResultDto>(module, "EvaCAMDesignResult")

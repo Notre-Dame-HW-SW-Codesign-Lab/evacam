@@ -195,9 +195,12 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
     if (!initialized) {
         ThrowInitializationError("[BankWithoutHtree]");
     } else if (invalid) {
-        readLatency = writeLatency = 1e41;
-        readDynamicEnergy = writeDynamicEnergy = 1e41;
+        readLatency = 1e41;
+        writeLatency = 1e41;
+        readDynamicEnergy = 1e41;
+        writeDynamicEnergy = 1e41;
         leakage = 1e41;
+        return;
     } else {
         double latency = 0;
         double energy = 0;

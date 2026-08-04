@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import gc
 import math
 import pathlib
 import sys
@@ -100,16 +101,19 @@ def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir, sea
     )
 
 
-def main():
-    if len(sys.argv) != 2:
-        raise SystemExit("Usage: test_pybind_match.py <config.yaml>")
-
+def test_pybind_match_module(config_path):
     repo_root = pathlib.Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(repo_root))
 
     import evacam_py
 
-    matcher = evacam_py.EvaCAMMatch(sys.argv[1])
+    # pybind constructor dispatch and native construction failures remain visible
+    # as normal Python exceptions.
+    assert_raises(TypeError, lambda: evacam_py.EvaCAMMatch())
+    assert_raises(TypeError, lambda: evacam_py.EvaCAMMatch(42))
+    assert_raises(RuntimeError, lambda: evacam_py.EvaCAMMatch("does-not-exist.yaml"))
+
+    matcher = evacam_py.EvaCAMMatch(config_path)
     width = matcher.word_width()
     assert width > 0
 
@@ -119,6 +123,25 @@ def main():
     assert first_match.hit
     assert not hasattr(matcher, "match")
     assert_close(first_match, second_match)
+    for field in (
+        "hit",
+        "search_latency",
+        "search_dynamic_energy",
+        "matchline_delay",
+        "sense_margin",
+    ):
+        assert hasattr(first_match, field)
+    assert_raises(AttributeError, lambda: setattr(first_match, "hit", False))
+
+    # Result DTOs are returned by value: they stay valid after the matcher is
+    # reclaimed and retain their scalar data.
+    retained_result = matcher.evaluate_mismatches(0)
+    retained_latency = retained_result.search_latency
+    del matcher
+    gc.collect()
+    assert retained_result.hit
+    assert retained_result.search_latency == retained_latency
+    matcher = evacam_py.EvaCAMMatch(sys.argv[1])
 
     wildcard_stored = stored.copy()
     wildcard_stored[0] = -1
@@ -205,6 +228,12 @@ def main():
         ValueError,
         lambda: matcher.evaluate_array([[(0.0, 1.0)] * width], [0.5] * width),
     )
+    # Incompatible Python containers fail during binding conversion rather
+    # than reaching C++.
+    assert_raises(TypeError, lambda: matcher.evaluate_mismatches("0"))
+    assert_raises(TypeError, lambda: matcher.evaluate_threshold(stored, stored, "0"))
+    assert_raises(TypeError, lambda: matcher.evaluate_vector([object()] * width, stored))
+    assert_raises(TypeError, lambda: matcher.evaluate_array(object()))
 
     tcam_be_matcher = evacam_py.EvaCAMMatch(
         str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM.config.yaml")
@@ -358,6 +387,12 @@ def main():
         )
 
     print("Pybind match test passed")
+
+
+def main():
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: test_pybind_match.py <config.yaml>")
+    test_pybind_match_module(sys.argv[1])
 
 
 if __name__ == "__main__":

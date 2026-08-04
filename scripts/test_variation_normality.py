@@ -36,6 +36,21 @@ def column_values(rows, column):
     ]
 
 
+def available_metrics(rows, include_internal=False):
+    """Return known metric names together with their non-empty sample values."""
+    metrics = METRICS + (INTERNAL_METRICS if include_internal else [])
+    return [
+        (column, title, column_values(rows, column))
+        for column, title in metrics
+        if column_values(rows, column)
+    ]
+
+
+def normality_decision(p_value, alpha):
+    """Classify a Shapiro-Wilk p-value at the supplied significance level."""
+    return "reject normality" if p_value < alpha else "do not reject normality"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run Shapiro-Wilk tests on an EvaCAM variation sample CSV."
@@ -58,19 +73,15 @@ def main():
         raise RuntimeError("--alpha must be between 0 and 1")
 
     rows = read_samples(args.csv_file)
-    metrics = METRICS + (INTERNAL_METRICS if args.include_internal else [])
     tested = 0
 
     print(f"Shapiro-Wilk normality test (alpha={args.alpha:g})")
-    for column, title in metrics:
-        values = column_values(rows, column)
-        if not values:
-            continue
+    for column, title, values in available_metrics(rows, args.include_internal):
         if len(values) < 3:
             raise RuntimeError(f"{column} requires at least 3 samples")
 
         statistic, p_value = shapiro(values)
-        decision = "reject normality" if p_value < args.alpha else "do not reject normality"
+        decision = normality_decision(p_value, args.alpha)
         print(
             f"{title:28} n={len(values):5d}  "
             f"W={statistic:.6f}  p={p_value:.6g}  {decision}"

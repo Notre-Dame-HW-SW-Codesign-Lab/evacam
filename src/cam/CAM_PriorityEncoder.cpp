@@ -65,7 +65,8 @@ void CAM_PriorityEncoder::CalculateLatency(double _rampInput) {
     } else {
         rampInput = _rampInput;
         MMR.CalculateLatency(rampInput);
-        Encoder.CalculateLatency(MMR.rampOutput);
+        const double encoderRamp = MMR.rampOutput > 0 ? MMR.rampOutput : rampInput;
+        Encoder.CalculateLatency(encoderRamp);
         readLatency = MMR.readLatency + Encoder.readLatency;
         writeLatency = readLatency;
         rampOutput = Encoder.rampOutput;
@@ -86,6 +87,6 @@ void CAM_PriorityEncoder::CalculatePower() {
 }
 
 void CAM_PriorityEncoder::PrintProperty() {
-    std::cout << "CAM_MMR Properties:" << std::endl;
+    std::cout << "CAM_PriorityEncoder Properties:" << std::endl;
     FunctionUnit::PrintProperty();
 }

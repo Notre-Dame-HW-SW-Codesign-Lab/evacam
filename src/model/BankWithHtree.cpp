@@ -388,7 +388,9 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
 }
 
 void BankWithHtree::CalculateArea() {
-    if (invalid) {
+    if (!initialized) {
+        ThrowInitializationError("[BankWithHtree]");
+    } else if (invalid) {
         height = width = area = 1e41;
     } else {
         height = mat->height * numRowMat;

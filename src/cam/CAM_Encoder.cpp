@@ -24,7 +24,7 @@ void CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizat
     resLoad = _resLoad;
     areaOptimizationLevel = _areaOptimizationLevel;
     config= _config;
-    if (numInputBit > pow(2,27)) {
+    if (numInputBit <= 0 || numInputBit > pow(2,27)) {
         throw std::runtime_error("[CAM_Encoder] Error: invalid number of subarray bits.");
     }
     numBasicEncoder = (int)(numInputBit/8) + ( (numInputBit%8)>0 );
@@ -79,6 +79,7 @@ void CAM_Encoder::CalculateLatency(double _rampInput) {
     if (!initialized) {
         ThrowInitializationError("[CAM_Encoder]");
     } else {
+        readLatency = 0;
         rampInput = _rampInput;
         BasicEncoder.CalculateLatency(rampInput);
         outputDriver.CalculateLatency(rampInput /* TODO not exactly */);

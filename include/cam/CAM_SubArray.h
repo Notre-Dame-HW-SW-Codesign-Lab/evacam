@@ -40,6 +40,8 @@ struct CAMResistanceSample {
     double allMatchEffectiveCellRes = 0;
 };
 
+struct CamSubArrayTestAccessor;
+
 struct CAMMetricStats {
     bool available = false;
     double nominal = 0;
@@ -59,6 +61,7 @@ struct CAMVariationSummary {
     CAMMetricStats searchLatency;
     CAMMetricStats searchDynamicEnergy;
     CAMMetricStats senseMargin;
+    CAMMetricStats referenceDelay;
 };
 
 struct CAMVariationSample {
@@ -130,6 +133,7 @@ class CAM_SubArray: public FunctionUnit {
         double SampleCellReadEnergy(const CAMResistanceSample &sample, double sampleMatchlineDelay) const;
 
     private:
+        friend struct CamSubArrayTestAccessor;
         int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
         double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
         double EffectiveMcamStateResistance(double stateResistance, double baseStateResistance) const;

@@ -780,14 +780,14 @@ void CAM_SubArray::CalculateArea() {
 }
 
 void CAM_SubArray::CalculateLatency(double _rampInput) {
+    if (!initialized) {
+        throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
+    }
+
     const auto &cell = *config->technology.cell;
     const auto &input = config->input;
     const auto &peripherals = config->peripherals;
     auto &logger = config->logger;
-
-    if (!initialized) {
-        throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
-    }
 
     latencyCalculated = false;
     if (invalid) {
@@ -1902,6 +1902,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
 
     const auto &variation = config->variation;
     const auto &cell = *config->technology.cell;
+    const double nominalReferenceDelay = referDelay;
 
     variationSummary = CAMVariationSummary{};
     variationSamples.clear();
@@ -1943,6 +1944,8 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
         variationSummary.matchlineDelay = BuildSinglePointMetric(sampleMatchlineDelay, matchlineDelay);
         variationSummary.searchLatency = BuildSinglePointMetric(sampleSearchLatency, searchLatency);
         variationSummary.senseMargin = BuildSinglePointMetric(sampleSenseMargin, senseMargin);
+        variationSummary.referenceDelay = BuildSinglePointMetric(
+                sampleReferDelay, nominalReferenceDelay);
 
         matchlineDelay = sampleMatchlineDelay;
         searchLatency = sampleSearchLatency;
@@ -2020,6 +2023,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
     variationSummary.matchlineDelay = BuildMetricStats(matchlineDelays, matchlineDelay);
     variationSummary.searchLatency = BuildMetricStats(searchLatencies, searchLatency);
     variationSummary.senseMargin = BuildMetricStats(senseMargins, senseMargin);
+    variationSummary.referenceDelay = BuildMetricStats(referDelays, nominalReferenceDelay);
 
     matchlineDelay = variationSummary.matchlineDelay.mean;
     searchLatency = variationSummary.searchLatency.mean;

@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "factories/BankFactory.h"
 
 #include "BankWithHtree.h"
@@ -5,10 +7,14 @@
 #include "EvaCamConfig.h"
 
 std::shared_ptr<Bank> BankFactory::CreateBank(const EvaCamConfig &config) {
-    if (config.input.routingMode == h_tree) {
-        return std::make_shared<BankWithHtree>();
+    switch (config.input.routingMode) {
+        case h_tree:
+            return std::make_shared<BankWithHtree>();
+        case non_h_tree:
+            return std::make_shared<BankWithoutHtree>();
+        default:
+            throw std::invalid_argument("Unsupported bank routing mode");
     }
-    return std::make_shared<BankWithoutHtree>();
 }
 
 void BankFactory::InitializeBank(const std::shared_ptr<EvaCamConfig> &config,

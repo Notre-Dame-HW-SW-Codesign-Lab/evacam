@@ -13,8 +13,8 @@ class EvaCamConfig;
 class Result {
     public:
         Result() { initialized = false; }
-        Result(const Result&) {}
-        virtual ~Result() {};
+        Result(const Result&) = default;
+        virtual ~Result() = default;
 
         /* Functions */
         virtual void Initialize(std::shared_ptr<EvaCamConfig> _config);

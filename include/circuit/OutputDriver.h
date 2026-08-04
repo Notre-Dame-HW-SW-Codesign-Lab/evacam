@@ -11,6 +11,16 @@ class OutputDriver: public FunctionUnit {
         OutputDriver() {
             initialized = false;
             invalid = false;
+            logicEffort = inputCap = outputCap = outputRes = 0;
+            inv = false;
+            numStage = 0;
+            areaOptimizationLevel = latency_first;
+            minDriverCurrent = 0;
+            rampInput = rampOutput = 0;
+            for (int index = 0; index < MAX_INV_CHAIN_LEN; index++) {
+                widthNMOS[index] = widthPMOS[index] = 0;
+                capInput[index] = capOutput[index] = 0;
+            }
         }
         OutputDriver(const OutputDriver&) = delete;
         virtual ~OutputDriver() = default;

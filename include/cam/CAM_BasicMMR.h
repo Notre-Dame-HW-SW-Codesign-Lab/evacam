@@ -18,7 +18,7 @@ class CAM_BasicMMR: public FunctionUnit {
         CAM_BasicMMR();
         CAM_BasicMMR(const CAM_BasicMMR&) = delete;
         CAM_BasicMMR& operator=(const CAM_BasicMMR&) = delete;
-        virtual ~CAM_BasicMMR() {}
+        virtual ~CAM_BasicMMR() = default;
 
         /* Functions */
         void PrintProperty();

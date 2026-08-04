@@ -8,8 +8,8 @@
 class CAM_Encoder: public FunctionUnit {
     public:
         CAM_Encoder();
-        CAM_Encoder(const CAM_Encoder&) {}
-        virtual ~CAM_Encoder() {}
+        CAM_Encoder(const CAM_Encoder&) = delete;
+        virtual ~CAM_Encoder() = default;
 
         /* Functions */
         void PrintProperty();

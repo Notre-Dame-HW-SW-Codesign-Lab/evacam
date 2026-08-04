@@ -14,7 +14,7 @@ class CAM_LevelShifter: public FunctionUnit {
         CAM_LevelShifter();
         CAM_LevelShifter(const CAM_LevelShifter&) = delete;
         CAM_LevelShifter& operator=(const CAM_LevelShifter&) = delete;
-        virtual ~CAM_LevelShifter() {}
+        virtual ~CAM_LevelShifter() = default;
 
         /* Functions */
         void PrintProperty();

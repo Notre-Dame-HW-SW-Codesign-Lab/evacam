@@ -15,8 +15,8 @@
 class CAM_BasicEncoder: public FunctionUnit {
     public:
         CAM_BasicEncoder();
-        CAM_BasicEncoder(const CAM_BasicEncoder&) {}
-        virtual ~CAM_BasicEncoder() {}
+        CAM_BasicEncoder(const CAM_BasicEncoder&) = delete;
+        virtual ~CAM_BasicEncoder() = default;
 
         /* Functions */
         void PrintProperty();

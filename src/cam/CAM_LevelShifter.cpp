@@ -1,6 +1,8 @@
 #include "CAM_LevelShifter.h"
 #include "formula.h"
 
+#include <stdexcept>
+
 CAM_LevelShifter::CAM_LevelShifter() {
     initialized = false;
     capLoad = 0;
@@ -15,6 +17,10 @@ CAM_LevelShifter::CAM_LevelShifter() {
 void CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config){
     if (initialized)
         _config->logger.Verbose() << "[CAM_LevelShifter] Warning: Already initialized!";
+    if (_numInputBit < 0) {
+        throw std::invalid_argument(
+                "[CAM_LevelShifter] Error: number of input bits cannot be negative.");
+    }
     /* structure: D-latch, contains 4 nand */
     config = _config;
     numInputBit = _numInputBit;
@@ -113,7 +119,8 @@ void CAM_LevelShifter::CalculatePower() {
 
         // Write dynamic energy (2-step write and average case half SET and half RESET)
         // 1T1R
-        writeDynamicEnergy += cap * config->technology.tech->vdd() * config->technology.tech->vdd()*9;    
+        writeDynamicEnergy += cap * config->technology.tech->vdd()
+                * config->technology.tech->vdd() * 9 * numInputBit;
     }
 }
 

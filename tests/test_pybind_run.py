@@ -2,6 +2,7 @@
 
 import pathlib
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -104,20 +105,118 @@ def assert_run_result_matches_yaml(run_result, output_yaml_path):
     assert_yaml_close(yaml_scalars, "breakdown.leakage.row_decoder", breakdown["leakage.row_decoder_w"])
 
 
-def main():
-    if len(sys.argv) != 2:
-        raise SystemExit("Usage: test_pybind_run.py <config.yaml>")
+def assert_run_dto_fields(module, result):
+    for field in ("num_solutions", "exploration_csv_path", "output_yaml_path", "best_results"):
+        assert hasattr(result, field)
+    assert_raises(AttributeError, lambda: setattr(result, "num_solutions", 0))
 
+    design = next(iter(result.best_results.values()))
+    for field in ("optimization_target", "summary", "breakdown", "geometry", "variation"):
+        assert hasattr(design, field)
+    assert_raises(AttributeError, lambda: setattr(design, "summary", {}))
+
+    variation = design.variation
+    for field in (
+        "enabled",
+        "mode",
+        "samples",
+        "matchline_delay",
+        "search_latency",
+        "search_dynamic_energy",
+        "exact_match_sense_margin",
+        "reference_delay",
+        "sample_data",
+    ):
+        assert hasattr(variation, field)
+    assert_raises(AttributeError, lambda: setattr(variation, "enabled", True))
+
+    stats = variation.matchline_delay
+    for field in ("available", "nominal", "sample", "mean", "stddev", "min", "max", "p95"):
+        assert hasattr(stats, field)
+    assert_raises(AttributeError, lambda: setattr(stats, "mean", 0.0))
+
+    assert module.EvaCAMMonteCarloSample is module.EvaCAMVariationSample
+    for field in (
+        "sample",
+        "corner_label",
+        "memory_device_res_on_corner",
+        "memory_device_res_off_corner",
+        "matchline_delay",
+        "search_latency",
+        "search_dynamic_energy",
+        "exact_match_sense_margin",
+        "reference_delay",
+    ):
+        assert hasattr(module.EvaCAMVariationSample, field)
+
+    for sample in variation.sample_data:
+        for field in (
+            "sample",
+            "corner_label",
+            "memory_device_res_on_corner",
+            "memory_device_res_off_corner",
+            "matchline_delay",
+            "search_latency",
+            "search_dynamic_energy",
+            "exact_match_sense_margin",
+            "reference_delay",
+        ):
+            assert hasattr(sample, field)
+        assert_raises(AttributeError, lambda: setattr(sample, "sample", 0))
+
+
+def assert_raises(expected_exception, callback):
+    try:
+        callback()
+    except expected_exception:
+        return
+    raise AssertionError(f"expected {expected_exception.__name__}")
+
+
+def assert_stdout_option(repo_root, config_path):
+    script = """
+import sys
+sys.path.insert(0, sys.argv[1])
+import evacam_py
+evacam_py.run(sys.argv[2], threads=1, stdout=bool(int(sys.argv[3])))
+"""
+    quiet = subprocess.run(
+        [sys.executable, "-c", script, str(repo_root), config_path, "0"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert quiet.stdout == ""
+    visible = subprocess.run(
+        [sys.executable, "-c", script, str(repo_root), config_path, "1"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert visible.stdout
+
+
+def test_pybind_run_module(config_path):
     repo_root = pathlib.Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(repo_root))
 
     import evacam_py
 
-    result = evacam_py.run(sys.argv[1], threads=1)
+    result = evacam_py.run(config_path, threads=1)
 
     assert result.num_solutions > 0
     assert result.output_yaml_path == ""
     assert result.best_results
+    assert_run_dto_fields(evacam_py, result)
+    assert_raises(TypeError, lambda: evacam_py.run())
+    assert_raises(TypeError, lambda: evacam_py.run(42))
+    assert_raises(TypeError, lambda: evacam_py.run(config_path, threads="one"))
+    assert_raises(TypeError, lambda: evacam_py.run(config_path, write_yaml="yes"))
+    assert_raises(RuntimeError, lambda: evacam_py.run("does-not-exist.yaml"))
+
+    # Non-positive thread values use the documented one-thread fallback.
+    fallback_threads = evacam_py.run(config_path, threads=0)
+    assert fallback_threads.num_solutions == result.num_solutions
 
     search_result = result.best_results.get("SearchLatency")
     if search_result is None:
@@ -133,7 +232,7 @@ def main():
     with tempfile.TemporaryDirectory() as tmp_dir:
         output_yaml_path = pathlib.Path(tmp_dir) / "run_results.yaml"
         yaml_result = evacam_py.run(
-            sys.argv[1],
+            config_path,
             threads=1,
             output_yaml_path=str(output_yaml_path),
             write_yaml=True,
@@ -150,7 +249,15 @@ def main():
         assert yaml_scalars["assumptions.limitations_reference"] == "docs/limitations.md"
         assert_run_result_matches_yaml(yaml_result, output_yaml_path)
 
+    assert_stdout_option(repo_root, config_path)
+
     print("Pybind run test passed")
+
+
+def main():
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: test_pybind_run.py <config.yaml>")
+    test_pybind_run_module(sys.argv[1])
 
 
 if __name__ == "__main__":

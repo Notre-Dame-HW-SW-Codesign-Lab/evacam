@@ -15,7 +15,7 @@ class CAM_PriorityEncoder: public FunctionUnit {
         CAM_PriorityEncoder();
         CAM_PriorityEncoder(const CAM_PriorityEncoder&) = delete;
         CAM_PriorityEncoder& operator=(const CAM_PriorityEncoder&) = delete;
-        virtual ~CAM_PriorityEncoder() {}
+        virtual ~CAM_PriorityEncoder() = default;
 
         /* Functions */
         void PrintProperty();

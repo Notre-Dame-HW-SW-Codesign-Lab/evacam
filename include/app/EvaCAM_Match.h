@@ -50,15 +50,6 @@ class EvaCAM_Match {
         EvaCAMMatchResult EvaluateBestVector(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateThresholdVector(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateExactTcamVector(const std::vector<int> &stored, const std::vector<int> &query) const;
-        EvaCAMMatchResult EvaluateExactAcamVector(
-                const std::vector<std::pair<double, double>> &stored,
-                const std::vector<double> &query) const;
-        EvaCAMMatchResult EvaluateBestAcamVector(
-                const std::vector<std::pair<double, double>> &stored,
-                const std::vector<double> &query) const;
-        EvaCAMMatchResult EvaluateThresholdAcamVector(
-                const std::vector<std::pair<double, double>> &stored,
-                const std::vector<double> &query) const;
         std::vector<EvaCAMMatchResult> EvaluateBestTcamArray(const std::vector<int> &mismatchCounts) const;
         EvaCAMMatchResult LookupMismatchResult(int mismatches) const;
         int CountTcamMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
@@ -72,10 +63,6 @@ class EvaCAM_Match {
         void ValidateVectorLength(size_t size, const char *name) const;
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
         void ValidateTcamStoredVector(const std::vector<int> &value, const char *name) const;
-        void ValidateAnalogVector(const std::vector<double> &value, const char *name) const;
-        void ValidateAcamRangeVector(
-                const std::vector<std::pair<double, double>> &value,
-                const char *name) const;
         Wire CreateLocalWire() const;
         Wire CreateGlobalWire() const;
 

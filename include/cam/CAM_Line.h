@@ -31,10 +31,6 @@ class CAM_Line {
         void Initialize(double _len, long long _numCell, double _MuxWidth, 
                 std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire); // for mux signal only
 
-        void CalcMaxCurrent();
-        void CalcMuxWidth();
-        void PrintLine();
-
         /* Properties */
         bool initialized;
         bool invalid;

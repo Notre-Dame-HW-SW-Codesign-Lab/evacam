@@ -74,24 +74,15 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(int mismatches, int maxMismat
 }
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_vector(
-        const std::vector<std::pair<double, double>> &stored,
-        const std::vector<double> &query) const {
+        const std::vector<std::pair<double, double>> &,
+        const std::vector<double> &) const {
     EnsureInitialized();
 
     if (config->technology.cell->camType != ACAM) {
         throw std::invalid_argument("[EvaCAM_Match] Error: range/value vector input is only valid for ACAM.");
     }
 
-    switch (config->input.searchFunction) {
-        case EX:
-            return EvaluateExactAcamVector(stored, query);
-        case BE:
-            return EvaluateBestAcamVector(stored, query);
-        case TH:
-            return EvaluateThresholdAcamVector(stored, query);
-    }
-
-    throw std::runtime_error("[EvaCAM_Match] Error: unsupported search function.");
+    throw std::runtime_error("[EvaCAM_Match] Error: ACAM vector evaluation is not implemented.");
 }
 
 std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(const std::vector<int> &mismatchCounts) const {
@@ -155,20 +146,15 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
 }
 
 std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
-        const std::vector<std::vector<std::pair<double, double>>> &storedRows,
-        const std::vector<double> &query) const {
+        const std::vector<std::vector<std::pair<double, double>>> &,
+        const std::vector<double> &) const {
     EnsureInitialized();
 
     if (config->technology.cell->camType != ACAM) {
         throw std::invalid_argument("[EvaCAM_Match] Error: range/value array input is only valid for ACAM.");
     }
 
-    std::vector<EvaCAMMatchResult> results;
-    results.reserve(storedRows.size());
-    for (const auto &stored : storedRows) {
-        results.push_back(evaluate_vector(stored, query));
-    }
-    return results;
+    throw std::runtime_error("[EvaCAM_Match] Error: ACAM array evaluation is not implemented.");
 }
 
 size_t EvaCAM_Match::word_width() const {
@@ -311,30 +297,6 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateExactTcamVector(
     return evaluate_mismatches(CountTcamMismatches(stored, query));
 }
 
-EvaCAMMatchResult EvaCAM_Match::EvaluateExactAcamVector(
-        const std::vector<std::pair<double, double>> &stored,
-        const std::vector<double> &query) const {
-    ValidateAcamRangeVector(stored, "stored");
-    ValidateAnalogVector(query, "query");
-    throw std::runtime_error("[EvaCAM_Match] Error: exact ACAM vector evaluation is not implemented.");
-}
-
-EvaCAMMatchResult EvaCAM_Match::EvaluateBestAcamVector(
-        const std::vector<std::pair<double, double>> &stored,
-        const std::vector<double> &query) const {
-    ValidateAcamRangeVector(stored, "stored");
-    ValidateAnalogVector(query, "query");
-    throw std::runtime_error("[EvaCAM_Match] Error: best ACAM vector evaluation is not implemented.");
-}
-
-EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdAcamVector(
-        const std::vector<std::pair<double, double>> &stored,
-        const std::vector<double> &query) const {
-    ValidateAcamRangeVector(stored, "stored");
-    ValidateAnalogVector(query, "query");
-    throw std::runtime_error("[EvaCAM_Match] Error: threshold ACAM vector evaluation is not implemented.");
-}
-
 std::vector<EvaCAMMatchResult> EvaCAM_Match::EvaluateBestTcamArray(
         const std::vector<int> &mismatchCounts) const {
     ValidateTcamMismatchCounts(mismatchCounts);
@@ -474,23 +436,6 @@ void EvaCAM_Match::ValidateTcamStoredVector(const std::vector<int> &value, const
         if (bit != -1 && bit != 0 && bit != 1) {
             throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
                     + " vector must contain only 0, 1, or -1 wildcard values.");
-        }
-    }
-}
-
-void EvaCAM_Match::ValidateAnalogVector(const std::vector<double> &value, const char *name) const {
-    ValidateVectorLength(value.size(), name);
-}
-
-void EvaCAM_Match::ValidateAcamRangeVector(
-        const std::vector<std::pair<double, double>> &value,
-        const char *name) const {
-    ValidateVectorLength(value.size(), name);
-
-    for (const auto &range : value) {
-        if (range.first > range.second) {
-            throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
-                    + " ranges must have lower bound less than or equal to upper bound.");
         }
     }
 }

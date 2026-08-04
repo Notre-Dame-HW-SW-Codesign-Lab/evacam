@@ -16,6 +16,7 @@
 #include "config/OutputPathBuilder.h"
 #include "output/ResultsYaml.h"
 #include "output/VariationSamplesCsv.h"
+#include "output/EvaCamOutputDetail.h"
 
 namespace {
 
@@ -75,21 +76,6 @@ std::string OptimizationTargetName(OptimizationTarget t) {
     return "Unknown";
 }
 
-bool HasVariationSamples(const std::shared_ptr<Result> &result) {
-    return result
-        && result->bank
-        && result->bank->mat
-        && result->bank->mat->subarray
-        && result->bank->mat->subarray->variationSummary.enabled
-        && result->bank->mat->subarray->variationSummary.mode != "single_point"
-        && !result->bank->mat->subarray->variationSamples.empty();
-}
-
-bool HasMonteCarloSamples(const std::shared_ptr<Result> &result) {
-    return HasVariationSamples(result)
-        && result->bank->mat->subarray->variationSummary.mode == "monte_carlo";
-}
-
 void WriteVariationSamplesFile(const Result &result, const std::string &path) {
     std::filesystem::path outPath(path);
     if (!outPath.parent_path().empty()) {
@@ -103,7 +89,24 @@ void WriteVariationSamplesFile(const Result &result, const std::string &path) {
     WriteVariationSamplesCsv(csvOut, result);
 }
 
-std::string ShellQuote(const std::string &value) {
+}  // namespace
+
+bool EvaCamOutputDetail::HasVariationSamples(const std::shared_ptr<Result> &result) {
+    return result
+        && result->bank
+        && result->bank->mat
+        && result->bank->mat->subarray
+        && result->bank->mat->subarray->variationSummary.enabled
+        && result->bank->mat->subarray->variationSummary.mode != "single_point"
+        && !result->bank->mat->subarray->variationSamples.empty();
+}
+
+bool EvaCamOutputDetail::HasMonteCarloSamples(const std::shared_ptr<Result> &result) {
+    return HasVariationSamples(result)
+        && result->bank->mat->subarray->variationSummary.mode == "monte_carlo";
+}
+
+std::string EvaCamOutputDetail::ShellQuote(const std::string &value) {
     std::string quoted = "'";
     for (char c : value) {
         if (c == '\'') {
@@ -116,7 +119,21 @@ std::string ShellQuote(const std::string &value) {
     return quoted;
 }
 
-bool WriteVariationHistogramFile(const std::string &samplesPath, const std::string &plotPath) {
+std::string EvaCamOutputDetail::BuildVariationHistogramCommand(
+        const std::string &samplesPath, const std::string &plotPath) {
+    return "python3 "
+        + ShellQuote("scripts/plot_variation_histograms.py")
+        + " "
+        + ShellQuote(samplesPath)
+        + " -o "
+        + ShellQuote(plotPath)
+        + " >/dev/null 2>&1";
+}
+
+bool EvaCamOutputDetail::WriteVariationHistogramFile(
+        const std::string &samplesPath,
+        const std::string &plotPath,
+        const CommandRunner &runner) {
     const std::filesystem::path scriptPath = "scripts/plot_variation_histograms.py";
     if (!std::filesystem::exists(scriptPath)) {
         std::cerr << "[Output] Warning: variation histogram plotter not found: "
@@ -129,14 +146,8 @@ bool WriteVariationHistogramFile(const std::string &samplesPath, const std::stri
         std::filesystem::create_directories(outPath.parent_path());
     }
 
-    const std::string command = "python3 "
-        + ShellQuote(scriptPath.string())
-        + " "
-        + ShellQuote(samplesPath)
-        + " -o "
-        + ShellQuote(plotPath)
-        + " >/dev/null 2>&1";
-    const int rc = std::system(command.c_str());
+    const std::string command = BuildVariationHistogramCommand(samplesPath, plotPath);
+    const int rc = runner ? runner(command) : std::system(command.c_str());
     if (rc != 0 || !std::filesystem::exists(plotPath)) {
         std::cerr << "[Output] Warning: failed to generate variation histogram SVG with matplotlib: "
                   << plotPath << std::endl;
@@ -144,8 +155,6 @@ bool WriteVariationHistogramFile(const std::string &samplesPath, const std::stri
     }
     return true;
 }
-
-}  // namespace
 
 void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
         long long numSolution,
@@ -173,11 +182,13 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
                     PrintVariationSampleMetric("Search Latency", 1e12, "ps", variation.searchLatency);
                     PrintVariationSampleMetric("Search Energy", 1e12, "pJ", variation.searchDynamicEnergy);
                     PrintVariationSampleMetric("Sense Margin", 1e3, "mV", variation.senseMargin);
+                    PrintVariationSampleMetric("Reference Delay", 1e12, "ps", variation.referenceDelay);
                 } else {
                     PrintVariationMetric("Matchline Delay", 1e12, "ps", variation.matchlineDelay);
                     PrintVariationMetric("Search Latency", 1e12, "ps", variation.searchLatency);
                     PrintVariationMetric("Search Energy", 1e12, "pJ", variation.searchDynamicEnergy);
                     PrintVariationMetric("Sense Margin", 1e3, "mV", variation.senseMargin);
+                    PrintVariationMetric("Reference Delay", 1e12, "ps", variation.referenceDelay);
                 }
             }
         } else {
@@ -272,7 +283,7 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         std::unordered_map<OptimizationTarget, std::string> variationSamplesFiles;
         std::unordered_map<OptimizationTarget, std::string> variationPlotFiles;
         for (const auto &result : bestResults) {
-            if (!HasVariationSamples(result)) {
+            if (!EvaCamOutputDetail::HasVariationSamples(result)) {
                 continue;
             }
 
@@ -282,7 +293,8 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
             WriteVariationSamplesFile(*result, samplePath);
             variationSamplesFiles[result->optimizationTarget] = samplePath;
             const std::string plotPath = OutputPathBuilder::VariationHistogramsSvgPath(samplePath);
-            if (HasMonteCarloSamples(result) && config.variationPlots && WriteVariationHistogramFile(samplePath, plotPath)) {
+            if (EvaCamOutputDetail::HasMonteCarloSamples(result) && config.variationPlots
+                    && EvaCamOutputDetail::WriteVariationHistogramFile(samplePath, plotPath)) {
                 variationPlotFiles[result->optimizationTarget] = plotPath;
             }
         }
@@ -296,12 +308,14 @@ void EvaCamOutput::WriteYamlResults(const EvaCamConfig &config,
         const auto &result = bestResults[config.input.optimizationTarget];
         std::string variationSamplesFile;
         std::string variationPlotFile;
-        if (HasVariationSamples(result)) {
+        if (EvaCamOutputDetail::HasVariationSamples(result)) {
             variationSamplesFile = OutputPathBuilder::VariationSamplesCsvPath(outputYamlFileName);
             WriteVariationSamplesFile(*result, variationSamplesFile);
-            if (HasMonteCarloSamples(result)) {
+            if (EvaCamOutputDetail::HasMonteCarloSamples(result)) {
                 variationPlotFile = OutputPathBuilder::VariationHistogramsSvgPath(variationSamplesFile);
-                if (!config.variationPlots || !WriteVariationHistogramFile(variationSamplesFile, variationPlotFile)) {
+                if (!config.variationPlots
+                        || !EvaCamOutputDetail::WriteVariationHistogramFile(
+                                variationSamplesFile, variationPlotFile)) {
                     variationPlotFile.clear();
                 }
             }

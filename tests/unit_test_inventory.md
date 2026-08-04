@@ -4,12 +4,12 @@
 coverage. It inventories maintained callable definitions in `include/`, `src/`,
 `bindings/`, `evacam/`, and `scripts/`.
 
-The current baseline contains 970 callables:
+The current inventory contains 966 callables:
 
-- 336 `covered`
-- 529 `missing`
-- 105 `exempt`
-- 815 C++ callables and 155 Python callables
+- 660 `covered`
+- 190 `missing`
+- 116 `exempt`
+- 811 C++ callables and 155 Python callables
 
 The deliberately conservative classification counts a callable as covered only
 when a named `Test*` or `test_*` case reaches a matching call in a focused test

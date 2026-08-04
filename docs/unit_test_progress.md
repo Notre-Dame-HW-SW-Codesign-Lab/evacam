@@ -248,6 +248,13 @@ every floating-point digit.
 
 ## Phase 5: Test CAM components and model composition
 
+**Status:** Implemented. Dedicated component suites cover the CAM encoders,
+input peripherals, MMR/sense path, and line model; three focused suites cover
+`CAM_SubArray` topology, matching/math, and variation behavior; and model-level
+suites cover `Mat`, both bank routing implementations, `BankFactory`, and
+`Result`. All Phase 5 production callables are now covered or explicitly
+mapped to the focused public-behavior test that exercises them.
+
 ### CAM building blocks
 
 Create cohesive class-level tests for `CAM_BasicEncoder`, `CAM_Encoder`,
@@ -298,6 +305,15 @@ If public behavior cannot isolate one, move the pure calculation into a small
 
 ## Phase 6: Test output and application services
 
+**Status:** Implemented. Dedicated targets cover unit formatting, parsed
+YAML/CSV serialization, result extraction, console/file output, logger and
+context behavior, deterministic exploration, public match modes and validation,
+`RunEvaCam`, and executable boundaries. Output command construction and process
+execution are separated by a small injectable seam. The audit also removed
+unreachable private ACAM evaluation helpers while ACAM remains rejected by
+configuration validation, and corrected nominal reference-delay propagation
+through variation summaries, DTOs, YAML, CSV, and console output.
+
 ### Output serialization
 
 - Give every `UnitFormatter` conversion a named row covering zero, unit
@@ -339,6 +355,13 @@ If public behavior cannot isolate one, move the pure calculation into a small
 
 ## Phase 7: Python package, bindings, and scripts
 
+**Status:** Implemented. Standard-library `unittest` suites now cover packaged
+configuration resources, both pybind boundaries, configuration migration and
+synchronization, sweep generation/analysis/table tooling, every plotting entry
+point with the `Agg` backend, and the reusable variation-normality logic. The
+focused targets are part of `test-unit` and the CI matrix, including
+`test-pybind-match`.
+
 Use Python's standard `unittest` unless the project intentionally adopts
 `pytest`; avoid adding a dependency solely for this work.
 
@@ -367,6 +390,13 @@ temporary files for CSV/YAML transformations so quoting and path behavior remain
 covered.
 
 ## Phase 8: Coverage, CI, and completion gate
+
+**Status:** Implemented. `make coverage` performs an isolated GCC branch-
+coverage build and emits HTML/XML reports through `gcovr`; CI runs it as a
+separate job. The regenerated inventory contains 968 in-scope callables: 852
+covered and 116 reviewed exemptions, with no missing rows. The inventory
+generator itself has focused regression coverage, and `check-unit-test-inventory`
+remains the completion gate for stale or unexplained entries.
 
 Add an optional coverage build using GCC coverage flags and `gcovr` or an
 equivalent tool. Exclude `tests/`, generated `.inc` data, and third-party headers.

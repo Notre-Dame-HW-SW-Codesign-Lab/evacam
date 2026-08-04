@@ -53,6 +53,6 @@ void WriteVariationSamplesCsv(std::ostream &os, const Result &result) {
            << summary.searchLatency.nominal << ","
            << summary.searchDynamicEnergy.nominal << ","
            << summary.senseMargin.nominal << ","
-           << summary.matchlineDelay.nominal << "\n";
+           << summary.referenceDelay.nominal << "\n";
     }
 }

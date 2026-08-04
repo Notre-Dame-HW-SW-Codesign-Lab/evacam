@@ -45,7 +45,9 @@ void CAM_SenseAmp::Initialize(
 
     normalSenseAmp = std::make_unique<SenseAmp>();
     normalSenseAmp->Initialize(numColumn, typeSA == nvsim_current_sense, senseVoltage, pitchSenseAmp, config);
-    if (isCustom == false && (typeSA != nvsim_voltage_sense && typeSA != nvsim_current_sense && typeSA != discharge )) {
+    if (!isCustom && typeSA != nvsim_voltage_sense && typeSA != nvsim_current_sense
+            && typeSA != discharge && typeSA != self_clock_sense
+            && typeSA != dual_threshold_sense) {
         normalSenseAmp->invalid = true;
         throw std::runtime_error("[CAM_SenseAmp] Error: sensing type is not supported.");
     }

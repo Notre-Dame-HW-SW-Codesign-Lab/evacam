@@ -33,6 +33,7 @@ void Result::Initialize(std::shared_ptr<EvaCamConfig> _config) {
 
     /* Default read latency optimization */
     optimizationTarget = read_latency_optimized;
+    initialized = true;
 }
 
 void Result::reset() {

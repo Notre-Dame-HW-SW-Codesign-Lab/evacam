@@ -36,6 +36,7 @@ struct EvaCamVariationDto {
     EvaCamMetricStatsDto searchLatency;
     EvaCamMetricStatsDto searchDynamicEnergy;
     EvaCamMetricStatsDto senseMargin;
+    EvaCamMetricStatsDto referenceDelay;
     std::vector<EvaCamVariationSampleDto> sampleData;
 };
 

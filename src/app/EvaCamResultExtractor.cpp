@@ -76,6 +76,7 @@ EvaCamVariationDto ExtractVariation(const CAM_SubArray &subarray) {
     variation.searchLatency = ExtractMetricStats(subarray.variationSummary.searchLatency);
     variation.searchDynamicEnergy = ExtractMetricStats(subarray.variationSummary.searchDynamicEnergy);
     variation.senseMargin = ExtractMetricStats(subarray.variationSummary.senseMargin);
+    variation.referenceDelay = ExtractMetricStats(subarray.variationSummary.referenceDelay);
 
     variation.sampleData.reserve(subarray.variationSamples.size());
     for (const CAMVariationSample &sample : subarray.variationSamples) {
