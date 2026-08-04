@@ -43,6 +43,7 @@ TEST_MATCH_BIN=$(TEST_BIN_DIR)/MatchTest
 TEST_MAT_DECODER_BIN=$(TEST_BIN_DIR)/MatDecoderRegressionTest
 TEST_HTREE_ROUTING_BIN=$(TEST_BIN_DIR)/HtreeRoutingRegressionTest
 TEST_EXHAUSTIVE_SEARCH_BIN=$(TEST_BIN_DIR)/ExhaustiveSearchRegressionTest
+TEST_SUPPORT_BIN=$(TEST_BIN_DIR)/TestSupportTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
 PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
@@ -93,9 +94,29 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
+
+unit-test-inventory:
+	python3 scripts/generate_unit_test_inventory.py
+
+check-unit-test-inventory:
+	python3 scripts/generate_unit_test_inventory.py --check
+
+test-unit: test-test-support test-yaml test-top-level-parser test-cell-loader test-cli-options \
+		test-custom-sa-loader test-technology-loader test-new-input-names \
+		test-input-validation test-output-path-builder test-exploration \
+		test-variation test-wire test-formula test-python-package-data
+
+test-regression: test-generated-v2-configs test-montecarlo test-corner test-match \
+		test-mat-decoder test-htree-routing test-exhaustive-search test-pybind-match \
+		test-pybind-run
+
+test-test-support: $(OBJECTS_NO_MAIN) tests/TestSupportTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_SUPPORT_BIN)).d -MT $(TEST_SUPPORT_BIN) -o $(TEST_SUPPORT_BIN) tests/TestSupportTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_SUPPORT_BIN)
 
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)

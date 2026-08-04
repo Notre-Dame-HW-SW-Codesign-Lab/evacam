@@ -1,0 +1,976 @@
+production_file	line	language	qualified_callable	visibility	status	dedicated_test_case	test_target	behaviors_or_branches_checked	exemption_or_refactor_note
+bindings/EvaCAM_Pybind.cpp	11	C++	PYBIND11_MODULE(evacam_py, module)	public	missing				Add a dedicated test
+evacam/__init__.py	7	Python	config_lib_path()	public	missing				Add a dedicated test
+include/app/EvaCAM_Match.h	20	C++	EvaCAM_Match::EvaCAM_Match(const EvaCAM_Match&)	public	exempt				deleted special member; no runtime behavior
+include/app/EvaCAM_Match.h	21	C++	EvaCAM_Match::operator=(const EvaCAM_Match&)	public	exempt				deleted special member; no runtime behavior
+include/app/Logger.h	11	C++	Logger::OutputMutex()	public	missing				Add a dedicated test
+include/app/Logger.h	18	C++	Logger::Line::Line(std::ostream *stream)	public	missing				Add a dedicated test
+include/app/Logger.h	20	C++	Logger::Line::Line(const Line&)	public	exempt				deleted special member; no runtime behavior
+include/app/Logger.h	21	C++	Logger::Line::operator=(const Line&)	public	exempt				deleted special member; no runtime behavior
+include/app/Logger.h	23	C++	Logger::Line::Line(Line&& other) noexcept	public	missing				Add a dedicated test
+include/app/Logger.h	28	C++	Logger::Line::~Line()	public	missing				Add a dedicated test
+include/app/Logger.h	37	C++	Logger::Line::operator<<(const T& value)	public	missing				Add a dedicated test
+include/app/Logger.h	43	C++	Logger::Line::operator<<(std::ostream& (*manip)(std::ostream&))	public	missing				Add a dedicated test
+include/app/Logger.h	49	C++	Logger::Line::operator<<(std::ios_base& (*manip)(std::ios_base&))	public	missing				Add a dedicated test
+include/app/Logger.h	60	C++	Logger::Logger(bool enabled = false)	public	missing				Add a dedicated test
+include/app/Logger.h	62	C++	Logger::SetVerbose(bool enabled)	public	missing				Add a dedicated test
+include/app/Logger.h	66	C++	Logger::IsVerbose() const	public	missing				Add a dedicated test
+include/app/Logger.h	70	C++	Logger::Log() const	public	missing				Add a dedicated test
+include/app/Logger.h	74	C++	Logger::Verbose() const	public	missing				Add a dedicated test
+include/cam/CAM_BasicEncoder.h	18	C++	CAM_BasicEncoder::CAM_BasicEncoder(const CAM_BasicEncoder&)	public	missing				Add a dedicated test
+include/cam/CAM_BasicEncoder.h	19	C++	CAM_BasicEncoder::~CAM_BasicEncoder()	public	missing				Add a dedicated test
+include/cam/CAM_BasicMMR.h	19	C++	CAM_BasicMMR::CAM_BasicMMR(const CAM_BasicMMR&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_BasicMMR.h	20	C++	CAM_BasicMMR::operator=(const CAM_BasicMMR&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_BasicMMR.h	21	C++	CAM_BasicMMR::~CAM_BasicMMR()	public	missing				Add a dedicated test
+include/cam/CAM_DataBuffer.h	15	C++	CAM_DataBuffer::CAM_DataBuffer(const CAM_DataBuffer&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_DataBuffer.h	16	C++	CAM_DataBuffer::operator=(const CAM_DataBuffer&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_DataBuffer.h	17	C++	CAM_DataBuffer::CAM_DataBuffer(CAM_DataBuffer&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_DataBuffer.h	18	C++	CAM_DataBuffer::operator=(CAM_DataBuffer&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_DataBuffer.h	19	C++	CAM_DataBuffer::~CAM_DataBuffer()	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_Encoder.h	11	C++	CAM_Encoder::CAM_Encoder(const CAM_Encoder&)	public	missing				Add a dedicated test
+include/cam/CAM_Encoder.h	12	C++	CAM_Encoder::~CAM_Encoder()	public	missing				Add a dedicated test
+include/cam/CAM_InputEncoder.h	16	C++	CAM_InputEncoder::CAM_InputEncoder(const CAM_InputEncoder&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_InputEncoder.h	17	C++	CAM_InputEncoder::operator=(const CAM_InputEncoder&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_InputEncoder.h	18	C++	CAM_InputEncoder::CAM_InputEncoder(CAM_InputEncoder&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_InputEncoder.h	19	C++	CAM_InputEncoder::operator=(CAM_InputEncoder&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_InputEncoder.h	20	C++	CAM_InputEncoder::~CAM_InputEncoder()	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_LevelShifter.h	15	C++	CAM_LevelShifter::CAM_LevelShifter(const CAM_LevelShifter&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_LevelShifter.h	16	C++	CAM_LevelShifter::operator=(const CAM_LevelShifter&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_LevelShifter.h	17	C++	CAM_LevelShifter::~CAM_LevelShifter()	public	missing				Add a dedicated test
+include/cam/CAM_Line.h	17	C++	CAM_Line::CAM_Line()	public	missing				Add a dedicated test
+include/cam/CAM_Line.h	22	C++	CAM_Line::CAM_Line(const CAM_Line&)	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_Line.h	23	C++	CAM_Line::operator=(const CAM_Line&)	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_Line.h	24	C++	CAM_Line::CAM_Line(CAM_Line&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_Line.h	25	C++	CAM_Line::operator=(CAM_Line&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_Line.h	26	C++	CAM_Line::~CAM_Line()	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_MMR.h	18	C++	CAM_MMR::CAM_MMR(const CAM_MMR&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_MMR.h	19	C++	CAM_MMR::operator=(const CAM_MMR&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_MMR.h	20	C++	CAM_MMR::~CAM_MMR()	public	missing				Add a dedicated test
+include/cam/CAM_OutputAccumulator.h	11	C++	CAM_OutputAccumulator::CAM_OutputAccumulator(const CAM_OutputAccumulator&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_OutputAccumulator.h	12	C++	CAM_OutputAccumulator::operator=(const CAM_OutputAccumulator&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_OutputAccumulator.h	13	C++	CAM_OutputAccumulator::~CAM_OutputAccumulator()	public	missing				Add a dedicated test
+include/cam/CAM_PriorityEncoder.h	16	C++	CAM_PriorityEncoder::CAM_PriorityEncoder(const CAM_PriorityEncoder&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_PriorityEncoder.h	17	C++	CAM_PriorityEncoder::operator=(const CAM_PriorityEncoder&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_PriorityEncoder.h	18	C++	CAM_PriorityEncoder::~CAM_PriorityEncoder()	public	missing				Add a dedicated test
+include/cam/CAM_SenseAmp.h	16	C++	CAM_SenseAmp::CAM_SenseAmp(const CAM_SenseAmp&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_SenseAmp.h	17	C++	CAM_SenseAmp::operator=(const CAM_SenseAmp&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_SenseAmp.h	18	C++	CAM_SenseAmp::CAM_SenseAmp(CAM_SenseAmp&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_SenseAmp.h	19	C++	CAM_SenseAmp::operator=(CAM_SenseAmp&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_SenseAmp.h	20	C++	CAM_SenseAmp::~CAM_SenseAmp()	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_SubArray.h	78	C++	CAM_SubArray::CAM_SubArray()	public	missing				Add a dedicated test
+include/cam/CAM_SubArray.h	95	C++	CAM_SubArray::CAM_SubArray(const CAM_SubArray&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_SubArray.h	96	C++	CAM_SubArray::operator=(const CAM_SubArray&)	public	exempt				deleted special member; no runtime behavior
+include/cam/CAM_SubArray.h	97	C++	CAM_SubArray::CAM_SubArray(CAM_SubArray&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_SubArray.h	98	C++	CAM_SubArray::operator=(CAM_SubArray&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/cam/CAM_SubArray.h	99	C++	CAM_SubArray::~CAM_SubArray()	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/BasicDecoder.h	10	C++	BasicDecoder::BasicDecoder()	public	missing				Add a dedicated test
+include/circuit/BasicDecoder.h	13	C++	BasicDecoder::BasicDecoder(const BasicDecoder&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/BasicDecoder.h	14	C++	BasicDecoder::operator=(const BasicDecoder&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/BasicDecoder.h	15	C++	BasicDecoder::BasicDecoder(BasicDecoder&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/BasicDecoder.h	16	C++	BasicDecoder::operator=(BasicDecoder&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/BasicDecoder.h	17	C++	BasicDecoder::~BasicDecoder()	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/FunctionUnit.h	13	C++	FunctionUnit::FunctionUnit(const FunctionUnit&)	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/FunctionUnit.h	14	C++	FunctionUnit::~FunctionUnit()	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/FunctionUnit.h	41	C++	FunctionUnit::ThrowInitializationError(const char *component)	protected	missing				Add a dedicated test
+include/circuit/Mux.h	10	C++	Mux::~Mux()	public	missing				Add a dedicated test
+include/circuit/OutputDriver.h	11	C++	OutputDriver::OutputDriver()	public	missing				Add a dedicated test
+include/circuit/OutputDriver.h	15	C++	OutputDriver::OutputDriver(const OutputDriver&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/OutputDriver.h	16	C++	OutputDriver::~OutputDriver()	public	missing				Add a dedicated test
+include/circuit/Precharger.h	11	C++	Precharger::Precharger()	public	missing				Add a dedicated test
+include/circuit/Precharger.h	15	C++	Precharger::Precharger(const Precharger&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/Precharger.h	16	C++	Precharger::operator=(const Precharger&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/Precharger.h	17	C++	Precharger::Precharger(Precharger&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/Precharger.h	18	C++	Precharger::operator=(Precharger&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/Precharger.h	19	C++	Precharger::~Precharger()	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/PredecodeBlock.h	12	C++	PredecodeBlock::PredecodeBlock()	public	missing				Add a dedicated test
+include/circuit/PredecodeBlock.h	15	C++	PredecodeBlock::PredecodeBlock(const PredecodeBlock&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/PredecodeBlock.h	16	C++	PredecodeBlock::operator=(const PredecodeBlock&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/PredecodeBlock.h	17	C++	PredecodeBlock::PredecodeBlock(PredecodeBlock&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/PredecodeBlock.h	18	C++	PredecodeBlock::operator=(PredecodeBlock&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/PredecodeBlock.h	19	C++	PredecodeBlock::~PredecodeBlock()	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/RowDecoder.h	10	C++	RowDecoder::RowDecoder()	public	missing				Add a dedicated test
+include/circuit/RowDecoder.h	14	C++	RowDecoder::RowDecoder(const RowDecoder&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/RowDecoder.h	15	C++	RowDecoder::operator=(const RowDecoder&)	public	exempt				deleted special member; no runtime behavior
+include/circuit/RowDecoder.h	16	C++	RowDecoder::RowDecoder(RowDecoder&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/RowDecoder.h	17	C++	RowDecoder::operator=(RowDecoder&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/RowDecoder.h	18	C++	RowDecoder::~RowDecoder()	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/SenseAmp.h	9	C++	SenseAmp::SenseAmp()	public	missing				Add a dedicated test
+include/circuit/SenseAmp.h	14	C++	SenseAmp::~SenseAmp()	public	missing				Add a dedicated test
+include/circuit/Wire.h	11	C++	Wire::Wire()	public	missing				Add a dedicated test
+include/circuit/Wire.h	14	C++	Wire::Wire(const Wire&)	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/Wire.h	15	C++	Wire::operator=(const Wire&)	public	exempt				explicitly defaulted special member; no custom behavior
+include/circuit/Wire.h	16	C++	Wire::~Wire()	public	missing				Add a dedicated test
+include/config/EvaCamConfig.h	43	C++	EvaCamConfig::EvaCamConfig()	public	missing				Add a dedicated test
+include/config/EvaCamConfig.h	46	C++	EvaCamConfig::EvaCamConfig(const EvaCamConfig&)	public	exempt				deleted special member; no runtime behavior
+include/config/EvaCamConfig.h	47	C++	EvaCamConfig::~EvaCamConfig()	public	missing				Add a dedicated test
+include/config/OutputFileLock.h	9	C++	OutputFileLock::OutputFileLock()	public	exempt				explicitly defaulted special member; no custom behavior
+include/config/OutputFileLock.h	11	C++	OutputFileLock::OutputFileLock(const OutputFileLock&)	public	exempt				deleted special member; no runtime behavior
+include/config/OutputFileLock.h	12	C++	OutputFileLock::operator=(const OutputFileLock&)	public	exempt				deleted special member; no runtime behavior
+include/input/YamlNodeHelpers.h	21	C++	YamlHelpers::value_string(T value)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	39	C++	YamlHelpers::require_finite(T value, const std::string& what)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	49	C++	YamlHelpers::require_positive(T value, const std::string& what)	public	covered	tests/YamlHelpersTest.cpp::test_physical_domain_helpers_are_descriptive	test-yaml	physical domain helpers are descriptive	
+include/input/YamlNodeHelpers.h	60	C++	YamlHelpers::require_non_negative(T value, const std::string& what)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	71	C++	YamlHelpers::require_non_zero(T value, const std::string& what)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	81	C++	"YamlHelpers::require_range(T value, T minimum, T maximum, const std::string& what, const std::string& rangeDescription = """")"	public	covered	tests/YamlHelpersTest.cpp::test_physical_domain_helpers_are_descriptive	test-yaml	physical domain helpers are descriptive	
+include/input/YamlNodeHelpers.h	96	C++	YamlHelpers::checked_integer(double value, const std::string& what)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	117	C++	YamlHelpers::read_required(const YAML::Node& parent, const char* key)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	128	C++	YamlHelpers::read_scalar_required(const YAML::Node& node, const char* what)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	141	C++	YamlHelpers::read_required_index(const YAML::Node& parent, size_t idx, const char* what)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	152	C++	YamlHelpers::read_optional(const YAML::Node& parent, const char* key, const T& def)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	168	C++	YamlHelpers::read_enum_required( const YAML::Node& parent, const char* key, bool case_sensitive = true)	public	missing				Add a dedicated test
+include/input/YamlNodeHelpers.h	195	C++	YamlHelpers::read_enum_required( const YAML::Node& parent, const char* key, std::initializer_list<std::pair<const char*, Enum>> mapping, bool case_sensitive = true)	public	missing				Add a dedicated test
+include/model/Bank.h	16	C++	Bank::Bank()	public	missing				Add a dedicated test
+include/model/Bank.h	21	C++	Bank::Bank(const Bank&)	public	exempt				deleted special member; no runtime behavior
+include/model/Bank.h	22	C++	Bank::operator=(const Bank&)	public	exempt				deleted special member; no runtime behavior
+include/model/Bank.h	23	C++	Bank::Bank(Bank&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Bank.h	24	C++	Bank::operator=(Bank&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Bank.h	25	C++	Bank::~Bank()	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Bank.h	32	C++	Bank::Initialize(int _numRowMat, int _numColumnMat, long long _capacity, long _blockSize, int _numActiveMatPerRow, int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray, int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn, BufferDesignTarget _areaOptimizationLevel, CAMType _camType, SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt)	public	exempt				pure-virtual declaration; concrete overrides are inventoried
+include/model/Bank.h	42	C++	Bank::CalculateArea()	public	exempt				pure-virtual declaration; concrete overrides are inventoried
+include/model/Bank.h	43	C++	Bank::CalculateRC()	public	exempt				pure-virtual declaration; concrete overrides are inventoried
+include/model/Bank.h	44	C++	Bank::CalculateLatencyAndPower()	public	exempt				pure-virtual declaration; concrete overrides are inventoried
+include/model/BankWithHtree.h	18	C++	BankWithHtree::BankWithHtree(const BankWithHtree&)	public	exempt				deleted special member; no runtime behavior
+include/model/BankWithHtree.h	19	C++	BankWithHtree::operator=(const BankWithHtree&)	public	exempt				deleted special member; no runtime behavior
+include/model/BankWithHtree.h	20	C++	BankWithHtree::BankWithHtree(BankWithHtree&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/BankWithHtree.h	21	C++	BankWithHtree::operator=(BankWithHtree&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/BankWithHtree.h	22	C++	BankWithHtree::~BankWithHtree() override	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/BankWithoutHtree.h	10	C++	BankWithoutHtree::BankWithoutHtree()	public	missing				Add a dedicated test
+include/model/BankWithoutHtree.h	14	C++	BankWithoutHtree::BankWithoutHtree(const BankWithoutHtree&)	public	exempt				deleted special member; no runtime behavior
+include/model/BankWithoutHtree.h	15	C++	BankWithoutHtree::operator=(const BankWithoutHtree&)	public	exempt				deleted special member; no runtime behavior
+include/model/BankWithoutHtree.h	16	C++	BankWithoutHtree::BankWithoutHtree(BankWithoutHtree&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/BankWithoutHtree.h	17	C++	BankWithoutHtree::operator=(BankWithoutHtree&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/BankWithoutHtree.h	18	C++	BankWithoutHtree::~BankWithoutHtree()	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Mat.h	15	C++	Mat::Mat()	public	missing				Add a dedicated test
+include/model/Mat.h	19	C++	Mat::Mat(const Mat&)	public	exempt				deleted special member; no runtime behavior
+include/model/Mat.h	20	C++	Mat::operator=(const Mat&)	public	exempt				deleted special member; no runtime behavior
+include/model/Mat.h	21	C++	Mat::Mat(Mat&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Mat.h	22	C++	Mat::operator=(Mat&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Mat.h	23	C++	Mat::~Mat()	public	exempt				explicitly defaulted special member; no custom behavior
+include/model/Result.h	15	C++	Result::Result()	public	missing				Add a dedicated test
+include/model/Result.h	16	C++	Result::Result(const Result&)	public	missing				Add a dedicated test
+include/model/Result.h	17	C++	Result::~Result()	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	11	C++	operator<<(std::ostream &os, const FormattedUnit &unit)	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	15	C++	ToSecond(double value)	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	31	C++	ToBps(double value)	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	47	C++	ToJoule(double value)	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	63	C++	ToWatt(double value)	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	79	C++	ToMeter(double value)	public	missing				Add a dedicated test
+include/output/UnitFormatter.h	95	C++	ToSquareMeter(double value)	public	missing				Add a dedicated test
+include/technology/MemCell.h	13	C++	MemCell::MemCell(const MemCell&)	public	missing				Add a dedicated test
+include/technology/MemCell.h	14	C++	MemCell::~MemCell()	public	missing				Add a dedicated test
+include/technology/Technology.h	12	C++	Technology::Technology()	public	missing				Add a dedicated test
+include/technology/Technology.h	15	C++	Technology::Technology(const Technology&)	public	exempt				explicitly defaulted special member; no custom behavior
+include/technology/Technology.h	16	C++	Technology::~Technology()	public	missing				Add a dedicated test
+include/technology/Technology.h	23	C++	Technology::initialized() const	public	missing				Add a dedicated test
+include/technology/Technology.h	24	C++	Technology::featureSizeInNano() const	public	covered	tests/TechnologyYamlLoaderTest.cpp::TestRuntimeUsesTechnologyFile	test-technology-loader	runtime uses technology file	
+include/technology/Technology.h	25	C++	Technology::featureSize() const	public	missing				Add a dedicated test
+include/technology/Technology.h	26	C++	Technology::deviceRoadmap() const	public	covered	tests/TechnologyYamlLoaderTest.cpp::TestRuntimeUsesTechnologyFile	test-technology-loader	runtime uses technology file	
+include/technology/Technology.h	27	C++	Technology::vdd() const	public	missing				Add a dedicated test
+include/technology/Technology.h	28	C++	Technology::vth() const	public	missing				Add a dedicated test
+include/technology/Technology.h	29	C++	Technology::vdsatNmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	30	C++	Technology::vdsatPmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	31	C++	Technology::phyGateLength() const	public	missing				Add a dedicated test
+include/technology/Technology.h	32	C++	Technology::capIdealGate() const	public	missing				Add a dedicated test
+include/technology/Technology.h	33	C++	Technology::capFringe() const	public	missing				Add a dedicated test
+include/technology/Technology.h	34	C++	Technology::capJunction() const	public	missing				Add a dedicated test
+include/technology/Technology.h	35	C++	Technology::capOverlap() const	public	missing				Add a dedicated test
+include/technology/Technology.h	36	C++	Technology::capSidewall() const	public	missing				Add a dedicated test
+include/technology/Technology.h	37	C++	Technology::capDrainToChannel() const	public	missing				Add a dedicated test
+include/technology/Technology.h	38	C++	Technology::capOx() const	public	missing				Add a dedicated test
+include/technology/Technology.h	39	C++	Technology::buildInPotential() const	public	missing				Add a dedicated test
+include/technology/Technology.h	40	C++	Technology::effectiveElectronMobility() const	public	missing				Add a dedicated test
+include/technology/Technology.h	41	C++	Technology::effectiveHoleMobility() const	public	missing				Add a dedicated test
+include/technology/Technology.h	42	C++	Technology::pnSizeRatio() const	public	missing				Add a dedicated test
+include/technology/Technology.h	43	C++	Technology::effectiveResistanceMultiplier() const	public	missing				Add a dedicated test
+include/technology/Technology.h	44	C++	Technology::currentOnNmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	45	C++	Technology::currentOnPmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	46	C++	Technology::currentOffNmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	47	C++	Technology::currentOffPmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	48	C++	Technology::capPolywire() const	public	missing				Add a dedicated test
+include/technology/Technology.h	49	C++	Technology::currentGmNmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	50	C++	Technology::currentGmPmos() const	public	missing				Add a dedicated test
+include/technology/Technology.h	51	C++	Technology::heightFin() const	public	missing				Add a dedicated test
+include/technology/Technology.h	52	C++	Technology::widthFin() const	public	missing				Add a dedicated test
+include/technology/Technology.h	53	C++	Technology::pitchFin() const	public	missing				Add a dedicated test
+include/technology/Technology.h	54	C++	Technology::useUpdatedLib() const	public	covered	tests/TechnologyYamlLoaderTest.cpp::TestRuntimeUsesTechnologyFile	test-technology-loader	runtime uses technology file	
+scripts/analyze_corner_sweep.py	70	Python	parse_args()	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	110	Python	read_csv(path)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	117	Python	validate_inputs(summary_rows, manifest_rows, allow_incomplete)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	145	Python	as_float(row, column)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	159	Python	percent_range(minimum, maximum, nominal)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	165	Python	percent_deviation(value, nominal)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	171	Python	derive_rows(summary_rows)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	246	Python	write_csv(path, rows, fieldnames=<default>)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	258	Python	ranked_rows(rows, metric, direction, top)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	268	Python	build_main_effects(rows)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	296	Python	build_sensitivity(main_effects)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	324	Python	setup_matplotlib()	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	338	Python	plot_main_effects(main_effects, output_dir, plt)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	413	Python	plot_distributions(rows, output_dir, plt)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	449	Python	format_number(value)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	453	Python	write_report(output_dir, rows, manifest_rows, sensitivity, threshold_mv, top, plots_written)	public	missing				Add a dedicated test
+scripts/analyze_corner_sweep.py	538	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/generate_corner_variation_table.py	34	Python	sample_key(row)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	38	Python	read_rows(path)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	52	Python	available_metrics(rows, include_internal)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	61	Python	metric_value(row, column, scale)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	66	Python	bound_row(rows, column, scale, bound)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	76	Python	sorted_metric_rows(rows, column, scale)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	83	Python	metric_ranks(rows, metrics)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	91	Python	format_value(value)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	95	Python	format_changed(previous_row, row)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	107	Python	column_name(column)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	115	Python	markdown_escape(value)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	119	Python	markdown_table(headers, rows)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	129	Python	build_table(rows, include_internal=<default>)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	199	Python	default_output_path(csv_path)	public	missing				Add a dedicated test
+scripts/generate_corner_variation_table.py	206	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/generate_unit_test_inventory.py	61	Python	node_text(source, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	65	Python	walk(node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	71	Python	descendants(node, node_type)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	77	Python	closest_ancestor(node, node_types)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	86	Python	cpp_class_name(source, class_node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	91	Python	cpp_namespace_names(source, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	107	Python	cpp_enclosing_classes(source, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	118	Python	cpp_access(source, node, class_node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	133	Python	find_function_declarator(node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	143	Python	function_name_node(function_declarator)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	150	Python	normalize_signature(text)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	154	Python	unqualified_name(name)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	159	Python	cpp_callable_from_node(path, source, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	229	Python	cpp_header_visibility(parser)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	261	Python	cpp_callables(parser)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	288	Python	python_signature(node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	309	Python	PythonCallableVisitor::__init__(self, path)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+scripts/generate_unit_test_inventory.py	314	Python	PythonCallableVisitor::visit_ClassDef(self, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	319	Python	PythonCallableVisitor::visit_FunctionDef(self, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	324	Python	PythonCallableVisitor::visit_AsyncFunctionDef(self, node)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	328	Python	PythonCallableVisitor::_add_function(self, node)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+scripts/generate_unit_test_inventory.py	349	Python	python_callables()	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	359	Python	make_targets()	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	371	Python	named_test_references(parser)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	461	Python	deduplicate(callables)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	470	Python	render(callables, references)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	507	Python	relevant_reference(callable_, reference)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	519	Python	behavior_names(matched_)	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	579	Python	parse_args()	public	missing				Add a dedicated test
+scripts/generate_unit_test_inventory.py	590	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/generate_variation_mc_sweep.py	19	Python	replace_or_append_variation_block(text, stdev)	public	missing				Add a dedicated test
+scripts/generate_variation_mc_sweep.py	40	Python	replace_scalar(text, key, value)	public	missing				Add a dedicated test
+scripts/generate_variation_mc_sweep.py	53	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/migrate_configs_to_v2.py	22	Python	load_yaml(path)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	30	Python	write_yaml(path, data)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	36	Python	role_base(path, suffix)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	43	Python	legacy_cell_base(path)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	52	Python	relpath(from_file, to_file)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	59	Python	relative_reference(from_file, target)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	65	Python	normalize_type(value)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	69	Python	convert_tool(tool_file)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	117	Python	propagate_match_transistor(cell_legacy, arch_v2)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	133	Python	convert_architecture(architecture_file)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	191	Python	make_memory_device(root, base)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	222	Python	convert_cell(cell_file, report_rows)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	302	Python	iter_legacy_files(pattern)	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	310	Python	referenced_legacy_cell_files()	public	missing				Add a dedicated test
+scripts/migrate_configs_to_v2.py	320	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/plot_corner_variation.py	28	Python	read_rows(path)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	42	Python	metric_points(rows, column, scale)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	59	Python	nominal_value(rows, column, scale)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	70	Python	available_metrics(rows, include_internal)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	82	Python	bound_point(points, bound)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	87	Python	opposite_bound(bound)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	91	Python	corner_code(point)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	101	Python	ordered_points(points, order)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	110	Python	format_value(value, unit)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	114	Python	plot_corner_variation(rows, output_path, include_internal=<default>, order=<default>)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	240	Python	default_output_path(csv_path, order=<default>)	public	missing				Add a dedicated test
+scripts/plot_corner_variation.py	249	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/plot_variation_histograms.py	22	Python	read_samples(path)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	30	Python	column_values(rows, column, scale)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	40	Python	available_metrics(rows, include_internal)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	52	Python	metric_stats(values)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	58	Python	format_stat(value, unit)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	62	Python	plot_histograms(rows, output_path, bins, include_internal=<default>)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	120	Python	default_output_path(csv_path)	public	missing				Add a dedicated test
+scripts/plot_variation_histograms.py	127	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/plot_variation_qq.py	19	Python	read_samples(path)	public	missing				Add a dedicated test
+scripts/plot_variation_qq.py	27	Python	column_values(rows, column, scale)	public	missing				Add a dedicated test
+scripts/plot_variation_qq.py	35	Python	available_metrics(rows)	public	missing				Add a dedicated test
+scripts/plot_variation_qq.py	46	Python	plot_qq(rows, output_path)	public	missing				Add a dedicated test
+scripts/plot_variation_qq.py	109	Python	default_output_path(csv_path)	public	missing				Add a dedicated test
+scripts/plot_variation_qq.py	116	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/poster_figures.py	32	Python	read_rows(path)	public	missing				Add a dedicated test
+scripts/poster_figures.py	40	Python	values(rows, column, scale)	public	missing				Add a dedicated test
+scripts/poster_figures.py	51	Python	nominal(rows, column, scale)	public	missing				Add a dedicated test
+scripts/poster_figures.py	60	Python	metric_rows(rows)	public	missing				Add a dedicated test
+scripts/poster_figures.py	64	Python	percent_delta(value, baseline)	public	missing				Add a dedicated test
+scripts/poster_figures.py	68	Python	style_matplotlib()	public	missing				Add a dedicated test
+scripts/poster_figures.py	92	Python	clean_axis(axis)	public	missing				Add a dedicated test
+scripts/poster_figures.py	101	Python	save_figure(fig, output_path, png_dpi)	public	missing				Add a dedicated test
+scripts/poster_figures.py	107	Python	plot_monte_carlo(rows, output_path, png_dpi)	public	missing				Add a dedicated test
+scripts/poster_figures.py	137	Python	corner_label(row)	public	missing				Add a dedicated test
+scripts/poster_figures.py	142	Python	plot_corner(rows, output_path, png_dpi)	public	missing				Add a dedicated test
+scripts/poster_figures.py	186	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/run_corner_sweep.py	62	Python	RunSpec::run_id(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	70	Python	RunSpec::run_dir(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	74	Python	RunSpec::expected_corners(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	78	Python	RunSpec::cell_path(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	82	Python	RunSpec::memory_device_path(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	86	Python	RunSpec::tool_path(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	90	Python	RunSpec::result_path(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	94	Python	RunSpec::samples_path(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	98	Python	RunSpec::log_path(self)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	102	Python	all_specs(fields, sweep_values)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	113	Python	split_cli_values(raw_values)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	120	Python	parse_corner_fields(raw_fields)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	140	Python	parse_corner_values(raw_values)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	160	Python	relative_to_root(path)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	164	Python	replace_variation_block(text, spec)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	190	Python	replace_reference(text, key, referenced_path, owner_dir)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	206	Python	manifest_row(spec, status, elapsed_seconds=<default>, message=<default>)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	224	Python	selected_percent(spec, short_name)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	231	Python	write_csv_atomic(path, fieldnames, rows)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	241	Python	generate_configs(specs, overwrite)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	273	Python	completed(spec)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	284	Python	generate_artifacts(spec, log_file)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	319	Python	run_one(spec, force, artifacts)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	361	Python	summary_row(spec)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	385	Python	write_summary(specs)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	398	Python	run_sweep(specs, jobs, force, artifacts)	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	440	Python	parse_args()	public	missing				Add a dedicated test
+scripts/run_corner_sweep.py	493	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/sync_python_package_config_lib.py	15	Python	FileHashes(root)	public	missing				Add a dedicated test
+scripts/sync_python_package_config_lib.py	26	Python	IsSynchronized()	public	missing				Add a dedicated test
+scripts/sync_python_package_config_lib.py	30	Python	Sync()	public	missing				Add a dedicated test
+scripts/sync_python_package_config_lib.py	37	Python	main()	public	missing				Add a focused boundary test for this entry point
+scripts/test_variation_normality.py	23	Python	read_samples(path)	public	missing				Add a dedicated test
+scripts/test_variation_normality.py	31	Python	column_values(rows, column)	public	missing				Add a dedicated test
+scripts/test_variation_normality.py	39	Python	main()	public	missing				Add a focused boundary test for this entry point
+src/app/EvaCAM_Match.cpp	14	C++	EvaCAM_Match::EvaCAM_Match(const std::string &configPath)	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	25	C++	EvaCAM_Match::EvaCAM_Match(EvaCAM_Match&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+src/app/EvaCAM_Match.cpp	27	C++	EvaCAM_Match::operator=(EvaCAM_Match&&) noexcept	public	exempt				explicitly defaulted special member; no custom behavior
+src/app/EvaCAM_Match.cpp	29	C++	EvaCAM_Match::match(const std::vector<int> &stored, const std::vector<int> &query) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	33	C++	EvaCAM_Match::evaluate_vector(const std::vector<int> &stored, const std::vector<int> &query) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	48	C++	EvaCAM_Match::evaluate_mismatches(int mismatches) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	54	C++	EvaCAM_Match::evaluate_threshold( const std::vector<int> &stored, const std::vector<int> &query, int maxMismatches) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	65	C++	EvaCAM_Match::evaluate_threshold(int mismatches, int maxMismatches) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	76	C++	EvaCAM_Match::evaluate_vector( const std::vector<std::pair<double, double>> &stored, const std::vector<double> &query) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	97	C++	EvaCAM_Match::evaluate_array(const std::vector<int> &mismatchCounts) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	121	C++	EvaCAM_Match::evaluate_array( const std::vector<std::vector<int>> &storedRows, const std::vector<int> &query) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	157	C++	EvaCAM_Match::evaluate_array( const std::vector<std::vector<std::pair<double, double>>> &storedRows, const std::vector<double> &query) const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	174	C++	EvaCAM_Match::word_width() const	public	missing				Add a dedicated test
+src/app/EvaCAM_Match.cpp	178	C++	EvaCAM_Match::InitializeConfiguredBank()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	227	C++	EvaCAM_Match::BuildMismatchLut()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	244	C++	EvaCAM_Match::EnsureInitialized() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	250	C++	EvaCAM_Match::EvaluateExactVector( const std::vector<int> &stored, const std::vector<int> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	267	C++	EvaCAM_Match::EvaluateBestVector( const std::vector<int> &stored, const std::vector<int> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	286	C++	EvaCAM_Match::EvaluateThresholdVector( const std::vector<int> &stored, const std::vector<int> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	305	C++	EvaCAM_Match::EvaluateExactTcamVector( const std::vector<int> &stored, const std::vector<int> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	314	C++	EvaCAM_Match::EvaluateExactAcamVector( const std::vector<std::pair<double, double>> &stored, const std::vector<double> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	322	C++	EvaCAM_Match::EvaluateBestAcamVector( const std::vector<std::pair<double, double>> &stored, const std::vector<double> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	330	C++	EvaCAM_Match::EvaluateThresholdAcamVector( const std::vector<std::pair<double, double>> &stored, const std::vector<double> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	338	C++	EvaCAM_Match::EvaluateBestTcamArray( const std::vector<int> &mismatchCounts) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	355	C++	EvaCAM_Match::LookupMismatchResult(int mismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	362	C++	EvaCAM_Match::CountTcamMismatches(const std::vector<int> &stored, const std::vector<int> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	375	C++	EvaCAM_Match::MaxDetectableMismatches() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	387	C++	EvaCAM_Match::ValidateTcamMismatchCounts(const std::vector<int> &mismatchCounts) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	396	C++	EvaCAM_Match::ValidateBestMatchSenseMargin( const std::vector<int> &mismatchCounts, int bestMismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	418	C++	EvaCAM_Match::ValidateTcamMismatchCount(int mismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	427	C++	EvaCAM_Match::ValidateMismatchCount(int mismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	434	C++	EvaCAM_Match::ValidateMaxMismatches(int maxMismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	440	C++	EvaCAM_Match::ValidateThresholdSenseMargin(int maxMismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	452	C++	EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const char *name) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	463	C++	EvaCAM_Match::ValidateVectorLength(size_t size, const char *name) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	470	C++	EvaCAM_Match::ValidateTcamStoredVector(const std::vector<int> &value, const char *name) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	481	C++	EvaCAM_Match::ValidateAnalogVector(const std::vector<double> &value, const char *name) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	485	C++	EvaCAM_Match::ValidateAcamRangeVector( const std::vector<std::pair<double, double>> &value, const char *name) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	498	C++	EvaCAM_Match::CreateLocalWire() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCAM_Match.cpp	511	C++	EvaCAM_Match::CreateGlobalWire() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamContextBuilder.cpp	10	C++	ValidateInputFile(const std::string &inputFileName)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamContextBuilder.cpp	18	C++	EvaCamContextBuilder::Build(const CliOptions &options)	public	missing				Add a dedicated test
+src/app/EvaCamExplorer.cpp	29	C++	EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config, int numThreads)	public	missing				Add a dedicated test
+src/app/EvaCamExplorer.cpp	34	C++	EvaCamExplorer::Run()	public	missing				Add a dedicated test
+src/app/EvaCamExplorer.cpp	57	C++	EvaCamExplorer::InitializeExploration()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	79	C++	EvaCamExplorer::InitializeBestResults()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	83	C++	EvaCamExplorer::InitializeWireCandidates()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	120	C++	EvaCamExplorer::CreateBestResultsBuffer() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	130	C++	EvaCamExplorer::OpenExplorationCsv()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	147	C++	EvaCamExplorer::RunExplorationPass(const ResultLimits *limits)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	219	C++	EvaCamExplorer::PrintSolutionCount()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	229	C++	EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray, std::vector<std::shared_ptr<Result>> &bestResults, long long &numSolutions, std::ostream *csvStream, const ResultLimits *limits)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	297	C++	EvaCamExplorer::RunConstrainedExploration()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	311	C++	EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat, int numRowSubarray, int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn, int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp, int muxOutputLev1, int muxOutputLev2, BufferDesignTarget areaOptimizationLevel, const Wire &localWire, const Wire &globalWire, const CAM_Opt &camOpt) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	326	C++	EvaCamExplorer::MakeResult(const std::shared_ptr<Bank> &bank, const Wire &localWire, const Wire &globalWire) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	337	C++	EvaCamExplorer::IsValidCandidate(const std::shared_ptr<Bank> &bank) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	341	C++	EvaCamExplorer::MeetsConstraints(const std::shared_ptr<Bank> &bank, const ResultLimits *limits) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	354	C++	EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	381	C++	EvaCamExplorer::UpdateBestResults(std::vector<std::shared_ptr<Result>> &bestResults, const std::shared_ptr<Result> &result) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	388	C++	EvaCamExplorer::MergeBestResults(const std::vector<std::shared_ptr<Result>> &bestResults)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	394	C++	EvaCamExplorer::FlushExplorationCsvBuffer(const std::string &buffer)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamExplorer.cpp	407	C++	EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	22	C++	PrintVariationMetric(const char *name, double scale, const char *unit, const CAMMetricStats &stats)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	35	C++	PrintVariationSampleMetric(const char *name, double scale, const char *unit, const CAMMetricStats &stats)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	48	C++	OptimizationTargetName(OptimizationTarget t)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	78	C++	HasVariationSamples(const std::shared_ptr<Result> &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	88	C++	HasMonteCarloSamples(const std::shared_ptr<Result> &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	93	C++	WriteVariationSamplesFile(const Result &result, const std::string &path)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	106	C++	ShellQuote(const std::string &value)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	119	C++	WriteVariationHistogramFile(const std::string &samplesPath, const std::string &plotPath)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamOutput.cpp	150	C++	EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config, long long numSolution, const std::vector<std::shared_ptr<Result>> &bestResults, const std::string &explorationOutputFileName)	public	missing				Add a dedicated test
+src/app/EvaCamOutput.cpp	256	C++	EvaCamOutput::WriteYamlResults(const EvaCamConfig &config, const std::string &outputYamlFileName, long long numSolution, const std::vector<std::shared_ptr<Result>> &bestResults)	public	missing				Add a dedicated test
+src/app/EvaCamResultExtractor.cpp	17	C++	OptimizationTargetName(OptimizationTarget target)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	35	C++	SafeCellArea(const Result &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	45	C++	SafeRatio(double numerator, double denominator)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	53	C++	HasUnit(const std::unique_ptr<T> &unit)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	57	C++	ExtractMetricStats(const CAMMetricStats &stats)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	70	C++	ExtractVariation(const CAM_SubArray &subarray)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	97	C++	AddCoreSummary(EvaCamDesignResultDto &dto, const Result &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	154	C++	AddGeometry(EvaCamDesignResultDto &dto, const Result &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	180	C++	AddBreakdown(EvaCamDesignResultDto &dto, const Result &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	368	C++	ExtractDesignResult(const Result &result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamResultExtractor.cpp	380	C++	ExtractEvaCamRunResult( long long numSolutions, const std::vector<std::shared_ptr<Result>> &bestResults, const std::string &explorationCsvPath, const std::string &outputYamlPath)	public	missing				Add a dedicated test
+src/app/EvaCamRun.cpp	17	C++	ScopedStdoutRedirect::ScopedStdoutRedirect(bool enabled)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamRun.cpp	23	C++	ScopedStdoutRedirect::~ScopedStdoutRedirect()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamRun.cpp	29	C++	ScopedStdoutRedirect::ScopedStdoutRedirect(const ScopedStdoutRedirect&)	file-local	exempt				deleted special member; no runtime behavior
+src/app/EvaCamRun.cpp	30	C++	ScopedStdoutRedirect::operator=(const ScopedStdoutRedirect&)	file-local	exempt				deleted special member; no runtime behavior
+src/app/EvaCamRun.cpp	38	C++	BuildCliOptions(const EvaCamRunOptions &options)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/EvaCamRun.cpp	51	C++	RunEvaCam(const EvaCamRunOptions &options)	public	missing				Add a dedicated test
+src/app/main.cpp	17	C++	ScopedStdoutRedirect::ScopedStdoutRedirect(bool enabled)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/main.cpp	23	C++	ScopedStdoutRedirect::~ScopedStdoutRedirect()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/app/main.cpp	29	C++	ScopedStdoutRedirect::ScopedStdoutRedirect(const ScopedStdoutRedirect&)	file-local	exempt				deleted special member; no runtime behavior
+src/app/main.cpp	30	C++	ScopedStdoutRedirect::operator=(const ScopedStdoutRedirect&)	file-local	exempt				deleted special member; no runtime behavior
+src/app/main.cpp	40	C++	main(int argc, char *argv[])	public	missing				Add a focused boundary test for this entry point
+src/cam/CAM_BasicEncoder.cpp	4	C++	CAM_BasicEncoder::CAM_BasicEncoder()	public	missing				Add a dedicated test
+src/cam/CAM_BasicEncoder.cpp	17	C++	CAM_BasicEncoder::Initialize(int _numInputBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_BasicEncoder.cpp	47	C++	CAM_BasicEncoder::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_BasicEncoder.cpp	87	C++	CAM_BasicEncoder::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_BasicEncoder.cpp	98	C++	CAM_BasicEncoder::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_BasicEncoder.cpp	130	C++	CAM_BasicEncoder::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_BasicEncoder.cpp	167	C++	CAM_BasicEncoder::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	6	C++	CAM_BasicMMR::CAM_BasicMMR()	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	23	C++	CAM_BasicMMR::Initialize(int _numInputBits, double _capLoad, double _resLoad, double _capLaLoad, double _resLaLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	58	C++	CAM_BasicMMR::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	101	C++	CAM_BasicMMR::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	123	C++	CAM_BasicMMR::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	181	C++	CAM_BasicMMR::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_BasicMMR.cpp	224	C++	CAM_BasicMMR::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	4	C++	CAM_DataBuffer::CAM_DataBuffer()	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	17	C++	CAM_DataBuffer::Initialize(bool _differential, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	40	C++	CAM_DataBuffer::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	55	C++	CAM_DataBuffer::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	64	C++	CAM_DataBuffer::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	98	C++	CAM_DataBuffer::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_DataBuffer.cpp	115	C++	CAM_DataBuffer::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	6	C++	CAM_Encoder::CAM_Encoder()	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	18	C++	CAM_Encoder::Initialize(int _numInputBit, BufferDesignTarget _areaOptimizationLevel, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	54	C++	CAM_Encoder::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	69	C++	CAM_Encoder::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	78	C++	CAM_Encoder::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	96	C++	CAM_Encoder::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_Encoder.cpp	108	C++	CAM_Encoder::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	4	C++	CAM_InputEncoder::CAM_InputEncoder()	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	18	C++	CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCustom, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	50	C++	CAM_InputEncoder::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	77	C++	CAM_InputEncoder::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	98	C++	CAM_InputEncoder::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	137	C++	CAM_InputEncoder::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_InputEncoder.cpp	166	C++	CAM_InputEncoder::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	4	C++	CAM_LevelShifter::CAM_LevelShifter()	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	15	C++	CAM_LevelShifter::Initialize(int _numInputBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	38	C++	CAM_LevelShifter::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	59	C++	CAM_LevelShifter::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	68	C++	CAM_LevelShifter::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	97	C++	CAM_LevelShifter::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_LevelShifter.cpp	120	C++	CAM_LevelShifter::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_Line.cpp	4	C++	CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCell, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire)	public	missing				Add a dedicated test
+src/cam/CAM_Line.cpp	165	C++	CAM_Line::Initialize(double _len, long long _numCell, double _MuxWidth, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire)	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	5	C++	CAM_MMR::CAM_MMR()	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	16	C++	CAM_MMR::Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	47	C++	CAM_MMR::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	61	C++	CAM_MMR::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	70	C++	CAM_MMR::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	92	C++	CAM_MMR::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_MMR.cpp	105	C++	CAM_MMR::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	4	C++	CAM_OutputAccumulator::CAM_OutputAccumulator()	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	16	C++	CAM_OutputAccumulator::Initialize(double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	37	C++	CAM_OutputAccumulator::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	52	C++	CAM_OutputAccumulator::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	61	C++	CAM_OutputAccumulator::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	101	C++	CAM_OutputAccumulator::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_OutputAccumulator.cpp	118	C++	CAM_OutputAccumulator::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	9	C++	CAM_PriorityEncoder::CAM_PriorityEncoder()	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	19	C++	CAM_PriorityEncoder::Initialize(int _numInputBits, BufferDesignTarget _areaOptimizationLevel, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	39	C++	CAM_PriorityEncoder::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	53	C++	CAM_PriorityEncoder::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	62	C++	CAM_PriorityEncoder::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	75	C++	CAM_PriorityEncoder::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_PriorityEncoder.cpp	88	C++	CAM_PriorityEncoder::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	9	C++	CAM_SenseAmp::CAM_SenseAmp()	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	19	C++	CAM_SenseAmp::Initialize( long long _numColumn, TypeOfSenseAmp _typeSA, bool _isCustom, double _senseVoltage, double _pitchSenseAmp, std::string _fileCustomSA, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	62	C++	CAM_SenseAmp::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	101	C++	CAM_SenseAmp::CalculateRC()	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	132	C++	CAM_SenseAmp::CalculateLatency()	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	163	C++	CAM_SenseAmp::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_SenseAmp.cpp	203	C++	CAM_SenseAmp::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	23	C++	UsesSramStyleCamModel(MemCellType type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	27	C++	UsesResistiveCamModel(MemCellType type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	41	C++	MatchlineMosType(const CAMPort &cellPort)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	45	C++	MatchlineOffCurrent(const CAMPort &cellPort, const Technology &tech, int temperature)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	50	C++	UsesMemoryResistanceInMatchPath(const MemCell &cell)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	54	C++	BuildDrainSourceMatchlineParams( const CAMPort &cellPort, const MemCell &cell, const Technology &tech, int temperature)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	95	C++	BuildDiodeMatchlineParams( const CAMPort &cellPort, const MemCell &cell, const Technology &tech, int temperature)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	131	C++	BuildFloatingMatchlineParams( const CAMPort &cellPort, const MemCell &cell, const Technology &fefetTech)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	160	C++	CornerName(bool high)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	164	C++	NextCorner(unsigned int cornerIndex, int &bit)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	168	C++	BuildCornerSelection(const VariationConfig &variation, unsigned int cornerIndex)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	188	C++	ApplyCornerVariation(double nominal, double maxVar, bool high)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	195	C++	MixVariationSeed(uint32_t baseSeed, uint32_t sampleIndex, uint32_t streamOffset)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	204	C++	MixVariationSeed( uint32_t baseSeed, uint32_t sampleIndex, uint32_t streamOffset, uint32_t cellIndex)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	214	C++	BuildMetricStats(const std::vector<double> &samples, double nominal)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	245	C++	BuildSinglePointMetric(double sample, double nominal)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	253	C++	CamDecoderNandInputCount(long long numRows)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	260	C++	CAM_SubArray::Initialize( long long _numRow, long long _numColumn, bool _split, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _DecMergeOptLevel, BufferDesignTarget _DriverOptLevel, bool _withInputEnc, TypeOfInputEncoder _typeInputEnc, bool _customInputEnc, TypeOfSenseAmp _typeSenseAmp, bool _customSenseAmp, bool _withWriteDriver, bool _withOutputAcc, bool _withPriorityEnc, BufferDesignTarget _PriorityOptLevel, bool _withInputBuf, bool _withOutputBuf, CAMType _camType, SearchFunction _searchFunction, bool _withVariation, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire, const CAM_Opt &_CAM_opt)	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	680	C++	CAM_SubArray::CalculateArea()	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	782	C++	CAM_SubArray::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	963	C++	CAM_SubArray::CalculatePower()	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1322	C++	CAM_SubArray::PrintProperty()	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1350	C++	CAM_SubArray::CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1359	C++	CAM_SubArray::EffectiveMatchlineCellResistance( int mismatches, double cellResOn, double cellResOff) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1372	C++	CAM_SubArray::EffectiveMcamStateResistance( double stateResistance, double baseStateResistance) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1387	C++	CAM_SubArray::MeanSquaredSearchVoltage(int rowPortIndex) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1417	C++	CAM_SubArray::CalculateSearchlineDriveEnergy() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1428	C++	CAM_SubArray::EffectiveMcamStateResistances() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1444	C++	CAM_SubArray::McamStateTau(double effectiveStateResistance, double mlWireRes) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1463	C++	CAM_SubArray::McamStateTaus( const std::vector<double> &effectiveStateResistances) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1473	C++	CAM_SubArray::McamStateDelay(double stateTau, double *ramp) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1491	C++	CAM_SubArray::McamStateDelays(const std::vector<double> &stateTaus)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1501	C++	CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline()	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1566	C++	CAM_SubArray::MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1582	C++	CAM_SubArray::MatchlineEffectiveResistance( const CAMResistanceSample &sample, int mismatches) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1596	C++	CAM_SubArray::MatchlineAllMatchTau(const CAMResistanceSample &sample) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1606	C++	CAM_SubArray::MatchlineAllMatchTau(double cellResOff, double mlWireRes) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1614	C++	CAM_SubArray::MatchlineSenseMargin( double tauAllMatch, double tauOneMiss, double senseTime) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1623	C++	CAM_SubArray::MatchlineBeta(double effectiveCellRes, int activeDischargePaths) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1633	C++	CAM_SubArray::MatchlineHorowitzDelay( double tau, double effectiveCellRes, double *ramp, int activeDischargePaths) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/cam/CAM_SubArray.cpp	1658	C++	CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1670	C++	CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCount) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1746	C++	CAM_SubArray::BuildNominalResistanceSample() const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1758	C++	CAM_SubArray::BuildResistanceSample(unsigned int sampleIndex) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1781	C++	CAM_SubArray::BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1832	C++	CAM_SubArray::BuildCornerResistanceSample(unsigned int cornerIndex) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1854	C++	CAM_SubArray::BuildVariationResistanceSample(unsigned int sampleIndex) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1865	C++	CAM_SubArray::SampleVariationResistance( double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1882	C++	CAM_SubArray::SampleCellVariationResistance( double nominal, double stdevFrac, unsigned int streamOffset, unsigned int sampleIndex, unsigned int cellIndex) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	1901	C++	CAM_SubArray::UpdateVariationTimingSummary()	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	2036	C++	CAM_SubArray::SampleCellReadEnergy( const CAMResistanceSample &sample, double sampleMatchlineDelay) const	public	missing				Add a dedicated test
+src/cam/CAM_SubArray.cpp	2076	C++	CAM_SubArray::UpdateVariationPowerSummary()	public	missing				Add a dedicated test
+src/circuit/BasicDecoder.cpp	4	C++	BasicDecoder::Initialize(int _numAddressBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/circuit/BasicDecoder.cpp	48	C++	BasicDecoder::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/BasicDecoder.cpp	68	C++	BasicDecoder::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/BasicDecoder.cpp	79	C++	BasicDecoder::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/circuit/BasicDecoder.cpp	111	C++	BasicDecoder::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/BasicDecoder.cpp	141	C++	BasicDecoder::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/FunctionUnit.cpp	5	C++	FunctionUnit::FunctionUnit()	public	missing				Add a dedicated test
+src/circuit/FunctionUnit.cpp	17	C++	FunctionUnit::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	6	C++	HasMux(int numInput, long long numMux)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Mux.cpp	12	C++	Mux::Mux()	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	20	C++	Mux::Initialize(int _numInput, long long _numMux, double _capLoad, double _capInputNextStage, double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	73	C++	Mux::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	101	C++	Mux::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	127	C++	Mux::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	146	C++	Mux::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/Mux.cpp	166	C++	Mux::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/OutputDriver.cpp	6	C++	OutputDriver::Initialize(double _logicEffort, double _inputCap, double _outputCap, double _outputRes, bool _inv, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/circuit/OutputDriver.cpp	156	C++	OutputDriver::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/OutputDriver.cpp	178	C++	OutputDriver::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/OutputDriver.cpp	195	C++	OutputDriver::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/circuit/OutputDriver.cpp	238	C++	OutputDriver::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/OutputDriver.cpp	272	C++	OutputDriver::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/Precharger.cpp	4	C++	Precharger::Initialize( double _voltagePrecharge, int _numColumn, double _capBitline, double _resBitline, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire)	public	missing				Add a dedicated test
+src/circuit/Precharger.cpp	64	C++	Precharger::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/Precharger.cpp	122	C++	Precharger::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/Precharger.cpp	131	C++	Precharger::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/circuit/Precharger.cpp	159	C++	Precharger::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/Precharger.cpp	178	C++	Precharger::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/PredecodeBlock.cpp	3	C++	PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _resLoad, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/circuit/PredecodeBlock.cpp	194	C++	PredecodeBlock::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/PredecodeBlock.cpp	251	C++	PredecodeBlock::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/PredecodeBlock.cpp	270	C++	PredecodeBlock::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/circuit/PredecodeBlock.cpp	344	C++	PredecodeBlock::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/PredecodeBlock.cpp	395	C++	PredecodeBlock::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/RowDecoder.cpp	5	C++	RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad, int _numNandInput, BufferDesignTarget _areaOptimizationLevel, double _minDriverCurrent, std::shared_ptr<EvaCamConfig> _config, bool _driverInv)	public	missing				Add a dedicated test
+src/circuit/RowDecoder.cpp	58	C++	RowDecoder::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/RowDecoder.cpp	78	C++	RowDecoder::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/RowDecoder.cpp	92	C++	RowDecoder::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/circuit/RowDecoder.cpp	133	C++	RowDecoder::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/RowDecoder.cpp	156	C++	RowDecoder::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/SenseAmp.cpp	9	C++	LookupNodeValue(const std::vector<SenseAmpModel::NodeValue>& table, double featureSize)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/SenseAmp.cpp	20	C++	SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _senseVoltage, double _pitchSenseAmp, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/circuit/SenseAmp.cpp	46	C++	SenseAmp::CalculateArea()	public	missing				Add a dedicated test
+src/circuit/SenseAmp.cpp	97	C++	SenseAmp::CalculateRC()	public	missing				Add a dedicated test
+src/circuit/SenseAmp.cpp	112	C++	SenseAmp::CalculateLatency()	public	missing				Add a dedicated test
+src/circuit/SenseAmp.cpp	130	C++	SenseAmp::CalculatePower()	public	missing				Add a dedicated test
+src/circuit/SenseAmp.cpp	155	C++	SenseAmp::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/Wire.cpp	20	C++	RepeaterPenalty(WireRepeaterType repeaterType)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Wire.cpp	37	C++	CalculateRepeaterTransistorWidths( double repeaterSize, const Technology &tech)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Wire.cpp	46	C++	CalculateRepeaterElectricals( double repeaterSize, const Technology &tech, double temperature)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Wire.cpp	65	C++	Wire::Initialize( int _featureSizeInNano, WireType _wireType, WireRepeaterType _wireRepeaterType, int _temperature, bool _isLowSwing, std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/circuit/Wire.cpp	157	C++	Wire::CalculateLatencyAndPower( double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower)	public	missing				Add a dedicated test
+src/circuit/Wire.cpp	179	C++	Wire::CalculateLowSwingLatencyAndPower( double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Wire.cpp	363	C++	Wire::CalculatePassiveLatencyAndPower( double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Wire.cpp	379	C++	Wire::CalculateRepeatedLatencyAndPower( double _wireLength, double *delay, double *dynamicEnergy, double *leakagePower)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/Wire.cpp	392	C++	Wire::findOptimalRepeater()	public	missing				Add a dedicated test
+src/circuit/Wire.cpp	410	C++	Wire::findPenalizedRepeater(double _penalty)	public	missing				Add a dedicated test
+src/circuit/Wire.cpp	443	C++	Wire::getRepeatedWireUnitDelay()	public	covered	tests/WireCopyTest.cpp::TestRepeatedWireUnitCalculations	test-wire	repeated wire unit calculations	
+src/circuit/Wire.cpp	459	C++	Wire::getRepeatedWireUnitDynamicEnergy()	public	covered	tests/WireCopyTest.cpp::TestRepeatedWireUnitCalculations	test-wire	repeated wire unit calculations	
+src/circuit/Wire.cpp	473	C++	Wire::getRepeatedWireUnitLeakage()	public	covered	tests/WireCopyTest.cpp::TestRepeatedWireUnitCalculations	test-wire	repeated wire unit calculations	
+src/circuit/Wire.cpp	487	C++	Wire::PrintProperty()	public	missing				Add a dedicated test
+src/circuit/WireProcessTable.cpp	126	C++	FindWireProcessSpec( int featureSizeInNano, WireType wireType, WireProcessSpec *spec)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	19	C++	CheckTransistorWidths(double widthNMOS, double widthPMOS)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	25	C++	CalculatePmosRatio(double widthNMOS, double widthPMOS)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	29	C++	CalculateMaxPlanarWidths( double ratio, double heightTransistorRegion, const Technology &tech, double *maxWidthPMOS, double *maxWidthNMOS)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	44	C++	ApplyPlanarPmosLayout(double widthPMOS, double maxWidthPMOS, const Technology &tech, GateLayout *layout)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	67	C++	ApplyPlanarNmosLayout(double widthNMOS, double maxWidthNMOS, const Technology &tech, GateLayout *layout)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	90	C++	ApplyFinfetRegionLayout( double ratio, double widthNMOS, double widthPMOS, double heightTransistorRegion, const Technology &tech, GateLayout *layout)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	150	C++	CalculateGateLayout( double widthNMOS, double widthPMOS, double heightTransistorRegion, const Technology &tech, bool useUpdatedRegionLayout)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/circuit/formula.cpp	171	C++	isPow2(int n)	public	covered	tests/FormulaTest.cpp::TestIntegerLogHelpers	test-formula	integer log helpers	
+src/circuit/formula.cpp	178	C++	intLog2(int n)	public	covered	tests/FormulaTest.cpp::TestIntegerLogHelpers	test-formula	integer log helpers	
+src/circuit/formula.cpp	186	C++	CalculateGateCap(double width, const Technology &tech)	public	covered	tests/FormulaTest.cpp::TestDetailedLegacyGateGeometry	test-formula	detailed legacy gate geometry	
+src/circuit/formula.cpp	191	C++	CalculateFBRAMGateCap(double width, double thicknessFactor, const Technology &tech)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	196	C++	CalculateFBRAMDrainCap(double width, const Technology &tech)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	200	C++	CalculateGateArea( int gateType, int numInput, double widthNMOS, double widthPMOS, double heightTransistorRegion, const Technology &tech, double *height, double *width, bool UseUpdatedLib)	public	covered	tests/FormulaTest.cpp::TestDetailedLegacyGateGeometry; tests/FormulaTest.cpp::TestFinfetUnavailableFinsGuard; tests/FormulaTest.cpp::TestGateAreaWidthGuards; tests/FormulaTest.cpp::TestNominalGateCalculations	test-formula	detailed legacy gate geometry; finfet unavailable fins guard; gate area width guards; nominal gate calculations	
+src/circuit/formula.cpp	251	C++	CalculateGateCapacitance( int gateType, int numInput, double widthNMOS, double widthPMOS, double heightTransistorRegion, const Technology &tech, double *capInput, double *capOutput)	public	covered	tests/FormulaTest.cpp::TestDetailedLegacyGateGeometry; tests/FormulaTest.cpp::TestGateCapacitanceWidthGuards; tests/FormulaTest.cpp::TestNominalGateCalculations	test-formula	detailed legacy gate geometry; gate capacitance width guards; nominal gate calculations	
+src/circuit/formula.cpp	337	C++	CalculateDrainCap( double width, int type, double heightTransistorRegion, const Technology &tech)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	349	C++	CalculateGateLeakage( int gateType, int numInput, double widthNMOS, double widthPMOS, double temperature, const Technology &tech)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	384	C++	CalculateOnResistance(double width, int type, double temperature, const Technology &tech)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	398	C++	CalculateTransconductance(double width, int type, const Technology &tech)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	420	C++	horowitz(double tr, double beta, double rampInput, double *rampOutput)	public	covered	tests/FormulaTest.cpp::TestHorowitzGuardBehavior	test-formula	horowitz guard behavior	
+src/circuit/formula.cpp	444	C++	CalculateWireResistance( double resistivity, double wireWidth, double wireThickness, double barrierThickness, double dishingThickness, double alphaScatter)	public	missing				Add a dedicated test
+src/circuit/formula.cpp	451	C++	CalculateWireCapacitance( double permittivity, double wireWidth, double wireThickness, double wireSpacing, double ildThickness, double millerValue, double horizontalDielectric, double verticalDielectric, double fringeCap)	public	missing				Add a dedicated test
+src/config/ConfigNormalizer.cpp	7	C++	SameDomain(const IntValueDomain &lhs, const IntValueDomain &rhs)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ConfigNormalizer.cpp	11	C++	ApplyExplorationDefaults(EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ConfigNormalizer.cpp	48	C++	ApplyCactiAssumption(EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ConfigNormalizer.cpp	65	C++	ConfigNormalizer::Normalize(EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	15	C++	TryReadOptionalChild(const YAML::Node &parent, const char *key, YAML::Node &child)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ConfigSectionReaders.cpp	29	C++	ReadCoordinatePair(const YAML::Node &node, const char *what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ConfigSectionReaders.cpp	45	C++	ConfigSectionReaders::ReadDesignSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	74	C++	ConfigSectionReaders::ReadMemorySection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	103	C++	ConfigSectionReaders::ReadRoutingSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	111	C++	ConfigSectionReaders::ReadPeripheralSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	131	C++	ConfigSectionReaders::ReadSensingSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	138	C++	ConfigSectionReaders::ReadOptimizationSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	156	C++	ConfigSectionReaders::ReadWireSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	179	C++	ConfigSectionReaders::ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	266	C++	ConfigSectionReaders::ReadMatchlineSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	285	C++	ConfigSectionReaders::ReadConstraintSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	332	C++	ConfigSectionReaders::ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	372	C++	ConfigSectionReaders::ReadFlashSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ConfigSectionReaders.cpp	393	C++	ConfigSectionReaders::ReadExtraSection(const YAML::Node &root, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/DerivedValueHelpers.cpp	3	C++	DerivedValueHelpers::EffectiveCapacityBits(const InputConfig &input)	public	missing				Add a dedicated test
+src/config/DerivedValueHelpers.cpp	7	C++	DerivedValueHelpers::EffectiveBlockSizeBits(const InputConfig &input)	public	missing				Add a dedicated test
+src/config/DerivedValueHelpers.cpp	11	C++	DerivedValueHelpers::IsFullExploration(const InputConfig &input)	public	missing				Add a dedicated test
+src/config/DerivedValueHelpers.cpp	15	C++	DerivedValueHelpers::ShouldWriteExplorationCsv(const InputConfig &input)	public	missing				Add a dedicated test
+src/config/DerivedValueHelpers.cpp	19	C++	DerivedValueHelpers::HasFixedOuterGeometry(const ResolvedExplorationSpace &resolvedExploration)	public	missing				Add a dedicated test
+src/config/EvaCamConfig.cpp	10	C++	EvaCamConfig::SetDeepExploration(bool enabled)	public	missing				Add a dedicated test
+src/config/EvaCamConfig.cpp	32	C++	EvaCamConfig::BuildResultLimits(const std::vector<std::shared_ptr<Result>> &bestResults) const	public	missing				Add a dedicated test
+src/config/EvaCamConfig.cpp	49	C++	EvaCamConfig::ApplyResultLimits(const ResultLimits &limits, const std::vector<std::shared_ptr<Result>> &results) const	public	missing				Add a dedicated test
+src/config/EvaCamConfig.cpp	64	C++	EvaCamConfig::ReadConfigFromFile(const std::string &inputFile)	public	missing				Add a dedicated test
+src/config/EvaCamConfigPrinter.cpp	9	C++	ToString(DeviceRoadmap roadmap)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	20	C++	ToString(MemCellType type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	36	C++	ToString(SearchFunction function)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	45	C++	ToString(WriteScheme scheme)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	57	C++	ToString(TypeOfInputEncoder type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	64	C++	ToString(TypeOfSenseAmp type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	75	C++	ToString(BufferDesignTarget target)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	84	C++	PrintConstraintIfSet(const char *label, double value)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamConfigPrinter.cpp	91	C++	EvaCamConfigPrinter::Print(const EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/EvaCamConfigValidator.cpp	7	C++	EvaCamConfigValidator::Validate(EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/EvaCamYamlLoader.cpp	17	C++	HasKey(const YAML::Node &node, const char *key)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	21	C++	RejectKeys(const YAML::Node &node, const std::vector<const char *> &keys, const char *fileKind)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	34	C++	ValidateRunConfigKeys(const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	55	C++	ValidateArchitectureConfigKeys(const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	102	C++	ResolveReference(const std::string &toolFile, const std::string &reference)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	112	C++	CopyIfPresent(const YAML::Node &source, YAML::Node &destination, const char *key)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	119	C++	CopyMappedIfPresent(const YAML::Node &source, const char *sourceKey, YAML::Node &destination, const char *destinationKey)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	127	C++	ResolveSensingNode(const std::string &architectureFile, const YAML::Node &sensingNode)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	162	C++	ReadMergedConfig(const YAML::Node &root, EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	183	C++	BuildMergedRootV2(const std::string &configFile, const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/EvaCamYamlLoader.cpp	318	C++	EvaCamYamlLoader::Load(const std::string &inputFile, EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/ExplorationSpaceResolver.cpp	7	C++	ValidateNotEmpty(const std::vector<int> &values, const char *label)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ExplorationSpaceResolver.cpp	15	C++	ExplorationSpaceResolver::Resolve(const ExplorationSpec &spec)	public	covered	tests/ExplorationDomainTest.cpp::TestDeepExplorationDefaults; tests/ExplorationDomainTest.cpp::TestExplorationSpecDefaults	test-exploration	deep exploration defaults; exploration spec defaults	
+src/config/ExplorationSpec.cpp	7	C++	BuildPow2ClampedValues(int minValue, int maxValue, int upperBound)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/ExplorationSpec.cpp	19	C++	ExplorationSpec::Default()	public	covered	tests/ExplorationDomainTest.cpp::TestDeepExplorationDefaults; tests/ExplorationDomainTest.cpp::TestDependentDomains; tests/ExplorationDomainTest.cpp::TestExplorationSpecDefaults	test-exploration	deep exploration defaults; dependent domains; exploration spec defaults	
+src/config/ExplorationSpec.cpp	23	C++	ExplorationSpec::ApplyDeepExplorationDefaults()	public	covered	tests/ExplorationDomainTest.cpp::TestDeepExplorationDefaults	test-exploration	deep exploration defaults	
+src/config/ExplorationSpec.cpp	40	C++	ExplorationSpec::ActiveMatPerRowValues(int numColumnMat) const	public	covered	tests/ExplorationDomainTest.cpp::TestDependentDomains	test-exploration	dependent domains	
+src/config/ExplorationSpec.cpp	45	C++	ExplorationSpec::ActiveMatPerColumnValues(int numRowMat) const	public	missing				Add a dedicated test
+src/config/ExplorationSpec.cpp	50	C++	ExplorationSpec::ActiveSubarrayPerRowValues(int numColumnSubarray) const	public	missing				Add a dedicated test
+src/config/ExplorationSpec.cpp	55	C++	ExplorationSpec::ActiveSubarrayPerColumnValues(int numRowSubarray) const	public	covered	tests/ExplorationDomainTest.cpp::TestDependentDomains	test-exploration	dependent domains	
+src/config/ExplorationSpec.cpp	60	C++	ExplorationSpec::IsValidPartitioning(long blockSizeBits, int numActiveMatPerRow, int numActiveMatPerColumn, int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn) const	public	missing				Add a dedicated test
+src/config/InputRuleValidator.cpp	18	C++	IsCamModelMemCellTypeSupported(MemCellType type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	31	C++	LoadCellFileForValidation(const std::string &cellFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	35	C++	ResolveReference(const std::string &ownerFile, const std::string &reference)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	44	C++	IsCellV2(const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	48	C++	LoadV2MemoryDeviceForValidation(const YAML::Node &cellRoot, const std::string &cellFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	56	C++	InferCamTypeToken(const YAML::Node &cellNode, const std::string &cellFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	79	C++	LoadMemCellTypeForValidation(const YAML::Node &root, const std::string &cellFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	90	C++	LoadCamTypeForValidation(const YAML::Node &root, const std::string &cellFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	118	C++	ValidateCamPortPresence(const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	134	C++	LoadPortConnectionRegion(const YAML::Node &portNode)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	150	C++	ValidateCamColumnTopology(const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	190	C++	ValidateCamModelSupport(const EvaCamConfig &config, const YAML::Node &root, MemCellType memCellType)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	208	C++	ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	363	C++	IsSupportedCamSenseAmpType(TypeOfSenseAmp type)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	369	C++	ValidateCustomSenseAmpFile(const std::string &filePath)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	384	C++	ValidateDefaultSenseAmpFile(const std::string &filePath)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	397	C++	ValidatePeripheralSupport(const EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	432	C++	CheckedMultiply(long long lhs, long long rhs, const char *what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	442	C++	CheckedTotalProduct(const IntValueDomain &first, const IntValueDomain &second, const char *what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	447	C++	ValidateScalarDomains(const EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	503	C++	ValidateDerivedInputs(const EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	542	C++	ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	623	C++	ValidateMemCellSupport(const EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/InputRuleValidator.cpp	652	C++	InputRuleValidator::Validate(EvaCamConfig &config)	public	missing				Add a dedicated test
+src/config/IntValueDomain.cpp	7	C++	NormalizeFixedValues(std::vector<int> values)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/IntValueDomain.cpp	19	C++	IntValueDomain::PowersOfTwo(int minValue, int maxValue)	public	covered	tests/ExplorationDomainTest.cpp::TestDependentDomains; tests/ExplorationDomainTest.cpp::TestIntValueDomain	test-exploration	dependent domains; int value domain	
+src/config/IntValueDomain.cpp	30	C++	IntValueDomain::Sequential(int minValue, int maxValue)	public	covered	tests/ExplorationDomainTest.cpp::TestIntValueDomain	test-exploration	int value domain	
+src/config/IntValueDomain.cpp	38	C++	IntValueDomain::FixedSet(std::vector<int> values)	public	covered	tests/ExplorationDomainTest.cpp::TestIntValueDomain	test-exploration	int value domain	
+src/config/IntValueDomain.cpp	45	C++	IntValueDomain::Values() const	public	covered	tests/ExplorationDomainTest.cpp::TestIntValueDomain	test-exploration	int value domain	
+src/config/IntValueDomain.cpp	72	C++	IntValueDomain::Contains(int value) const	public	missing				Add a dedicated test
+src/config/IntValueDomain.cpp	77	C++	IntValueDomain::IsFixed() const	public	missing				Add a dedicated test
+src/config/IntValueDomain.cpp	81	C++	IntValueDomain::Min() const	public	missing				Add a dedicated test
+src/config/IntValueDomain.cpp	85	C++	IntValueDomain::Max() const	public	missing				Add a dedicated test
+src/config/IntValueDomain.cpp	89	C++	IntValueDomain::Kind() const	public	missing				Add a dedicated test
+src/config/IntValueDomain.cpp	93	C++	IntValueDomain::IntValueDomain(ValueDomainKind kind, int minValue, int maxValue, std::vector<int> fixedValues)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/OutputFileLock.cpp	5	C++	OutputFileLock::OutputFileLock(std::filesystem::path lockPath)	public	missing				Add a dedicated test
+src/config/OutputFileLock.cpp	9	C++	OutputFileLock::OutputFileLock(OutputFileLock&& other) noexcept	public	missing				Add a dedicated test
+src/config/OutputFileLock.cpp	14	C++	OutputFileLock::operator=(OutputFileLock&& other) noexcept	public	missing				Add a dedicated test
+src/config/OutputFileLock.cpp	23	C++	OutputFileLock::~OutputFileLock()	public	missing				Add a dedicated test
+src/config/OutputFileLock.cpp	27	C++	OutputFileLock::Acquire(const std::string &outputPath)	public	missing				Add a dedicated test
+src/config/OutputFileLock.cpp	41	C++	OutputFileLock::IsHeld() const	public	missing				Add a dedicated test
+src/config/OutputFileLock.cpp	45	C++	OutputFileLock::Release() noexcept	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/OutputPathBuilder.cpp	8	C++	OutputPathBuilder::DefaultResultsYamlPath(const std::string &inputFile)	public	covered	tests/OutputPathBuilderTest.cpp::TestDefaultResultsYamlPath	test-output-path-builder	default results yaml path	
+src/config/OutputPathBuilder.cpp	32	C++	OutputPathBuilder::VariationSamplesCsvPath(const std::string &outputYamlFile)	public	covered	tests/OutputPathBuilderTest.cpp::TestVariationPaths	test-output-path-builder	variation paths	
+src/config/OutputPathBuilder.cpp	36	C++	OutputPathBuilder::VariationSamplesCsvPath(const std::string &outputYamlFile, const std::string &label)	public	covered	tests/OutputPathBuilderTest.cpp::TestVariationPaths	test-output-path-builder	variation paths	
+src/config/OutputPathBuilder.cpp	55	C++	OutputPathBuilder::VariationHistogramsSvgPath(const std::string &samplesCsvFile)	public	covered	tests/OutputPathBuilderTest.cpp::TestVariationPaths	test-output-path-builder	variation paths	
+src/config/OutputPathBuilder.cpp	67	C++	OutputPathBuilder::ExplorationCsvPath(const InputConfig &input, const TechnologyContext &technology)	public	covered	tests/OutputPathBuilderTest.cpp::TestExplorationCsvPathUsesCamDimensions	test-output-path-builder	exploration csv path uses cam dimensions	
+src/config/TechnologyLoader.cpp	16	C++	FindYamlSpec( const std::vector<TechnologySpec> &specs, int featureSizeInNano, DeviceRoadmap roadmap)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	28	C++	LegacyBucketNode(int featureSizeInNano)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	39	C++	FindYamlBaseSpec( const std::vector<TechnologySpec> &specs, int featureSizeInNano, DeviceRoadmap roadmap)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	54	C++	BuildTechFromSpec(const TechnologySpec &spec)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	60	C++	HighInterpolationNode(int processNode)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	77	C++	InterpolationAlpha(int processNode)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	90	C++	LoadTechFromYaml( const InputConfig &input, const std::vector<TechnologySpec> &specs)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	111	C++	LoadCell(const InputConfig &input, const std::shared_ptr<Technology> &tech)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	128	C++	LoadFefetTech( const InputConfig &input, const std::vector<TechnologySpec> &yamlSpecs)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/TechnologyLoader.cpp	143	C++	TechnologyLoader::Load( const InputConfig &input, const PeripheralConfig &, VariationConfig *variation)	public	covered	tests/TechnologyYamlLoaderTest.cpp::TestMissingRoadmapFailsAtRuntime; tests/TechnologyYamlLoaderTest.cpp::TestRuntimeRequiresTechnologyFile	test-technology-loader	missing roadmap fails at runtime; runtime requires technology file	
+src/config/VariationConfigBuilder.cpp	10	C++	DefaultVariationSeed()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/VariationConfigBuilder.cpp	15	C++	ValidateCornerVariation(const char *fieldName, double value)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/VariationConfigBuilder.cpp	22	C++	CornerDimensionCount(const VariationConfig &variation)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/config/VariationConfigBuilder.cpp	33	C++	VariationConfigBuilder::FromCell(const MemCell &cell)	public	covered	tests/YamlHelpersTest.cpp::test_variation_builder_rejects_invalid_mode_and_samples	test-yaml	variation builder rejects invalid mode and samples	
+src/factories/BankFactory.cpp	7	C++	BankFactory::CreateBank(const EvaCamConfig &config)	public	missing				Add a dedicated test
+src/factories/BankFactory.cpp	14	C++	BankFactory::InitializeBank(const std::shared_ptr<EvaCamConfig> &config, const std::shared_ptr<Bank> &bank, int numRowMat, int numColumnMat, long long capacityBits, long blockSizeBits, int numActiveMatPerRow, int numActiveMatPerColumn, int muxSenseAmp, int muxOutputLev1, int muxOutputLev2, int numRowSubarray, int numColumnSubarray, int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, BufferDesignTarget areaOptimizationLevel, const Wire &localWire, const Wire &globalWire, const CAM_Opt &camOpt)	public	missing				Add a dedicated test
+src/factories/WireFactory.cpp	6	C++	WireFactory::CreateDefaultLocalWire( const std::shared_ptr<EvaCamConfig> &config)	public	missing				Add a dedicated test
+src/factories/WireFactory.cpp	28	C++	WireFactory::CreateDefaultGlobalWire( const std::shared_ptr<EvaCamConfig> &config)	public	missing				Add a dedicated test
+src/input/CellYamlLoader.cpp	19	C++	trim(const std::string& s)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	29	C++	to_lower(std::string s)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	35	C++	parse_fraction_or_percent_node(const YAML::Node& node, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	70	C++	resolve_reference(const std::string& ownerFile, const std::string& reference)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	80	C++	is_v2_schema(const YAML::Node& root, const std::string& schema)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	84	C++	has_key(const YAML::Node& node, const char* key)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	96	C++	terminal_to_region(const YAML::Node& connection, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	112	C++	parse_voltage_fields(const YAML::Node& volts, CAMPort& port)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	135	C++	parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	188	C++	parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	277	C++	ReadCellSection(MemCell& cell, const YAML::Node& cellNode, const std::string& inputFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	310	C++	ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string& inputFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	349	C++	ValidateV2CellKeys(const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	361	C++	RejectV2DeviceSections(const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	378	C++	RejectUnsupportedDramSection(const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	385	C++	ReadAccessDeviceSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	406	C++	ReadResistanceSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	466	C++	ReadCapacitanceSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	478	C++	ReadDeviceSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	490	C++	ReadReadSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	521	C++	ReadWriteSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	568	C++	ReadMatchSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	580	C++	ReadSramSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	596	C++	ReadFlashSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	625	C++	ReadVariationSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	673	C++	ReadMcamSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	772	C++	ReadPortsSection(MemCell& cell, const YAML::Node& root, bool isV2)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	778	C++	ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root, const std::string& inputFile)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CellYamlLoader.cpp	807	C++	YamlHelpers::ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile)	public	missing				Add a dedicated test
+src/input/CliOptions.cpp	10	C++	CliOptionsParser::Parse(int argc, char *argv[])	public	covered	tests/CliOptionsTest.cpp::TestOutputOptionLongForm; tests/CliOptionsTest.cpp::TestOutputOptionShortForm; tests/CliOptionsTest.cpp::TestOutputOptionValidation; tests/CliOptionsTest.cpp::TestQuietOptionShortForm	test-cli-options	output option long form; output option short form; output option validation; quiet option short form	
+src/input/CliOptions.cpp	88	C++	CliOptionsParser::PrintUsage(std::ostream &os)	public	covered	tests/CliOptionsTest.cpp::TestUsageIncludesOutputOption	test-cli-options	usage includes output option	
+src/input/CustomSenseAmpYamlLoader.cpp	13	C++	AreaUnits()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CustomSenseAmpYamlLoader.cpp	24	C++	FeatureLengthUnits(double featureSize)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CustomSenseAmpYamlLoader.cpp	30	C++	ReadOptionalQuantity( const YAML::Node& parent, const char* key, const std::vector<YamlHelpers::UnitSpec>& units, double defaultUnitToBase, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CustomSenseAmpYamlLoader.cpp	43	C++	ValidateScalarSenseAmp(const SenseAmp& senseAmp, const char* prefix)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/CustomSenseAmpYamlLoader.cpp	70	C++	YamlHelpers::ReadCustomSenseAmpFromYaml( SenseAmp& senseAmp, const std::string& inputFile, double featureSize)	public	covered	tests/CustomSenseAmpYamlLoaderTest.cpp::TestInvalidPhysicalDomainsThrowDescriptiveErrors; tests/CustomSenseAmpYamlLoaderTest.cpp::TestMissingRequiredFieldThrows; tests/CustomSenseAmpYamlLoaderTest.cpp::TestNestedYamlLoadsQuantities; tests/CustomSenseAmpYamlLoaderTest.cpp::TestScalarSenseAmpRejectsNonFiniteValues; tests/CustomSenseAmpYamlLoaderTest.cpp::TestTopLevelYamlLoadsArea; tests/CustomSenseAmpYamlLoaderTest.cpp::TestUnknownScalarSenseAmpKeyThrows; tests/CustomSenseAmpYamlLoaderTest.cpp::TestV2ScalarYamlLoadsQuantities	test-custom-sa-loader	invalid physical domains throw descriptive errors; missing required field throws; nested yaml loads quantities; scalar sense amp rejects non finite values; top level yaml loads area; unknown scalar sense amp key throws; v2 scalar yaml loads quantities	
+src/input/MemoryDeviceYamlLoader.cpp	17	C++	ReadResistanceSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/MemoryDeviceYamlLoader.cpp	25	C++	ReadReadSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/MemoryDeviceYamlLoader.cpp	39	C++	ReadWriteSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/MemoryDeviceYamlLoader.cpp	57	C++	ReadMcamSection(MemCell& cell, const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/MemoryDeviceYamlLoader.cpp	69	C++	YamlHelpers::validate_memory_device_keys(const YAML::Node& root)	public	missing				Add a dedicated test
+src/input/MemoryDeviceYamlLoader.cpp	130	C++	YamlHelpers::ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile)	public	covered	tests/CellYamlLoaderTest.cpp::TestLegacyMemoryDeviceLoaderRejectsNonFiniteValues; tests/CellYamlLoaderTest.cpp::TestLegacyMemoryDeviceLoaderStillParses	test-cell-loader	legacy memory device loader rejects non finite values; legacy memory device loader still parses	
+src/input/PhysicalDomainValidators.cpp	15	C++	ValidateOptionalPositive(double value, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/PhysicalDomainValidators.cpp	22	C++	ValidateCurrentArray(const std::array<double, 101>& values, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/PhysicalDomainValidators.cpp	33	C++	PhysicalDomainValidators::ValidateMemCell(const MemCell& cell)	public	missing				Add a dedicated test
+src/input/PhysicalDomainValidators.cpp	149	C++	PhysicalDomainValidators::ValidateTechnology(const Technology& technology)	public	missing				Add a dedicated test
+src/input/SenseAmpYamlLoader.cpp	12	C++	ReadOptionalFeatureWidth(const YAML::Node& node, const char* key, double fallback)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/SenseAmpYamlLoader.cpp	20	C++	ReadOptionalFeatureArea(const YAML::Node& node, const char* key, double fallback)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/SenseAmpYamlLoader.cpp	28	C++	ReadNodeTable( const YAML::Node& parent, const char* key, const char* valueKey, const std::vector<YamlHelpers::UnitSpec>& valueUnits, double defaultUnitToBase)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/SenseAmpYamlLoader.cpp	86	C++	YamlHelpers::ReadSenseAmpModelFromYaml(const std::string& inputFile)	public	covered	tests/CustomSenseAmpYamlLoaderTest.cpp::TestDefaultSenseAmpYamlParses; tests/CustomSenseAmpYamlLoaderTest.cpp::TestInvalidPhysicalDomainsThrowDescriptiveErrors; tests/CustomSenseAmpYamlLoaderTest.cpp::TestNvsimSenseAmpRejectsNonFiniteValues; tests/CustomSenseAmpYamlLoaderTest.cpp::TestUnknownDefaultSenseAmpKeyThrows	test-custom-sa-loader	default sense amp yaml parses; invalid physical domains throw descriptive errors; nvsim sense amp rejects non finite values; unknown default sense amp key throws	
+src/input/TechnologyYamlLoader.cpp	32	C++	CapacitancePerLengthUnits()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	41	C++	ComputeJunctionCap(double vdd)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	45	C++	ComputeSidewallCap(double vdd)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	49	C++	ComputeDrainToChannelCap(double vdd)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	53	C++	ComputeVdsat(double phyGateLength, double mobility)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	60	C++	ReadTable(const YAML::Node& node, const char* what, std::size_t expectedSize)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	73	C++	ReadUseUpdatedLib(const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	85	C++	ReadRoadmapKey(const YAML::Node& node)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	96	C++	ReadTemperatureGridSize(const YAML::Node& root)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	120	C++	ValidateCurrentTable(const std::array<double, 11>& values, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	127	C++	BuildSpec(const YAML::Node& node, bool useUpdatedLib, DeviceRoadmap expectedRoadmap, std::size_t temperatureGridSize)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/TechnologyYamlLoader.cpp	275	C++	YamlHelpers::ReadTechnologySpecsFromYaml(const std::string& inputFile)	public	covered	tests/TechnologyYamlLoaderTest.cpp::TestPhysicalDomainsThrowDescriptiveErrors; tests/TechnologyYamlLoaderTest.cpp::TestTechnologyRejectsNonFiniteValues; tests/TechnologyYamlLoaderTest.cpp::TestUnknownTechnologyKeyThrows; tests/TechnologyYamlLoaderTest.cpp::TestValidationFailures	test-technology-loader	physical domains throw descriptive errors; technology rejects non finite values; unknown technology key throws; validation failures	
+src/input/YamlNodeHelpers.cpp	11	C++	YamlHelpers::kind(const YAML::Node& n)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	25	C++	YamlHelpers::child_required(const YAML::Node& parent, const char* key)	public	covered	tests/YamlHelpersTest.cpp::test_basic_read; tests/YamlHelpersTest.cpp::test_bcam_alias; tests/YamlHelpersTest.cpp::test_enum_read; tests/YamlHelpersTest.cpp::test_invalid_inputs; tests/YamlHelpersTest.cpp::test_non_finite_numbers_are_rejected; tests/YamlHelpersTest.cpp::test_units; tests/YamlHelpersTest.cpp::test_unknown_keys_are_rejected	test-yaml	basic read; bcam alias; enum read; invalid inputs; non finite numbers are rejected; units; unknown keys are rejected	
+src/input/YamlNodeHelpers.cpp	48	C++	YamlHelpers::child_optional(const YAML::Node& parent, const char* key)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	55	C++	YamlHelpers::child_optional_bool_key(const YAML::Node& parent, bool key)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	62	C++	YamlHelpers::child_required_index(const YAML::Node& parent, size_t idx, const char* what)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	81	C++	YamlHelpers::is_yaml_file(const std::string& path)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	91	C++	YamlHelpers::schema_matches(const YAML::Node& root, const std::string& canonical)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	100	C++	YamlHelpers::require_schema(const YAML::Node& root, const std::string& canonical, const char* fileKind)	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	107	C++	YamlHelpers::reject_unknown_keys(const YAML::Node& node, std::initializer_list<const char*> allowedKeys, const std::string& path)	public	covered	tests/YamlHelpersTest.cpp::test_unknown_keys_are_rejected	test-yaml	unknown keys are rejected	
+src/input/YamlNodeHelpers.cpp	144	C++	EnumTraits<MemCellType>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	161	C++	EnumTraits<CellAccessType>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	171	C++	EnumTraits<DeviceRoadmap>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	182	C++	EnumTraits<WireType>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	195	C++	EnumTraits<WireRepeaterType>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	209	C++	EnumTraits<BufferDesignTarget>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	218	C++	EnumTraits<CAMType>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	228	C++	EnumTraits<SearchFunction>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	237	C++	EnumTraits<RoutingMode>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	246	C++	EnumTraits<WriteScheme>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	265	C++	EnumTraits<DesignTarget>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	272	C++	EnumTraits<OptimizationTarget>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	290	C++	EnumTraits<TypeOfInputEncoder>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	297	C++	EnumTraits<TypeOfSenseAmp>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	308	C++	EnumTraits<CAM_PortType>::mapping()	public	missing				Add a dedicated test
+src/input/YamlNodeHelpers.cpp	322	C++	EnumTraits<CAM_CmosRegion>::mapping()	public	missing				Add a dedicated test
+src/input/YamlUnitParsers.cpp	13	C++	trim(const std::string& s)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/YamlUnitParsers.cpp	23	C++	unit_suffix_matches(const std::string& actual, const char* expected)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/YamlUnitParsers.cpp	36	C++	parse_quantity_string( const std::string& raw, const std::vector<YamlHelpers::UnitSpec>& units, double default_unit_to_base, const char* what)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/input/YamlUnitParsers.cpp	82	C++	YamlHelpers::parse_quantity_node( const YAML::Node& node, const std::vector<UnitSpec>& units, double default_unit_to_base, const char* what)	public	missing				Add a dedicated test
+src/input/YamlUnitParsers.cpp	104	C++	YamlHelpers::read_quantity_required( const YAML::Node& parent, const char* key, const std::vector<UnitSpec>& units, double default_unit_to_base, const char* what)	public	covered	tests/YamlHelpersTest.cpp::test_invalid_inputs; tests/YamlHelpersTest.cpp::test_non_finite_numbers_are_rejected; tests/YamlHelpersTest.cpp::test_units	test-yaml	invalid inputs; non finite numbers are rejected; units	
+src/input/YamlUnitParsers.cpp	115	C++	YamlHelpers::VoltageUnits()	public	covered	tests/YamlHelpersTest.cpp::test_invalid_inputs; tests/YamlHelpersTest.cpp::test_non_finite_numbers_are_rejected; tests/YamlHelpersTest.cpp::test_units	test-yaml	invalid inputs; non finite numbers are rejected; units	
+src/input/YamlUnitParsers.cpp	126	C++	YamlHelpers::McamCenterVoltageUnits()	public	missing				Add a dedicated test
+src/input/YamlUnitParsers.cpp	134	C++	YamlHelpers::CurrentUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	145	C++	YamlHelpers::TimeUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	157	C++	YamlHelpers::CapacitanceUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	169	C++	YamlHelpers::ResistanceUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	179	C++	YamlHelpers::PowerUnits()	public	missing				Add a dedicated test
+src/input/YamlUnitParsers.cpp	190	C++	YamlHelpers::EnergyUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	202	C++	YamlHelpers::TemperatureUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	209	C++	YamlHelpers::DataSizeUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	228	C++	YamlHelpers::BitUnits()	public	covered	tests/YamlHelpersTest.cpp::test_units	test-yaml	units	
+src/input/YamlUnitParsers.cpp	236	C++	YamlHelpers::LengthUnits()	public	missing				Add a dedicated test
+src/input/YamlUnitParsers.cpp	247	C++	YamlHelpers::FeatureUnits()	public	missing				Add a dedicated test
+src/input/YamlUnitParsers.cpp	254	C++	YamlHelpers::FeatureAreaUnits()	public	missing				Add a dedicated test
+src/model/Bank.cpp	8	C++	SumRowDrivers(const CAM_SubArray &subarray, int rowCount, Accessor accessor)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	17	C++	SumColumnMuxes(const CAM_SubArray &subarray, int columnCount, Accessor accessor)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	25	C++	PrintSubarrayAreaBreakdown(const Bank &bank, const CAM_SubArray &subarray)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	57	C++	PrintSearchLatencyBreakdown(const Bank &bank, const CAM_SubArray &subarray)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	86	C++	PrintSearchEnergyBreakdown(const Bank &bank, const CAM_SubArray &subarray)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	112	C++	PrintWriteEnergyBreakdown(const Bank &bank, const CAM_SubArray &subarray)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	141	C++	PrintLeakageBreakdown(const Bank &bank, const CAM_SubArray &subarray)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Bank.cpp	168	C++	Bank::PrintProperty()	public	missing				Add a dedicated test
+src/model/Bank.cpp	173	C++	Bank::match(const std::vector<int> &stored, const std::vector<int> &query) const	public	missing				Add a dedicated test
+src/model/Bank.cpp	177	C++	Bank::evaluate(const std::vector<int> &stored, const std::vector<int> &query) const	public	missing				Add a dedicated test
+src/model/Bank.cpp	185	C++	Bank::printbreakdown()	public	missing				Add a dedicated test
+src/model/BankWithHtree.cpp	4	C++	BankWithHtree::BankWithHtree()	public	missing				Add a dedicated test
+src/model/BankWithHtree.cpp	9	C++	BankWithHtree::MarkInvalid(const char *reason)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	14	C++	BankWithHtree::MarkInvalidInitialized(const char *reason)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	19	C++	BankWithHtree::TotalHorizontalBits(int level) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	24	C++	BankWithHtree::TotalVerticalBits(int level) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	29	C++	BankWithHtree::GetWireAreaModel() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	41	C++	BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level, int totalBits)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	66	C++	BankWithHtree::HasRoutableBits(const RoutingState &state) const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	70	C++	BankWithHtree::CreateInitialRoutingState() const	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	81	C++	BankWithHtree::InitializeFirstHorizontalLevel(RoutingState &state)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	99	C++	BankWithHtree::ReduceExtraHorizontalLevels(RoutingState &state)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	127	C++	BankWithHtree::ReduceExtraVerticalLevels(RoutingState &state)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	167	C++	BankWithHtree::ReducePairedHorizontalAndVerticalLevels(RoutingState &state)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	244	C++	BankWithHtree::FinalizeMatRoutingBits(RoutingState &state)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/BankWithHtree.cpp	260	C++	BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity, long _blockSize, int _numActiveMatPerRow, int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray, int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn, BufferDesignTarget _areaOptimizationLevel, CAMType _camType, SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt)	public	missing				Add a dedicated test
+src/model/BankWithHtree.cpp	390	C++	BankWithHtree::CalculateArea()	public	missing				Add a dedicated test
+src/model/BankWithHtree.cpp	479	C++	BankWithHtree::CalculateRC()	public	missing				Add a dedicated test
+src/model/BankWithHtree.cpp	494	C++	BankWithHtree::CalculateLatencyAndPower()	public	missing				Add a dedicated test
+src/model/BankWithoutHtree.cpp	4	C++	BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity, long _blockSize, int _numActiveMatPerRow, int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2, int _numRowSubarray, int _numColumnSubarray, int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn, BufferDesignTarget _areaOptimizationLevel, CAMType _camType, SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt)	public	missing				Add a dedicated test
+src/model/BankWithoutHtree.cpp	140	C++	BankWithoutHtree::CalculateArea()	public	missing				Add a dedicated test
+src/model/BankWithoutHtree.cpp	182	C++	BankWithoutHtree::CalculateRC()	public	missing				Add a dedicated test
+src/model/BankWithoutHtree.cpp	194	C++	BankWithoutHtree::CalculateLatencyAndPower()	public	missing				Add a dedicated test
+src/model/Mat.cpp	14	C++	Log2Rounded(int value)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	18	C++	MarkInvalid(Mat &mat, const char *message)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	24	C++	SplitPredecoderAddressBits(int &block1AddressBits, int &block2AddressBits)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	32	C++	InitializePredecoderPair(std::unique_ptr<PredecodeBlock> &block1, std::unique_ptr<PredecodeBlock> &block2, int addressBits, double capLoad, const std::shared_ptr<EvaCamConfig> &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	46	C++	ForEachPredecoderBlock(Mat &mat, Operation operation)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	57	C++	SumPredecoderMetric(const Mat &mat, double FunctionUnit::*metric)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	68	C++	MaxPairReadLatency(const std::unique_ptr<PredecodeBlock> &block1, const std::unique_ptr<PredecodeBlock> &block2)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/model/Mat.cpp	74	C++	Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddressBit, long _numDataBit, bool _split, int _numActiveSubarrayPerRow, int _numActiveSubarrayPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, int _muxOutputLev2, BufferDesignTarget _areaOptimizationLevel, CAMType _camType, SearchFunction _searchFunction, std::shared_ptr<EvaCamConfig> _config, const Wire &_localWire, const CAM_Opt &_CAM_opt)	public	missing				Add a dedicated test
+src/model/Mat.cpp	225	C++	Mat::CalculateArea()	public	missing				Add a dedicated test
+src/model/Mat.cpp	251	C++	Mat::CalculateRC()	public	missing				Add a dedicated test
+src/model/Mat.cpp	260	C++	Mat::CalculateLatency(double _rampInput)	public	missing				Add a dedicated test
+src/model/Mat.cpp	293	C++	Mat::CalculatePower()	public	missing				Add a dedicated test
+src/model/Mat.cpp	331	C++	Mat::PrintProperty()	public	missing				Add a dedicated test
+src/model/Result.cpp	5	C++	Result::Initialize(std::shared_ptr<EvaCamConfig> _config)	public	missing				Add a dedicated test
+src/model/Result.cpp	38	C++	Result::reset()	public	missing				Add a dedicated test
+src/model/Result.cpp	51	C++	Result::compareAndUpdate(std::shared_ptr<Result> newResult)	public	missing				Add a dedicated test
+src/model/Result.cpp	118	C++	Result::printToCsvFile(std::ostream &outputFile)	public	missing				Add a dedicated test
+src/model/ResultConsole.cpp	6	C++	Result::print()	public	missing				Add a dedicated test
+src/model/VariationSampler.cpp	6	C++	VariationSampler::VariationSampler(unsigned int seed)	public	missing				Add a dedicated test
+src/model/VariationSampler.cpp	9	C++	VariationSampler::SamplePositive(double nominal, double stdevFrac)	public	missing				Add a dedicated test
+src/model/VariationSampler.cpp	39	C++	VariationSampler::SampleResistance(double nominal, double stdevFrac)	public	covered	tests/VariationSamplerTest.cpp::test_mean_preserved_approximately; tests/VariationSamplerTest.cpp::test_positive_samples; tests/VariationSamplerTest.cpp::test_same_seed_same_sequence; tests/VariationSamplerTest.cpp::test_samples_stay_within_bounds; tests/VariationSamplerTest.cpp::test_zero_sigma_returns_nominal	test-variation	mean preserved approximately; positive samples; same seed same sequence; samples stay within bounds; zero sigma returns nominal	
+src/output/ResultsYaml.cpp	15	C++	YamlWriter::YamlWriter(std::ostream& os)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	17	C++	YamlWriter::begin_map(const std::string& key)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	23	C++	YamlWriter::end_map()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	28	C++	"YamlWriter::line(const std::string& key, const std::string& value, const std::string& comment = """")"	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	37	C++	YamlWriter::indent()	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	43	C++	fmt_second(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	49	C++	fmt_bps(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	55	C++	fmt_joule(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	61	C++	fmt_watt(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	67	C++	fmt_voltage(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	73	C++	fmt_meter(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	79	C++	fmt_sqm(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	85	C++	fmt_percent(double x)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	91	C++	safe_cell_area(const Result& result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	101	C++	safe_percent(double numerator, double denominator)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	108	C++	optimization_target_name(OptimizationTarget t)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	139	C++	roadmap_name(DeviceRoadmap roadmap)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	150	C++	bool_name(bool value)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	154	C++	write_assumptions(YamlWriter& y, const EvaCamConfig &config)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	172	C++	write_metric_stats( YamlWriter& y, const std::string& key, const CAMMetricStats& stats, const std::function<std::string(double)>& formatter)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	189	C++	write_metric_sample( YamlWriter& y, const std::string& key, const CAMMetricStats& stats, const std::function<std::string(double)>& formatter)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	202	C++	write_breakdown(YamlWriter& y, const Result& result)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	321	C++	"write_summary(YamlWriter& y, const Result& result, const std::string &variationSamplesFile = """", const std::string &variationPlotFile = """")"	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	522	C++	"write_results_body(YamlWriter& y, const Result& result, const std::string &variationSamplesFile = """", const std::string &variationPlotFile = """")"	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/ResultsYaml.cpp	531	C++	WriteResultsYaml(std::ostream& os, const Result& result, const std::string &variationSamplesFile, const std::string &variationPlotFile)	public	missing				Add a dedicated test
+src/output/ResultsYaml.cpp	539	C++	WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<Result>>& results, const std::unordered_map<OptimizationTarget, std::string> &variationSamplesFiles, const std::unordered_map<OptimizationTarget, std::string> &variationPlotFiles)	public	missing				Add a dedicated test
+src/output/ResultsYaml.cpp	569	C++	WriteResultsYamlNoSolutions(std::ostream& os, const EvaCamConfig &config)	public	missing				Add a dedicated test
+src/output/VariationSamplesCsv.cpp	11	C++	CsvString(const std::string &value)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/output/VariationSamplesCsv.cpp	26	C++	WriteVariationSamplesCsv(std::ostream &os, const Result &result)	public	missing				Add a dedicated test
+src/technology/MemCell.cpp	11	C++	MemCell::MemCell()	public	missing				Add a dedicated test
+src/technology/MemCell.cpp	103	C++	MemCell::ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd)	public	missing				Add a dedicated test
+src/technology/MemCell.cpp	115	C++	MemCell::GetMemristance(double _relativeReadVoltage)	public	missing				Add a dedicated test
+src/technology/MemCell.cpp	136	C++	MemCell::CalculateWriteEnergy()	public	missing				Add a dedicated test
+src/technology/MemCell.cpp	210	C++	MemCell::CalculateReadPower()	public	missing				Add a dedicated test
+src/technology/MemCell.cpp	232	C++	MemCell::PrintCell()	public	missing				Add a dedicated test
+src/technology/Technology.cpp	9	C++	ToString(DeviceRoadmap roadmap)	file-local	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/technology/Technology.cpp	22	C++	Technology::InitializeFromSpec(const TechnologySpec &spec)	public	missing				Add a dedicated test
+src/technology/Technology.cpp	32	C++	Technology::ApplySpec(const TechnologySpec &spec)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/technology/Technology.cpp	58	C++	Technology::CollectTemperatureAnchors(const std::array<double, 101> &src)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/technology/Technology.cpp	66	C++	Technology::ExpandCurrentTable(const std::array<double, 11> &src, std::array<double, 101> &dst)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/technology/Technology.cpp	80	C++	Technology::ExpandTemperatureTables(const TechnologySpec &spec)	private	missing				Add a dedicated test; refactor behind an internal header if behavior cannot be isolated
+src/technology/Technology.cpp	87	C++	Technology::PrintProperty()	public	missing				Add a dedicated test
+src/technology/Technology.cpp	101	C++	Technology::InterpolateWith(const Technology &rhs, double _alpha)	public	missing				Add a dedicated test
