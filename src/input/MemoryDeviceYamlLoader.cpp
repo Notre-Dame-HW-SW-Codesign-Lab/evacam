@@ -26,7 +26,11 @@ void ReadReadSection(MemCell& cell, const YAML::Node& root) {
     auto read = child_optional(root, "read");
     if (!read) return;
     cell.readMode = YamlHelpers::read_required<std::string>(read, "mode") == "voltage";
-    if (child_optional(read, "voltage")) cell.readVoltage = read_quantity_required(read, "voltage", YamlHelpers::VoltageUnits(), 1.0, "read.voltage");
+    if (child_optional(read, "voltage")) {
+        cell.readVoltage = read_quantity_required(
+                read, "voltage", YamlHelpers::VoltageUnits(), 1.0,
+                "memory_device.read.voltage");
+    }
     if (child_optional(read, "current")) cell.readCurrent = read_quantity_required(read, "current", YamlHelpers::CurrentUnits(), 1.0, "read.current");
     if (child_optional(read, "power")) cell.readPower = read_quantity_required(read, "power", YamlHelpers::PowerUnits(), 1.0, "read.power");
     if (child_optional(read, "energy")) cell.readEnergy = read_quantity_required(read, "energy", YamlHelpers::EnergyUnits(), 1.0, "read.energy");

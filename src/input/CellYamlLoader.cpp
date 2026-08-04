@@ -319,7 +319,7 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
                     "cell.layout.cell_process_node") / 1e-9,
             "cell.layout.cell_process_node in nanometers");
     cell.area = YamlHelpers::read_quantity_required(layout, "area",
-            YamlHelpers::FeatureAreaUnits(), 1.0, "layout.area");
+            YamlHelpers::FeatureAreaUnits(), 1.0, "cell.layout.area");
     cell.aspectRatio = YamlHelpers::read_required<double>(layout, "aspect_ratio");
     YamlHelpers::require_positive(cell.processNode, "cell.layout.cell_process_node");
     YamlHelpers::require_positive(cell.area, "cell.layout.area");
@@ -502,7 +502,9 @@ void ReadReadSection(MemCell& cell, const YAML::Node& root) {
         throw std::runtime_error("Invalid read.mode: " + mode);
 
     if (YamlHelpers::child_optional(read, "voltage"))
-        cell.readVoltage = YamlHelpers::read_quantity_required(read, "voltage", YamlHelpers::VoltageUnits(), 1.0, "read.voltage");
+        cell.readVoltage = YamlHelpers::read_quantity_required(
+                read, "voltage", YamlHelpers::VoltageUnits(), 1.0,
+                "memory_device.read.voltage");
     if (YamlHelpers::child_optional(read, "current"))
         cell.readCurrent = YamlHelpers::read_quantity_required(read, "current", YamlHelpers::CurrentUnits(), 1.0, "read.current");
     if (YamlHelpers::child_optional(read, "power"))

@@ -148,12 +148,14 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
             {"vdd", "vth", "physical_gate_length"},
             "technology.roadmaps.nodes.operating_point");
     spec.vdd = read_quantity_required(
-            operatingPoint, "vdd", YamlHelpers::VoltageUnits(), 1.0, "technology.vdd");
+            operatingPoint, "vdd", YamlHelpers::VoltageUnits(), 1.0,
+            "technology.operating_point.vdd");
     spec.vth = read_quantity_required(
-            operatingPoint, "vth", YamlHelpers::VoltageUnits(), 1.0, "technology.vth");
+            operatingPoint, "vth", YamlHelpers::VoltageUnits(), 1.0,
+            "technology.operating_point.vth");
     spec.phyGateLength = read_quantity_required(
             operatingPoint, "physical_gate_length", LengthUnits(), 1.0,
-            "technology.physical_gate_length");
+            "technology.operating_point.physical_gate_length");
     YamlHelpers::require_positive(spec.vdd, "technology.operating_point.vdd");
     YamlHelpers::require_non_negative(spec.vth, "technology.operating_point.vth");
     YamlHelpers::require_positive(

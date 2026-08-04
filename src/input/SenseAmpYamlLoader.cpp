@@ -36,17 +36,22 @@ std::vector<SenseAmpModel::NodeValue> ReadNodeTable(
     if (!nodes.IsSequence()) {
         throw std::runtime_error(std::string("sense_amp.") + key + " must be a sequence");
     }
-    for (const YAML::Node& entry : nodes) {
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        const YAML::Node entry = nodes[i];
+        const std::string entryPath = std::string("sense_amp.iv_converter.")
+                + key + "[" + std::to_string(i) + "]";
         YamlHelpers::reject_unknown_keys(entry, {"min_node", valueKey},
                 std::string("sense_amp.iv_converter.") + key);
         SenseAmpModel::NodeValue item;
         const YAML::Node minNode = YamlHelpers::child_optional(entry, "min_node");
         item.minFeatureSize = minNode && !minNode.IsNull()
                 ? YamlHelpers::parse_quantity_node(
-                        minNode, YamlHelpers::LengthUnits(), 1.0, "sense_amp.min_node")
+                        minNode, YamlHelpers::LengthUnits(), 1.0,
+                        (entryPath + ".min_node").c_str())
                 : 0;
         item.value = YamlHelpers::read_quantity_required(
-                entry, valueKey, valueUnits, defaultUnitToBase, valueKey);
+                entry, valueKey, valueUnits, defaultUnitToBase,
+                (entryPath + "." + valueKey).c_str());
         table.push_back(item);
     }
     if (table.empty()) {

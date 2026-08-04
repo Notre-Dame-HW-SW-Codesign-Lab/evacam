@@ -6,20 +6,7 @@
 
 # Build targets
 EvaCAM
-YamlHelpersTest
-TopLevelConfigParserTest
-CellYamlLoaderTest
-CliOptionsTest
-CustomSenseAmpYamlLoaderTest
-InputValidationTest
-ExplorationDomainTest
-VariationSamplerTest
-MonteCarloRegressionTest
-CornerVariationRegressionTest
-WireCopyTest
-FormulaTest
-MatchTest
-PybindMatchPersistenceTest
+test-bin/
 evacam_py*.so
 
 # Generated results

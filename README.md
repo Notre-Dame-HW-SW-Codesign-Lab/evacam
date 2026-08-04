@@ -130,6 +130,7 @@ More detail:
 
 - [Output Files](docs/output-files.md)
 - [Results Reference](docs/results-reference.md)
+- [Pruning and SPICE Validation Plan](docs/pruning-and-spice-validation.md)
 
 ## Validation
 
@@ -162,3 +163,4 @@ Common issues and their likely causes are documented here:
 
 - [Troubleshooting](docs/troubleshooting.md)
 - [Development Workflow](docs/development.md)
+- [Development Roadmap](docs/todos.md)

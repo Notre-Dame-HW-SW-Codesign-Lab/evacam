@@ -103,7 +103,8 @@ void WriteArchitectureFile(const std::string &memoryCapacity = "1KB",
         const std::string &wordWidth = "64bits",
         const std::string &organization = "",
         const std::string &extra = "",
-        const std::string &physicalCapacity = "") {
+        const std::string &physicalCapacity = "",
+        const std::string &temperature = "300K") {
     WriteSensingFile();
 
     std::ofstream out(kArchitecturePath);
@@ -114,7 +115,7 @@ void WriteArchitectureFile(const std::string &memoryCapacity = "1KB",
         "  search_function: EX\n"
         "  system_process_node: 45nm\n"
         "  device_roadmap: HP\n"
-        "  temperature: 300K\n"
+        "  temperature: " << temperature << "\n"
         "memory:\n";
     if (!memoryCapacity.empty()) {
         out << "  capacity: " << memoryCapacity << "\n";
@@ -355,6 +356,35 @@ void TestInvalidUnitThrows() {
     assert(LoadThrowsWithMessage("Unknown unit"));
 }
 
+void TestRunConfigRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        WriteBaseTopLevelConfig("",
+                std::string("design_constraints:\n  read_latency: ") + value + "s\n");
+        assert(LoadThrowsWithMessage(
+                "Non-finite value for constraints.read_latency"));
+    }
+}
+
+void TestArchitectureRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        WriteMinimalCellFile();
+        WriteArchitectureFile(
+                "1KB", "64bits", "", "", "", std::string(value) + "K");
+        WriteRunConfig();
+        assert(LoadThrowsWithMessage("Non-finite value for design.temperature"));
+    }
+}
+
+void TestSensingRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        WriteBaseTopLevelConfig();
+        WriteSensingFile(
+                std::string("worst_case_sense_margin: ") + value + "V\n");
+        assert(LoadThrowsWithMessage(
+                "Non-finite value for extra.worst_case_sense_margin"));
+    }
+}
+
 void TestUnknownConfigKeysThrow() {
     WriteBaseTopLevelConfig();
     {
@@ -453,6 +483,9 @@ int main() {
     TestSensingFileActivatesSenseAmpModel();
     TestMissingRequiredTopLevelSectionThrows();
     TestInvalidUnitThrows();
+    TestRunConfigRejectsNonFiniteValues();
+    TestArchitectureRejectsNonFiniteValues();
+    TestSensingRejectsNonFiniteValues();
     TestUnknownConfigKeysThrow();
     TestOrganizationAliasParses();
     TestCactiAssumptionNormalizesGeometry();

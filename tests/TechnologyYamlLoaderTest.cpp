@@ -157,6 +157,18 @@ void TestPhysicalDomainsThrowDescriptiveErrors() {
             "must contain 300K through 400K in 10K increments");
 }
 
+void TestTechnologyRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        YAML::Node root = YAML::LoadFile("config/lib/technology/cmos.updated.yaml");
+        root["roadmaps"]["HP"]["nodes"][0]["operating_point"]["vdd"] =
+                std::string(value) + "V";
+        WriteFile("/tmp/evacam_nonfinite_technology.yaml", YAML::Dump(root));
+        ExpectTechnologyLoadFailureWithMessage(
+                "/tmp/evacam_nonfinite_technology.yaml",
+                "Non-finite value for technology.operating_point.vdd");
+    }
+}
+
 void TestRuntimeUsesTechnologyFile() {
     EvaCamConfig config;
     config.ReadConfigFromFile("config/2FeFET_TCAM/2FeFET_TCAM.config.yaml");
@@ -221,6 +233,7 @@ int main() {
     TestValidationFailures();
     TestUnknownTechnologyKeyThrows();
     TestPhysicalDomainsThrowDescriptiveErrors();
+    TestTechnologyRejectsNonFiniteValues();
     TestRuntimeUsesTechnologyFile();
     TestRuntimeRequiresTechnologyFile();
     TestMissingRoadmapFailsAtRuntime();

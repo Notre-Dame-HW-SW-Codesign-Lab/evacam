@@ -116,6 +116,17 @@ bool LoadCellThrowsWithMessage(const char *path, const std::string& expected) {
     return false;
 }
 
+bool LoadMemoryDeviceThrowsWithMessage(
+        const char *path, const std::string& expected) {
+    try {
+        MemCell cell;
+        YamlHelpers::ReadMemoryDeviceFromYaml(cell, path);
+    } catch (const std::runtime_error& error) {
+        return std::string(error.what()).find(expected) != std::string::npos;
+    }
+    return false;
+}
+
 void TestMinimalCellParses() {
     WriteMinimalCellFile(kCellPath);
 
@@ -322,6 +333,40 @@ void TestPhysicalDomainsThrowDescriptiveErrors() {
     assert(LoadCellThrowsWithMessage(kCellPath, "cell.layout.area must be positive"));
 }
 
+void TestCellRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        WriteMinimalCellFile(kCellPath);
+        YAML::Node cell = YAML::LoadFile(kCellPath);
+        cell["layout"]["area"] = std::string(value) + "F^2";
+        WriteYaml(kCellPath, cell);
+        assert(LoadCellThrowsWithMessage(
+                kCellPath, "Non-finite value for cell.layout.area"));
+    }
+}
+
+void TestMemoryDeviceRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        WriteMinimalCellFile(kCellPath);
+        YAML::Node device = YAML::LoadFile(kMemoryDevicePath);
+        device["read"]["voltage"] = std::string(value) + "V";
+        WriteYaml(kMemoryDevicePath, device);
+        assert(LoadCellThrowsWithMessage(
+                kCellPath, "Non-finite value for memory_device.read.voltage"));
+    }
+}
+
+void TestLegacyMemoryDeviceLoaderRejectsNonFiniteValues() {
+    const char *path = "/tmp/evacam_nonfinite_memory_device.yaml";
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        YAML::Node device = YAML::LoadFile(
+                "config/2FeFET_TCAM_var/2FeFET_TCAM_var.memory_device.yaml");
+        device["read"]["voltage"] = std::string(value) + "V";
+        WriteYaml(path, device);
+        assert(LoadMemoryDeviceThrowsWithMessage(
+                path, "Non-finite value for memory_device.read.voltage"));
+    }
+}
+
 void TestSignedProgrammingPolarityIsAccepted() {
     WriteMinimalCellFile(kCellPath);
     YAML::Node device = YAML::LoadFile(kMemoryDevicePath);
@@ -349,6 +394,9 @@ int main() {
     TestUnknownMemoryDeviceKeyThrows();
     TestLegacyMemoryDeviceLoaderStillParses();
     TestPhysicalDomainsThrowDescriptiveErrors();
+    TestCellRejectsNonFiniteValues();
+    TestMemoryDeviceRejectsNonFiniteValues();
+    TestLegacyMemoryDeviceLoaderRejectsNonFiniteValues();
     TestSignedProgrammingPolarityIsAccepted();
     std::cout << "CellYamlLoader tests passed" << std::endl;
     return 0;

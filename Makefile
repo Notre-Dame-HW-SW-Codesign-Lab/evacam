@@ -20,29 +20,29 @@ SRC_DIR=$(ROOT_DIR)/src
 OBJ_DIR=$(ROOT_DIR)/obj
 RES_DIR=$(ROOT_DIR)/results
 TEST_DEP_DIR=$(OBJ_DIR)/tests
+TEST_BIN_DIR=$(ROOT_DIR)/test-bin
 
 BIN=EvaCAM
-TEST_YAML_BIN=YamlHelpersTest
-TEST_TOP_LEVEL_BIN=TopLevelConfigParserTest
-TEST_CELL_LOADER_BIN=CellYamlLoaderTest
-TEST_CLI_OPTIONS_BIN=CliOptionsTest
-TEST_CUSTOM_SA_LOADER_BIN=CustomSenseAmpYamlLoaderTest
-TEST_TECHNOLOGY_LOADER_BIN=TechnologyYamlLoaderTest
-TEST_NEW_INPUT_NAMES_BIN=NewInputNamesTest
-TEST_GENERATED_V2_CONFIGS_BIN=GeneratedV2ConfigsTest
-TEST_INPUT_VALIDATION_BIN=InputValidationTest
-TEST_OUTPUT_PATH_BUILDER_BIN=OutputPathBuilderTest
-TEST_EXPLORATION_BIN=ExplorationDomainTest
-TEST_VARIATION_BIN=VariationSamplerTest
-TEST_MONTECARLO_BIN=MonteCarloRegressionTest
-TEST_CORNER_BIN=CornerVariationRegressionTest
-TEST_WIRE_BIN=WireCopyTest
-TEST_FORMULA_BIN=FormulaTest
-TEST_MATCH_BIN=MatchTest
-TEST_MAT_DECODER_BIN=MatDecoderRegressionTest
-TEST_HTREE_ROUTING_BIN=HtreeRoutingRegressionTest
-TEST_EXHAUSTIVE_SEARCH_BIN=ExhaustiveSearchRegressionTest
-TEST_PYBIND_MATCH_PERSISTENCE_BIN=PybindMatchPersistenceTest
+TEST_YAML_BIN=$(TEST_BIN_DIR)/YamlHelpersTest
+TEST_TOP_LEVEL_BIN=$(TEST_BIN_DIR)/TopLevelConfigParserTest
+TEST_CELL_LOADER_BIN=$(TEST_BIN_DIR)/CellYamlLoaderTest
+TEST_CLI_OPTIONS_BIN=$(TEST_BIN_DIR)/CliOptionsTest
+TEST_CUSTOM_SA_LOADER_BIN=$(TEST_BIN_DIR)/CustomSenseAmpYamlLoaderTest
+TEST_TECHNOLOGY_LOADER_BIN=$(TEST_BIN_DIR)/TechnologyYamlLoaderTest
+TEST_NEW_INPUT_NAMES_BIN=$(TEST_BIN_DIR)/NewInputNamesTest
+TEST_GENERATED_V2_CONFIGS_BIN=$(TEST_BIN_DIR)/GeneratedV2ConfigsTest
+TEST_INPUT_VALIDATION_BIN=$(TEST_BIN_DIR)/InputValidationTest
+TEST_OUTPUT_PATH_BUILDER_BIN=$(TEST_BIN_DIR)/OutputPathBuilderTest
+TEST_EXPLORATION_BIN=$(TEST_BIN_DIR)/ExplorationDomainTest
+TEST_VARIATION_BIN=$(TEST_BIN_DIR)/VariationSamplerTest
+TEST_MONTECARLO_BIN=$(TEST_BIN_DIR)/MonteCarloRegressionTest
+TEST_CORNER_BIN=$(TEST_BIN_DIR)/CornerVariationRegressionTest
+TEST_WIRE_BIN=$(TEST_BIN_DIR)/WireCopyTest
+TEST_FORMULA_BIN=$(TEST_BIN_DIR)/FormulaTest
+TEST_MATCH_BIN=$(TEST_BIN_DIR)/MatchTest
+TEST_MAT_DECODER_BIN=$(TEST_BIN_DIR)/MatDecoderRegressionTest
+TEST_HTREE_ROUTING_BIN=$(TEST_BIN_DIR)/HtreeRoutingRegressionTest
+TEST_EXHAUSTIVE_SEARCH_BIN=$(TEST_BIN_DIR)/ExhaustiveSearchRegressionTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
 PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
@@ -98,106 +98,106 @@ sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
 test-yaml: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_YAML_BIN).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_YAML_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_YAML_BIN)).d -MT $(TEST_YAML_BIN) -o $(TEST_YAML_BIN) tests/YamlHelpersTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_YAML_BIN)
 
 test-top-level-parser: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_TOP_LEVEL_BIN).d -MT $(TEST_TOP_LEVEL_BIN) -o $(TEST_TOP_LEVEL_BIN) tests/TopLevelConfigParserTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_TOP_LEVEL_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_TOP_LEVEL_BIN)).d -MT $(TEST_TOP_LEVEL_BIN) -o $(TEST_TOP_LEVEL_BIN) tests/TopLevelConfigParserTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_TOP_LEVEL_BIN)
 
 test-cell-loader: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CELL_LOADER_BIN).d -MT $(TEST_CELL_LOADER_BIN) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_CELL_LOADER_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CELL_LOADER_BIN)).d -MT $(TEST_CELL_LOADER_BIN) -o $(TEST_CELL_LOADER_BIN) tests/CellYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CELL_LOADER_BIN)
 
 test-cli-options:
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CLI_OPTIONS_BIN).d -MT $(TEST_CLI_OPTIONS_BIN) -o $(TEST_CLI_OPTIONS_BIN) tests/CliOptionsTest.cpp src/input/CliOptions.cpp $(LD_LIBS)
-	./$(TEST_CLI_OPTIONS_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CLI_OPTIONS_BIN)).d -MT $(TEST_CLI_OPTIONS_BIN) -o $(TEST_CLI_OPTIONS_BIN) tests/CliOptionsTest.cpp src/input/CliOptions.cpp $(LD_LIBS)
+	$(TEST_CLI_OPTIONS_BIN)
 
 test-custom-sa-loader: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CUSTOM_SA_LOADER_BIN).d -MT $(TEST_CUSTOM_SA_LOADER_BIN) -o $(TEST_CUSTOM_SA_LOADER_BIN) tests/CustomSenseAmpYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_CUSTOM_SA_LOADER_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CUSTOM_SA_LOADER_BIN)).d -MT $(TEST_CUSTOM_SA_LOADER_BIN) -o $(TEST_CUSTOM_SA_LOADER_BIN) tests/CustomSenseAmpYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CUSTOM_SA_LOADER_BIN)
 
 test-technology-loader: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_TECHNOLOGY_LOADER_BIN).d -MT $(TEST_TECHNOLOGY_LOADER_BIN) -o $(TEST_TECHNOLOGY_LOADER_BIN) tests/TechnologyYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_TECHNOLOGY_LOADER_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_TECHNOLOGY_LOADER_BIN)).d -MT $(TEST_TECHNOLOGY_LOADER_BIN) -o $(TEST_TECHNOLOGY_LOADER_BIN) tests/TechnologyYamlLoaderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_TECHNOLOGY_LOADER_BIN)
 
 test-new-input-names: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_NEW_INPUT_NAMES_BIN).d -MT $(TEST_NEW_INPUT_NAMES_BIN) -o $(TEST_NEW_INPUT_NAMES_BIN) tests/NewInputNamesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_NEW_INPUT_NAMES_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_NEW_INPUT_NAMES_BIN)).d -MT $(TEST_NEW_INPUT_NAMES_BIN) -o $(TEST_NEW_INPUT_NAMES_BIN) tests/NewInputNamesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_NEW_INPUT_NAMES_BIN)
 
 test-generated-v2-configs: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_GENERATED_V2_CONFIGS_BIN).d -MT $(TEST_GENERATED_V2_CONFIGS_BIN) -o $(TEST_GENERATED_V2_CONFIGS_BIN) tests/GeneratedV2ConfigsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_GENERATED_V2_CONFIGS_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_GENERATED_V2_CONFIGS_BIN)).d -MT $(TEST_GENERATED_V2_CONFIGS_BIN) -o $(TEST_GENERATED_V2_CONFIGS_BIN) tests/GeneratedV2ConfigsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_GENERATED_V2_CONFIGS_BIN)
 
 test-input-validation: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_INPUT_VALIDATION_BIN).d -MT $(TEST_INPUT_VALIDATION_BIN) -o $(TEST_INPUT_VALIDATION_BIN) tests/InputValidationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_INPUT_VALIDATION_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_INPUT_VALIDATION_BIN)).d -MT $(TEST_INPUT_VALIDATION_BIN) -o $(TEST_INPUT_VALIDATION_BIN) tests/InputValidationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_INPUT_VALIDATION_BIN)
 
 test-output-path-builder: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_OUTPUT_PATH_BUILDER_BIN).d -MT $(TEST_OUTPUT_PATH_BUILDER_BIN) -o $(TEST_OUTPUT_PATH_BUILDER_BIN) tests/OutputPathBuilderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_OUTPUT_PATH_BUILDER_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_OUTPUT_PATH_BUILDER_BIN)).d -MT $(TEST_OUTPUT_PATH_BUILDER_BIN) -o $(TEST_OUTPUT_PATH_BUILDER_BIN) tests/OutputPathBuilderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_OUTPUT_PATH_BUILDER_BIN)
 
 test-exploration:
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_EXPLORATION_BIN).d -MT $(TEST_EXPLORATION_BIN) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_EXPLORATION_BIN)).d -MT $(TEST_EXPLORATION_BIN) -o $(TEST_EXPLORATION_BIN) tests/ExplorationDomainTest.cpp \
 		src/config/IntValueDomain.cpp src/config/ExplorationSpec.cpp src/config/ExplorationSpaceResolver.cpp $(LD_LIBS)
-	./$(TEST_EXPLORATION_BIN)
+	$(TEST_EXPLORATION_BIN)
 
 test-variation:
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_VARIATION_BIN).d -MT $(TEST_VARIATION_BIN) -o $(TEST_VARIATION_BIN) tests/VariationSamplerTest.cpp \
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_VARIATION_BIN)).d -MT $(TEST_VARIATION_BIN) -o $(TEST_VARIATION_BIN) tests/VariationSamplerTest.cpp \
 		src/model/VariationSampler.cpp $(LD_LIBS)
-	./$(TEST_VARIATION_BIN)
+	$(TEST_VARIATION_BIN)
 
 test-montecarlo: $(BIN) $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MONTECARLO_BIN).d -MT $(TEST_MONTECARLO_BIN) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_MONTECARLO_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_MONTECARLO_BIN)).d -MT $(TEST_MONTECARLO_BIN) -o $(TEST_MONTECARLO_BIN) tests/MonteCarloRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_MONTECARLO_BIN)
 
 test-corner: $(BIN) $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_CORNER_BIN).d -MT $(TEST_CORNER_BIN) -o $(TEST_CORNER_BIN) tests/CornerVariationRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_CORNER_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CORNER_BIN)).d -MT $(TEST_CORNER_BIN) -o $(TEST_CORNER_BIN) tests/CornerVariationRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CORNER_BIN)
 
 test-wire: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_WIRE_BIN).d -MT $(TEST_WIRE_BIN) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_WIRE_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_WIRE_BIN)).d -MT $(TEST_WIRE_BIN) -o $(TEST_WIRE_BIN) tests/WireCopyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_WIRE_BIN)
 
 test-formula: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_FORMULA_BIN).d -MT $(TEST_FORMULA_BIN) -o $(TEST_FORMULA_BIN) tests/FormulaTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_FORMULA_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_FORMULA_BIN)).d -MT $(TEST_FORMULA_BIN) -o $(TEST_FORMULA_BIN) tests/FormulaTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_FORMULA_BIN)
 
 test-match: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MATCH_BIN).d -MT $(TEST_MATCH_BIN) -o $(TEST_MATCH_BIN) tests/MatchTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_MATCH_BIN) $(MATCH_CONFIG_FILE)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_MATCH_BIN)).d -MT $(TEST_MATCH_BIN) -o $(TEST_MATCH_BIN) tests/MatchTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_MATCH_BIN) $(MATCH_CONFIG_FILE)
 
 test-mat-decoder: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_MAT_DECODER_BIN).d -MT $(TEST_MAT_DECODER_BIN) -o $(TEST_MAT_DECODER_BIN) tests/MatDecoderRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_MAT_DECODER_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_MAT_DECODER_BIN)).d -MT $(TEST_MAT_DECODER_BIN) -o $(TEST_MAT_DECODER_BIN) tests/MatDecoderRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_MAT_DECODER_BIN)
 
 test-htree-routing: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_HTREE_ROUTING_BIN).d -MT $(TEST_HTREE_ROUTING_BIN) -o $(TEST_HTREE_ROUTING_BIN) tests/HtreeRoutingRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_HTREE_ROUTING_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_HTREE_ROUTING_BIN)).d -MT $(TEST_HTREE_ROUTING_BIN) -o $(TEST_HTREE_ROUTING_BIN) tests/HtreeRoutingRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_HTREE_ROUTING_BIN)
 
 test-exhaustive-search: $(OBJECTS_NO_MAIN)
-	@mkdir -p $(TEST_DEP_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(TEST_EXHAUSTIVE_SEARCH_BIN).d -MT $(TEST_EXHAUSTIVE_SEARCH_BIN) -o $(TEST_EXHAUSTIVE_SEARCH_BIN) tests/ExhaustiveSearchRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	./$(TEST_EXHAUSTIVE_SEARCH_BIN)
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_EXHAUSTIVE_SEARCH_BIN)).d -MT $(TEST_EXHAUSTIVE_SEARCH_BIN) -o $(TEST_EXHAUSTIVE_SEARCH_BIN) tests/ExhaustiveSearchRegressionTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_EXHAUSTIVE_SEARCH_BIN)
 
 test-python-package-data:
 	python3 tests/test_python_package_data.py
@@ -231,27 +231,7 @@ open-uml: uml
 
 .PHONY: clean
 clean:
-	@rm -rf $(OBJ_DIR) $(BIN) $(TEST_YAML_BIN) $(TEST_YAML_BIN).d \
-		$(TEST_TOP_LEVEL_BIN) $(TEST_TOP_LEVEL_BIN).d \
-		$(TEST_CELL_LOADER_BIN) $(TEST_CELL_LOADER_BIN).d \
-		$(TEST_CLI_OPTIONS_BIN) $(TEST_CLI_OPTIONS_BIN).d \
-		$(TEST_CUSTOM_SA_LOADER_BIN) $(TEST_CUSTOM_SA_LOADER_BIN).d \
-		$(TEST_TECHNOLOGY_LOADER_BIN) $(TEST_TECHNOLOGY_LOADER_BIN).d \
-		$(TEST_MEMORY_ACCESS_LOADER_BIN) $(TEST_MEMORY_ACCESS_LOADER_BIN).d \
-		$(TEST_NEW_INPUT_NAMES_BIN) $(TEST_NEW_INPUT_NAMES_BIN).d \
-		$(TEST_GENERATED_V2_CONFIGS_BIN) $(TEST_GENERATED_V2_CONFIGS_BIN).d \
-		$(TEST_INPUT_VALIDATION_BIN) $(TEST_INPUT_VALIDATION_BIN).d \
-		$(TEST_OUTPUT_PATH_BUILDER_BIN) $(TEST_OUTPUT_PATH_BUILDER_BIN).d \
-		$(TEST_EXPLORATION_BIN) $(TEST_EXPLORATION_BIN).d $(TEST_VARIATION_BIN) $(TEST_VARIATION_BIN).d \
-		$(TEST_MONTECARLO_BIN) $(TEST_MONTECARLO_BIN).d \
-		$(TEST_CORNER_BIN) $(TEST_CORNER_BIN).d \
-		$(TEST_WIRE_BIN) $(TEST_WIRE_BIN).d \
-		$(TEST_FORMULA_BIN) $(TEST_FORMULA_BIN).d \
-		$(TEST_MATCH_BIN) $(TEST_MATCH_BIN).d \
-		$(TEST_MAT_DECODER_BIN) $(TEST_MAT_DECODER_BIN).d \
-		$(TEST_HTREE_ROUTING_BIN) $(TEST_HTREE_ROUTING_BIN).d \
-		$(TEST_EXHAUSTIVE_SEARCH_BIN) $(TEST_EXHAUSTIVE_SEARCH_BIN).d \
-		$(TEST_PYBIND_MATCH_PERSISTENCE_BIN) $(TEST_PYBIND_MATCH_PERSISTENCE_BIN).d \
+	@rm -rf $(OBJ_DIR) $(TEST_BIN_DIR) $(BIN) \
 		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
 		tests/tmp_top_level.config.yaml tests/tmp_top_level.architecture.yaml \

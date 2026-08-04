@@ -247,6 +247,53 @@ void TestInvalidPhysicalDomainsThrowDescriptiveErrors() {
     }
 }
 
+void TestScalarSenseAmpRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        std::ofstream out(kCustomSenseAmpPath);
+        out <<
+            "schema: sense_amp\n"
+            "name: scalar_test\n"
+            "model: scalar\n"
+            "geometry: {area: 1um^2}\n"
+            "timing: {latency: " << value << "s}\n"
+            "power: {read_dynamic_energy: 1pJ, leakage: 0W}\n"
+            "load: {capacitance: 1fF}\n";
+        out.close();
+
+        try {
+            SenseAmp senseAmp;
+            YamlHelpers::ReadCustomSenseAmpFromYaml(
+                    senseAmp, kCustomSenseAmpPath, 45e-9);
+            assert(false && "Expected non-finite scalar sense amp value to throw");
+        } catch (const std::runtime_error& error) {
+            assert(std::string(error.what()).find(
+                    "Non-finite value for sense_amp.timing.latency")
+                    != std::string::npos);
+        }
+    }
+}
+
+void TestNvsimSenseAmpRejectsNonFiniteValues() {
+    for (const char *value : {"nan", "inf", "1e999"}) {
+        YAML::Node root = YAML::LoadFile(
+                "config/lib/sense_amp/nvsim_vol.sense_amp.yaml");
+        root["iv_converter"]["current_sense_energy"][1]["energy"] =
+                std::string(value) + "J";
+        std::ofstream out(kCustomSenseAmpPath);
+        out << root;
+        out.close();
+
+        try {
+            (void)YamlHelpers::ReadSenseAmpModelFromYaml(kCustomSenseAmpPath);
+            assert(false && "Expected non-finite NVSim sense amp value to throw");
+        } catch (const std::runtime_error& error) {
+            assert(std::string(error.what()).find(
+                    "Non-finite value for sense_amp.iv_converter."
+                    "current_sense_energy[1].energy") != std::string::npos);
+        }
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -259,6 +306,8 @@ int main() {
     TestUnknownDefaultSenseAmpKeyThrows();
     TestDefaultSenseAmpYamlInitializes();
     TestInvalidPhysicalDomainsThrowDescriptiveErrors();
+    TestScalarSenseAmpRejectsNonFiniteValues();
+    TestNvsimSenseAmpRejectsNonFiniteValues();
     std::cout << "CustomSenseAmpYamlLoader tests passed" << std::endl;
     return 0;
 }
