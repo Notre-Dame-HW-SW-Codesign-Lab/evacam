@@ -5,6 +5,8 @@
 
 #include <cmath>
 #include <initializer_list>
+#include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -14,6 +16,13 @@
 #include "typedef.h"
 
 namespace YamlHelpers {
+
+template <typename T>
+    std::string value_string(T value) {
+        std::ostringstream stream;
+        stream << value;
+        return stream.str();
+    }
 
 std::string kind(const YAML::Node& n);
 YAML::Node child_required(const YAML::Node& parent, const char* key);
@@ -34,6 +43,74 @@ template <typename T>
             }
         }
         return value;
+    }
+
+template <typename T>
+    T require_positive(T value, const std::string& what) {
+        require_finite(value, what);
+        if (value <= 0) {
+            throw std::runtime_error(
+                    "[Input] Error: " + what + " must be positive; got "
+                    + value_string(value) + ".");
+        }
+        return value;
+    }
+
+template <typename T>
+    T require_non_negative(T value, const std::string& what) {
+        require_finite(value, what);
+        if (value < 0) {
+            throw std::runtime_error(
+                    "[Input] Error: " + what + " must be non-negative; got "
+                    + value_string(value) + ".");
+        }
+        return value;
+    }
+
+template <typename T>
+    T require_non_zero(T value, const std::string& what) {
+        require_finite(value, what);
+        if (value == 0) {
+            throw std::runtime_error(
+                    "[Input] Error: " + what + " must be non-zero; got 0.");
+        }
+        return value;
+    }
+
+template <typename T>
+    T require_range(T value, T minimum, T maximum, const std::string& what,
+            const std::string& rangeDescription = "") {
+        require_finite(value, what);
+        if (value < minimum || value > maximum) {
+            const std::string expected = rangeDescription.empty()
+                    ? "between " + value_string(minimum) + " and " + value_string(maximum)
+                    : rangeDescription;
+            throw std::runtime_error(
+                    "[Input] Error: " + what + " must be " + expected + "; got "
+                    + value_string(value) + ".");
+        }
+        return value;
+    }
+
+template <typename Integer>
+    Integer checked_integer(double value, const std::string& what) {
+        static_assert(std::is_integral_v<Integer>, "checked_integer requires an integral type");
+        require_finite(value, what);
+        const double rounded = std::round(value);
+        constexpr double tolerance = 1e-9;
+        if (std::fabs(value - rounded) > tolerance) {
+            throw std::runtime_error(
+                    "[Input] Error: " + what + " must resolve to a whole number; got "
+                    + value_string(value) + ".");
+        }
+        const long double wideRounded = rounded;
+        if (wideRounded < static_cast<long double>(std::numeric_limits<Integer>::lowest())
+                || wideRounded > static_cast<long double>(std::numeric_limits<Integer>::max())) {
+            throw std::runtime_error(
+                    "[Input] Error: " + what + " is outside the supported integer range; got "
+                    + value_string(value) + ".");
+        }
+        return static_cast<Integer>(rounded);
     }
 
 template <typename T>

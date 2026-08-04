@@ -180,6 +180,39 @@ static void test_non_finite_numbers_are_rejected() {
     }
 }
 
+static void test_physical_domain_helpers_are_descriptive() {
+    try {
+        (void)YamlHelpers::require_positive(0.0, "memory_device.resistance.on");
+        assert(false && "Expected zero resistance to throw");
+    } catch (const std::runtime_error& error) {
+        const std::string message = error.what();
+        assert(message.find("memory_device.resistance.on must be positive")
+                != std::string::npos);
+        assert(message.find("got 0") != std::string::npos);
+    }
+
+    try {
+        (void)YamlHelpers::require_range(
+                450, 300, 400, "design.temperature", "between 300K and 400K");
+        assert(false && "Expected out-of-range temperature to throw");
+    } catch (const std::runtime_error& error) {
+        assert(std::string(error.what()).find(
+                "design.temperature must be between 300K and 400K; got 450")
+                != std::string::npos);
+    }
+
+    assert(YamlHelpers::checked_integer<int>(64.0, "word width") == 64);
+    for (double invalid : {1.5, 1e100}) {
+        try {
+            (void)YamlHelpers::checked_integer<int>(invalid, "memory.word_width");
+            assert(false && "Expected invalid integral conversion to throw");
+        } catch (const std::runtime_error& error) {
+            assert(std::string(error.what()).find("memory.word_width")
+                    != std::string::npos);
+        }
+    }
+}
+
 static void test_unknown_keys_are_rejected() {
     const YAML::Node valid = YAML::Load(
         "model:\n"
@@ -742,6 +775,7 @@ int main() {
     test_bcam_alias();
     test_units();
     test_non_finite_numbers_are_rejected();
+    test_physical_domain_helpers_are_descriptive();
     test_unknown_keys_are_rejected();
     test_memcell_yaml();
     test_organization_section();

@@ -1,6 +1,8 @@
 #include "MemCell.h"
 #include "input/MemoryDeviceYamlLoader.h"
 
+#include <yaml.h>
+
 #include <cassert>
 #include <cmath>
 #include <fstream>
@@ -285,6 +287,55 @@ void TestLegacyMemoryDeviceLoaderStillParses() {
     assert(std::fabs(cell.resistanceOn - 10000.0) < 1e-12);
 }
 
+void WriteYaml(const char* path, const YAML::Node& root) {
+    std::ofstream output(path);
+    output << root;
+}
+
+void TestPhysicalDomainsThrowDescriptiveErrors() {
+    WriteMinimalCellFile(kCellPath);
+    YAML::Node device = YAML::LoadFile(kMemoryDevicePath);
+    device["type"] = "MRAM";
+    device["resistance"]["on"] = "0ohm";
+    WriteYaml(kMemoryDevicePath, device);
+    assert(LoadCellThrowsWithMessage(
+            kCellPath, "memory_device.resistance.on must be positive; got 0"));
+
+    WriteMinimalCellFile(kCellPath);
+    device = YAML::LoadFile(kMemoryDevicePath);
+    device["capacitance"]["on"] = "-1fF";
+    WriteYaml(kMemoryDevicePath, device);
+    assert(LoadCellThrowsWithMessage(
+            kCellPath, "memory_device.capacitance.on must be non-negative"));
+
+    WriteMinimalCellFile(kCellPath);
+    device = YAML::LoadFile(kMemoryDevicePath);
+    device["write"]["set"]["pulse"] = "-1ns";
+    WriteYaml(kMemoryDevicePath, device);
+    assert(LoadCellThrowsWithMessage(
+            kCellPath, "memory_device.write.set.pulse must be non-negative"));
+
+    WriteMinimalCellFile(kCellPath);
+    YAML::Node cell = YAML::LoadFile(kCellPath);
+    cell["layout"]["area"] = "0F^2";
+    WriteYaml(kCellPath, cell);
+    assert(LoadCellThrowsWithMessage(kCellPath, "cell.layout.area must be positive"));
+}
+
+void TestSignedProgrammingPolarityIsAccepted() {
+    WriteMinimalCellFile(kCellPath);
+    YAML::Node device = YAML::LoadFile(kMemoryDevicePath);
+    device["type"] = "MRAM";
+    device["write"]["set"]["voltage"] = "-4V";
+    device["write"]["reset"]["current"] = "-2uA";
+    WriteYaml(kMemoryDevicePath, device);
+
+    MemCell cell;
+    cell.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
+    assert(cell.setVoltage == -4.0);
+    assert(cell.resetCurrent == -2e-6);
+}
+
 }  // namespace
 
 int main() {
@@ -297,6 +348,8 @@ int main() {
     TestUnknownCellKeyThrows();
     TestUnknownMemoryDeviceKeyThrows();
     TestLegacyMemoryDeviceLoaderStillParses();
+    TestPhysicalDomainsThrowDescriptiveErrors();
+    TestSignedProgrammingPolarityIsAccepted();
     std::cout << "CellYamlLoader tests passed" << std::endl;
     return 0;
 }

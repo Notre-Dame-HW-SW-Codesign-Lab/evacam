@@ -211,6 +211,42 @@ void TestDefaultSenseAmpYamlInitializes() {
     assert(current.readDynamicEnergy > 0);
 }
 
+void TestInvalidPhysicalDomainsThrowDescriptiveErrors() {
+    std::ofstream out(kCustomSenseAmpPath);
+    out <<
+        "schema: sense_amp\n"
+        "name: scalar_test\n"
+        "model: scalar\n"
+        "geometry: {area: 1um^2}\n"
+        "timing: {latency: -1ps}\n"
+        "power: {read_dynamic_energy: 1pJ, leakage: 0W}\n"
+        "load: {capacitance: 1fF}\n";
+    out.close();
+    try {
+        SenseAmp senseAmp;
+        YamlHelpers::ReadCustomSenseAmpFromYaml(
+                senseAmp, kCustomSenseAmpPath, 45e-9);
+        assert(false && "Expected negative sense amp latency to throw");
+    } catch (const std::runtime_error& error) {
+        assert(std::string(error.what()).find(
+                "sense_amp.timing.latency must be positive") != std::string::npos);
+    }
+
+    YAML::Node root = YAML::LoadFile("config/lib/sense_amp/nvsim_vol.sense_amp.yaml");
+    root["iv_converter"]["current_sense_energy"][1]["energy"] = "0J";
+    out.open(kCustomSenseAmpPath);
+    out << root;
+    out.close();
+    try {
+        (void)YamlHelpers::ReadSenseAmpModelFromYaml(kCustomSenseAmpPath);
+        assert(false && "Expected zero sense amp energy to throw");
+    } catch (const std::runtime_error& error) {
+        assert(std::string(error.what()).find(
+                "current_sense_energy[1].energy must be positive")
+                != std::string::npos);
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -222,6 +258,7 @@ int main() {
     TestDefaultSenseAmpYamlParses();
     TestUnknownDefaultSenseAmpKeyThrows();
     TestDefaultSenseAmpYamlInitializes();
+    TestInvalidPhysicalDomainsThrowDescriptiveErrors();
     std::cout << "CustomSenseAmpYamlLoader tests passed" << std::endl;
     return 0;
 }

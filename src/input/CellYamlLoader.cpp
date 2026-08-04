@@ -10,6 +10,7 @@
 
 #include "MemCell.h"
 #include "input/MemoryDeviceYamlLoader.h"
+#include "input/PhysicalDomainValidators.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
 
@@ -164,6 +165,8 @@ void parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2,
             port.widthCmos = YamlHelpers::read_quantity_required(
                     p, "cmos_width", YamlHelpers::FeatureUnits(), 1.0,
                     what);
+            YamlHelpers::require_non_negative(
+                    port.widthCmos, std::string("cell.") + what + ".cmos_width");
         }
         return;
     }
@@ -178,6 +181,8 @@ void parse_port_connection(const YAML::Node& p, CAMPort& port, bool isV2,
     port.widthCmos = YamlHelpers::read_quantity_required(
             p, "cmos_width", YamlHelpers::FeatureUnits(), 1.0,
             what);
+    YamlHelpers::require_non_negative(
+            port.widthCmos, std::string("cell.") + what + ".cmos_width");
 }
 
 void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
@@ -221,6 +226,7 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
             port.leak = YamlHelpers::read_optional<bool>(p, "leak", false);
             port.isNVMdischarge = YamlHelpers::read_optional<bool>(p, "is_nvm_discharge", false);
             port.widthWire = YamlHelpers::read_quantity_required(p, "wire_width", YamlHelpers::FeatureUnits(), 1.0, "ports.row.wire_width");
+            YamlHelpers::require_positive(port.widthWire, "cell.ports.row.wire_width");
 
             parse_voltage_fields(YamlHelpers::child_optional(p, "voltages"), port);
         }
@@ -260,6 +266,7 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
             port.leak = YamlHelpers::read_optional<bool>(p, "leak", false);
             port.isNVMdischarge = YamlHelpers::read_optional<bool>(p, "is_nvm_discharge", false);
             port.widthWire = YamlHelpers::read_quantity_required(p, "wire_width", YamlHelpers::FeatureUnits(), 1.0, "ports.column.wire_width");
+            YamlHelpers::require_positive(port.widthWire, "cell.ports.column.wire_width");
 
             parse_voltage_fields(YamlHelpers::child_optional(p, "voltages"), port);
         }
@@ -269,10 +276,16 @@ void parse_ports(const YAML::Node& ports, MemCell& cell, bool isV2) {
 
 void ReadCellSection(MemCell& cell, const YAML::Node& cellNode, const std::string& inputFile) {
     cell.memCellType = YamlHelpers::read_enum_required<MemCellType>(cellNode, "type", false);
-    cell.processNode = (int)std::lround(YamlHelpers::read_quantity_required(
-            cellNode, "cell_process_node", YamlHelpers::LengthUnits(), 1e-9, "cell.cell_process_node") / 1e-9);
+    cell.processNode = YamlHelpers::checked_integer<int>(
+            YamlHelpers::read_quantity_required(
+                    cellNode, "cell_process_node", YamlHelpers::LengthUnits(), 1e-9,
+                    "cell.cell_process_node") / 1e-9,
+            "cell.cell_process_node in nanometers");
     cell.area = YamlHelpers::read_quantity_required(cellNode, "area", YamlHelpers::FeatureAreaUnits(), 1.0, "cell.area");
     cell.aspectRatio = YamlHelpers::read_required<double>(cellNode, "aspect_ratio");
+    YamlHelpers::require_positive(cell.processNode, "cell.cell_process_node");
+    YamlHelpers::require_positive(cell.area, "cell.area");
+    YamlHelpers::require_positive(cell.aspectRatio, "cell.aspect_ratio");
     cell.heightInFeatureSize = sqrt(cell.area * cell.aspectRatio);
     cell.widthInFeatureSize = sqrt(cell.area / cell.aspectRatio);
 
@@ -300,12 +313,17 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
     }
 
     const YAML::Node layout = YamlHelpers::child_required(root, "layout");
-    cell.processNode = (int)std::lround(YamlHelpers::read_quantity_required(
-            layout, "cell_process_node", YamlHelpers::LengthUnits(), 1e-9,
-            "layout.cell_process_node") / 1e-9);
+    cell.processNode = YamlHelpers::checked_integer<int>(
+            YamlHelpers::read_quantity_required(
+                    layout, "cell_process_node", YamlHelpers::LengthUnits(), 1e-9,
+                    "cell.layout.cell_process_node") / 1e-9,
+            "cell.layout.cell_process_node in nanometers");
     cell.area = YamlHelpers::read_quantity_required(layout, "area",
             YamlHelpers::FeatureAreaUnits(), 1.0, "layout.area");
     cell.aspectRatio = YamlHelpers::read_required<double>(layout, "aspect_ratio");
+    YamlHelpers::require_positive(cell.processNode, "cell.layout.cell_process_node");
+    YamlHelpers::require_positive(cell.area, "cell.layout.area");
+    YamlHelpers::require_positive(cell.aspectRatio, "cell.layout.aspect_ratio");
     cell.heightInFeatureSize = sqrt(cell.area * cell.aspectRatio);
     cell.widthInFeatureSize = sqrt(cell.area / cell.aspectRatio);
 
@@ -813,6 +831,7 @@ void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile) {
         ReadMcamSection(cell, root);
     }
     ReadPortsSection(cell, root, isV2);
+    PhysicalDomainValidators::ValidateMemCell(cell);
 }
 
 }  // namespace YamlHelpers

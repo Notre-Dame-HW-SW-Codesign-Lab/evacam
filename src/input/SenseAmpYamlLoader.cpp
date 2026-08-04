@@ -49,6 +49,28 @@ std::vector<SenseAmpModel::NodeValue> ReadNodeTable(
                 entry, valueKey, valueUnits, defaultUnitToBase, valueKey);
         table.push_back(item);
     }
+    if (table.empty()) {
+        throw std::runtime_error(std::string("[Input] Error: sense_amp.") + key
+                + " must contain at least one entry.");
+    }
+    for (std::size_t i = 0; i < table.size(); ++i) {
+        YamlHelpers::require_non_negative(
+                table[i].minFeatureSize,
+                std::string("sense_amp.iv_converter.") + key + "["
+                        + std::to_string(i) + "].min_node");
+        YamlHelpers::require_positive(
+                table[i].value,
+                std::string("sense_amp.iv_converter.") + key + "["
+                        + std::to_string(i) + "]." + valueKey);
+        if (i > 0 && table[i].minFeatureSize >= table[i - 1].minFeatureSize) {
+            throw std::runtime_error(std::string("[Input] Error: sense_amp.iv_converter.")
+                    + key + " min_node thresholds must be strictly descending.");
+        }
+    }
+    if (table.back().minFeatureSize != 0) {
+        throw std::runtime_error(std::string("[Input] Error: sense_amp.iv_converter.")
+                + key + " must end with a null min_node fallback.");
+    }
     return table;
 }
 
@@ -85,6 +107,11 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     model.sameTypeDiffGap = ReadOptionalFeatureWidth(
             layout, "same_type_diff_gap", model.sameTypeDiffGap);
     model.pToNDiffGap = ReadOptionalFeatureWidth(layout, "p_to_n_diff_gap", model.pToNDiffGap);
+    YamlHelpers::require_positive(model.minPitch, "sense_amp.layout.min_pitch");
+    YamlHelpers::require_non_negative(
+            model.sameTypeDiffGap, "sense_amp.layout.same_type_diff_gap");
+    YamlHelpers::require_non_negative(
+            model.pToNDiffGap, "sense_amp.layout.p_to_n_diff_gap");
 
     const YAML::Node transistors = YamlHelpers::child_required(root, "transistors");
     reject_unknown_keys(transistors,
@@ -100,6 +127,15 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     model.enableWidth = ReadOptionalFeatureWidth(
             transistors, "enable_width", model.enableWidth);
     model.muxWidth = ReadOptionalFeatureWidth(transistors, "mux_width", model.muxWidth);
+    YamlHelpers::require_positive(
+            model.pSenseWidth, "sense_amp.transistors.p_sense_width");
+    YamlHelpers::require_positive(
+            model.nSenseWidth, "sense_amp.transistors.n_sense_width");
+    YamlHelpers::require_positive(
+            model.isolationWidth, "sense_amp.transistors.isolation_width");
+    YamlHelpers::require_positive(
+            model.enableWidth, "sense_amp.transistors.enable_width");
+    YamlHelpers::require_positive(model.muxWidth, "sense_amp.transistors.mux_width");
 
     const YAML::Node ivConverter = YamlHelpers::child_required(root, "iv_converter");
     reject_unknown_keys(ivConverter,
@@ -108,6 +144,7 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
             "sense_amp.iv_converter");
     model.ivConverterArea = ReadOptionalFeatureArea(
             ivConverter, "area", model.ivConverterArea);
+    YamlHelpers::require_positive(model.ivConverterArea, "sense_amp.iv_converter.area");
     model.currentSenseLatency = ReadNodeTable(
             ivConverter, "current_sense_latency", "latency", TimeUnits(), 1.0);
     model.currentSenseEnergy = ReadNodeTable(

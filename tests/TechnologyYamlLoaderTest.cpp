@@ -134,6 +134,29 @@ void TestUnknownTechnologyKeyThrows() {
             "unknown key 'technology.roadmaps.nodes.operating_point.supply_voltage'");
 }
 
+void TestPhysicalDomainsThrowDescriptiveErrors() {
+    YAML::Node root = YAML::LoadFile("config/lib/technology/cmos.updated.yaml");
+    root["roadmaps"]["HP"]["nodes"][0]["operating_point"]["vdd"] = "0V";
+    WriteFile("/tmp/evacam_nonpositive_technology.yaml", YAML::Dump(root));
+    ExpectTechnologyLoadFailureWithMessage(
+            "/tmp/evacam_nonpositive_technology.yaml",
+            "technology.operating_point.vdd must be positive; got 0");
+
+    root = YAML::LoadFile("config/lib/technology/cmos.updated.yaml");
+    root["roadmaps"]["HP"]["nodes"][0]["currents"]["on_nmos"][3] = 0;
+    WriteFile("/tmp/evacam_zero_current_technology.yaml", YAML::Dump(root));
+    ExpectTechnologyLoadFailureWithMessage(
+            "/tmp/evacam_zero_current_technology.yaml",
+            "technology.currents.on_nmos[3] must be positive");
+
+    root = YAML::LoadFile("config/lib/technology/cmos.updated.yaml");
+    root["temperature_grid"][5] = "351K";
+    WriteFile("/tmp/evacam_bad_temperature_grid.yaml", YAML::Dump(root));
+    ExpectTechnologyLoadFailureWithMessage(
+            "/tmp/evacam_bad_temperature_grid.yaml",
+            "must contain 300K through 400K in 10K increments");
+}
+
 void TestRuntimeUsesTechnologyFile() {
     EvaCamConfig config;
     config.ReadConfigFromFile("config/2FeFET_TCAM/2FeFET_TCAM.config.yaml");
@@ -197,6 +220,7 @@ int main() {
             false);
     TestValidationFailures();
     TestUnknownTechnologyKeyThrows();
+    TestPhysicalDomainsThrowDescriptiveErrors();
     TestRuntimeUsesTechnologyFile();
     TestRuntimeRequiresTechnologyFile();
     TestMissingRoadmapFailsAtRuntime();

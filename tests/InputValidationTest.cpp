@@ -1,6 +1,8 @@
 #include "config/EvaCamConfig.h"
 #include "config/EvaCamYamlLoader.h"
 
+#include <yaml.h>
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -285,6 +287,36 @@ void TestPruningIsRejectedUntilDefined() {
             "exploration:\n  enable_pruning: true\n");
     assert(LoadThrowsWithMessage(
             "exploration.enable_pruning is not implemented"));
+}
+
+void TestTemperatureRangeThrowsDescriptiveError() {
+    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
+            kReadLatencyOptimization);
+    YAML::Node architecture = YAML::LoadFile(kArchitecturePath);
+    architecture["design"]["temperature"] = "299K";
+    std::ofstream output(kArchitecturePath);
+    output << architecture;
+    output.close();
+    assert(LoadThrowsWithMessage(
+            "design.temperature must be between 300K and 400K; got 299"));
+
+    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
+            kReadLatencyOptimization);
+    architecture = YAML::LoadFile(kArchitecturePath);
+    architecture["design"]["temperature"] = "300.5K";
+    output.open(kArchitecturePath);
+    output << architecture;
+    output.close();
+    assert(LoadThrowsWithMessage(
+            "design.temperature in kelvin must resolve to a whole number"));
+}
+
+void TestNegativeConstraintThrowsDescriptiveError() {
+    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
+            kReadLatencyOptimization, "", "",
+            "design_constraints:\n  read_latency: -1ns\n");
+    assert(LoadThrowsWithMessage(
+            "design_constraints.read_latency must be positive"));
 }
 
 void TestMissingRequiredTopLevelKeyThrows() {
@@ -707,6 +739,8 @@ int main() {
     TestNonCamDesignTargetsThrow();
     TestNonHTreeRoutingThrows();
     TestPruningIsRejectedUntilDefined();
+    TestTemperatureRangeThrowsDescriptiveError();
+    TestNegativeConstraintThrowsDescriptiveError();
     TestMissingRequiredTopLevelKeyThrows();
     TestFixedSubarrayDimensionsDeriveCapacity();
     TestFixedSubarrayDimensionsAllowEightRows();

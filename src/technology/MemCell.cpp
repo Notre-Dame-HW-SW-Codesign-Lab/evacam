@@ -14,6 +14,8 @@ MemCell::MemCell() {
     aspectRatio         = 0;
     resistanceOn        = 0;
     resistanceOff       = 0;
+    capacitanceOn       = 0;
+    capacitanceOff      = 0;
     readMode            = true;
     readVoltage         = 0;
     readCurrent         = 0;

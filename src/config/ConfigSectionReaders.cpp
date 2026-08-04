@@ -49,7 +49,8 @@ void ReadDesignSection(const YAML::Node &root, EvaCamConfig &config) {
 
     const double processNodeM = YamlHelpers::read_quantity_required(
             design, "system_process_node", YamlHelpers::LengthUnits(), 1e-9, "system_process_node");
-    config.input.processNode = (int)std::lround(processNodeM / 1e-9);
+    config.input.processNode = YamlHelpers::checked_integer<int>(
+            processNodeM / 1e-9, "design.system_process_node in nanometers");
 
     constexpr std::array<int, 9> supportedProcessNodes = {7, 10, 14, 22, 32, 45, 90, 120, 200};
     if (!std::binary_search(supportedProcessNodes.begin(), supportedProcessNodes.end(), config.input.processNode)) {
@@ -63,8 +64,11 @@ void ReadDesignSection(const YAML::Node &root, EvaCamConfig &config) {
     }
 
     config.input.deviceRoadmap = YamlHelpers::read_enum_required<DeviceRoadmap>(design, "device_roadmap");
-    config.input.temperature = (int)std::lround(YamlHelpers::read_quantity_required(
-            design, "temperature", YamlHelpers::TemperatureUnits(), 1.0, "temperature"));
+    config.input.temperature = YamlHelpers::checked_integer<int>(
+            YamlHelpers::read_quantity_required(
+                    design, "temperature", YamlHelpers::TemperatureUnits(), 1.0,
+                    "design.temperature"),
+            "design.temperature in kelvin");
 }
 
 void ReadMemorySection(const YAML::Node &root, EvaCamConfig &config) {
@@ -78,14 +82,20 @@ void ReadMemorySection(const YAML::Node &root, EvaCamConfig &config) {
             config.runtimeSizing.capacityIsAuto = true;
             config.input.capacity = 0;
         } else {
-            config.input.capacity = (int64_t)std::llround(YamlHelpers::parse_quantity_node(
-                    capacityNode, YamlHelpers::DataSizeUnits(), 1.0, "capacity"));
+            config.input.capacity = YamlHelpers::checked_integer<int64_t>(
+                    YamlHelpers::parse_quantity_node(
+                            capacityNode, YamlHelpers::DataSizeUnits(), 1.0,
+                            "memory.capacity"),
+                    "memory.capacity in bytes");
         }
     } else {
         config.input.capacity = 0;
     }
-    config.input.wordWidth = (long)std::lround(YamlHelpers::read_quantity_required(
-            memory, "word_width", YamlHelpers::BitUnits(), 1.0, "word_width"));
+    config.input.wordWidth = YamlHelpers::checked_integer<long>(
+            YamlHelpers::read_quantity_required(
+                    memory, "word_width", YamlHelpers::BitUnits(), 1.0,
+                    "memory.word_width"),
+            "memory.word_width in bits");
     config.exploration.cam.bitSerialWidth =
         IntValueDomain::PowersOfTwo((int)config.input.wordWidth, (int)config.input.wordWidth);
 }
@@ -334,8 +344,11 @@ void ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config) {
     config.constraints.pruningEnabled = YamlHelpers::read_optional<bool>(
             advanced, "enable_pruning", config.constraints.pruningEnabled);
     if (YamlHelpers::child_optional(advanced, "bit_serial_width")) {
-        const long bsw = (long)std::lround(YamlHelpers::read_quantity_required(
-                    advanced, "bit_serial_width", YamlHelpers::BitUnits(), 1.0, "advanced.bit_serial_width"));
+        const long bsw = YamlHelpers::checked_integer<long>(
+                YamlHelpers::read_quantity_required(
+                        advanced, "bit_serial_width", YamlHelpers::BitUnits(), 1.0,
+                        "advanced.bit_serial_width"),
+                "advanced.bit_serial_width in bits");
         config.exploration.cam.bitSerialWidth = IntValueDomain::PowersOfTwo((int)bsw, (int)bsw);
     }
     if (YamlHelpers::child_optional(advanced, "input_encoder_type")) {
@@ -362,12 +375,18 @@ void ReadFlashSection(const YAML::Node &root, EvaCamConfig &config) {
         return;
     }
     if (YamlHelpers::child_optional(flash, "page_size")) {
-        config.input.pageSize = (long)std::lround(YamlHelpers::read_quantity_required(
-                    flash, "page_size", YamlHelpers::DataSizeUnits(), 1.0, "flash.page_size") * 8.0);
+        config.input.pageSize = YamlHelpers::checked_integer<long>(
+                YamlHelpers::read_quantity_required(
+                        flash, "page_size", YamlHelpers::DataSizeUnits(), 1.0,
+                        "flash.page_size") * 8.0,
+                "flash.page_size in bits");
     }
     if (YamlHelpers::child_optional(flash, "block_size")) {
-        config.input.flashBlockSize = (long)std::lround(YamlHelpers::read_quantity_required(
-                    flash, "block_size", YamlHelpers::DataSizeUnits(), 1.0, "flash.block_size") * 8.0);
+        config.input.flashBlockSize = YamlHelpers::checked_integer<long>(
+                YamlHelpers::read_quantity_required(
+                        flash, "block_size", YamlHelpers::DataSizeUnits(), 1.0,
+                        "flash.block_size") * 8.0,
+                "flash.block_size in bits");
     }
 }
 
@@ -396,22 +415,31 @@ void ReadExtraSection(const YAML::Node &root, EvaCamConfig &config) {
     }
     auto realCapacityNode = YamlHelpers::child_optional(extra, "real_capacity");
     if (realCapacityNode) {
-        config.runtimeSizing.realCapacity = (int64_t)std::llround(YamlHelpers::parse_quantity_node(
-                realCapacityNode, YamlHelpers::DataSizeUnits(), 1.0, "extra.real_capacity"));
+        config.runtimeSizing.realCapacity = YamlHelpers::checked_integer<int64_t>(
+                YamlHelpers::parse_quantity_node(
+                        realCapacityNode, YamlHelpers::DataSizeUnits(), 1.0,
+                        "extra.real_capacity"),
+                "extra.real_capacity in bytes");
         return;
     }
     auto realCapacityB = YamlHelpers::child_optional(extra, "RealCapacity (B)");
     auto realCapacityKB = YamlHelpers::child_optional(extra, "RealCapacity (KB)");
     auto realCapacityMB = YamlHelpers::child_optional(extra, "RealCapacity (MB)");
     if (realCapacityB) {
-        config.runtimeSizing.realCapacity = (int64_t)std::llround(
-                YamlHelpers::read_scalar_required<double>(realCapacityB, "extra.RealCapacity (B)"));
+        config.runtimeSizing.realCapacity = YamlHelpers::checked_integer<int64_t>(
+                YamlHelpers::read_scalar_required<double>(
+                        realCapacityB, "extra.RealCapacity (B)"),
+                "extra.RealCapacity (B)");
     } else if (realCapacityKB) {
-        config.runtimeSizing.realCapacity = (int64_t)std::llround(
-                YamlHelpers::read_scalar_required<double>(realCapacityKB, "extra.RealCapacity (KB)") * 1024.0);
+        config.runtimeSizing.realCapacity = YamlHelpers::checked_integer<int64_t>(
+                YamlHelpers::read_scalar_required<double>(
+                        realCapacityKB, "extra.RealCapacity (KB)") * 1024.0,
+                "extra.RealCapacity (KB) in bytes");
     } else if (realCapacityMB) {
-        config.runtimeSizing.realCapacity = (int64_t)std::llround(
-                YamlHelpers::read_scalar_required<double>(realCapacityMB, "extra.RealCapacity (MB)") * 1024.0 * 1024.0);
+        config.runtimeSizing.realCapacity = YamlHelpers::checked_integer<int64_t>(
+                YamlHelpers::read_scalar_required<double>(
+                        realCapacityMB, "extra.RealCapacity (MB)") * 1024.0 * 1024.0,
+                "extra.RealCapacity (MB) in bytes");
     }
 }
 

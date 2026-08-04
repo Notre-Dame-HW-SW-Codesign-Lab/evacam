@@ -7,7 +7,9 @@
 #include "MemCell.h"
 #include "Technology.h"
 #include "config/VariationConfigBuilder.h"
+#include "input/PhysicalDomainValidators.h"
 #include "input/TechnologyYamlLoader.h"
+#include "input/YamlNodeHelpers.h"
 
 namespace {
 
@@ -112,7 +114,14 @@ std::shared_ptr<MemCell> LoadCell(const InputConfig &input, const std::shared_pt
     if (input.hasCamWidthMatchTran) {
         cell->camWidthMatchTran = input.camWidthMatchTran;
     }
+    PhysicalDomainValidators::ValidateMemCell(*cell);
     cell->CalculateWriteEnergy();
+    if (cell->memCellType != SRAM) {
+        YamlHelpers::require_non_negative(
+                cell->setEnergy, "derived memory_device.write.set.energy");
+        YamlHelpers::require_non_negative(
+                cell->resetEnergy, "derived memory_device.write.reset.energy");
+    }
     return cell;
 }
 
@@ -142,8 +151,10 @@ TechnologyContext TechnologyLoader::Load(
     const std::vector<TechnologySpec> yamlSpecs =
             YamlHelpers::ReadTechnologySpecsFromYaml(input.fileTechnology);
     technology.tech = LoadTechFromYaml(input, yamlSpecs);
+    PhysicalDomainValidators::ValidateTechnology(*technology.tech);
     technology.cell = LoadCell(input, technology.tech);
     technology.fefetTech = LoadFefetTech(input, yamlSpecs);
+    PhysicalDomainValidators::ValidateTechnology(*technology.fefetTech);
     if (variation) {
         *variation = VariationConfigBuilder::FromCell(*technology.cell);
     }

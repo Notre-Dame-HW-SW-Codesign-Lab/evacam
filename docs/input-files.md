@@ -178,6 +178,14 @@ Valid unit suffixes used by the input parsers:
 - Word width: `bit`, `bits`
 - Variation fractions: bare fractions such as `0.05` or percentages such as `5%`
 
+Numeric values are checked before circuit calculations. In particular,
+temperature must be a whole value between `300K` and `400K`; dimensions,
+resistances, pulse durations, and required loads must be positive; and
+capacitances, leakage, and variation magnitudes must be non-negative. Signed
+set/reset voltages and currents are accepted because their sign can encode
+programming polarity. Invalid inputs report the full field name and expected
+domain, for example `design.temperature must be between 300K and 400K`.
+
 ## Minimal Workflow
 
 1. Copy a known-good config from `config/<cell-group>/`.

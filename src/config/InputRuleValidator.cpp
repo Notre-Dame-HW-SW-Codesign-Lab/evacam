@@ -444,14 +444,67 @@ long long CheckedTotalProduct(const IntValueDomain &first, const IntValueDomain 
     return CheckedMultiply(first.Min(), second.Min(), what);
 }
 
+void ValidateScalarDomains(const EvaCamConfig &config) {
+    YamlHelpers::require_range(
+            config.input.temperature, 300, 400, "design.temperature",
+            "between 300K and 400K");
+    YamlHelpers::require_range(
+            config.input.processNode, 7, 200, "design.system_process_node",
+            "between 7nm and 200nm");
+    YamlHelpers::require_positive(config.input.wordWidth, "memory.word_width");
+    YamlHelpers::require_positive(config.input.maxNmosSize, "advanced.max_nmos_size");
+    YamlHelpers::require_non_negative(
+            config.input.maxDriverCurrent, "extra.max_driver_current");
+    YamlHelpers::require_non_negative(
+            config.peripherals.addCapOnML, "matchline.additional_cap");
+    YamlHelpers::require_positive(
+            config.peripherals.matchlineSenseMargin, "sensing.worst_case_sense_margin");
+    YamlHelpers::require_non_negative(
+            config.peripherals.scaledVoltage, "modeling.scaled_voltage");
+
+    if (config.input.hasCamWidthMatchTran) {
+        YamlHelpers::require_positive(
+                config.input.camWidthMatchTran, "matchline.match_transistor.cmos_width");
+    }
+    if (config.input.pageSize != 0) {
+        YamlHelpers::require_positive(config.input.pageSize, "flash.page_size");
+    }
+    if (config.input.flashBlockSize != 0) {
+        YamlHelpers::require_positive(config.input.flashBlockSize, "flash.block_size");
+    }
+    if (config.input.pageSize > 0 && config.input.flashBlockSize > 0
+            && config.input.flashBlockSize % config.input.pageSize != 0) {
+        throw std::runtime_error(
+                "[Input] Error: flash.block_size must be an integer multiple of "
+                "flash.page_size.");
+    }
+
+    if (config.constraints.enabled) {
+        YamlHelpers::require_positive(
+                config.constraints.readLatency, "design_constraints.read_latency");
+        YamlHelpers::require_positive(
+                config.constraints.writeLatency, "design_constraints.write_latency");
+        YamlHelpers::require_positive(
+                config.constraints.readDynamicEnergy,
+                "design_constraints.read_dynamic_energy");
+        YamlHelpers::require_positive(
+                config.constraints.writeDynamicEnergy,
+                "design_constraints.write_dynamic_energy");
+        YamlHelpers::require_positive(
+                config.constraints.readEdp, "design_constraints.read_edp");
+        YamlHelpers::require_positive(
+                config.constraints.writeEdp, "design_constraints.write_edp");
+        YamlHelpers::require_positive(config.constraints.area, "design_constraints.area");
+        YamlHelpers::require_positive(
+                config.constraints.leakage, "design_constraints.leakage");
+    }
+}
+
 void ValidateDerivedInputs(const EvaCamConfig &config) {
     if (config.constraints.pruningEnabled) {
         throw std::runtime_error(
                 "[Input] Error: exploration.enable_pruning is not implemented; "
                 "use exhaustive exploration with enable_pruning: false.");
-    }
-    if (config.input.wordWidth <= 0) {
-        throw std::runtime_error("[Input] Error: word_width must be > 0.");
     }
     if (config.input.capacity <= 0) {
         throw std::runtime_error(
@@ -597,6 +650,7 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
 }  // namespace
 
 void InputRuleValidator::Validate(EvaCamConfig &config) {
+    ValidateScalarDomains(config);
     ValidateAndResolveExplicitSubarrayDimensions(config);
     ValidateDerivedInputs(config);
     ValidatePeripheralSupport(config);

@@ -8,6 +8,7 @@
 #include "MemCell.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
+#include "input/PhysicalDomainValidators.h"
 
 namespace {
 using YamlHelpers::child_optional;
@@ -131,13 +132,23 @@ void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile) {
     const YAML::Node cellNode = child_optional(root, "cell");
     if (cellNode) {
         cell.memCellType = read_enum_required<MemCellType>(cellNode, "type", false);
-        cell.processNode = static_cast<int>(std::lround(read_quantity_required(cellNode, "cell_process_node", LengthUnits(), 1.0, "cell.cell_process_node") / 1e-9));
+        cell.processNode = YamlHelpers::checked_integer<int>(
+                read_quantity_required(
+                        cellNode, "cell_process_node", LengthUnits(), 1.0,
+                        "cell.cell_process_node") / 1e-9,
+                "cell.cell_process_node in nanometers");
         cell.area = read_quantity_required(cellNode, "area", YamlHelpers::FeatureAreaUnits(), 1.0, "cell.area");
         cell.aspectRatio = YamlHelpers::read_required<double>(cellNode, "aspect_ratio");
+        YamlHelpers::require_positive(cell.processNode, "cell.cell_process_node");
+        YamlHelpers::require_positive(cell.area, "cell.area");
+        YamlHelpers::require_positive(cell.aspectRatio, "cell.aspect_ratio");
+        cell.heightInFeatureSize = std::sqrt(cell.area * cell.aspectRatio);
+        cell.widthInFeatureSize = std::sqrt(cell.area / cell.aspectRatio);
     }
     ReadResistanceSection(cell, root);
     ReadReadSection(cell, root);
     ReadWriteSection(cell, root);
     ReadMcamSection(cell, root);
+    PhysicalDomainValidators::ValidateMemCell(cell);
 }
 }  // namespace YamlHelpers

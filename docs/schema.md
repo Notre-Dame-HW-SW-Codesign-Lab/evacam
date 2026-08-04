@@ -183,3 +183,29 @@ Architecture and run config notes:
 - `design.system_process_node` is the authoritative modeled technology node. `layout.cell_process_node` records the process node associated with the cell definition.
 - `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
 - `docs/input_samples/` contains reference-only v2 sample files for every input role. They use generic placeholder values and are not physically valid experiments.
+
+## Numeric and Physical Domains
+
+EvaCAM rejects non-finite values and validates physical domains before using
+inputs in circuit equations. Error messages identify the full field path and
+the required domain.
+
+- `design.temperature` must be a whole number from `300K` through `400K`, the
+  range covered by the technology current tables.
+- System and cell process nodes, capacities, word widths, layout area, aspect
+  ratio, resistances, pulse durations, and required sense-amplifier timing,
+  energy, and load values must be positive.
+- Capacitances, leakage, access-device voltage drop, variation magnitudes, and
+  optional power/energy values must be non-negative.
+- Technology current tables must be strictly positive because they are used as
+  divisors or in logarithmic interpolation. Technology capacitances, mobility,
+  and planar/FinFET geometry fields may use documented zero sentinels.
+- Programming voltage and current may be signed to represent polarity, but a
+  non-SRAM set/reset operation must provide a non-zero voltage, current, or
+  explicit energy and a positive pulse duration.
+- The shipped ReRAM 2.5T1R model uses a zero port `cmos_width` for an omitted
+  transistor contribution; port widths are therefore non-negative, while
+  modeled cell/access transistor widths are positive when present.
+- Integral quantities such as bit counts, byte capacities, process nodes, and
+  temperatures must resolve to whole numbers within the destination integer
+  range.

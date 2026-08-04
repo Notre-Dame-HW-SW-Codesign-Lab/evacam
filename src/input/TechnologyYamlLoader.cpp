@@ -102,7 +102,26 @@ std::size_t ReadTemperatureGridSize(const YAML::Node& root) {
         throw std::runtime_error(
                 "technology.temperature_grid must match current 300K-400K table size");
     }
+    for (std::size_t i = 0; i < temperatureGrid.size(); ++i) {
+        const double temperature = YamlHelpers::parse_quantity_node(
+                temperatureGrid[i], YamlHelpers::TemperatureUnits(), 1.0,
+                "technology.temperature_grid");
+        const double expected = 300.0 + 10.0 * i;
+        if (temperature != expected) {
+            throw std::runtime_error(
+                    "[Input] Error: technology.temperature_grid must contain "
+                    "300K through 400K in 10K increments; entry "
+                    + std::to_string(i) + " is " + std::to_string(temperature) + "K.");
+        }
+    }
     return temperatureGrid.size();
+}
+
+void ValidateCurrentTable(const std::array<double, 11>& values, const char* what) {
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        YamlHelpers::require_positive(
+                values[i], std::string(what) + "[" + std::to_string(i) + "]");
+    }
 }
 
 TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
@@ -112,9 +131,11 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
              "sizing", "gm", "fin", "currents"},
             "technology.roadmaps.nodes");
     TechnologySpec spec{};
-    spec.featureSizeInNano = static_cast<int>(std::lround(
+    spec.featureSizeInNano = YamlHelpers::checked_integer<int>(
             read_quantity_required(node, "process_node", LengthUnits(), 1.0,
-                    "technology.process_node") / 1e-9));
+                    "technology.process_node") / 1e-9,
+            "technology.process_node in nanometers");
+    YamlHelpers::require_positive(spec.featureSizeInNano, "technology.process_node");
     spec.roadmap = read_enum_required<DeviceRoadmap>(node, "roadmap");
     if (spec.roadmap != expectedRoadmap) {
         throw std::runtime_error("technology node roadmap does not match containing roadmap");
@@ -133,6 +154,15 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.phyGateLength = read_quantity_required(
             operatingPoint, "physical_gate_length", LengthUnits(), 1.0,
             "technology.physical_gate_length");
+    YamlHelpers::require_positive(spec.vdd, "technology.operating_point.vdd");
+    YamlHelpers::require_non_negative(spec.vth, "technology.operating_point.vth");
+    YamlHelpers::require_positive(
+            spec.phyGateLength, "technology.operating_point.physical_gate_length");
+    if (useUpdatedLib && 0.7 * spec.vdd <= spec.vth) {
+        throw std::runtime_error(
+                "[Input] Error: technology.operating_point.vth must be less than "
+                "0.7 * vdd for the updated transconductance model.");
+    }
 
     const YAML::Node capacitance = child_required(node, "capacitance");
     YamlHelpers::reject_unknown_keys(capacitance, {"ideal_gate", "fringe", "oxide"},
@@ -146,6 +176,10 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.capOx = read_quantity_required(
             capacitance, "oxide", CapacitancePerLengthUnits(), 1.0,
             "technology.capacitance.oxide");
+    YamlHelpers::require_non_negative(
+            spec.capIdealGate, "technology.capacitance.ideal_gate");
+    YamlHelpers::require_non_negative(spec.capFringe, "technology.capacitance.fringe");
+    YamlHelpers::require_non_negative(spec.capOx, "technology.capacitance.oxide");
     spec.capJunction = ComputeJunctionCap(spec.vdd);
     spec.capOverlap = spec.capIdealGate * 0.2;
     spec.capSidewall = ComputeSidewallCap(spec.vdd);
@@ -157,6 +191,10 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
             "technology.roadmaps.nodes.mobility");
     spec.effectiveElectronMobility = YamlHelpers::read_required<double>(mobility, "electron");
     spec.effectiveHoleMobility = YamlHelpers::read_required<double>(mobility, "hole");
+    YamlHelpers::require_non_negative(
+            spec.effectiveElectronMobility, "technology.mobility.electron");
+    YamlHelpers::require_non_negative(
+            spec.effectiveHoleMobility, "technology.mobility.hole");
     spec.vdsatNmos = ComputeVdsat(spec.phyGateLength, spec.effectiveElectronMobility);
     spec.vdsatPmos = ComputeVdsat(spec.phyGateLength, spec.effectiveHoleMobility);
 
@@ -167,12 +205,18 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.pnSizeRatio = YamlHelpers::read_required<double>(sizing, "pn_size_ratio");
     spec.effectiveResistanceMultiplier =
             YamlHelpers::read_required<double>(sizing, "effective_resistance_multiplier");
+    YamlHelpers::require_positive(spec.pnSizeRatio, "technology.sizing.pn_size_ratio");
+    YamlHelpers::require_positive(
+            spec.effectiveResistanceMultiplier,
+            "technology.sizing.effective_resistance_multiplier");
 
     const YAML::Node gm = child_required(node, "gm");
     YamlHelpers::reject_unknown_keys(gm, {"nmos", "pmos"},
             "technology.roadmaps.nodes.gm");
     spec.currentGmNmos = YamlHelpers::read_required<double>(gm, "nmos");
     spec.currentGmPmos = YamlHelpers::read_required<double>(gm, "pmos");
+    YamlHelpers::require_non_negative(spec.currentGmNmos, "technology.gm.nmos");
+    YamlHelpers::require_non_negative(spec.currentGmPmos, "technology.gm.pmos");
 
     const YAML::Node fin = child_required(node, "fin");
     YamlHelpers::reject_unknown_keys(fin, {"height", "width", "pitch", "polywire_cap"},
@@ -186,6 +230,17 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.capPolywire = read_quantity_required(
             fin, "polywire_cap", CapacitancePerLengthUnits(), 1.0,
             "technology.fin.polywire_cap");
+    YamlHelpers::require_non_negative(spec.heightFin, "technology.fin.height");
+    YamlHelpers::require_non_negative(spec.widthFin, "technology.fin.width");
+    YamlHelpers::require_non_negative(spec.PitchFin, "technology.fin.pitch");
+    YamlHelpers::require_non_negative(spec.capPolywire, "technology.fin.polywire_cap");
+    const bool noFinGeometry = spec.heightFin == 0 && spec.widthFin == 0 && spec.PitchFin == 0;
+    const bool completeFinGeometry = spec.heightFin > 0 && spec.widthFin > 0 && spec.PitchFin > 0;
+    if (!noFinGeometry && !completeFinGeometry) {
+        throw std::runtime_error(
+                "[Input] Error: technology.fin height, width, and pitch must either all be "
+                "positive or all be zero for a planar technology.");
+    }
 
     const YAML::Node currents = child_required(node, "currents");
     YamlHelpers::reject_unknown_keys(currents,
@@ -203,6 +258,10 @@ TechnologySpec BuildSpec(const YAML::Node& node, bool useUpdatedLib,
     spec.currentOffPmos = ReadTable(
             child_required(currents, "off_pmos"), "technology.currents.off_pmos",
             temperatureGridSize);
+    ValidateCurrentTable(spec.currentOnNmos, "technology.currents.on_nmos");
+    ValidateCurrentTable(spec.currentOnPmos, "technology.currents.on_pmos");
+    ValidateCurrentTable(spec.currentOffNmos, "technology.currents.off_nmos");
+    ValidateCurrentTable(spec.currentOffPmos, "technology.currents.off_pmos");
 
     return spec;
 }

@@ -40,6 +40,29 @@ double ReadOptionalQuantity(
     return YamlHelpers::parse_quantity_node(node, units, defaultUnitToBase, what);
 }
 
+void ValidateScalarSenseAmp(const SenseAmp& senseAmp, const char* prefix) {
+    YamlHelpers::require_non_negative(
+            senseAmp.height, std::string(prefix) + ".geometry.height");
+    YamlHelpers::require_non_negative(
+            senseAmp.width, std::string(prefix) + ".geometry.width");
+    YamlHelpers::require_non_negative(
+            senseAmp.area, std::string(prefix) + ".geometry.area");
+    YamlHelpers::require_positive(
+            senseAmp.readLatency, std::string(prefix) + ".timing.latency");
+    YamlHelpers::require_positive(
+            senseAmp.readDynamicEnergy,
+            std::string(prefix) + ".power.read_dynamic_energy");
+    YamlHelpers::require_non_negative(
+            senseAmp.leakage, std::string(prefix) + ".power.leakage");
+    YamlHelpers::require_positive(
+            senseAmp.capLoad, std::string(prefix) + ".load.capacitance");
+    if (senseAmp.area == 0 && !(senseAmp.height > 0 && senseAmp.width > 0)) {
+        throw std::runtime_error(
+                std::string("[Input] Error: ") + prefix
+                + " geometry must provide a positive area or positive height and width.");
+    }
+}
+
 }  // namespace
 
 namespace YamlHelpers {
@@ -48,6 +71,7 @@ void ReadCustomSenseAmpFromYaml(
         SenseAmp& senseAmp,
         const std::string& inputFile,
         double featureSize) {
+    YamlHelpers::require_positive(featureSize, "sense_amp feature size");
     if (!is_yaml_file(inputFile)) {
         throw std::runtime_error(
                 "Only YAML custom sense amp files are supported. Please provide a .yaml/.yml custom SA file.");
@@ -88,15 +112,7 @@ void ReadCustomSenseAmpFromYaml(
         senseAmp.capLoad = ReadOptionalQuantity(
                 load, "capacitance", CapacitanceUnits(), 1.0,
                 "sense_amp.load.capacitance");
-
-        if (senseAmp.area == 0 && !(senseAmp.height > 0 && senseAmp.width > 0)) {
-            throw std::runtime_error(
-                    "[Input] Error: scalar sense amp file is missing required geometry.");
-        }
-        if (senseAmp.readLatency == 0 || senseAmp.readDynamicEnergy == 0 || senseAmp.capLoad == 0) {
-            throw std::runtime_error(
-                    "[Input] Error: scalar sense amp file is missing required fields.");
-        }
+        ValidateScalarSenseAmp(senseAmp, "sense_amp");
         if (senseAmp.area == 0) {
             senseAmp.area = senseAmp.height * senseAmp.width;
         }
@@ -133,15 +149,7 @@ void ReadCustomSenseAmpFromYaml(
             customSenseAmp, "leakage", PowerUnits(), 1.0, "custom_sense_amp.leakage");
     senseAmp.capLoad = ReadOptionalQuantity(
             customSenseAmp, "cap_load", CapacitanceUnits(), 1.0, "custom_sense_amp.cap_load");
-
-    if (senseAmp.area == 0 && !(senseAmp.height > 0 && senseAmp.width > 0)) {
-        throw std::runtime_error(
-                "[Input] Error: custom sense amp file is missing required fields.");
-    }
-    if (senseAmp.readLatency == 0 || senseAmp.readDynamicEnergy == 0 || senseAmp.capLoad == 0) {
-        throw std::runtime_error(
-                "[Input] Error: custom sense amp file is missing required fields.");
-    }
+    ValidateScalarSenseAmp(senseAmp, "custom_sense_amp");
 
     if (senseAmp.area == 0) {
         senseAmp.area = senseAmp.height * senseAmp.width;
