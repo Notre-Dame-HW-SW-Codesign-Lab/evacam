@@ -27,6 +27,14 @@ jobs:
           - test-cell-memory-loader-branches
           - test-sense-amp-loader-branches
           - test-technology-yaml-branches
+          - test-technology
+          - test-mem-cell
+          - test-formula-coverage
+          - test-wire-factory
+          - test-function-unit
+          - test-decoder-components
+          - test-driver-mux-components
+          - test-charging-sensing-components
           - test-yaml
           - test-top-level-parser
           - test-cell-loader

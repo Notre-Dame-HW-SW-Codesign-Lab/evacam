@@ -7,7 +7,7 @@ void PredecodeBlock::Initialize(int _numAddressBit, double _capLoad, double _res
 
     config = _config;
     numAddressBit =_numAddressBit;
-    if (numAddressBit > 27 ) {
+    if (numAddressBit < 0 || numAddressBit > 27) {
         throw std::runtime_error("[Predecoder Block] Error: invalid number of address bits.");
     } else if (numAddressBit == 0) {
         height = width = area = 0;

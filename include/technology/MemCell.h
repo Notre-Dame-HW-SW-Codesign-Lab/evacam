@@ -10,8 +10,8 @@
 class MemCell {
     public:
         MemCell();
-        MemCell(const MemCell&) {}
-        virtual ~MemCell() {}
+        MemCell(const MemCell&) = default;
+        virtual ~MemCell() = default;
 
         /* Functions */
         void ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd);

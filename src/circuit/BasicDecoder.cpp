@@ -6,6 +6,10 @@ void BasicDecoder::Initialize(int _numAddressBit, double _capLoad, double _resLo
     /*if (initialized)
       std::cout << "Warning: Already initialized!" << std::endl;*/
     /* might be re-initialized by predecodeblock */
+    if (_numAddressBit < 1 || _numAddressBit > 3) {
+        throw std::invalid_argument(
+                "[Basic Decoder] Error: address bit count must be 1, 2, or 3.");
+    }
     if (_numAddressBit == 1) {
         numNandInput = 0;
     }

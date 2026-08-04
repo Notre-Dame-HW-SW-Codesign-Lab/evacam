@@ -497,7 +497,20 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "ExplorationSpaceResolver": {"ExplorationDomain"},
         "YamlNodeHelpers": {"YamlHelpers", "YamlPrimitiveCoverage"},
         "YamlUnitParsers": {"YamlHelpers", "YamlPrimitiveCoverage"},
-        "Technology": {"TechnologyYamlLoader"},
+        "Technology": {"TechnologyYamlLoader", "Technology"},
+        "MemCell": {"MemCell"},
+        "formula": {"Formula", "FormulaCoverage"},
+        "Wire": {"WireCopy", "WireAndFactory"},
+        "WireProcessTable": {"WireAndFactory"},
+        "WireFactory": {"WireAndFactory"},
+        "FunctionUnit": {"FunctionUnit"},
+        "BasicDecoder": {"DecoderComponents"},
+        "PredecodeBlock": {"DecoderComponents"},
+        "Mux": {"DriverMuxComponents"},
+        "OutputDriver": {"DriverMuxComponents"},
+        "Precharger": {"ChargingAndSensingComponents"},
+        "RowDecoder": {"ChargingAndSensingComponents"},
+        "SenseAmp": {"ChargingAndSensingComponents"},
         "TechnologyLoader": {"TechnologyYamlLoader", "TechnologyAndVariationConfig"},
         "VariationConfigBuilder": {"YamlHelpers", "TechnologyAndVariationConfig"},
         "CellYamlLoader": {"CellYamlLoader", "CellAndMemoryLoaderBranches"},
@@ -583,6 +596,167 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             "tests/TechnologyAndVariationConfigTest.cpp",
             "TestVariationConfigBuilderDerivesCornerCountsAndSeeds",
             "test-technology-variation-config")
+
+    map_indirect("src/technology/Technology.cpp", ["ToString"],
+            "tests/TechnologyTest.cpp",
+            "TestPrintPropertyIncludesIdentityAndRepresentativeValues", "test-technology")
+    map_indirect("src/technology/Technology.cpp", ["PrintProperty"],
+            "tests/TechnologyTest.cpp",
+            "TestPrintPropertyIncludesIdentityAndRepresentativeValues", "test-technology")
+    map_indirect("include/technology/Technology.h", ["Technology", "~Technology"],
+            "tests/TechnologyTest.cpp", "TestDefaultConstructionIsUninitialized",
+            "test-technology")
+    map_indirect("src/technology/Technology.cpp", ["ApplySpec"],
+            "tests/TechnologyTest.cpp", "TestInitializeFromSpecCopiesEveryGetter",
+            "test-technology")
+    map_indirect("src/technology/Technology.cpp",
+            ["ExpandCurrentTable", "ExpandTemperatureTables"],
+            "tests/TechnologyTest.cpp",
+            "TestTemperatureTablesPreserveEndpointsAndInterpolateInteriorValues",
+            "test-technology")
+
+    map_indirect("src/technology/MemCell.cpp", ["MemCell"],
+            "tests/MemCellTest.cpp", "TestConstructorEstablishesDocumentedDefaults",
+            "test-mem-cell")
+
+    map_indirect("src/circuit/formula.cpp",
+            ["CheckTransistorWidths", "CalculatePmosRatio", "CalculateMaxPlanarWidths",
+             "ApplyPlanarPmosLayout", "ApplyPlanarNmosLayout", "ApplyFinfetRegionLayout",
+             "CalculateGateLayout"],
+            "tests/FormulaCoverageTest.cpp",
+            "TestGateAreaAndCapacitanceCoverPlanarFinfetAndZeroWidths",
+            "test-formula-coverage")
+    map_indirect("src/circuit/formula.cpp",
+            ["CalculateFBRAMGateCap", "CalculateFBRAMDrainCap"],
+            "tests/FormulaCoverageTest.cpp",
+            "TestGateCapAndFbramCapacitancesUseReferenceValues",
+            "test-formula-coverage")
+    map_indirect("src/circuit/formula.cpp", ["CalculateDrainCap"],
+            "tests/FormulaCoverageTest.cpp", "TestDrainCapacitorCoversNmosAndPmosPaths",
+            "test-formula-coverage")
+    map_indirect("src/circuit/formula.cpp",
+            ["CalculateGateLeakage", "CalculateOnResistance"],
+            "tests/FormulaCoverageTest.cpp",
+            "TestLeakageAndResistanceCoverTypesAndTemperatureBounds",
+            "test-formula-coverage")
+    map_indirect("src/circuit/formula.cpp", ["CalculateTransconductance"],
+            "tests/FormulaCoverageTest.cpp", "TestTransconductanceCoversLegacyUpdatedAndTypes",
+            "test-formula-coverage")
+    map_indirect("src/circuit/formula.cpp",
+            ["CalculateWireResistance", "CalculateWireCapacitance"],
+            "tests/FormulaCoverageTest.cpp",
+            "TestHorowitzAndWireReferencesAndInvalidDimensions",
+            "test-formula-coverage")
+
+    map_indirect("include/circuit/Wire.h", ["Wire"],
+            "tests/WireAndFactoryTest.cpp", "TestCalculateLatencyAndPowerRequiresInitialization",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp", ["Initialize"],
+            "tests/WireAndFactoryTest.cpp", "TestInitializeAllConfiguredWireTypes",
+            "test-wire-factory")
+    map_indirect("src/circuit/WireProcessTable.cpp", ["FindWireProcessSpec"],
+            "tests/WireAndFactoryTest.cpp", "TestInitializeAllConfiguredWireTypes",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp", ["CalculateLatencyAndPower"],
+            "tests/WireAndFactoryTest.cpp", "TestPassiveWireReferenceValuesAndOptionalOutputs",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp", ["CalculatePassiveLatencyAndPower"],
+            "tests/WireAndFactoryTest.cpp", "TestPassiveWireReferenceValuesAndOptionalOutputs",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp", ["CalculateLowSwingLatencyAndPower"],
+            "tests/WireAndFactoryTest.cpp", "TestLowSwingWireCalculationAndResetBehavior",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp", ["CalculateRepeatedLatencyAndPower"],
+            "tests/WireAndFactoryTest.cpp",
+            "TestRepeatedWireCalculationUsesUnitValuesAndResetsOutputs",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp",
+            ["RepeaterPenalty", "CalculateRepeaterTransistorWidths",
+             "CalculateRepeaterElectricals", "findOptimalRepeater", "findPenalizedRepeater"],
+            "tests/WireAndFactoryTest.cpp", "TestOptimalAndPenalizedRepeaters",
+            "test-wire-factory")
+    map_indirect("src/circuit/Wire.cpp", ["PrintProperty"],
+            "tests/WireAndFactoryTest.cpp", "TestPrintPropertyForPassiveAndRepeatedWires",
+            "test-wire-factory")
+    map_indirect("src/factories/WireFactory.cpp",
+            ["CreateDefaultLocalWire", "CreateDefaultGlobalWire"],
+            "tests/WireAndFactoryTest.cpp", "TestWireFactoryDefaultsAndFixedConfiguration",
+            "test-wire-factory")
+
+    map_indirect("src/circuit/FunctionUnit.cpp", ["FunctionUnit"],
+            "tests/FunctionUnitTest.cpp", "TestConstructorZerosEveryMetricAndLeavesConfigNull",
+            "test-function-unit")
+    map_indirect("src/circuit/FunctionUnit.cpp", ["PrintProperty"],
+            "tests/FunctionUnitTest.cpp", "TestPrintPropertyReportsScaledValuesAndLabels",
+            "test-function-unit")
+
+    map_indirect("include/circuit/BasicDecoder.h", ["BasicDecoder"],
+            "tests/DecoderComponentsTest.cpp", "TestUninitializedDecodersRejectCalculations",
+            "test-decoder-components")
+    map_indirect("src/circuit/BasicDecoder.cpp",
+            ["Initialize", "CalculateArea", "CalculateRC", "CalculateLatency", "CalculatePower"],
+            "tests/DecoderComponentsTest.cpp", "TestBasicDecoderTopologiesAndLoads",
+            "test-decoder-components")
+    map_indirect("src/circuit/BasicDecoder.cpp", ["PrintProperty"],
+            "tests/DecoderComponentsTest.cpp", "TestBasicDecoderPrintsIdentity",
+            "test-decoder-components")
+    map_indirect("include/circuit/PredecodeBlock.h", ["PredecodeBlock"],
+            "tests/DecoderComponentsTest.cpp", "TestUninitializedDecodersRejectCalculations",
+            "test-decoder-components")
+    map_indirect("src/circuit/PredecodeBlock.cpp",
+            ["Initialize", "CalculateArea", "CalculateRC", "CalculateLatency", "CalculatePower"],
+            "tests/DecoderComponentsTest.cpp", "TestPredecodeBlockTopologies",
+            "test-decoder-components")
+    map_indirect("src/circuit/PredecodeBlock.cpp", ["PrintProperty"],
+            "tests/DecoderComponentsTest.cpp", "TestPredecodeBlockPrintsIdentity",
+            "test-decoder-components")
+
+    map_indirect("src/circuit/Mux.cpp", ["HasMux", "Mux"],
+            "tests/DriverMuxComponentsTest.cpp", "TestMuxModelsActiveAndAbsentTopologies",
+            "test-driver-mux-components")
+    map_indirect("src/circuit/Mux.cpp",
+            ["Initialize", "CalculateArea", "CalculateRC", "CalculateLatency", "CalculatePower"],
+            "tests/DriverMuxComponentsTest.cpp", "TestMuxModelsActiveAndAbsentTopologies",
+            "test-driver-mux-components")
+    map_indirect("src/circuit/Mux.cpp", ["PrintProperty"],
+            "tests/DriverMuxComponentsTest.cpp", "TestMuxPrintsIdentityAndFunctionUnitProperties",
+            "test-driver-mux-components")
+    map_indirect("include/circuit/OutputDriver.h", ["OutputDriver"],
+            "tests/DriverMuxComponentsTest.cpp", "TestOutputDriverRequiresInitialization",
+            "test-driver-mux-components")
+    map_indirect("src/circuit/OutputDriver.cpp",
+            ["Initialize", "CalculateArea", "CalculateRC", "CalculateLatency", "CalculatePower"],
+            "tests/DriverMuxComponentsTest.cpp", "TestOutputDriverModelsLatencyAndAreaTargets",
+            "test-driver-mux-components")
+    map_indirect("src/circuit/OutputDriver.cpp", ["PrintProperty"],
+            "tests/DriverMuxComponentsTest.cpp", "TestOutputDriverPrintsIdentityAndStageCount",
+            "test-driver-mux-components")
+
+    map_indirect("include/circuit/Precharger.h", ["Precharger"],
+            "tests/ChargingAndSensingComponentsTest.cpp",
+            "TestUninitializedComponentsRejectCalculations", "test-charging-sensing-components")
+    map_indirect("src/circuit/Precharger.cpp",
+            ["Initialize", "CalculateArea", "CalculateRC", "CalculateLatency", "CalculatePower",
+             "PrintProperty"],
+            "tests/ChargingAndSensingComponentsTest.cpp",
+            "TestPrechargerCalculatesGeometryLatencyAndPower",
+            "test-charging-sensing-components")
+    map_indirect("include/circuit/RowDecoder.h", ["RowDecoder"],
+            "tests/ChargingAndSensingComponentsTest.cpp",
+            "TestUninitializedComponentsRejectCalculations", "test-charging-sensing-components")
+    map_indirect("src/circuit/RowDecoder.cpp",
+            ["Initialize", "CalculateArea", "CalculateRC", "CalculateLatency", "CalculatePower",
+             "PrintProperty"],
+            "tests/ChargingAndSensingComponentsTest.cpp",
+            "TestRowDecoderTopologiesAndInputValidation", "test-charging-sensing-components")
+    map_indirect("include/circuit/SenseAmp.h", ["SenseAmp"],
+            "tests/ChargingAndSensingComponentsTest.cpp",
+            "TestUninitializedComponentsRejectCalculations", "test-charging-sensing-components")
+    map_indirect("src/circuit/SenseAmp.cpp",
+            ["LookupNodeValue", "Initialize", "CalculateArea", "CalculateRC", "CalculateLatency",
+             "CalculatePower", "PrintProperty"],
+            "tests/ChargingAndSensingComponentsTest.cpp", "TestSenseAmpVoltageAndCurrentModes",
+            "test-charging-sensing-components")
 
     map_indirect("src/config/InputRuleValidator.cpp",
             ["LoadCellFileForValidation", "ResolveReference", "LoadMemoryDeviceForValidation",

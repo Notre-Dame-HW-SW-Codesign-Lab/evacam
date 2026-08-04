@@ -56,6 +56,14 @@ TEST_PHYSICAL_DOMAIN_VALIDATORS_BIN=$(TEST_BIN_DIR)/PhysicalDomainValidatorsTest
 TEST_CELL_MEMORY_LOADER_BRANCHES_BIN=$(TEST_BIN_DIR)/CellAndMemoryLoaderBranchesTest
 TEST_SENSE_AMP_LOADER_BRANCHES_BIN=$(TEST_BIN_DIR)/SenseAmpLoaderBranchesTest
 TEST_TECHNOLOGY_YAML_BRANCHES_BIN=$(TEST_BIN_DIR)/TechnologyYamlLoaderBranchesTest
+TEST_TECHNOLOGY_BIN=$(TEST_BIN_DIR)/TechnologyTest
+TEST_MEM_CELL_BIN=$(TEST_BIN_DIR)/MemCellTest
+TEST_FORMULA_COVERAGE_BIN=$(TEST_BIN_DIR)/FormulaCoverageTest
+TEST_WIRE_FACTORY_BIN=$(TEST_BIN_DIR)/WireAndFactoryTest
+TEST_FUNCTION_UNIT_BIN=$(TEST_BIN_DIR)/FunctionUnitTest
+TEST_DECODER_COMPONENTS_BIN=$(TEST_BIN_DIR)/DecoderComponentsTest
+TEST_DRIVER_MUX_COMPONENTS_BIN=$(TEST_BIN_DIR)/DriverMuxComponentsTest
+TEST_CHARGING_SENSING_COMPONENTS_BIN=$(TEST_BIN_DIR)/ChargingAndSensingComponentsTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
 PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
@@ -106,7 +114,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
@@ -120,7 +128,9 @@ test-unit: test-test-support test-derived-values test-config-normalizer test-con
 		test-output-file-lock \
 		test-evacam-config test-config-validators test-technology-variation-config \
 		test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches \
-		test-sense-amp-loader-branches test-technology-yaml-branches \
+		test-sense-amp-loader-branches test-technology-yaml-branches test-technology \
+		test-mem-cell test-formula-coverage test-wire-factory test-function-unit \
+		test-decoder-components test-driver-mux-components test-charging-sensing-components \
 		test-yaml test-top-level-parser test-cell-loader test-cli-options \
 		test-custom-sa-loader test-technology-loader test-new-input-names \
 		test-input-validation test-output-path-builder test-exploration \
@@ -194,6 +204,46 @@ test-technology-yaml-branches: $(OBJECTS_NO_MAIN) tests/TechnologyYamlLoaderBran
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_TECHNOLOGY_YAML_BRANCHES_BIN)).d -MT $(TEST_TECHNOLOGY_YAML_BRANCHES_BIN) -o $(TEST_TECHNOLOGY_YAML_BRANCHES_BIN) tests/TechnologyYamlLoaderBranchesTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	$(TEST_TECHNOLOGY_YAML_BRANCHES_BIN)
+
+test-technology: $(OBJECTS_NO_MAIN) tests/TechnologyTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_TECHNOLOGY_BIN)).d -MT $(TEST_TECHNOLOGY_BIN) -o $(TEST_TECHNOLOGY_BIN) tests/TechnologyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_TECHNOLOGY_BIN)
+
+test-mem-cell: $(OBJECTS_NO_MAIN) tests/MemCellTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_MEM_CELL_BIN)).d -MT $(TEST_MEM_CELL_BIN) -o $(TEST_MEM_CELL_BIN) tests/MemCellTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_MEM_CELL_BIN)
+
+test-formula-coverage: $(OBJECTS_NO_MAIN) tests/FormulaCoverageTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_FORMULA_COVERAGE_BIN)).d -MT $(TEST_FORMULA_COVERAGE_BIN) -o $(TEST_FORMULA_COVERAGE_BIN) tests/FormulaCoverageTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_FORMULA_COVERAGE_BIN)
+
+test-wire-factory: $(OBJECTS_NO_MAIN) tests/WireAndFactoryTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_WIRE_FACTORY_BIN)).d -MT $(TEST_WIRE_FACTORY_BIN) -o $(TEST_WIRE_FACTORY_BIN) tests/WireAndFactoryTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_WIRE_FACTORY_BIN)
+
+test-function-unit: $(OBJECTS_NO_MAIN) tests/FunctionUnitTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_FUNCTION_UNIT_BIN)).d -MT $(TEST_FUNCTION_UNIT_BIN) -o $(TEST_FUNCTION_UNIT_BIN) tests/FunctionUnitTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_FUNCTION_UNIT_BIN)
+
+test-decoder-components: $(OBJECTS_NO_MAIN) tests/DecoderComponentsTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_DECODER_COMPONENTS_BIN)).d -MT $(TEST_DECODER_COMPONENTS_BIN) -o $(TEST_DECODER_COMPONENTS_BIN) tests/DecoderComponentsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_DECODER_COMPONENTS_BIN)
+
+test-driver-mux-components: $(OBJECTS_NO_MAIN) tests/DriverMuxComponentsTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_DRIVER_MUX_COMPONENTS_BIN)).d -MT $(TEST_DRIVER_MUX_COMPONENTS_BIN) -o $(TEST_DRIVER_MUX_COMPONENTS_BIN) tests/DriverMuxComponentsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_DRIVER_MUX_COMPONENTS_BIN)
+
+test-charging-sensing-components: $(OBJECTS_NO_MAIN) tests/ChargingAndSensingComponentsTest.cpp tests/TestSupport.h tests/TestModelBuilders.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_CHARGING_SENSING_COMPONENTS_BIN)).d -MT $(TEST_CHARGING_SENSING_COMPONENTS_BIN) -o $(TEST_CHARGING_SENSING_COMPONENTS_BIN) tests/ChargingAndSensingComponentsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_CHARGING_SENSING_COMPONENTS_BIN)
 
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)

@@ -13,7 +13,7 @@ class Wire {
         }
         Wire(const Wire&) = default;
         Wire& operator=(const Wire&) = default;
-        virtual ~Wire() {}
+        virtual ~Wire() = default;
 
         /* Functions */
         void PrintProperty();

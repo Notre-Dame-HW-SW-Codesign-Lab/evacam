@@ -7,7 +7,7 @@
 class Mux: public FunctionUnit {
     public:
         Mux();
-        virtual ~Mux() {}
+        virtual ~Mux() = default;
         /* Functions */
         void PrintProperty();
 

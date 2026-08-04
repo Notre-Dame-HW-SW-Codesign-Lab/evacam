@@ -55,14 +55,6 @@ void Technology::ApplySpec(const TechnologySpec &spec) {
     capPolywire_ = spec.capPolywire;
 }
 
-std::array<double, 11> Technology::CollectTemperatureAnchors(const std::array<double, 101> &src) {
-    std::array<double, 11> anchors{};
-    for (int i = 0; i <= 10; i++) {
-        anchors[i] = src[i * 10];
-    }
-    return anchors;
-}
-
 void Technology::ExpandCurrentTable(const std::array<double, 11> &src, std::array<double, 101> &dst) {
     for (int i = 0; i <= 10; i++) {
         dst[i * 10] = src[i];

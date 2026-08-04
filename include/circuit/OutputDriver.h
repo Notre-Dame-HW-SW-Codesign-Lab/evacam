@@ -13,7 +13,7 @@ class OutputDriver: public FunctionUnit {
             invalid = false;
         }
         OutputDriver(const OutputDriver&) = delete;
-        virtual ~OutputDriver() {}
+        virtual ~OutputDriver() = default;
 
         /* Functions */
         void PrintProperty();

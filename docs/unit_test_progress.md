@@ -198,6 +198,13 @@ Implement these first because they are fast and establish reusable fixtures.
 
 ## Phase 4: Test technology and circuit primitives
 
+**Status:** Implemented. Dedicated targets now cover `Technology`, `MemCell`,
+the formula and wire primitives, `WireFactory`, and all eight standalone circuit
+components listed below. The work also corrected discarded `MemCell` copies,
+made invalid `OutputDriver` sentinel calculations reachable, and rejected unsafe
+decoder address counts. File-local and private helpers are tied to named
+public-behavior cases in the generated inventory.
+
 ### Technology and memory cell
 
 - `Technology`: initialization from a spec, all inline getters, current-table

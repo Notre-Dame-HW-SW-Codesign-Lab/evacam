@@ -11,7 +11,7 @@ class SenseAmp: public FunctionUnit {
             invalid = false;
         }
 
-        virtual ~SenseAmp() {}
+        virtual ~SenseAmp() = default;
 
         /* Functions */
         void PrintProperty() override;

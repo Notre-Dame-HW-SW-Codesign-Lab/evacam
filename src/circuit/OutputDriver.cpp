@@ -27,6 +27,7 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
 
     if (minNMOSDriverWidth > config->input.maxNmosSize * config->technology.tech->featureSize()) {
         invalid = true;
+        initialized = true;
         config->logger.Verbose()
                 << "[Output Driver] Warning: minNMOSDriverWidth exceeds maximum NMOS size.";
         return;
@@ -140,6 +141,7 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
                 > AREA_OPT_CONSTRAIN * config->input.maxNmosSize
                         * config->technology.tech->featureSize()) {
             invalid = true;
+            initialized = true;
             config->logger.Verbose()
                     << "[Output Driver] Warning: widthNMOS exceeds area optimization constraint.";
             return;

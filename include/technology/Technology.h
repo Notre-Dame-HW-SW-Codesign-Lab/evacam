@@ -55,7 +55,6 @@ class Technology {
 
     private:
         void ApplySpec(const TechnologySpec &spec);
-        std::array<double, 11> CollectTemperatureAnchors(const std::array<double, 101> &src);
         void ExpandCurrentTable(const std::array<double, 11> &src, std::array<double, 101> &dst);
         void ExpandTemperatureTables(const TechnologySpec &spec);
 
