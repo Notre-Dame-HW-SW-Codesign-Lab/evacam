@@ -93,8 +93,22 @@ def assert_run_result_matches_yaml(run_result, output_yaml_path):
     breakdown = design_result.breakdown
 
     assert_yaml_close(yaml_scalars, "summary.area.total.area", summary["area.total.area_m2"])
-    # The current YAML writer labels bank read latency as summary.timing.search_latency.
-    assert_yaml_close(yaml_scalars, "summary.timing.search_latency", summary["timing.read_latency_s"])
+    assert_yaml_close(yaml_scalars, "summary.timing.search_latency", summary["timing.search_latency_s"])
+    assert_yaml_close(
+        yaml_scalars,
+        "summary.timing.search_latency_breakdown.h_tree",
+        breakdown["search_latency.h_tree_s"],
+    )
+    assert_yaml_close(
+        yaml_scalars,
+        "summary.power.search_dynamic_energy",
+        summary["energy.search_dynamic_j"],
+    )
+    assert_yaml_close(
+        yaml_scalars,
+        "summary.power.search_dynamic_energy_breakdown.h_tree",
+        breakdown["search_dynamic_energy.h_tree_j"],
+    )
     assert_yaml_close(yaml_scalars, "summary.power.read_dynamic_energy", summary["energy.read_dynamic_j"])
     assert_yaml_close(yaml_scalars, "summary.power.write_dynamic_energy", summary["energy.write_dynamic_j"])
     assert_yaml_close(yaml_scalars, "summary.power.leakage_power", summary["power.leakage_w"])
