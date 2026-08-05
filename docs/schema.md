@@ -71,7 +71,7 @@ Common required keys:
 - `design.device_roadmap`: `HP`, `LSTP`, `LOP`, `FEFET`, or `LP`
 - `memory.word_width`
 - `memory.capacity`: required unless fixed `organization.subarray.dimensions` is supplied; may be exact scalar `auto` only with fixed subarray dimensions
-- `routing.type`: currently only `H-tree`
+- `routing.type`: `H-tree` or `non_h_tree`; both currently require internal sensing
 
 Useful optional keys:
 
@@ -182,7 +182,7 @@ Common implemented fields:
 Architecture and run config notes:
 
 - `design.system_process_node` is the authoritative modeled technology node. `layout.cell_process_node` records the process node associated with the cell definition.
-- `routing.type: non_h_tree`, `peripherals.input.custom_encoder: true`, and unsupported sense-amplifier types parse but are rejected by current CAM validation.
+- `peripherals.input.custom_encoder: true` and unsupported sense-amplifier types parse but are rejected by current CAM validation. Both routing types reject external sensing.
 - `docs/input_samples/` contains reference-only v2 sample files for every input role. They use generic placeholder values and are not physically valid experiments.
 
 ## Numeric and Physical Domains

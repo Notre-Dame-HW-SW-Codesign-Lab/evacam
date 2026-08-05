@@ -103,9 +103,6 @@ void ReadMemorySection(const YAML::Node &root, EvaCamConfig &config) {
 void ReadRoutingSection(const YAML::Node &root, EvaCamConfig &config) {
     auto routing = YamlHelpers::child_required(root, "routing");
     config.input.routingMode = YamlHelpers::read_enum_required<RoutingMode>(routing, "type");
-    if (config.input.routingMode == non_h_tree) {
-        throw std::runtime_error("[Input] Error: non H-tree is under development!");
-    }
 }
 
 void ReadPeripheralSection(const YAML::Node &root, EvaCamConfig &config) {

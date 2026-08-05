@@ -49,6 +49,36 @@ double SafeRatio(double numerator, double denominator) {
     return numerator / denominator;
 }
 
+double LocalSearchLatency(const Result &result) {
+    const auto &bank = *result.bank;
+    const auto &sub = *bank.mat->subarray;
+    if (result.config->peripherals.noPrechargeInc) {
+        return sub.matchlineDelay + sub.ColMux[sub.indexMatchline]->readLatency
+            + sub.senseAmpLatency + sub.outputAcc->readLatency;
+    }
+
+    double latency = sub.searchLatency * bank.mat->muxSenseAmp
+        - sub.inputBuf->readLatency * (bank.mat->muxSenseAmp - 1);
+    if (result.config->peripherals.withOutputAcc) {
+        latency *= result.config->input.wordWidth / bank.CAM_opt.BitSerialWidth;
+    }
+    return latency;
+}
+
+double LocalSearchEnergy(const Result &result) {
+    const auto &bank = *result.bank;
+    const auto &mat = *bank.mat;
+    const auto &sub = *mat.subarray;
+    double energy = sub.searchDynamicEnergy * mat.muxSenseAmp
+        - (sub.inputBuf->readDynamicEnergy + sub.inputEnc->readDynamicEnergy)
+        * (mat.muxSenseAmp - 1);
+    if (result.config->peripherals.withOutputAcc) {
+        energy *= result.config->input.wordWidth / bank.CAM_opt.BitSerialWidth;
+    }
+    return energy * bank.numRowMat * bank.numColumnMat
+        * bank.numRowSubarray * bank.numColumnSubarray;
+}
+
 template <typename T>
 bool HasUnit(const std::unique_ptr<T> &unit) {
     return static_cast<bool>(unit);
@@ -185,8 +215,10 @@ void AddBreakdown(EvaCamDesignResultDto &dto, const Result &result) {
     const auto &sub = *mat.subarray;
     const std::string routeKey = (input.input.routingMode == h_tree) ? "h_tree" : "non_h_tree";
 
-    dto.breakdown["search_latency." + routeKey + "_s"] = bank.readLatency - mat.readLatency;
-    dto.breakdown["search_latency.mat_s"] = mat.readLatency;
+    const double localSearchLatency = LocalSearchLatency(result);
+    const double localSearchEnergy = LocalSearchEnergy(result);
+    dto.breakdown["search_latency." + routeKey + "_s"] = bank.searchLatency - localSearchLatency;
+    dto.breakdown["search_latency.mat_s"] = localSearchLatency;
     dto.breakdown["search_latency.predecoder_s"] = mat.predecoderLatency;
     if (HasUnit(sub.inputEnc)) {
         dto.breakdown["search_latency.input_encoder_s"] = sub.inputEnc->readLatency;
@@ -234,6 +266,10 @@ void AddBreakdown(EvaCamDesignResultDto &dto, const Result &result) {
     dto.breakdown["write_dynamic_energy.predecoder_j"] = mat.writeDynamicEnergy
         - sub.writeDynamicEnergy * bank.numActiveSubarrayPerRow * bank.numActiveSubarrayPerColumn;
     dto.breakdown["write_dynamic_energy.subarray_j"] = sub.writeDynamicEnergy;
+
+    dto.breakdown["search_dynamic_energy." + routeKey + "_j"] =
+        bank.searchDynamicEnergy - localSearchEnergy;
+    dto.breakdown["search_dynamic_energy.mat_j"] = localSearchEnergy;
 
     if (HasUnit(sub.inputEnc)) {
         dto.breakdown["search_dynamic_energy.input_encoder_j"] = sub.inputEnc->readDynamicEnergy;

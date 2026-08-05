@@ -1,7 +1,7 @@
 schema: config
-name: 2FeFET_TCAM_SearchLatency
-architecture: 2FeFET_TCAM_256bit.architecture.yaml
-cell: 2FeFET_TCAM_DSE.cell.yaml
+name: 2FeFET_TCAM_non_h_tree
+architecture: 2FeFET_TCAM_non_h_tree.architecture.yaml
+cell: 2FeFET_TCAM.cell.yaml
 technology: ../lib/technology/cmos.legacy.yaml
 optimization:
   target: SearchLatency

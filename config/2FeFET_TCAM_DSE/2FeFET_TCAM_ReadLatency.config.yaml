@@ -1,10 +1,10 @@
 schema: config
-name: 2FeFET_TCAM_SearchLatency
+name: 2FeFET_TCAM_ReadLatency
 architecture: 2FeFET_TCAM_256bit.architecture.yaml
 cell: 2FeFET_TCAM_DSE.cell.yaml
 technology: ../lib/technology/cmos.legacy.yaml
 optimization:
-  target: SearchLatency
+  target: ReadLatency
   buffer_design: latency
   row_driver: latency
   priority_encoder: latency

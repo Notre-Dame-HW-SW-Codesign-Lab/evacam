@@ -1,10 +1,10 @@
 schema: config
-name: 2FeFET_TCAM_SearchEDP
-architecture: 2FeFET_TCAM_256bit.architecture.yaml
+name: 2FeFET_TCAM_Exploration
+architecture: 2FeFET_TCAM_DSE.architecture.yaml
 cell: 2FeFET_TCAM_DSE.cell.yaml
 technology: ../lib/technology/cmos.legacy.yaml
 optimization:
-  target: SearchEDP
+  target: Exploration
   buffer_design: balance
   row_driver: balance
   priority_encoder: balance

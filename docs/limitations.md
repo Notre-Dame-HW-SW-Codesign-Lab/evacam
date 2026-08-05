@@ -5,8 +5,10 @@ This file summarizes current runtime restrictions enforced by the code.
 ## Design And Routing
 
 - `design.target` must be `CAM`
-- `routing.type: non_h_tree` is rejected as under development
-- H-tree requires `sensing.internal: true`
+- `routing.type` may be `H-tree` or `non_h_tree`
+- Both routing modes currently require `sensing.internal: true`
+- Non-H-tree uses direct, unequal-length bank routes from the bank interface to each mat;
+  it does not model bank-level external matchline sensing
 
 ## Technology Range
 

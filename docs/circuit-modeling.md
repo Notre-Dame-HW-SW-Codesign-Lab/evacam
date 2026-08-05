@@ -79,6 +79,24 @@ and the cell file's inline `access_device` mapping, include:
 
 The current repository-level input guide is in [input-files.md](input-files.md). That file explains where fields live; this document explains how they affect the circuit equations.
 
+## Bank Routing Models
+
+EvaCAM supports two bank-to-mat routing topologies. `H-tree` recursively splits
+address and data wires through balanced horizontal and vertical branches, so mats
+at a given tree depth see the same modeled route length. `non_h_tree` gives each
+mat row a direct route from the bank interface. Those routes have different
+lengths; the farthest route determines latency, active routes contribute
+read/write dynamic energy, and every physical route contributes repeater
+leakage. A CAM search activates every physical mat and subarray in the selected
+bank, independent of the read/write `active` organization fields, so search
+dynamic energy includes every local subarray and every bank-to-mat search route.
+
+Both topologies keep matchline sensing inside each mat. Bank-level external
+matchline sensing is rejected because its global mux and sense-amplifier path is
+inherited from conventional-memory modeling and has not been made CAM-correct.
+The direct model treats columns in one mat row as parallel route groups and does
+not separately model horizontal placement within that row.
+
 ## Technology and Cell Loading
 
 Technology loading is handled by [src/config/TechnologyLoader.cpp](../src/config/TechnologyLoader.cpp).

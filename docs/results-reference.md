@@ -53,7 +53,7 @@ status: no_valid_solutions
 
 - `area`: bank, mat, and subarray dimensions plus area efficiency
 - `timing`: search latency, write/reset/set timing, and bandwidth
-- `power`: dynamic-energy metrics and leakage
+- `power`: search/read/write dynamic-energy metrics and leakage
 
 Write-related keys vary by cell type:
 

@@ -105,6 +105,36 @@ namespace {
         return numerator / denominator * 100;
     }
 
+    double local_search_latency(const Result& result) {
+        const auto& bank = result.bank;
+        const auto& sub = bank->mat->subarray;
+        if (result.config->peripherals.noPrechargeInc) {
+            return sub->matchlineDelay + sub->ColMux[sub->indexMatchline]->readLatency
+                + sub->senseAmpLatency + sub->outputAcc->readLatency;
+        }
+
+        double latency = sub->searchLatency * bank->mat->muxSenseAmp
+            - sub->inputBuf->readLatency * (bank->mat->muxSenseAmp - 1);
+        if (result.config->peripherals.withOutputAcc) {
+            latency *= result.config->input.wordWidth / bank->CAM_opt.BitSerialWidth;
+        }
+        return latency;
+    }
+
+    double local_search_energy(const Result& result) {
+        const auto& bank = result.bank;
+        const auto& mat = bank->mat;
+        const auto& sub = mat->subarray;
+        double energy = sub->searchDynamicEnergy * mat->muxSenseAmp
+            - (sub->inputBuf->readDynamicEnergy + sub->inputEnc->readDynamicEnergy)
+            * (mat->muxSenseAmp - 1);
+        if (result.config->peripherals.withOutputAcc) {
+            energy *= result.config->input.wordWidth / bank->CAM_opt.BitSerialWidth;
+        }
+        return energy * bank->numRowMat * bank->numColumnMat
+            * bank->numRowSubarray * bank->numColumnSubarray;
+    }
+
     std::string optimization_target_name(OptimizationTarget t) {
         switch (t) {
             case read_latency_optimized:
@@ -360,11 +390,11 @@ namespace {
         y.end_map();
 
         y.begin_map("timing");
-        y.line("search_latency", fmt_second(bank->readLatency));
+        const double localSearchLatency = local_search_latency(result);
+        y.line("search_latency", fmt_second(bank->searchLatency));
         y.begin_map("search_latency_breakdown");
-        y.line(route_key, fmt_second(bank->readLatency - bank->mat->readLatency));
-        y.line("mat", fmt_second(bank->mat->readLatency));
-        y.line("predecoder", fmt_second(bank->mat->predecoderLatency));
+        y.line(route_key, fmt_second(bank->searchLatency - localSearchLatency));
+        y.line("mat", fmt_second(localSearchLatency));
         y.end_map();
 
         if (input->technology.cell->memCellType == PCRAM || input->technology.cell->memCellType == FBRAM ||
@@ -440,6 +470,13 @@ namespace {
         y.end_map();
 
         y.begin_map("power");
+        const double localSearchEnergy = local_search_energy(result);
+        y.line("search_dynamic_energy", fmt_joule(bank->searchDynamicEnergy));
+        y.begin_map("search_dynamic_energy_breakdown");
+        y.line(route_key, fmt_joule(bank->searchDynamicEnergy - localSearchEnergy));
+        y.line("mat", fmt_joule(localSearchEnergy));
+        y.end_map();
+
         y.line("read_dynamic_energy", fmt_joule(bank->readDynamicEnergy));
         y.begin_map("read_dynamic_energy_breakdown");
         y.line(route_key, fmt_joule(bank->readDynamicEnergy - bank->mat->readDynamicEnergy *

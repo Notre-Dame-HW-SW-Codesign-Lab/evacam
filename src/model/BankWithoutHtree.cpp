@@ -1,6 +1,16 @@
 #include "BankWithoutHtree.h"
 #include "formula.h"
 
+namespace {
+
+constexpr double kInvalidResult = 1e41;
+
+int ActiveMatCount(const BankWithoutHtree &bank) {
+    return bank.numActiveMatPerRow * bank.numActiveMatPerColumn;
+}
+
+}
+
 void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
         long _blockSize, int _numActiveMatPerRow,
         int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 
@@ -21,15 +31,11 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     }
 
     if (!_internalSenseAmp) {
-        if (config->technology.cell->memCellType == DRAM || config->technology.cell->memCellType == eDRAM) {
-            invalid = true;
-            config->logger.Verbose() << "[BankWithoutHtree] DRAM does not support external sense amplification.";
-            return;
-        } else if (globalWire.wireRepeaterType != repeated_none) {
-            invalid = true;
-            initialized = true;
-            return;
-        }
+        invalid = true;
+        initialized = true;
+        config->logger.Verbose()
+            << "[BankWithoutHtree] CAM routing does not support bank-level external sensing.";
+        return;
     }
 
     numRowMat = _numRowMat;
@@ -45,10 +51,6 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     /* Calculate the physical signals that are required in routing */
     numAddressBit = (int)(log2((double)capacity / blockSize) + 0.1);
     /* use double during the calculation to avoid overflow */
-
-    globalBitlineMux = std::make_unique<Mux>();
-    globalSenseAmp = std::make_unique<SenseAmp>();
-
 
     if (_numActiveMatPerRow > numColumnMat) {
         config->logger.Log() << "[Bank] Warning: The number of active subarray per row is larger than the number of subarray per row!";
@@ -88,7 +90,15 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     /* The number of address bits that are used to power gate inactive mats */
     int numAddressForGating = (int)(log2(numRowMat * numColumnMat / numActiveMatPerColumn / numActiveMatPerRow)+0.1);
     numAddressBitRouteToMat = numAddressBit - numAddressForGating;	/* Only use the effective address bits in the following calculation */
-    numDataBitRouteToMat = blockSize;
+    const int activeMats = numActiveMatPerColumn * numActiveMatPerRow;
+    if (numAddressBitRouteToMat <= 0 || activeMats <= 0 || blockSize % activeMats != 0) {
+        invalid = true;
+        initialized = true;
+        config->logger.Verbose()
+            << "[BankWithoutHtree] Invalid address/data partition across active mats.";
+        return;
+    }
+    numDataBitRouteToMat = blockSize / activeMats;
 
     mat = std::make_unique<Mat>();
 
@@ -103,31 +113,6 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
         return;
     }
 
-    if (!internalSenseAmp) {
-        bool voltageSense = true;
-        double senseVoltage;
-        senseVoltage = config->technology.cell->minSenseVoltage;
-        if (config->technology.cell->memCellType == SRAM) {
-            /* SRAM, DRAM, and eDRAM all use voltage sensing */
-            voltageSense = true;
-        } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM || config->technology.cell->memCellType == FEFETRAM) {
-            voltageSense = config->technology.cell->readMode;
-        } else {/* NAND flash */
-            // TODO
-        }
-
-        int numSenseAmp;
-        numSenseAmp = blockSize;
-
-        globalSenseAmp->Initialize(numSenseAmp, !voltageSense, senseVoltage, mat->width * numColumnMat / numSenseAmp, config);
-        if (globalSenseAmp->invalid) {
-            invalid = true;
-            initialized = true;
-            return;
-        }
-        globalBitlineMux->Initialize(numRowMat * numColumnMat / numActiveMatPerColumn / numActiveMatPerRow, numSenseAmp, globalSenseAmp->capLoad, globalSenseAmp->capLoad, 0, config);
-    }
-
     /* Reset the mux values for correct printing */
     muxSenseAmp = _muxSenseAmp;
     muxOutputLev1 = _muxOutputLev1;
@@ -135,6 +120,10 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
 
     initialized = true;
     CalculateArea();
+    if (!invalid) {
+        CalculateRC();
+        CalculateLatencyAndPower();
+    }
 }
 
 void BankWithoutHtree::CalculateArea() {
@@ -157,14 +146,9 @@ void BankWithoutHtree::CalculateArea() {
             effectivePitch = globalWire.repeatedWirePitch;
         }
 
-        width += ceil((double)numRowMat * numColumnMat * numAddressBitRouteToMat / numWireSharingWidth) * effectivePitch;
-
-        if (!internalSenseAmp) {
-            globalSenseAmp->CalculateArea();
-            height += globalSenseAmp->height;
-            globalBitlineMux->CalculateArea();
-            height += globalBitlineMux->height;
-        }
+        const int routedBits = numAddressBitRouteToMat + numDataBitRouteToMat;
+        width += ceil((double)numRowMat * numColumnMat * routedBits
+                / numWireSharingWidth) * effectivePitch;
 
         /* Determine if the aspect ratio meets the constraint */
         if (height / width > CONSTRAINT_ASPECT_RATIO_BANK
@@ -184,10 +168,6 @@ void BankWithoutHtree::CalculateRC() {
         ThrowInitializationError("[BankWithoutHtree]");
     } else if (!invalid) {
         mat->CalculateRC();
-        if (!internalSenseAmp) {
-            globalBitlineMux->CalculateRC();
-            globalSenseAmp->CalculateRC();
-        }
     }
 }
 
@@ -195,150 +175,81 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
     if (!initialized) {
         ThrowInitializationError("[BankWithoutHtree]");
     } else if (invalid) {
-        readLatency = 1e41;
-        writeLatency = 1e41;
-        readDynamicEnergy = 1e41;
-        writeDynamicEnergy = 1e41;
-        leakage = 1e41;
+        readLatency = writeLatency = searchLatency = kInvalidResult;
+        resetLatency = setLatency = kInvalidResult;
+        readDynamicEnergy = writeDynamicEnergy = searchDynamicEnergy = kInvalidResult;
+        resetDynamicEnergy = setDynamicEnergy = kInvalidResult;
+        leakage = kInvalidResult;
         return;
+    }
+
+    mat->CalculateLatency(kInvalidResult);
+    mat->CalculatePower();
+
+    const int activeMats = ActiveMatCount(*this);
+    const int routedBits = numAddressBitRouteToMat + numDataBitRouteToMat;
+
+    readLatency = mat->readLatency;
+    writeLatency = mat->writeLatency;
+    resetLatency = mat->resetLatency;
+    setLatency = mat->setLatency;
+    readDynamicEnergy = mat->readDynamicEnergy * activeMats;
+    writeDynamicEnergy = mat->writeDynamicEnergy * activeMats;
+    resetDynamicEnergy = mat->resetDynamicEnergy * activeMats;
+    setDynamicEnergy = mat->setDynamicEnergy * activeMats;
+    leakage = mat->leakage * numRowMat * numColumnMat;
+    cellReadEnergy = mat->cellReadEnergy * activeMats;
+    cellSetEnergy = mat->cellSetEnergy * activeMats;
+    cellResetEnergy = mat->cellResetEnergy * activeMats;
+
+    if (config->peripherals.noPrechargeInc) {
+        searchLatency = mat->subarray->matchlineDelay
+            + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
+            + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
     } else {
-        double latency = 0;
-        double energy = 0;
-        double leakageWire = 0;
-
-        mat->CalculateLatency(1e41 /* means Inf */);
-        mat->CalculatePower();
-        readLatency = resetLatency = setLatency = writeLatency = 0;
-        readDynamicEnergy = writeDynamicEnergy = resetDynamicEnergy = setDynamicEnergy = 0;
-        leakage = 0;
-
-        double lengthWire;
-        lengthWire = mat->height * (numRowMat + 1);
-        for (int i = 0; i < numRowMat; i++) {
-            lengthWire -= mat->height;
-            if (internalSenseAmp) {
-                double numBitRouteToMat = 0;
-                globalWire.CalculateLatencyAndPower(lengthWire, &latency, &energy, &leakageWire);
-                if (i == 0){
-                    readLatency += latency;
-                    writeLatency += latency;
-                }
-                if (i < numActiveMatPerColumn) {
-                    numBitRouteToMat = numAddressBitRouteToMat + numDataBitRouteToMat;
-                    readDynamicEnergy += energy * numBitRouteToMat * numActiveMatPerRow;
-                    writeDynamicEnergy += energy * numBitRouteToMat * numActiveMatPerRow;
-                }
-                leakage += leakageWire * numBitRouteToMat * numColumnMat;
-            } else {
-                double resLocalBitline, capLocalBitline, resBitlineMux, capBitlineMux;
-                capBitlineMux = globalBitlineMux->capNMOSPassTransistor;
-                resBitlineMux = globalBitlineMux->resNMOSPassTransistor;
-
-                resLocalBitline = mat->subarray->resBitline + 3 * resBitlineMux;
-                capLocalBitline = mat->subarray->capBitline + 6 * capBitlineMux;
-                double resGlobalBitline, capGlobalBitline;
-                resGlobalBitline = lengthWire * globalWire.resWirePerUnit;
-                capGlobalBitline = lengthWire * globalWire.capWirePerUnit;
-                double capGlobalBitlineMux;
-                capGlobalBitlineMux = globalBitlineMux->capForPreviousDelayCalculation;
-                if (config->technology.cell->memCellType == SRAM) {
-                    double vpre = config->technology.cell->readVoltage;	/* This value should be equal to resetVoltage and setVoltage for SRAM */
-                    if (i == 0) {
-                        latency = resLocalBitline * capGlobalBitline / 2 +
-                            (resLocalBitline + resGlobalBitline) * (capGlobalBitline / 2 + capGlobalBitlineMux);
-                        latency *= log(vpre / (vpre - globalSenseAmp->senseVoltage));
-                        latency += resLocalBitline * capGlobalBitline / 2;
-                        globalBitlineMux->CalculateLatency(1e20);
-                        latency += globalBitlineMux->readLatency;
-                        globalSenseAmp->CalculateLatency();
-                        writeLatency += latency;
-                        latency += globalSenseAmp->readLatency;
-                        readLatency += latency;
-                    }
-                    if (i <  numActiveMatPerColumn) {
-                        energy = capGlobalBitline * config->technology.tech->vdd() * config->technology.tech->vdd() * numAddressBitRouteToMat;
-                        readDynamicEnergy += energy;
-                        writeDynamicEnergy += energy;
-                        readDynamicEnergy += capGlobalBitline * vpre * vpre;
-                        writeDynamicEnergy += capGlobalBitline * vpre * vpre * numDataBitRouteToMat;
-                    }
-                    // TODO: cap calculation needs further consideration
-                } else if (config->technology.cell->memCellType == MRAM || config->technology.cell->memCellType == PCRAM || config->technology.cell->memCellType == memristor || config->technology.cell->memCellType == FBRAM || config->technology.cell->memCellType == FEFETRAM) {
-                    double vWrite = std::max(fabs(config->technology.cell->resetVoltage), fabs(config->technology.cell->setVoltage));
-                    double tau, latencyOff, latencyOn;
-                    double vPre = mat->subarray->voltagePrecharge;
-                    double vOn = mat->subarray->voltageMemCellOn;
-                    double vOff = mat->subarray->voltageMemCellOff;
-                    if (i == 0) {
-                        tau = resBitlineMux * capGlobalBitline / 2 + (resBitlineMux + resGlobalBitline)
-                            * (capGlobalBitline + capLocalBitline) / 2 + (resBitlineMux + resGlobalBitline
-                                    + resLocalBitline) * capLocalBitline / 2;
-                        writeLatency += 0.63 * tau;
-                        if (config->technology.cell->readMode == false) {	/* current-sensing */
-                            /* Use ICCAD 2009 model */
-                            resLocalBitline += mat->subarray->resMemCellOff;
-                            tau = resGlobalBitline * capGlobalBitline / 2 *
-                                (resLocalBitline + resGlobalBitline / 3) / (resLocalBitline + resGlobalBitline);
-                            readLatency += 0.63 * tau;
-                        } else {						/* voltage-sensing */
-                            if (config->technology.cell->readVoltage == 0) {  /* Current-in voltage sensing */
-                                resLocalBitline += mat->subarray->resMemCellOn;
-                                tau = resLocalBitline * capGlobalBitline + (resLocalBitline + resGlobalBitline) * capGlobalBitline / 2;
-                                latencyOn = tau * log((vPre - vOn)/(vPre - vOn - globalSenseAmp->senseVoltage));
-                                resLocalBitline += config->technology.cell->resistanceOff - config->technology.cell->resistanceOn;
-                                tau = resLocalBitline * capGlobalBitline + (resLocalBitline + resGlobalBitline) * capGlobalBitline / 2;
-                                latencyOff = tau * log((vOff - vPre)/(vOff - vPre - globalSenseAmp->senseVoltage));
-                            } else {   /*Voltage-in voltage sensing */
-                                resLocalBitline += mat->subarray->resEquivalentOn;
-                                tau = resLocalBitline * capGlobalBitline + (resLocalBitline + resGlobalBitline) * capGlobalBitline / 2;
-                                latencyOn = tau * log((vPre - vOn)/(vPre - vOn - globalSenseAmp->senseVoltage));
-                                resLocalBitline += mat->subarray->resEquivalentOff - mat->subarray->resEquivalentOn;
-                                tau = resLocalBitline * capGlobalBitline + (resLocalBitline + resGlobalBitline) * capGlobalBitline / 2;
-                                latencyOff = tau * log((vOff - vPre)/(vOff - vPre - globalSenseAmp->senseVoltage));
-                            }
-                            readLatency -= mat->subarray->bitlineDelay;
-                            if ((latencyOn + mat->subarray->bitlineDelayOn) > (latencyOff + mat->subarray->bitlineDelayOff))
-                                readLatency += latencyOn + mat->subarray->bitlineDelayOn;
-                            else
-                                readLatency += latencyOff + mat->subarray->bitlineDelayOff;
-                        }
-                    }
-                    if (i <  numActiveMatPerColumn) {
-                        energy = capGlobalBitline * config->technology.tech->vdd() * config->technology.tech->vdd() * numAddressBitRouteToMat;
-                        readDynamicEnergy += energy;
-                        writeDynamicEnergy += energy;
-                        writeDynamicEnergy += capGlobalBitline * vWrite * vWrite * numDataBitRouteToMat;
-                        if (config->technology.cell->readMode) { /*Voltage-in voltage sensing */
-                            readDynamicEnergy += capGlobalBitline * (vPre * vPre - vOn * vOn )* numDataBitRouteToMat;
-                        }
-                    }
-                }
-
-            }
-        }
-        if (!internalSenseAmp) {
-            globalBitlineMux->CalculateLatency(1e40);
-            globalSenseAmp->CalculateLatency();
-            readLatency += globalBitlineMux->readLatency + globalSenseAmp->readLatency;
-            writeLatency += globalBitlineMux->writeLatency + globalSenseAmp->writeLatency;
-            globalBitlineMux->CalculatePower();
-            globalSenseAmp->CalculatePower();
-            readDynamicEnergy += (globalBitlineMux->readDynamicEnergy + globalSenseAmp->readDynamicEnergy) * numActiveMatPerRow;
-            writeDynamicEnergy += (globalBitlineMux->writeDynamicEnergy + globalSenseAmp->writeDynamicEnergy) * numActiveMatPerRow;
-            leakage += (globalBitlineMux->leakage + globalSenseAmp->leakage) * numColumnMat;
+        searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
+            - mat->subarray->inputBuf->readLatency * (mat->muxSenseAmp - 1);
+        if (config->peripherals.withOutputAcc) {
+            searchLatency *= config->input.wordWidth / CAM_opt.BitSerialWidth;
         }
     }
 
-    readLatency += mat->readLatency;
-    resetLatency = writeLatency + mat->resetLatency;
-    setLatency = writeLatency + mat->setLatency;
-    writeLatency += mat->writeLatency;
-    readDynamicEnergy += mat->readDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    cellReadEnergy = mat->cellReadEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    cellSetEnergy = mat->cellSetEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    cellResetEnergy = mat->cellResetEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    resetDynamicEnergy = writeDynamicEnergy + mat->resetDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    setDynamicEnergy = writeDynamicEnergy + mat->setDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    writeDynamicEnergy += mat->writeDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
-    leakage += mat->leakage * numRowMat * numColumnMat;
+    double localSearchEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
+        - (mat->subarray->inputBuf->readDynamicEnergy
+                + mat->subarray->inputEnc->readDynamicEnergy)
+        * (mat->muxSenseAmp - 1);
+    if (config->peripherals.withOutputAcc) {
+        localSearchEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
+    }
+    searchDynamicEnergy = localSearchEnergy
+        * numRowMat * numColumnMat * numRowSubarray * numColumnSubarray;
+    numBitSerial = CAM_opt.BitSerialWidth;
+
+    double lengthWire = mat->height * (numRowMat + 1);
+    for (int i = 0; i < numRowMat; i++) {
+        lengthWire -= mat->height;
+        double latency = 0;
+        double energy = 0;
+        double leakageWire = 0;
+        globalWire.CalculateLatencyAndPower(lengthWire, &latency, &energy, &leakageWire);
+
+        if (i == 0) {
+            readLatency += latency * 2;
+            writeLatency += latency;
+            resetLatency += latency;
+            setLatency += latency;
+            if (!config->peripherals.noPrechargeInc) {
+                searchLatency += latency * 2;
+            }
+        }
+        if (i < numActiveMatPerColumn) {
+            const double activeRouteEnergy = energy * routedBits * numActiveMatPerRow;
+            readDynamicEnergy += activeRouteEnergy;
+            writeDynamicEnergy += activeRouteEnergy;
+            resetDynamicEnergy += activeRouteEnergy;
+            setDynamicEnergy += activeRouteEnergy;
+        }
+        searchDynamicEnergy += energy * routedBits * numColumnMat;
+        leakage += leakageWire * routedBits * numColumnMat;
+    }
 }

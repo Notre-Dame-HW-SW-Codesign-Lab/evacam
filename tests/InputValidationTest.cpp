@@ -275,10 +275,12 @@ void TestNonCamDesignTargetsThrow() {
     assert(LoadThrowsWithMessage("Invalid value for 'target': RAM"));
 }
 
-void TestNonHTreeRoutingThrows() {
+void TestNonHTreeRoutingLoads() {
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
             kReadLatencyOptimization, "", "", "", "CAM", "non_h_tree");
-    assert(LoadThrowsWithMessage("non H-tree is under development"));
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kConfigPath, config);
+    assert(config.input.routingMode == non_h_tree);
 }
 
 void TestPruningIsRejectedUntilDefined() {
@@ -460,14 +462,16 @@ void TestDramSectionThrows() {
     WriteMinimalCellFile();
 }
 
-void TestExternalSensingRejectsNonSramCam() {
-    WriteMinimalCellFile("MRAM");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    WriteSensingFile(
-        "schema: sensing\n"
-        "internal: false\n"
-        "sense_amplifier: ../config/lib/sense_amp/nvsim_vol.sense_amp.yaml\n");
-    assert(LoadThrowsWithMessage("external sensing is only supported for SRAM CAM cells"));
+void TestExternalSensingIsRejected() {
+    for (const char *cellType : {"SRAM", "MRAM"}) {
+        WriteMinimalCellFile(cellType);
+        WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+        WriteSensingFile(
+            "schema: sensing\n"
+            "internal: false\n"
+            "sense_amplifier: ../config/lib/sense_amp/nvsim_vol.sense_amp.yaml\n");
+        assert(LoadThrowsWithMessage("requires internal sensing"));
+    }
     WriteMinimalCellFile();
 }
 
@@ -737,7 +741,7 @@ void TestGlobalLowSwingWithRepeaterThrows() {
 int main() {
     WriteMinimalCellFile();
     TestNonCamDesignTargetsThrow();
-    TestNonHTreeRoutingThrows();
+    TestNonHTreeRoutingLoads();
     TestPruningIsRejectedUntilDefined();
     TestTemperatureRangeThrowsDescriptiveError();
     TestNegativeConstraintThrowsDescriptiveError();
@@ -751,7 +755,7 @@ int main() {
     TestNonPowerOfTwoWordWidthParsesWithRealCapacity();
     TestUnsupportedCamMemCellTypeThrows();
     TestDramSectionThrows();
-    TestExternalSensingRejectsNonSramCam();
+    TestExternalSensingIsRejected();
     TestMissingCamRowPortsThrows();
     TestMissingCamColumnPortsThrows();
     TestAcamUnsupportedThrows();

@@ -16,6 +16,9 @@ class Bank: public FunctionUnit {
         Bank() {
             initialized = false;
             invalid = false;
+            searchLatency = 0;
+            searchDynamicEnergy = 0;
+            numBitSerial = 0;
         }
 
         Bank(const Bank&) = delete;

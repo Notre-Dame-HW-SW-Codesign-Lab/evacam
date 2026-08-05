@@ -4,6 +4,9 @@ EvaCAM is a C++ simulator and design-space exploration tool for content-addressa
 
 It reads a run config that references architecture, cell, and technology YAML files, explores valid organizations, and writes result summaries as YAML. Full-exploration runs can also emit a CSV of explored points.
 
+Bank-level routing can use a balanced H-tree or direct non-H-tree routes. Both modes
+currently place sensing inside the mats.
+
 ## Repository Layout
 
 - `src/app/`, `include/app/`: application flow and exploration orchestration

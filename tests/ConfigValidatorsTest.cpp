@@ -74,12 +74,14 @@ void TestEvaCamConfigValidatorRejectsUnsupportedMemoryTypes() {
     }
 }
 
-void TestEvaCamConfigValidatorRejectsExternalHtreeSensing() {
-    auto config = TestModelBuilders::MakeEvaCamConfig();
-    config->input.routingMode = h_tree;
-    config->input.internalSensing = false;
-    AssertThrows<std::runtime_error>([&] { EvaCamConfigValidator::Validate(*config); },
-            "H-tree does not support external sensing");
+void TestEvaCamConfigValidatorRejectsExternalSensing() {
+    for (RoutingMode mode : {h_tree, non_h_tree}) {
+        auto config = TestModelBuilders::MakeEvaCamConfig();
+        config->input.routingMode = mode;
+        config->input.internalSensing = false;
+        AssertThrows<std::runtime_error>([&] { EvaCamConfigValidator::Validate(*config); },
+                "requires internal sensing");
+    }
 }
 
 void TestInputRuleValidatorAcceptsScalarAndTopologyBoundaries() {
@@ -403,7 +405,7 @@ void TestInputRuleValidatorCoversRemainingSizingAndScalarRules() {
 int main() {
     TestEvaCamConfigValidatorAcceptsSupportedBoundary();
     TestEvaCamConfigValidatorRejectsUnsupportedMemoryTypes();
-    TestEvaCamConfigValidatorRejectsExternalHtreeSensing();
+    TestEvaCamConfigValidatorRejectsExternalSensing();
     TestInputRuleValidatorAcceptsScalarAndTopologyBoundaries();
     TestInputRuleValidatorRejectsScalarDomainRules();
     TestInputRuleValidatorRejectsDerivedCapacityAndConstraintRules();

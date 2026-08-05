@@ -84,6 +84,9 @@ void TestSingleResultStructureAssumptionsAndBreakdowns() {
             "nominal result does not invent variation output");
     AssertScalar(root["summary"]["area"]["total"], "area");
     AssertScalar(root["summary"]["timing"], "search_latency");
+    AssertScalar(root["summary"]["timing"]["search_latency_breakdown"], "non_h_tree");
+    AssertScalar(root["summary"]["power"], "search_dynamic_energy");
+    AssertScalar(root["summary"]["power"]["search_dynamic_energy_breakdown"], "non_h_tree");
     AssertScalar(root["summary"]["power"], "read_dynamic_energy");
     AssertScalar(root["breakdown"]["subarray_area"], "total_cell_area");
     AssertScalar(root["breakdown"]["search_latency"], "matchline");

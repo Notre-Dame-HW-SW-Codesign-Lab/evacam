@@ -86,9 +86,9 @@ void TestReadRoutingSection() {
             "  ignored_by_reader: true\n"), config);
     assert(config.input.routingMode == h_tree);
 
-    TestSupport::AssertThrows<std::runtime_error>([&] {
-        ConfigSectionReaders::ReadRoutingSection(YAML::Load("routing:\n  type: non_h_tree\n"), config);
-    }, "non H-tree");
+    ConfigSectionReaders::ReadRoutingSection(
+            YAML::Load("routing:\n  type: non_h_tree\n"), config);
+    assert(config.input.routingMode == non_h_tree);
 }
 
 void TestReadPeripheralSection() {

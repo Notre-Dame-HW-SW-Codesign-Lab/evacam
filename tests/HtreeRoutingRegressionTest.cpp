@@ -67,6 +67,29 @@ int main() {
     assert(Near(bank->height, 781.523e-6, 1e-9));
     assert(Near(bank->width, 1.7871e-3, 1e-6));
 
+    const auto &subarray = *bank->mat->subarray;
+    double expectedSearchEnergy = (subarray.searchDynamicEnergy * bank->mat->muxSenseAmp
+            - (subarray.inputBuf->readDynamicEnergy + subarray.inputEnc->readDynamicEnergy)
+            * (bank->mat->muxSenseAmp - 1))
+        * bank->numRowMat * bank->numColumnMat
+        * bank->numRowSubarray * bank->numColumnSubarray;
+    for (const auto &level : bank->horizontalLevels) {
+        double routeEnergy = 0;
+        bank->globalWire.CalculateLatencyAndPower(
+                level.length, nullptr, &routeEnergy, nullptr);
+        expectedSearchEnergy += routeEnergy * level.totalWireGroups
+            * (level.addressBits + level.dataBits);
+    }
+    for (const auto &level : bank->verticalLevels) {
+        double routeEnergy = 0;
+        bank->globalWire.CalculateLatencyAndPower(
+                level.length, nullptr, &routeEnergy, nullptr);
+        expectedSearchEnergy += routeEnergy * level.totalWireGroups
+            * (level.addressBits + level.dataBits);
+    }
+    assert(Near(bank->searchDynamicEnergy, expectedSearchEnergy,
+            expectedSearchEnergy * 1e-12));
+
     std::cout << "H-tree routing regression tests passed\n";
     return 0;
 }

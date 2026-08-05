@@ -618,9 +618,9 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
                 "[Input] Error: memory.cell.type is not supported for CAM modeling.");
     }
 
-    if (!config.input.internalSensing && memCellType != SRAM) {
+    if (!config.input.internalSensing) {
         throw std::runtime_error(
-                "[Input] Error: external sensing is only supported for SRAM CAM cells.");
+                "[Input] Error: CAM bank routing requires internal sensing in this version.");
     }
 }
 

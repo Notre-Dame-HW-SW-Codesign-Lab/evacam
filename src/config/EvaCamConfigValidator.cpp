@@ -14,6 +14,6 @@ void EvaCamConfigValidator::Validate(EvaCamConfig &config) {
     if (config.technology.cell->memCellType == MLCNAND)
         throw std::runtime_error("[ERROR] MLC NAND flash model is still under development");
 
-    if (config.input.routingMode == h_tree && config.input.internalSensing == false)
-        throw std::runtime_error("[ERROR] H-tree does not support external sensing scheme in this version.");
+    if (!config.input.internalSensing)
+        throw std::runtime_error("[ERROR] CAM bank routing requires internal sensing in this version.");
 }

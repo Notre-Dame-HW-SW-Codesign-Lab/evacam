@@ -59,8 +59,7 @@ void BankWithHtree::AccumulateHtreeLevelLatencyAndPower(const HtreeLevel &level,
 
     if (!config->peripherals.noPrechargeInc)
         searchLatency += latency * 2;
-    searchDynamicEnergy += mat->subarray->searchDynamicEnergy
-        + energy * level.activeWireGroups * totalBits;
+    searchDynamicEnergy += energy * level.totalWireGroups * totalBits;
 }
 
 bool BankWithHtree::HasRoutableBits(const RoutingState &state) const {
@@ -549,6 +548,9 @@ void BankWithHtree::CalculateLatencyAndPower() {
         if (config->peripherals.withOutputAcc) {
             searchDynamicEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
         }
+
+        searchDynamicEnergy *= numRowMat * numColumnMat
+            * numRowSubarray * numColumnSubarray;
 
         numBitSerial = CAM_opt.BitSerialWidth;
 

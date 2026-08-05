@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <yaml-cpp/yaml.h>
+
 namespace {
 
 bool HasPathPart(const std::filesystem::path& path, const std::string& part) {
@@ -50,9 +52,40 @@ void AssertRepresentativeConfigValues(const std::filesystem::path& configFile,
     }
 }
 
+void AssertDseOptimizationConfigCoverage() {
+    const std::vector<std::pair<std::string, OptimizationTarget>> expected = {
+        {"ReadLatency", read_latency_optimized},
+        {"WriteLatency", write_latency_optimized},
+        {"ReadDynamicEnergy", read_energy_optimized},
+        {"WriteDynamicEnergy", write_energy_optimized},
+        {"ReadEDP", read_edp_optimized},
+        {"WriteEDP", write_edp_optimized},
+        {"LeakagePower", leakage_optimized},
+        {"Area", area_optimized},
+        {"SearchLatency", search_latency_optimized},
+        {"SearchEnergy", search_energy_optimized},
+        {"SearchEDP", search_edp_optimized},
+        {"Exploration", full_exploration},
+    };
+
+    for (const auto& [targetName, expectedTarget] : expected) {
+        const std::filesystem::path configFile =
+            "config/2FeFET_TCAM_DSE/2FeFET_TCAM_" + targetName + ".config.yaml";
+        assert(std::filesystem::exists(configFile));
+
+        const YAML::Node root = YAML::LoadFile(configFile.string());
+        assert(root["name"].as<std::string>() == "2FeFET_TCAM_" + targetName);
+
+        EvaCamConfig config;
+        config.ReadConfigFromFile(configFile.string());
+        assert(config.input.optimizationTarget == expectedTarget);
+    }
+}
+
 }  // namespace
 
 int main() {
+    AssertDseOptimizationConfigCoverage();
     const auto configs = GeneratedConfigFiles();
     assert(!configs.empty());
 

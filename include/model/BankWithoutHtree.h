@@ -37,8 +37,6 @@ class BankWithoutHtree: public Bank {
         int numAddressBitRouteToMat;  /* Number of address bits routed to mat */
         int numDataBitRouteToMat;   /* Number of data bits routed to mat */
 
-        std::unique_ptr<Mux>	globalBitlineMux;
-        std::unique_ptr<SenseAmp> globalSenseAmp;
 };
 
 #endif /* BANKWITHOUTHTREE_H_ */

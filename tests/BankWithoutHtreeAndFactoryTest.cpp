@@ -31,17 +31,57 @@ CAM_Opt MakeCamOptions() {
     return {area_first, area_first, 1};
 }
 
+void AssertCalculatedBank(BankWithoutHtree &bank);
+
+double ExpectedSearchEnergy(BankWithoutHtree &bank) {
+    const auto &subarray = *bank.mat->subarray;
+    double localEnergy = subarray.searchDynamicEnergy * bank.mat->muxSenseAmp
+        - (subarray.inputBuf->readDynamicEnergy + subarray.inputEnc->readDynamicEnergy)
+        * (bank.mat->muxSenseAmp - 1);
+    if (bank.config->peripherals.withOutputAcc) {
+        localEnergy *= bank.config->input.wordWidth / bank.CAM_opt.BitSerialWidth;
+    }
+
+    double expected = localEnergy * bank.numRowMat * bank.numColumnMat
+        * bank.numRowSubarray * bank.numColumnSubarray;
+    double length = bank.mat->height * (bank.numRowMat + 1);
+    const int routedBits = bank.numAddressBitRouteToMat + bank.numDataBitRouteToMat;
+    for (int row = 0; row < bank.numRowMat; row++) {
+        length -= bank.mat->height;
+        double routeEnergy = 0;
+        bank.globalWire.CalculateLatencyAndPower(length, nullptr, &routeEnergy, nullptr);
+        expected += routeEnergy * routedBits * bank.numColumnMat;
+    }
+    return expected;
+}
+
 void Initialize(BankWithoutHtree &bank, const std::shared_ptr<EvaCamConfig> &config,
         int rows = 1, int columns = 1, int activeRows = 1, int activeColumns = 1,
         int subarrayRows = 1, int subarrayColumns = 1, int activeSubarrayRows = 1,
-        int activeSubarrayColumns = 1, bool internalSenseAmp = true) {
+        int activeSubarrayColumns = 1, bool internalSenseAmp = true,
+        WireRepeaterType repeaterType = repeated_none) {
     const Wire localWire = MakeWire(config);
-    const Wire globalWire = MakeWire(config, global_aggressive);
+    const Wire globalWire = MakeWire(config, global_aggressive, repeaterType);
     bank.Initialize(rows, columns, kCapacityBits, kBlockSizeBits, activeColumns, activeRows,
             1, internalSenseAmp, 1, 1, subarrayRows, subarrayColumns,
             activeSubarrayColumns, activeSubarrayRows, area_first,
             config->technology.cell->camType, EX, config, localWire, globalWire,
             MakeCamOptions());
+}
+
+void TestRepeatedRoutesContributeAreaAndLeakage() {
+    auto config = MakeBankConfig();
+    BankWithoutHtree unrepeated;
+    BankWithoutHtree repeated;
+    Initialize(unrepeated, config, 2, 2);
+    Initialize(repeated, config, 2, 2, 1, 1, 1, 1, 1, 1, true, repeated_opt);
+
+    AssertCalculatedBank(unrepeated);
+    AssertCalculatedBank(repeated);
+    Require(repeated.area > unrepeated.area,
+            "repeater tracks add physical routing area");
+    Require(repeated.leakage > unrepeated.leakage,
+            "route repeaters add leakage");
 }
 
 void TestPreInitializationGuards() {
@@ -56,13 +96,15 @@ void AssertCalculatedBank(BankWithoutHtree &bank) {
     AssertFinitePositive(bank.area, "bank area");
     AssertFinitePositive(bank.height, "bank height");
     AssertFinitePositive(bank.width, "bank width");
-    bank.CalculateRC();
-    bank.CalculateLatencyAndPower();
-    AssertFiniteNonNegative(bank.readLatency, "bank read latency");
-    AssertFiniteNonNegative(bank.writeLatency, "bank write latency");
-    AssertFiniteNonNegative(bank.readDynamicEnergy, "bank read energy");
-    AssertFiniteNonNegative(bank.writeDynamicEnergy, "bank write energy");
+    AssertFinitePositive(bank.readLatency, "bank read latency");
+    AssertFinitePositive(bank.writeLatency, "bank write latency");
+    AssertFinitePositive(bank.searchLatency, "bank search latency");
+    AssertFinitePositive(bank.readDynamicEnergy, "bank read energy");
+    AssertFinitePositive(bank.writeDynamicEnergy, "bank write energy");
+    AssertFinitePositive(bank.searchDynamicEnergy, "bank search energy");
+    AssertNear(bank.searchDynamicEnergy, ExpectedSearchEnergy(bank));
     AssertFiniteNonNegative(bank.leakage, "bank leakage");
+    assert(bank.numBitSerial == bank.CAM_opt.BitSerialWidth);
 }
 
 void TestSingleMatInitializationRoutingAndRepeatStability() {
@@ -73,6 +115,9 @@ void TestSingleMatInitializationRoutingAndRepeatStability() {
     assert(bank.numAddressBit == 7);
     assert(bank.numAddressBitRouteToMat == 7);
     assert(bank.numDataBitRouteToMat == kBlockSizeBits);
+    assert((long long)bank.mat->subarray->numRow * bank.mat->subarray->numColumn
+            * bank.numRowMat * bank.numColumnMat * bank.numRowSubarray
+            * bank.numColumnSubarray == kCapacityBits);
     assert(bank.numRowMat == 1 && bank.numColumnMat == 1);
     AssertCalculatedBank(bank);
 
@@ -99,7 +144,10 @@ void TestMultiMatRoutingAndActiveCountClamping() {
     assert(bank.numActiveSubarrayPerColumn == 1);
     assert(bank.numAddressBit == 7);
     assert(bank.numAddressBitRouteToMat == 7);
-    assert(bank.numDataBitRouteToMat == kBlockSizeBits);
+    assert(bank.numDataBitRouteToMat == kBlockSizeBits / 4);
+    assert((long long)bank.mat->subarray->numRow * bank.mat->subarray->numColumn
+            * bank.numRowMat * bank.numColumnMat * bank.numRowSubarray
+            * bank.numColumnSubarray == kCapacityBits);
     AssertCalculatedBank(bank);
 }
 
@@ -113,7 +161,7 @@ void TestExternalSenseAmplificationAndInvalidRouting() {
             1, 1, 1, 1, 1, 1, area_first, TCAM, EX, repeatedConfig, localWire,
             repeatedGlobal, MakeCamOptions());
     Require(invalidRouting.initialized && invalidRouting.invalid,
-            "external sensing rejects repeated global routing");
+            "external sensing is rejected for CAM bank routing");
     invalidRouting.CalculateArea();
     invalidRouting.CalculateRC();
     invalidRouting.CalculateLatencyAndPower();
@@ -159,9 +207,9 @@ void TestFactorySelectsAndInitializesBothSupportedModes() {
                 1, 1, 1, 1, 1, 1, 1, 1, 1, area_first, localWire, globalWire,
                 MakeCamOptions());
         Require(bank->initialized && !bank->invalid, "factory-initialized bank is valid");
-        bank->CalculateRC();
-        bank->CalculateLatencyAndPower();
         AssertFinitePositive(bank->area, "factory bank area");
+        AssertFinitePositive(bank->searchLatency, "factory bank search latency");
+        AssertFinitePositive(bank->searchDynamicEnergy, "factory bank search energy");
     }
 
     auto invalidConfig = MakeBankConfig();
@@ -178,6 +226,7 @@ int main() {
     TestExternalSenseAmplificationAndInvalidRouting();
     TestSingleMatInitializationRoutingAndRepeatStability();
     TestMultiMatRoutingAndActiveCountClamping();
+    TestRepeatedRoutesContributeAreaAndLeakage();
     TestInvalidMatTopologiesAreRejected();
     TestFactorySelectsAndInitializesBothSupportedModes();
     std::cout << "Bank without H-tree and factory tests passed\n";

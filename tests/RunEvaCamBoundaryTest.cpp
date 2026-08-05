@@ -21,6 +21,8 @@ const char *kFixedArchitecture =
 const char *kExplorableArchitecture = "config/2FeFET_TCAM/2FeFET_TCAM.architecture.yaml";
 const char *kCell = "config/2FeFET_TCAM/2FeFET_TCAM.cell.yaml";
 const char *kTechnology = "config/lib/technology/cmos.legacy.yaml";
+const char *kNonHtreeConfig =
+        "config/2FeFET_TCAM/2FeFET_TCAM_non_h_tree.config.yaml";
 
 std::string ShellQuote(const std::string &value) {
     std::string quoted = "'";
@@ -122,6 +124,36 @@ void TestRunEvaCamErrorRestoresStdout() {
     assert(capture.Text() == "stdout restored after error");
 }
 
+void TestRunEvaCamSupportsNonHtreeSearchRouting() {
+    TestSupport::TemporaryDirectory directory("evacam-run-non-htree");
+    const std::filesystem::path yamlPath = directory.Path() / "non-htree-output.yaml";
+
+    EvaCamRunOptions options;
+    options.configPath = kNonHtreeConfig;
+    options.threads = 1;
+    options.outputYamlPath = yamlPath.string();
+    options.writeYaml = true;
+    options.stdoutOutput = false;
+    const EvaCamRunResultDto result = RunEvaCam(options);
+
+    assert(result.numSolutions > 0);
+    assert(result.bestResults.count("SearchLatency") == 1);
+    const EvaCamDesignResultDto &design = result.bestResults.at("SearchLatency");
+    assert(design.summary.at("timing.search_latency_s") > 0);
+    assert(design.summary.at("energy.search_dynamic_j") > 0);
+    assert(design.breakdown.at("search_latency.non_h_tree_s") > 0);
+    assert(design.breakdown.at("search_dynamic_energy.non_h_tree_j") > 0);
+    assert(design.geometry.at("num_row_mat") == 2);
+    assert(design.geometry.at("num_column_mat") == 2);
+
+    const YAML::Node output = YAML::LoadFile(yamlPath.string());
+    assert(output["assumptions"]["routing"].as<std::string>() == "non_h_tree");
+    assert(output["summary"]["timing"]["search_latency"].IsScalar());
+    assert(output["summary"]["timing"]["search_latency_breakdown"]["non_h_tree"].IsScalar());
+    assert(output["summary"]["power"]["search_dynamic_energy"].IsScalar());
+    assert(output["summary"]["power"]["search_dynamic_energy_breakdown"]["non_h_tree"].IsScalar());
+}
+
 void TestExecutableHelpDiagnosticsQuietAndOutputPath() {
     TestSupport::TemporaryDirectory directory("evacam-executable-boundary");
     const std::filesystem::path executable = std::filesystem::absolute("EvaCAM");
@@ -156,6 +188,7 @@ void TestExecutableHelpDiagnosticsQuietAndOutputPath() {
 int main() {
     TestRunEvaCamQuietSuccessWritesOverrideAndRestoresStdout();
     TestRunEvaCamErrorRestoresStdout();
+    TestRunEvaCamSupportsNonHtreeSearchRouting();
     TestExecutableHelpDiagnosticsQuietAndOutputPath();
     std::cout << "RunEvaCam boundary tests passed\n";
     return 0;

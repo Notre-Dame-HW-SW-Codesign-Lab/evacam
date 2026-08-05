@@ -5,7 +5,7 @@ actionable code debt. The priority roadmap highlights work that can affect
 correctness or reported metrics; the source index provides a complete inventory
 of inline `TODO`, `FIXME`, and `HACK` markers.
 
-Last reviewed: 2026-08-04.
+Last reviewed: 2026-08-05.
 
 The inventory can be refreshed with:
 
@@ -17,7 +17,7 @@ rg -n "not implemented|under development|not consumed|incomplete" src include do
 
 Current scan summary:
 
-- `109` `TODO`/`FIXME`/`HACK` markers in `src/` and `include/`.
+- `107` `TODO`/`FIXME`/`HACK` markers in `src/` and `include/`.
 - Canonical active configurations use names such as `*.config.yaml`,
   `*.architecture.yaml`, `*.cell.yaml`, and `*.memory_device.yaml`.
 - `old_style_config/` is legacy reference material and is excluded.
@@ -57,7 +57,7 @@ The current exceptions are intentional and covered by `tests/test_pybind_match.p
 ### 4. Finish or reject partially modeled device and peripheral modes
 
 - `src/config/EvaCamConfigValidator.cpp:9-15`: DRAM, eDRAM, and MLC NAND are rejected as under development.
-- `src/config/ConfigSectionReaders.cpp:107`: non-H-tree routing is rejected as under development.
+- Bank-level external sensing remains unsupported for both H-tree and non-H-tree routing.
 - `src/cam/CAM_InputEncoder.cpp:29-159`: custom input encoders and encoding lookup tables are unfinished.
 - `src/cam/CAM_SenseAmp.cpp:85-194`: self-clocked and dual-threshold sensing paths report that they are under development.
 - `src/cam/CAM_SubArray.cpp:1158` and `1192`: MLC MRS set and MLC power calculations are incomplete.
@@ -99,8 +99,6 @@ The current exceptions are intentional and covered by `tests/test_pybind_match.p
 ### Array organization and result accounting
 
 - `src/model/Bank.cpp:95` and `125`: result breakdowns are acknowledged as inaccurate.
-- `src/model/BankWithoutHtree.cpp:116`: vague placeholder requires clarification or removal.
-- `src/model/BankWithoutHtree.cpp:262`: capacitance calculation needs further consideration.
 - `src/model/Mat.cpp:148`: vague placeholder requires clarification or removal.
 - `include/model/Result.h:31`: `localWire` conflicts conceptually with a global variable name.
 
@@ -124,7 +122,6 @@ These should be converted into specific work items or removed.
 - `src/cam/CAM_Line.cpp:65`, `99`, `100`, `135`, and `137`
 - `src/cam/CAM_BasicMMR.cpp:130`, `154`, and `199`
 - `src/circuit/Precharger.cpp:127`
-- `src/model/BankWithoutHtree.cpp:116`
 - `src/model/Mat.cpp:148`
 
 ## Source Marker Index
@@ -148,8 +145,6 @@ This index covers every current `TODO`/`FIXME`/`HACK` marker. Repeated markers w
 ### `src/model`
 
 - `src/model/Bank.cpp:95`, `125`: inaccurate breakdown comments.
-- `src/model/BankWithoutHtree.cpp:116`: vague placeholder.
-- `src/model/BankWithoutHtree.cpp:262`: capacitance calculation needs review.
 - `src/model/Mat.cpp:41-42`: placeholder predecoder resistance.
 - `src/model/Mat.cpp:148`: vague placeholder.
 
@@ -183,7 +178,7 @@ This index covers every current `TODO`/`FIXME`/`HACK` marker. Repeated markers w
 These are user-visible limitations and should remain tracked even though the code uses exceptions rather than TODO comments.
 
 - DRAM, eDRAM, and MLC NAND models are rejected as under development.
-- Non-H-tree routing is rejected as under development.
+- H-tree and non-H-tree routing require internal sensing; bank-level external sensing is not modeled.
 - MCAM binary-vector exact, best, and threshold match evaluation is not implemented.
 - ACAM exact, best, and threshold match evaluation is not implemented.
 - `variation.lut_file` is accepted and propagated but not consumed.
