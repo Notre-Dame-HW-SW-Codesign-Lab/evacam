@@ -137,6 +137,11 @@ Memory-device files own electrical behavior and variation. Common sections are:
 - `variation`
 - `mcam`
 
+MCAM is currently limited to the shipped 2FeFET topology: a `FEFETRAM`
+memory device, `access_device.type: none`, two gate-connected searchline row
+ports, and two drain-connected matchline column ports. Both port maps must use
+the indices `0` and `1`.
+
 If the memory-device config contains a `variation` section, EvaCAM uses its
 built-in resistance variation model. Omit the section for nominal-only runs.
 There is no top-level variation block. You may also provide

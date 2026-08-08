@@ -17,13 +17,16 @@ using TestSupport::Require;
 
 std::string MakeCellYaml(const std::string &camType = "TCAM",
         const std::string &rowPorts =
-                "    0:\n      type: searchline\n      cmos_region: gate\n",
+                "    0:\n      type: searchline\n      cmos_region: gate\n"
+                "    1:\n      type: searchline\n      cmos_region: gate\n",
         const std::string &columnPorts =
-                "    0:\n      type: matchline\n      cmos_region: drain\n") {
+                "    0:\n      type: matchline\n      cmos_region: drain\n"
+                "    1:\n      type: matchline\n      cmos_region: drain\n") {
     return "schema: cell\n"
            "name: validator-cell\n"
            "cam_type: " + camType + "\n"
            "memory_device: device.yaml\n"
+           "access_device: {type: none}\n"
            "ports:\n  row:\n" + rowPorts + "  column:\n" + columnPorts;
 }
 
@@ -38,9 +41,11 @@ struct ValidationFixture {
     ValidationFixture(const std::string &deviceType = "SRAM",
             const std::string &camType = "TCAM", const std::string &mcam = "",
             const std::string &rowPorts =
-                    "    0:\n      type: searchline\n      cmos_region: gate\n",
+                    "    0:\n      type: searchline\n      cmos_region: gate\n"
+                    "    1:\n      type: searchline\n      cmos_region: gate\n",
             const std::string &columnPorts =
-                    "    0:\n      type: matchline\n      cmos_region: drain\n") {
+                    "    0:\n      type: matchline\n      cmos_region: drain\n"
+                    "    1:\n      type: matchline\n      cmos_region: drain\n") {
         directory.WriteFile("device.yaml", MakeDeviceYaml(deviceType, mcam));
         config->input.fileMemCell = directory.WriteFile("cell.yaml",
                 MakeCellYaml(camType, rowPorts, columnPorts)).string();
@@ -208,6 +213,48 @@ void TestInputRuleValidatorValidatesMcamStateBoundaries() {
     AssertThrows<std::runtime_error>([&] { negativeResistance.ValidateInput(); }, "must be positive");
 }
 
+void TestInputRuleValidatorEnforcesSupportedMcamTopology() {
+    const std::string mcam =
+            "mcam:\n  num_resistance_state: 2\n  resistance_state: [1kohm, 2kohm]\n";
+    const std::string twoSearchlines =
+            "    0: {type: searchline, cmos_region: gate}\n"
+            "    1: {type: searchline, cmos_region: gate}\n";
+    const std::string twoMatchlines =
+            "    0: {type: matchline, cmos_region: drain}\n"
+            "    1: {type: matchline, cmos_region: drain}\n";
+
+    ValidationFixture oneSearchline("FEFETRAM", "MCAM", mcam,
+            "    0: {type: searchline, cmos_region: gate}\n", twoMatchlines);
+    AssertThrows<std::runtime_error>([&] { oneSearchline.ValidateInput(); },
+            "exactly two row ports indexed 0 and 1");
+
+    ValidationFixture wrongSearchline("FEFETRAM", "MCAM", mcam,
+            "    0: {type: searchline, cmos_region: gate}\n"
+            "    1: {type: dataline, cmos_region: gate}\n", twoMatchlines);
+    AssertThrows<std::runtime_error>([&] { wrongSearchline.ValidateInput(); },
+            "both row ports to be gate-connected searchlines");
+
+    ValidationFixture oneMatchline("FEFETRAM", "MCAM", mcam, twoSearchlines,
+            "    0: {type: matchline, cmos_region: drain}\n");
+    AssertThrows<std::runtime_error>([&] { oneMatchline.ValidateInput(); },
+            "exactly two column ports indexed 0 and 1");
+
+    ValidationFixture wrongMatchline("FEFETRAM", "MCAM", mcam, twoSearchlines,
+            "    0: {type: matchline, cmos_region: drain}\n"
+            "    1: {type: matchline, cmos_region: source}\n");
+    AssertThrows<std::runtime_error>([&] { wrongMatchline.ValidateInput(); },
+            "both column ports to be drain-connected matchlines");
+
+    ValidationFixture accessDevice("FEFETRAM", "MCAM", mcam);
+    accessDevice.config->input.fileMemCell = accessDevice.directory.WriteFile("access-cell.yaml",
+            MakeCellYaml("MCAM").replace(
+                    MakeCellYaml("MCAM").find("access_device: {type: none}"),
+                    std::string("access_device: {type: none}").size(),
+                    "access_device: {type: CMOS}")).string();
+    AssertThrows<std::runtime_error>([&] { accessDevice.ValidateInput(); },
+            "requires access_device.type: none");
+}
+
 // Mapping: ResolveReference is exercised through relative and absolute v2
 // references; the obsolete legacy cell shape is rejected at validation.
 void TestInputRuleValidatorAcceptsV2ReferencePathsAndRejectsLegacyCells() {
@@ -302,7 +349,10 @@ void TestInputRuleValidatorValidatesMcamMapsAndVoltages() {
     AssertThrows<std::runtime_error>([&] { unpaired.ValidateInput(); }, "provided together");
     ValidationFixture wrongRows("FEFETRAM", "MCAM",
             "mcam:\n  resistance_state: [1kohm, 2kohm]\n  searchline_voltage: [1V, 1V]\n  center_voltage: 1V\n");
-    AssertThrows<std::runtime_error>([&] { wrongRows.ValidateInput(); }, "exactly two searchline");
+    wrongRows.config->input.fileMemCell = wrongRows.directory.WriteFile("one-row-cell.yaml",
+            MakeCellYaml("MCAM",
+                    "    0: {type: searchline, cmos_region: gate}\n")).string();
+    AssertThrows<std::runtime_error>([&] { wrongRows.ValidateInput(); }, "exactly two row ports");
     ValidationFixture negativeComplement("FEFETRAM", "MCAM",
             "mcam:\n  resistance_state: [1kohm, 2kohm]\n  searchline_voltage: [3V, 1V]\n  center_voltage: 1V\n", ports);
     AssertThrows<std::runtime_error>([&] { negativeComplement.ValidateInput(); }, "complementary");
@@ -413,6 +463,7 @@ int main() {
     TestInputRuleValidatorRejectsPeripheralRules();
     TestInputRuleValidatorRejectsCamModelAndPortRules();
     TestInputRuleValidatorValidatesMcamStateBoundaries();
+    TestInputRuleValidatorEnforcesSupportedMcamTopology();
     TestInputRuleValidatorAcceptsV2ReferencePathsAndRejectsLegacyCells();
     TestInputRuleValidatorInfersCamTypeFromCellName();
     TestInputRuleValidatorAcceptsAndRejectsEveryCamMemoryType();

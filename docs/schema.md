@@ -152,6 +152,7 @@ Important notes:
 - `mcam.resistance_state` is used by the experimental MCAM matchline timing model. The model evaluates the nonzero MCAM states and uses the state that produces the largest one-mismatch matchline delay.
 - `mcam.searchline_voltage` together with `mcam.center_voltage` is used for MCAM searchline row-driver energy. Without these fields, the model falls back to the per-port `search0`/`search1` voltages.
 - `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Some parsed MCAM fields remain reserved for future model extensions.
+- MCAM inputs are restricted to the shipped 2FeFET topology: a `FEFETRAM` memory device, `access_device.type: none`, two gate-connected searchline row ports, and two drain-connected matchline column ports, all indexed `0` and `1`.
 
 ## Sensing File
 

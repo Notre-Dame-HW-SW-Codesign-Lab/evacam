@@ -70,9 +70,9 @@ std::string RowPort(int index, const std::string &type = "searchline",
 }
 
 std::string ColumnPort(const std::string &type = "matchline",
-        const std::string &terminal = "drain") {
+        const std::string &terminal = "drain", int index = 0) {
     return
-        "    0:\n"
+        "    " + std::to_string(index) + ":\n"
         "      type: " + type + "\n"
         "      cmos_region: " + terminal + "\n"
         "      num_cmos: 1\n"
@@ -101,6 +101,7 @@ void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         "name: TestCell\n"
         "cam_type: " << camType << "\n"
         "memory_device: ./tmp_input_validation.memory_device.yaml\n"
+        "access_device: {type: none}\n"
         "layout:\n"
         "  cell_process_node: 45nm\n"
         "  area: 300F^2\n"
@@ -108,9 +109,11 @@ void WriteMinimalCellFile(const std::string &cellType = "SRAM",
         "ports:\n"
         "  row:\n"
         << RowPort(0)
+        << (camType == "MCAM" && additionalRowPorts.empty() ? RowPort(1) : "")
         << additionalRowPorts <<
         "  column:\n"
-        << ColumnPort(columnType, columnTerminal);
+        << ColumnPort(columnType, columnTerminal)
+        << (camType == "MCAM" ? ColumnPort(columnType, columnTerminal, 1) : "");
 }
 
 void WriteCellFileWithoutRowPorts() {
@@ -613,9 +616,10 @@ void TestMcamSearchlineVoltageMappingRequiresTwoSearchlines() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
         "  searchline_voltage: [1V, 900mV]\n"
-        "  center_voltage: 600mV\n");
+        "  center_voltage: 600mV\n",
+        RowPort(1, "dataline"));
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    assert(LoadThrowsWithMessage("requires exactly two searchline row ports"));
+    assert(LoadThrowsWithMessage("both row ports to be gate-connected searchlines"));
     WriteMinimalCellFile();
 }
 

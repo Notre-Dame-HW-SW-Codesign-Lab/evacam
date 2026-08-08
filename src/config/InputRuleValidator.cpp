@@ -183,6 +183,53 @@ void ValidateCamModelSupport(const EvaCamConfig &config, const YAML::Node &root,
     }
 }
 
+void ValidateSupportedMcamTopology(const EvaCamConfig &config, const YAML::Node &root) {
+    if (LoadCamTypeForValidation(root, config.input.fileMemCell) != MCAM) {
+        return;
+    }
+
+    const YAML::Node accessDevice = YamlHelpers::child_required(root, "access_device");
+    const CellAccessType accessType =
+            YamlHelpers::read_enum_required<CellAccessType>(accessDevice, "type", false);
+    if (accessType != none_access) {
+        throw std::runtime_error(
+                "[Input] Error: the supported 2FeFET MCAM topology requires access_device.type: none.");
+    }
+
+    const YAML::Node ports = YamlHelpers::child_required(root, "ports");
+    const YAML::Node rowPorts = YamlHelpers::child_required(ports, "row");
+    if (rowPorts.size() != 2 || !rowPorts[0] || !rowPorts[1]) {
+        throw std::runtime_error(
+                "[Input] Error: the supported 2FeFET MCAM topology requires exactly two row ports indexed 0 and 1.");
+    }
+    for (int index = 0; index < 2; index++) {
+        const YAML::Node port = rowPorts[index];
+        const CAM_PortType type =
+                YamlHelpers::read_enum_required<CAM_PortType>(port, "type", false);
+        const CAM_CmosRegion region = LoadPortConnectionRegion(port);
+        if (type != Searchline || region != gate) {
+            throw std::runtime_error(
+                    "[Input] Error: the supported 2FeFET MCAM topology requires both row ports to be gate-connected searchlines.");
+        }
+    }
+
+    const YAML::Node columnPorts = YamlHelpers::child_required(ports, "column");
+    if (columnPorts.size() != 2 || !columnPorts[0] || !columnPorts[1]) {
+        throw std::runtime_error(
+                "[Input] Error: the supported 2FeFET MCAM topology requires exactly two column ports indexed 0 and 1.");
+    }
+    for (int index = 0; index < 2; index++) {
+        const YAML::Node port = columnPorts[index];
+        const CAM_PortType type =
+                YamlHelpers::read_enum_required<CAM_PortType>(port, "type", false);
+        const CAM_CmosRegion region = LoadPortConnectionRegion(port);
+        if (type != Matchline || region != drain) {
+            throw std::runtime_error(
+                    "[Input] Error: the supported 2FeFET MCAM topology requires both column ports to be drain-connected matchlines.");
+        }
+    }
+}
+
 void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &root) {
     const CAMType camType = LoadCamTypeForValidation(root, config.input.fileMemCell);
     if (camType != MCAM) {
@@ -611,6 +658,7 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
     ValidateCamPortPresence(root);
     ValidateCamColumnTopology(root);
     ValidateCamModelSupport(config, root, memCellType);
+    ValidateSupportedMcamTopology(config, root);
     ValidateMcamResistanceStates(config, root);
 
     if (!IsCamModelMemCellTypeSupported(memCellType)) {
