@@ -286,12 +286,22 @@ void TestNonHTreeRoutingLoads() {
     assert(config.input.routingMode == non_h_tree);
 }
 
-void TestPruningIsRejectedUntilDefined() {
+void TestPruningRequiresExplorationTarget() {
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
             kReadLatencyOptimization, "", "",
             "exploration:\n  enable_pruning: true\n");
     assert(LoadThrowsWithMessage(
-            "exploration.enable_pruning is not implemented"));
+            "requires optimization.target: Exploration"));
+
+    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n",
+            "  target: Exploration\n"
+            "  buffer_design: latency\n"
+            "  row_driver: latency\n"
+            "  priority_encoder: latency\n",
+            "", "", "exploration:\n  enable_pruning: true\n");
+    EvaCamConfig config;
+    EvaCamYamlLoader::Load(kConfigPath, config);
+    assert(config.exploration.pruningEnabled);
 }
 
 void TestTemperatureRangeThrowsDescriptiveError() {
@@ -746,7 +756,7 @@ int main() {
     WriteMinimalCellFile();
     TestNonCamDesignTargetsThrow();
     TestNonHTreeRoutingLoads();
-    TestPruningIsRejectedUntilDefined();
+    TestPruningRequiresExplorationTarget();
     TestTemperatureRangeThrowsDescriptiveError();
     TestNegativeConstraintThrowsDescriptiveError();
     TestMissingRequiredTopLevelKeyThrows();

@@ -58,9 +58,11 @@ Use `-o` if you need an explicit path.
 
 ## Exploration Run Did Not Write CSV
 
-The exploration CSV is written for `optimization.target: Exploration`. Pruning
-is not currently implemented, and `exploration.enable_pruning: true` is
-rejected instead of silently suppressing the CSV.
+The exploration CSV is written only for `optimization.target: Exploration`.
+With `exploration.enable_pruning: true`, it contains only candidates on the
+constraint-passing Pareto frontier and may be empty when no candidate satisfies
+the constraints. The YAML result then reports `status: no_valid_solutions`.
+Pruning is rejected for single-target optimization runs.
 
 ## Verbose Logging
 

@@ -150,6 +150,8 @@ void AssertSameAccounting(const CandidateAccounting &actual,
     assert(actual.invalidCandidates == expected.invalidCandidates);
     assert(actual.validCandidates == expected.validCandidates);
     assert(actual.constraintRejected == expected.constraintRejected);
+    assert(actual.constraintPassingCandidates == expected.constraintPassingCandidates);
+    assert(actual.pruningRejectedCandidates == expected.pruningRejectedCandidates);
     assert(actual.retainedCandidates == expected.retainedCandidates);
     assert(actual.reconstructionEvaluations == expected.reconstructionEvaluations);
 }
@@ -165,10 +167,13 @@ void AssertExpectedAccounting(const EvaCamExplorationResult &result) {
             == accounting.modeledCandidates);
     assert(accounting.validCandidates == result.numSolution);
     assert(accounting.constraintRejected == 0);
+    assert(accounting.constraintPassingCandidates == accounting.validCandidates);
+    assert(accounting.pruningRejectedCandidates == 0);
     assert(accounting.retainedCandidates == accounting.validCandidates);
     assert(accounting.reconstructionEvaluations == 0);
     assert(accounting.HasConsistentEnumerationCounts());
     assert(accounting.HasConsistentModelCounts());
+    assert(accounting.HasConsistentFilteringCounts());
 }
 
 void AssertSameDesign(const Result &actual, const Result &expected) {

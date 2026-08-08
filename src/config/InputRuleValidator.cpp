@@ -525,10 +525,11 @@ void ValidateScalarDomains(const EvaCamConfig &config) {
 }
 
 void ValidateDerivedInputs(const EvaCamConfig &config) {
-    if (config.constraints.pruningEnabled) {
+    if (config.exploration.pruningEnabled
+            && config.input.optimizationTarget != full_exploration) {
         throw std::runtime_error(
-                "[Input] Error: exploration.enable_pruning is not implemented; "
-                "use exhaustive exploration with enable_pruning: false.");
+                "[Input] Error: exploration.enable_pruning requires "
+                "optimization.target: Exploration.");
     }
     if (config.input.capacity <= 0) {
         throw std::runtime_error(

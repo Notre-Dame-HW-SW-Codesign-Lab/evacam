@@ -28,7 +28,7 @@ design_constraints:
 
 exploration:
   use_cacti_assumption: false
-  enable_pruning: false
+  enable_pruning: false # true only when optimization.target is Exploration; filters the final CSV frontier
 
 modeling:
   exclude_precharge_latency: false

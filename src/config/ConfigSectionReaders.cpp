@@ -338,8 +338,8 @@ void ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config) {
     config.useCactiAssumption = YamlHelpers::read_optional<bool>(
             advanced, "use_cacti_assumption", config.useCactiAssumption);
     config.exploration.useCactiAssumption = config.useCactiAssumption;
-    config.constraints.pruningEnabled = YamlHelpers::read_optional<bool>(
-            advanced, "enable_pruning", config.constraints.pruningEnabled);
+    config.exploration.pruningEnabled = YamlHelpers::read_optional<bool>(
+            advanced, "enable_pruning", config.exploration.pruningEnabled);
     if (YamlHelpers::child_optional(advanced, "bit_serial_width")) {
         const long bsw = YamlHelpers::checked_integer<long>(
                 YamlHelpers::read_quantity_required(

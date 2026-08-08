@@ -105,6 +105,21 @@ void TestConfigPrinterAndConsoleSummary() {
     solutionCapture.Stop();
     assert(solutionCapture.Text().find("SUMMARY RESULT") != std::string::npos);
     assert(solutionCapture.Text().find("Finished!") != std::string::npos);
+
+    config->input.optimizationTarget = full_exploration;
+    config->exploration.pruningEnabled = true;
+    TestSupport::StreamCapture pruningConfigCapture(std::cout);
+    EvaCamConfigPrinter::Print(*config);
+    pruningConfigCapture.Stop();
+    assert(pruningConfigCapture.Text().find("Pareto frontier filtering enabled")
+            != std::string::npos);
+
+    TestSupport::StreamCapture emptyFrontierCapture(std::cout);
+    EvaCamOutput::PrintConsoleSummary(*config, 0, {}, "empty.csv");
+    emptyFrontierCapture.Stop();
+    assert(emptyFrontierCapture.Text().find("No valid solutions.")
+            != std::string::npos);
+    assert(emptyFrontierCapture.Text().find("Finished!") != std::string::npos);
 }
 
 void TestYamlAndVariationSampleWrites() {

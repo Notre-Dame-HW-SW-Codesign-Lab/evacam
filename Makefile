@@ -101,6 +101,7 @@ TEST_RESULTS_SERIALIZATION_BIN=$(TEST_BIN_DIR)/ResultsSerializationTest
 TEST_OUTPUT_SERVICES_BIN=$(TEST_BIN_DIR)/OutputServicesTest
 TEST_APP_SERVICES_BIN=$(TEST_BIN_DIR)/AppServicesTest
 TEST_EVACAM_EXPLORER_BIN=$(TEST_BIN_DIR)/EvaCamExplorerTest
+TEST_PARETO_PRUNER_BIN=$(TEST_BIN_DIR)/ParetoPrunerTest
 TEST_DEEP_EXPLORATION_THREADING_BIN=$(TEST_BIN_DIR)/DeepExplorationThreadingTest
 TEST_EVACAM_MATCH_FOCUSED_BIN=$(TEST_BIN_DIR)/EvaCAMMatchFocusedTest
 TEST_RUN_EVACAM_BOUNDARY_BIN=$(TEST_BIN_DIR)/RunEvaCamBoundaryTest
@@ -163,7 +164,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-evacam-explorer test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-evacam-explorer test-pareto-pruner test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
@@ -190,7 +191,7 @@ UNIT_TEST_TARGETS=test-test-support test-derived-values test-config-normalizer t
 		test-mat-bank test-result-model test-bank-without-htree-factory \
 		test-bank-with-htree-coverage \
 		test-unit-formatter test-results-serialization test-output-services test-app-services \
-		test-evacam-explorer test-evacam-match-focused test-run-evacam-boundary \
+		test-evacam-explorer test-pareto-pruner test-evacam-match-focused test-run-evacam-boundary \
 		test-run-evacam-concurrency \
 		test-yaml test-top-level-parser test-cell-loader test-cli-options \
 		test-custom-sa-loader test-technology-loader test-new-input-names \
@@ -387,6 +388,11 @@ test-evacam-explorer: $(OBJECTS_NO_MAIN) tests/EvaCamExplorerTest.cpp tests/Test
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_EVACAM_EXPLORER_BIN)).d -MT $(TEST_EVACAM_EXPLORER_BIN) -o $(TEST_EVACAM_EXPLORER_BIN) tests/EvaCamExplorerTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	$(TEST_EVACAM_EXPLORER_BIN)
+
+test-pareto-pruner: $(OBJECTS_NO_MAIN) tests/ParetoPrunerTest.cpp
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_PARETO_PRUNER_BIN)).d -MT $(TEST_PARETO_PRUNER_BIN) -o $(TEST_PARETO_PRUNER_BIN) tests/ParetoPrunerTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_PARETO_PRUNER_BIN)
 
 test-deep-exploration-threading: $(OBJECTS_NO_MAIN) tests/DeepExplorationThreadingTest.cpp tests/TestSupport.h
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)

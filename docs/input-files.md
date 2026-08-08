@@ -39,8 +39,9 @@ Optional sections and fields:
 
 - `design_constraints`
 - `exploration.use_cacti_assumption`
-- `exploration.enable_pruning`: reserved but currently rejected when `true`;
-  omit it or set it to `false` for exhaustive exploration
+- `exploration.enable_pruning`: for `optimization.target: Exploration`, retain
+  only the Pareto frontier after applying constraints; it is rejected for
+  single-target runs and does not skip model evaluations
 - `modeling.exclude_precharge_latency`
 - `modeling.include_leakage`
 - `modeling.scaled_voltage`

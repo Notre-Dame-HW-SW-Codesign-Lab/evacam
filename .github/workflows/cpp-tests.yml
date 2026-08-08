@@ -54,6 +54,7 @@ jobs:
           - test-output-services
           - test-app-services
           - test-evacam-explorer
+          - test-pareto-pruner
           - test-deep-exploration-threading
           - test-evacam-match-focused
           - test-run-evacam-boundary

@@ -40,7 +40,12 @@ For non-exploration runs:
 For full-exploration runs:
 
 - EvaCAM prints a compact table of the best results across multiple objectives.
-- EvaCAM uses exhaustive exploration; pruning is not currently implemented.
+- With `exploration.enable_pruning: false`, the CSV contains every valid unique
+  candidate.
+- With `exploration.enable_pruning: true`, constraints are applied first and
+  the CSV contains only the Pareto frontier, ordered by canonical candidate
+  identity.
+- Pareto filtering is post-evaluation: both modes model the same candidates.
 
 ## YAML Result Content
 
@@ -71,6 +76,8 @@ Current behavior:
 
 - CSV is written for full exploration
 - filename comes from the config-derived output prefix and key run parameters
+- an empty constrained frontier produces an empty CSV and a
+  `no_valid_solutions` YAML result
 
 The generated name follows this pattern:
 

@@ -294,7 +294,7 @@ void TestReadAdvancedSection() {
     TestSupport::AssertNear(config.input.maxNmosSize, 6.0);
     assert(config.useCactiAssumption);
     assert(config.exploration.useCactiAssumption);
-    assert(config.constraints.pruningEnabled);
+    assert(config.exploration.pruningEnabled);
     AssertFixed(config.exploration.cam.bitSerialWidth, 16);
     assert(config.peripherals.typeInputEnc == encoding_two_bit);
     assert(config.peripherals.fileCustomSA == "custom.yaml");

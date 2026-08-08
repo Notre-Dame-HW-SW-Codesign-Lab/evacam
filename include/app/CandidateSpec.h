@@ -54,12 +54,15 @@ struct CandidateAccounting {
     long long invalidCandidates = 0;
     long long validCandidates = 0;
     long long constraintRejected = 0;
+    long long constraintPassingCandidates = 0;
+    long long pruningRejectedCandidates = 0;
     long long retainedCandidates = 0;
     long long reconstructionEvaluations = 0;
 
     CandidateAccounting &operator+=(const CandidateAccounting &other);
     bool HasConsistentEnumerationCounts() const;
     bool HasConsistentModelCounts() const;
+    bool HasConsistentFilteringCounts() const;
 };
 
 struct CandidateMetrics {

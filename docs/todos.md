@@ -21,7 +21,8 @@ Current scan summary:
 - Canonical active configurations use names such as `*.config.yaml`,
   `*.architecture.yaml`, `*.cell.yaml`, and `*.memory_device.yaml`.
 - `old_style_config/` is legacy reference material and is excluded.
-- Pruning and SPICE-correlation work is tracked separately in
+- Post-evaluation Pareto pruning is implemented. True runtime pruning and SPICE
+  completion gates are tracked in
   [Pruning and SPICE Validation Plan](pruning-and-spice-validation.md).
 
 ## Priority Roadmap

@@ -202,6 +202,9 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
 
     if (input.optimizationTarget == full_exploration) {
         std::cout << std::endl << "Full design space exploration ... might take hours" << std::endl;
+        if (exploration.pruningEnabled) {
+            std::cout << "Pareto frontier filtering enabled" << std::endl;
+        }
     } else {
         std::cout << std::endl << "Searching for the best solution that is optimized for ";
         switch (input.optimizationTarget) {

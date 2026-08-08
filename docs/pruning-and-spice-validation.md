@@ -1,12 +1,12 @@
 # Pruning and SPICE Validation Plan
 
-This document tracks two pieces of deferred EvaCAM work: defining a real
-exploration-pruning policy and validating numerical models against SPICE. It is
-not an assertion that the current model outputs are SPICE-validated.
+This document records the implemented post-evaluation pruning policy and tracks
+the separate work of validating numerical models against SPICE. It is not an
+assertion that the current model outputs are SPICE-validated.
 
 ## Current status
 
-- Exhaustive exploration is the supported behavior.
+- Exhaustive exploration and optional Pareto-frontier filtering are supported.
 - Structurally valid candidates are canonicalized and deduplicated by their
   complete modeled-input identity before bank construction. This removes
   equivalent inactive-option settings, but it is not performance pruning.
@@ -18,8 +18,9 @@ not an assertion that the current model outputs are SPICE-validated.
   geometry. After every worker is joined, the main thread merges those slots in
   canonical order and resolves exact metric ties by canonical candidate identity.
   The validated configuration and model inputs are read-only during this pass.
-- `exploration.enable_pruning: true` is rejected because pruning semantics have
-  not yet been agreed upon.
+- `exploration.enable_pruning: true` is supported for
+  `optimization.target: Exploration`. It applies constraints and then retains a
+  deterministic Pareto frontier without skipping bank evaluations.
 - Configuration and model-file loaders reject non-finite and physically invalid
   inputs with field-specific errors.
 - Numerical golden baselines for CAM technologies and organizations are deferred
@@ -27,44 +28,14 @@ not an assertion that the current model outputs are SPICE-validated.
 
 ## Pruning
 
-### Define the contract
+Post-evaluation pruning uses exact comparisons over read, write, and search
+latency; read, write, and search dynamic energy; area; and leakage.
+Metric-equivalent candidates retain the lowest canonical identity. Focused
+tests cover dominance, trade-offs, equality, constraints, fixed spaces, empty
+frontiers, exhaustive parity, and deterministic parallel output.
 
-Before enabling pruning, document and approve:
-
-- whether pruning means Pareto-frontier filtering, constraint-based early exit,
-  or both;
-- which metrics participate in dominance comparisons;
-- how metric equality and floating-point tolerances are handled;
-- whether constraints are applied before or after dominance checks;
-- how equivalent organizations are deduplicated;
-- whether a pruned exploration CSV contains all valid candidates or only retained
-  candidates; and
-- the required behavior for fixed-organization and single-target runs.
-
-### Implement the selected policy
-
-Keep exhaustive enumeration as the reference path. Add pruning as an explicit
-stage with independently tracked counts for:
-
-1. candidates evaluated;
-2. candidates passing structural and numerical validation;
-3. candidates passing user constraints; and
-4. candidates retained after pruning.
-
-Parallel execution must produce deterministic retained candidates and counts.
-With pruning disabled, candidate enumeration, selected results, console output,
-and result files must remain unchanged.
-
-### Test pruning
-
-Use a small, deterministic exploration space containing dominated candidates,
-non-dominated candidates, equal-metric duplicates, and candidates rejected by
-constraints. Assert the exact count at every stage and the retained design
-identities. Also compare pruning-disabled results with the exhaustive reference
-path.
-
-Do not remove the current rejection of `enable_pruning: true` until the policy,
-implementation, reporting, and regression tests are complete.
+True runtime pruning remains deferred. It requires proven model-specific bounds
+that can reject a branch before constructing every bank in that branch.
 
 ## SPICE validation
 
@@ -123,8 +94,8 @@ same EvaCAM result file.
 
 ## Completion criteria
 
-Pruning is complete when its semantics are documented, enabled, deterministic,
-counted, and regression-tested without changing pruning-disabled results.
+Post-evaluation Pareto pruning is complete. Runtime search-space pruning remains
+future work and must preserve exhaustive results for every supported model.
 
 SPICE validation is complete per model only when the reference setup is
 reproducible, metric definitions and tolerances are approved, discrepancies are

@@ -12,7 +12,6 @@ struct ConstraintConfig {
     double leakage = 1e41;
 
     bool enabled = false;
-    bool pruningEnabled = false;
 };
 
 #endif  // EVACAM_CONFIG_CONSTRAINTCONFIG_H_

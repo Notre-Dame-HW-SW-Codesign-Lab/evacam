@@ -44,6 +44,7 @@ struct ExplorationSpec {
     CamOptimizationExplorationSpec cam;
     bool useCactiAssumption = false;
     bool deepExploration = false;
+    bool pruningEnabled = false;
 
     static ExplorationSpec Default();
     void ApplyDeepExplorationDefaults();

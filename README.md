@@ -126,8 +126,10 @@ More detail:
 EvaCAM always prints a console summary and writes a YAML results file.
 
 When the optimization target is `Exploration`, EvaCAM also writes a CSV of
-explored points. Pruning is reserved for future work; current runs use
-exhaustive exploration.
+explored points. Set `exploration.enable_pruning: true` to write only the
+deterministic Pareto frontier after constraints are applied. This filtering
+still models the complete design space; leave it `false` to write every valid
+candidate.
 
 More detail:
 

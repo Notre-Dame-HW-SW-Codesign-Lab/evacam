@@ -91,6 +91,8 @@ CandidateAccounting &CandidateAccounting::operator+=(const CandidateAccounting &
     invalidCandidates += other.invalidCandidates;
     validCandidates += other.validCandidates;
     constraintRejected += other.constraintRejected;
+    constraintPassingCandidates += other.constraintPassingCandidates;
+    pruningRejectedCandidates += other.pruningRejectedCandidates;
     retainedCandidates += other.retainedCandidates;
     reconstructionEvaluations += other.reconstructionEvaluations;
     return *this;
@@ -102,6 +104,12 @@ bool CandidateAccounting::HasConsistentEnumerationCounts() const {
 
 bool CandidateAccounting::HasConsistentModelCounts() const {
     return modeledCandidates == invalidCandidates + validCandidates;
+}
+
+bool CandidateAccounting::HasConsistentFilteringCounts() const {
+    return validCandidates == constraintRejected + constraintPassingCandidates
+        && constraintPassingCandidates
+            == pruningRejectedCandidates + retainedCandidates;
 }
 
 CandidateMetrics CandidateMetrics::FromBank(const Bank &bank) {

@@ -41,6 +41,15 @@ Exploration runs write one top-level map per objective, for example:
 - `Area`
 - `SearchEnergy`
 
+When `exploration.enable_pruning` is enabled, these winners are selected from
+the constraint-passing Pareto frontier. The exploration CSV contains only that
+frontier. The participating metrics are read, write, and search latency; read,
+write, and search dynamic energy; area; and leakage. EDP is derived from its
+latency and energy components and is not a separate dominance dimension.
+Each winner has the same objective value as exhaustive exploration, although
+its organization can differ when the exhaustive canonical tie winner is
+dominated on other metrics.
+
 If no legal design point is found, the output is:
 
 ```yaml

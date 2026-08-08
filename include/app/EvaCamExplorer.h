@@ -50,6 +50,7 @@ class EvaCamExplorer {
         void OpenExplorationCsv();
         void RunExplorationPass();
         void PrintSolutionCount();
+        bool NeedsEvaluatedCandidates() const;
         void EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
                 std::vector<std::shared_ptr<Result>> &bestResults,
                 long long &numSolutions,
@@ -57,6 +58,8 @@ class EvaCamExplorer {
                 std::vector<EvaluatedCandidate> *evaluatedCandidates,
                 CandidateAccounting &accounting);
         void RunConstrainedExploration();
+        void RunPrunedExploration();
+        void ResetBestResults();
         CandidateSpec MakeCandidateSpec(int numRowMat, int numColumnMat, int numRowSubarray,
                 int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,

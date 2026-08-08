@@ -34,8 +34,9 @@ Other mappings:
 
 - `design_constraints`: legacy constrained-DSE controls, renamed and moved without a behavior change
 - `exploration.use_cacti_assumption`
-- `exploration.enable_pruning`: reserved for a future pruning definition;
-  currently rejected, so exhaustive exploration requires `false` or omission
+- `exploration.enable_pruning`: valid only with `optimization.target:
+  Exploration`; when `true`, the exploration CSV contains the constrained
+  Pareto frontier instead of every valid modeled candidate
 - `modeling.exclude_precharge_latency`
 - `modeling.include_leakage`, `modeling.scaled_voltage`: retained but currently have no model effect
 - `output.results`: deprecated compatibility option for overriding the default results YAML path; prefer CLI `--output`

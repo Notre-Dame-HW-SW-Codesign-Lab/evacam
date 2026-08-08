@@ -141,8 +141,14 @@ void TestInputRuleValidatorRejectsDerivedCapacityAndConstraintRules() {
     AssertThrows<std::runtime_error>([&] { badConstraint.ValidateInput(); }, "design_constraints.area");
 
     ValidationFixture pruning;
-    pruning.config->constraints.pruningEnabled = true;
-    AssertThrows<std::runtime_error>([&] { pruning.ValidateInput(); }, "enable_pruning is not implemented");
+    pruning.config->exploration.pruningEnabled = true;
+    AssertThrows<std::runtime_error>([&] { pruning.ValidateInput(); },
+            "requires optimization.target: Exploration");
+
+    ValidationFixture explorationPruning;
+    explorationPruning.config->input.optimizationTarget = full_exploration;
+    explorationPruning.config->exploration.pruningEnabled = true;
+    explorationPruning.ValidateInput();
 }
 
 void TestInputRuleValidatorResolvesFixedDimensionsAndRejectsMismatch() {

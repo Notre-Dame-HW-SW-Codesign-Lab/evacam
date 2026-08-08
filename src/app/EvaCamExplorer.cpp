@@ -20,6 +20,7 @@
 #include "Bank.h"
 #include "EvaCamConfig.h"
 #include "Logger.h"
+#include "ParetoPruner.h"
 #include "Result.h"
 #include "Wire.h"
 #include "config/EvaCamConfigPrinter.h"
@@ -55,25 +56,41 @@ EvaCamExplorationResult EvaCamExplorer::Run() {
     }
     InitializeExploration();
     RunExplorationPass();
-    PrintSolutionCount();
-    RunConstrainedExploration();
+    if (config_->exploration.pruningEnabled) {
+        RunPrunedExploration();
+        PrintSolutionCount();
+    } else {
+        PrintSolutionCount();
+        RunConstrainedExploration();
+    }
 
-    if (!config_->constraints.enabled
-            || config_->input.optimizationTarget == full_exploration) {
+    if (!config_->exploration.pruningEnabled
+            && (!config_->constraints.enabled
+                || config_->input.optimizationTarget == full_exploration)) {
+        candidateAccounting_.constraintPassingCandidates =
+            candidateAccounting_.validCandidates;
         candidateAccounting_.retainedCandidates = candidateAccounting_.validCandidates;
     }
     if (!candidateAccounting_.HasConsistentEnumerationCounts()
-            || !candidateAccounting_.HasConsistentModelCounts()) {
+            || !candidateAccounting_.HasConsistentModelCounts()
+            || !candidateAccounting_.HasConsistentFilteringCounts()) {
         throw std::logic_error("Candidate accounting invariants failed.");
     }
-    config_->logger.Verbose()
+    auto accountingLog = config_->logger.Verbose();
+    accountingLog
         << "Candidate accounting: raw=" << candidateAccounting_.rawCandidates
         << ", structural_rejections=" << candidateAccounting_.structurallyRejected
         << ", duplicates=" << candidateAccounting_.duplicateCandidates
         << ", modeled=" << candidateAccounting_.modeledCandidates
         << ", invalid=" << candidateAccounting_.invalidCandidates
         << ", valid=" << candidateAccounting_.validCandidates
-        << ", constraint_rejections=" << candidateAccounting_.constraintRejected
+        << ", constraint_rejections=" << candidateAccounting_.constraintRejected;
+    if (config_->exploration.pruningEnabled) {
+        accountingLog
+        << ", constraint_passing=" << candidateAccounting_.constraintPassingCandidates
+        << ", pruning_rejections=" << candidateAccounting_.pruningRejectedCandidates;
+    }
+    accountingLog
         << ", retained=" << candidateAccounting_.retainedCandidates
         << ", reconstructions=" << candidateAccounting_.reconstructionEvaluations;
 
@@ -187,14 +204,15 @@ void EvaCamExplorer::RunExplorationPass() {
         CandidateAccounting accounting;
         std::vector<EvaluatedCandidate> evaluatedCandidates;
         EvaluateGeometry(numRowMatValues_.front(), numColumnMatValues_.front(), numRowSubarrayValues_.front(),
-                bestResults_, numSolution_, &fixedCsv,
-                config_->constraints.enabled && config_->input.optimizationTarget != full_exploration
-                    ? &evaluatedCandidates : nullptr,
+                bestResults_, numSolution_, config_->exploration.pruningEnabled ? nullptr : &fixedCsv,
+                NeedsEvaluatedCandidates() ? &evaluatedCandidates : nullptr,
                 accounting);
         candidateAccounting_ += accounting;
         evaluatedCandidates_.insert(evaluatedCandidates_.end(),
                 evaluatedCandidates.begin(), evaluatedCandidates.end());
-        FlushExplorationCsvBuffer(fixedCsv.str());
+        if (!config_->exploration.pruningEnabled) {
+            FlushExplorationCsvBuffer(fixedCsv.str());
+        }
         return;
     }
 
@@ -301,15 +319,16 @@ void EvaCamExplorer::RunExplorationPass() {
                         EvaluateGeometry(numRowMatValues_[rowMatIndex],
                                 numColumnMatValues_[columnMatIndex],
                                 numRowSubarrayValues_[rowSubarrayIndex],
-                                localBestResults, localNumSolutions, &csv,
-                                config_->constraints.enabled
-                                        && config_->input.optimizationTarget != full_exploration
-                                    ? &evaluatedCandidates : nullptr,
+                                localBestResults, localNumSolutions,
+                                config_->exploration.pruningEnabled ? nullptr : &csv,
+                                NeedsEvaluatedCandidates() ? &evaluatedCandidates : nullptr,
                                 localAccounting);
                         if (testHooks_.schedulerPoint) {
                             testHooks_.schedulerPoint();
                         }
-                        outerCsvBuffers[outerIndex] = csv.str();
+                        if (!config_->exploration.pruningEnabled) {
+                            outerCsvBuffers[outerIndex] = csv.str();
+                        }
                         outerEvaluatedCandidates[outerIndex] =
                             std::move(evaluatedCandidates);
                         loopsComplete.fetch_add(1, std::memory_order_relaxed);
@@ -382,7 +401,9 @@ void EvaCamExplorer::RunExplorationPass() {
         evaluatedCandidates_.insert(evaluatedCandidates_.end(),
                 outerEvaluatedCandidates[outerIndex].begin(),
                 outerEvaluatedCandidates[outerIndex].end());
-        FlushExplorationCsvBuffer(outerCsvBuffers[outerIndex]);
+        if (!config_->exploration.pruningEnabled) {
+            FlushExplorationCsvBuffer(outerCsvBuffers[outerIndex]);
+        }
     }
 }
 
@@ -393,6 +414,12 @@ void EvaCamExplorer::PrintSolutionCount() {
     std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
     std::cout << std::endl;
     std::cout << "*** There are " << numSolution_ << " Solutions. ***" << std::endl;
+}
+
+bool EvaCamExplorer::NeedsEvaluatedCandidates() const {
+    return config_->exploration.pruningEnabled
+        || (config_->constraints.enabled
+            && config_->input.optimizationTarget != full_exploration);
 }
 
 void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRowSubarray,
@@ -495,6 +522,7 @@ void EvaCamExplorer::RunConstrainedExploration() {
         }
 
         numSolution_++;
+        candidateAccounting_.constraintPassingCandidates++;
         candidateAccounting_.retainedCandidates++;
         for (std::size_t index = 0; index < winners.size(); ++index) {
             const EvaluatedCandidate *winner = winners[index];
@@ -536,6 +564,61 @@ void EvaCamExplorer::RunConstrainedExploration() {
         bestResults_[index]->globalWire = bank->globalWire;
     }
     PrintSolutionCount();
+}
+
+void EvaCamExplorer::RunPrunedExploration() {
+    std::vector<EvaluatedCandidate> constraintPassing;
+    constraintPassing.reserve(evaluatedCandidates_.size());
+
+    if (config_->constraints.enabled) {
+        const ResultLimits constraintLimits = config_->BuildResultLimits(bestResults_);
+        config_->ApplyResultLimits(constraintLimits, bestResults_);
+        for (EvaluatedCandidate &candidate : evaluatedCandidates_) {
+            if (!MeetsConstraints(candidate.metrics, constraintLimits)) {
+                candidateAccounting_.constraintRejected++;
+                continue;
+            }
+            constraintPassing.push_back(std::move(candidate));
+        }
+    } else {
+        ResetBestResults();
+        constraintPassing = std::move(evaluatedCandidates_);
+    }
+
+    candidateAccounting_.constraintPassingCandidates =
+        static_cast<long long>(constraintPassing.size());
+    ParetoPruningResult pruning = ParetoPruner::Prune(std::move(constraintPassing));
+    candidateAccounting_.pruningRejectedCandidates =
+        static_cast<long long>(pruning.rejectedCandidates);
+    candidateAccounting_.retainedCandidates =
+        static_cast<long long>(pruning.retainedCandidates.size());
+    numSolution_ = candidateAccounting_.retainedCandidates;
+
+    std::ostringstream csv;
+    for (const EvaluatedCandidate &candidate : pruning.retainedCandidates) {
+        const auto bank = BuildBank(candidate.spec);
+        candidateAccounting_.reconstructionEvaluations++;
+        if (!IsValidCandidate(bank)) {
+            throw std::runtime_error(
+                    "A Pareto-retained candidate became invalid while reconstructing results.");
+        }
+        ValidateCapacityOrThrow(bank);
+        if (!(CandidateSpec::FromBank(*bank) == candidate.spec)) {
+            throw std::runtime_error(
+                    "A Pareto-retained candidate changed identity while reconstructing results.");
+        }
+        RestoreMetrics(candidate.metrics, *bank);
+        const auto result = MakeResult(bank, bank->localWire, bank->globalWire);
+        UpdateBestResults(bestResults_, result);
+        MaybeWriteExplorationCsv(result, candidate.spec, csv);
+    }
+    FlushExplorationCsvBuffer(csv.str());
+}
+
+void EvaCamExplorer::ResetBestResults() {
+    for (const std::shared_ptr<Result> &result : bestResults_) {
+        result->reset();
+    }
 }
 
 CandidateSpec EvaCamExplorer::MakeCandidateSpec(int numRowMat, int numColumnMat,

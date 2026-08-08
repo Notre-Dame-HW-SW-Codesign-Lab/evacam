@@ -199,6 +199,12 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
         return;
     }
 
+    if (numSolution <= 0) {
+        std::cout << "No valid solutions." << std::endl;
+        std::cout << std::endl << "Finished!" << std::endl;
+        return;
+    }
+
     std::cout << std::endl << explorationOutputFileName << " generated successfully!" << std::endl;
     for (int i = 0; i < (int)full_exploration; i++) {
         std::cout << "[" << std::left << std::setw(2) << i << "]" << " ";

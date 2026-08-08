@@ -86,6 +86,8 @@ void AssertSameAccounting(const CandidateAccounting &actual,
     assert(actual.invalidCandidates == expected.invalidCandidates);
     assert(actual.validCandidates == expected.validCandidates);
     assert(actual.constraintRejected == expected.constraintRejected);
+    assert(actual.constraintPassingCandidates == expected.constraintPassingCandidates);
+    assert(actual.pruningRejectedCandidates == expected.pruningRejectedCandidates);
     assert(actual.retainedCandidates == expected.retainedCandidates);
     assert(actual.reconstructionEvaluations == expected.reconstructionEvaluations);
 }
@@ -125,6 +127,7 @@ void TestInitializationAndDeterministicThreading() {
     assert(oneThread.candidateAccounting.retainedCandidates == 1);
     assert(oneThread.candidateAccounting.HasConsistentEnumerationCounts());
     assert(oneThread.candidateAccounting.HasConsistentModelCounts());
+    assert(oneThread.candidateAccounting.HasConsistentFilteringCounts());
     assert(oneThread.bestResults.size() == static_cast<std::size_t>(full_exploration));
     assert(manyThreads.bestResults.size() == oneThread.bestResults.size());
     for (std::size_t i = 0; i < oneThread.bestResults.size(); ++i) {
@@ -188,6 +191,8 @@ void TestDisabledPriorityOptimizationIsCanonicalizedBeforeModeling() {
     assert(accounting.modeledCandidates == 1);
     assert(accounting.invalidCandidates == 0);
     assert(accounting.validCandidates == 1);
+    assert(accounting.constraintPassingCandidates == 1);
+    assert(accounting.pruningRejectedCandidates == 0);
     assert(accounting.retainedCandidates == 1);
     assert(accounting.reconstructionEvaluations == 0);
     assert(accounting.HasConsistentEnumerationCounts());
@@ -339,6 +344,108 @@ void TestParallelConstrainedEnumerationIsDeterministic() {
     }
 }
 
+std::shared_ptr<EvaCamConfig> LoadPruningConfig(const std::string &outputPrefix) {
+    auto config = LoadReducedConfig();
+    config->input.optimizationTarget = full_exploration;
+    config->input.outputFilePrefix = outputPrefix;
+    config->exploration.pruningEnabled = true;
+    const int numRowMat = config->resolvedExploration.geometry.numRowMatValues.front();
+    config->exploration.geometry.numRowMat =
+        IntValueDomain::FixedSet({numRowMat, numRowMat * 2});
+    config->exploration.cam.areaOptimizationLevel = IntValueDomain::FixedSet(
+            {latency_first, latency_area_trade_off, area_first});
+    config->exploration.cam.rowDriverOptLevel = IntValueDomain::FixedSet(
+            {latency_first, latency_area_trade_off, area_first});
+    config->exploration.wires.localWireType = IntValueDomain::FixedSet(
+            {local_aggressive, local_conservative});
+    config->exploration.wires.globalWireType = IntValueDomain::FixedSet(
+            {global_aggressive, global_conservative});
+    config->resolvedExploration = ExplorationSpaceResolver::Resolve(config->exploration);
+    return config;
+}
+
+void TestParallelPruningIsDeterministic() {
+    TestSupport::TemporaryDirectory directory("evacam-parallel-pruning-test");
+    auto exhaustiveConfig = LoadPruningConfig(
+            (directory.Path() / "exhaustive").string());
+    exhaustiveConfig->exploration.pruningEnabled = false;
+    const EvaCamExplorationResult exhaustive =
+        EvaCamExplorer(exhaustiveConfig, 1).Run();
+    const EvaCamExplorationResult oneThread = EvaCamExplorer(
+            LoadPruningConfig((directory.Path() / "one-thread").string()), 1).Run();
+    assert(oneThread.numSolution > 0);
+    assert(oneThread.candidateAccounting.validCandidates > oneThread.numSolution);
+    assert(oneThread.candidateAccounting.constraintRejected == 0);
+    assert(oneThread.candidateAccounting.constraintPassingCandidates
+            == oneThread.candidateAccounting.validCandidates);
+    assert(oneThread.candidateAccounting.pruningRejectedCandidates
+            == oneThread.candidateAccounting.validCandidates - oneThread.numSolution);
+    assert(oneThread.candidateAccounting.retainedCandidates == oneThread.numSolution);
+    assert(oneThread.candidateAccounting.reconstructionEvaluations == oneThread.numSolution);
+    assert(oneThread.candidateAccounting.HasConsistentFilteringCounts());
+    assert(oneThread.candidateAccounting.modeledCandidates
+            == exhaustive.candidateAccounting.modeledCandidates);
+    assert(oneThread.candidateAccounting.validCandidates
+            == exhaustive.candidateAccounting.validCandidates);
+    assert(oneThread.bestResults.size() == exhaustive.bestResults.size());
+    for (std::size_t index = 0; index < exhaustive.bestResults.size(); ++index) {
+        const CandidateMetrics prunedMetrics =
+            CandidateMetrics::FromBank(*oneThread.bestResults[index]->bank);
+        const CandidateMetrics exhaustiveMetrics =
+            CandidateMetrics::FromBank(*exhaustive.bestResults[index]->bank);
+        assert(prunedMetrics.objectiveValues[index]
+                == exhaustiveMetrics.objectiveValues[index]);
+    }
+    AssertUniqueCandidateIds(oneThread.explorationCsvPath,
+            static_cast<std::size_t>(oneThread.numSolution));
+
+    for (int threadCount : kParallelThreadCounts) {
+        const EvaCamExplorationResult result = EvaCamExplorer(
+                LoadPruningConfig((directory.Path()
+                    / ("threads-" + std::to_string(threadCount))).string()),
+                threadCount, MakeYieldHooks()).Run();
+        AssertEquivalentExplorationResults(result, oneThread, true);
+        AssertUniqueCandidateIds(result.explorationCsvPath,
+                static_cast<std::size_t>(result.numSolution));
+    }
+}
+
+void TestPruningHandlesFixedAndConstraintFilteredSpaces() {
+    TestSupport::TemporaryDirectory directory("evacam-pruning-edge-test");
+    auto fixedConfig = LoadReducedConfig();
+    fixedConfig->input.optimizationTarget = full_exploration;
+    fixedConfig->input.outputFilePrefix = (directory.Path() / "fixed").string();
+    fixedConfig->exploration.pruningEnabled = true;
+    const EvaCamExplorationResult fixed = EvaCamExplorer(fixedConfig, 4).Run();
+    assert(fixed.numSolution == 1);
+    assert(fixed.candidateAccounting.validCandidates == 1);
+    assert(fixed.candidateAccounting.constraintPassingCandidates == 1);
+    assert(fixed.candidateAccounting.pruningRejectedCandidates == 0);
+    assert(fixed.candidateAccounting.retainedCandidates == 1);
+    assert(fixed.candidateAccounting.reconstructionEvaluations == 1);
+    AssertUniqueCandidateIds(fixed.explorationCsvPath, 1);
+
+    auto constrainedConfig = LoadPruningConfig(
+            (directory.Path() / "constrained").string());
+    constrainedConfig->constraints.enabled = true;
+    constrainedConfig->constraints.readLatency = 1e-12;
+    constrainedConfig->constraints.writeLatency = 1e-12;
+    constrainedConfig->constraints.readDynamicEnergy = 1e-12;
+    constrainedConfig->constraints.writeDynamicEnergy = 1e-12;
+    constrainedConfig->constraints.readEdp = 1e-12;
+    constrainedConfig->constraints.writeEdp = 1e-12;
+    constrainedConfig->constraints.area = 1e-12;
+    constrainedConfig->constraints.leakage = 1e-12;
+    const EvaCamExplorationResult constrained =
+        EvaCamExplorer(constrainedConfig, 3, MakeYieldHooks()).Run();
+    assert(constrained.candidateAccounting.constraintRejected > 0);
+    assert(constrained.candidateAccounting.HasConsistentFilteringCounts());
+    assert(constrained.candidateAccounting.retainedCandidates
+            == constrained.numSolution);
+    AssertUniqueCandidateIds(constrained.explorationCsvPath,
+            static_cast<std::size_t>(constrained.numSolution));
+}
+
 void TestWorkerExceptionJoinsEveryThreadAndRethrows() {
     TestSupport::TemporaryDirectory directory("evacam-worker-exception-test");
     const auto config = LoadParallelConfig(
@@ -474,6 +581,8 @@ void TestUnconstrainedAndConstrainedPasses() {
     assert(result.candidateAccounting.modeledCandidates == 1);
     assert(result.candidateAccounting.validCandidates == 1);
     assert(result.candidateAccounting.constraintRejected == 0);
+    assert(result.candidateAccounting.constraintPassingCandidates == 1);
+    assert(result.candidateAccounting.pruningRejectedCandidates == 0);
     assert(result.candidateAccounting.retainedCandidates == 1);
     // The one winning organization serves every objective and is rebuilt once,
     // instead of rerunning the entire exploration space.
@@ -530,6 +639,8 @@ int main() {
     TestDisabledPriorityOptimizationIsCanonicalizedBeforeModeling();
     TestParallelEnumerationIsDeterministic();
     TestParallelConstrainedEnumerationIsDeterministic();
+    TestParallelPruningIsDeterministic();
+    TestPruningHandlesFixedAndConstraintFilteredSpaces();
     TestWorkerExceptionJoinsEveryThreadAndRethrows();
     TestExplorerRunIsThreadSafeAndOneShot();
     TestUnconstrainedAndConstrainedPasses();

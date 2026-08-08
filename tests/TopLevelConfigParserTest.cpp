@@ -295,7 +295,7 @@ void TestSplitConfigParsesAndMapsMovedFields() {
     assert(config.constraints.enabled);
     assert(config.constraints.area == 0.5);
     assert(config.useCactiAssumption);
-    assert(!config.constraints.pruningEnabled);
+    assert(!config.exploration.pruningEnabled);
     assert(config.peripherals.noPrechargeInc);
     assert(config.peripherals.includeLeakage);
     assert(config.peripherals.scaledVoltage == 0.9);
