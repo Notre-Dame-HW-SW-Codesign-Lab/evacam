@@ -28,7 +28,7 @@ currently place sensing inside the mats.
 
 - `g++` with C++17 support
 - `yaml-cpp`
-- OpenMP support
+- C++ standard library thread support
 - `make`
 
 Optional:
@@ -77,7 +77,7 @@ Usage:
 
 Options:
 
-- `-t, --threads N`: number of OpenMP threads; default is all available cores
+- `-t, --threads N`: number of exploration worker threads; default is all available cores
 - `-v, --verbose`: enable verbose logging
 - `-q, --quiet`: suppress normal stdout output
 - `--no-variation-plots`: skip Monte Carlo variation histogram SVG generation

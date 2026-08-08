@@ -46,7 +46,7 @@ void RowDecoder::Initialize(int _numRow, double _capLoad, double _resLoad,
 
     if (outputDriver.invalid) {
         invalid = true;
-        std::cout << "invalid outputDriver" << std::endl;
+        config->logger.Log() << "invalid outputDriver";
         return;
     }
 

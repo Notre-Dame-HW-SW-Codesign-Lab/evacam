@@ -1,15 +1,15 @@
 #include "input/CliOptions.h"
 
-#include <omp.h>
-
 #include <ostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <thread>
 
 CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
     CliOptions options;
-    options.threads = omp_get_num_procs();
+    const unsigned int hardwareThreads = std::thread::hardware_concurrency();
+    options.threads = hardwareThreads > 0 ? static_cast<int>(hardwareThreads) : 1;
 
     if (argc <= 1) {
         throw std::invalid_argument("Missing configuration file.");

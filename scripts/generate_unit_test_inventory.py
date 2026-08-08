@@ -503,6 +503,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "Wire": {"WireCopy", "WireAndFactory"},
         "WireProcessTable": {"WireAndFactory"},
         "WireFactory": {"WireAndFactory"},
+        "CandidateSpec": {"EvaCamExplorer"},
         "FunctionUnit": {"FunctionUnit"},
         "BasicDecoder": {"DecoderComponents"},
         "PredecodeBlock": {"DecoderComponents"},
@@ -538,7 +539,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "EvaCamOutputDetail": {"OutputServices"},
         "Logger": {"AppServices"},
         "EvaCamContextBuilder": {"AppServices"},
-        "EvaCamExplorer": {"EvaCamExplorer"},
+        "EvaCamExplorer": {"EvaCamExplorer", "DeepExplorationThreading"},
         "EvaCAM_Match": {"EvaCAMMatchFocused"},
         "EvaCamRun": {"RunEvaCamBoundary"},
         "main": {"RunEvaCamBoundary"},
@@ -1115,12 +1116,45 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             "test-evacam-explorer")
     map_indirect("src/app/EvaCamExplorer.cpp",
             ["RunExplorationPass", "EvaluateGeometry", "RunConstrainedExploration",
-             "BuildBank", "MakeResult", "IsValidCandidate", "MeetsConstraints",
-             "ValidateCapacityOrThrow", "UpdateBestResults", "MergeBestResults"],
+             "MakeCandidateSpec", "BuildBank", "FindWireCandidate", "MakeResult",
+             "IsValidCandidate",
+             "MeetsConstraints", "RestoreMetrics",
+             "ValidateCapacityOrThrow", "UpdateBestResults", "UpdateBestResult",
+             "MergeBestResults"],
             "tests/EvaCamExplorerTest.cpp", "TestUnconstrainedAndConstrainedPasses",
+            "test-evacam-explorer")
+    map_indirect("src/app/EvaCamExplorer.cpp", ["RunExplorationPass", "UpdateBestResult"],
+            "tests/EvaCamExplorerTest.cpp", "TestParallelEnumerationIsDeterministic",
+            "test-evacam-explorer")
+    map_indirect("src/app/EvaCamExplorer.cpp", ["RunExplorationPass", "EvaluateGeometry",
+            "UpdateBestResult", "MergeBestResults"],
+            "tests/DeepExplorationThreadingTest.cpp",
+            "TestDeepExplorationIsDeterministicAcrossThreadCounts",
+            "test-deep-exploration-threading")
+    map_indirect("src/app/EvaCamExplorer.cpp",
+            ["RunExplorationPass", "RunConstrainedExploration", "RestoreMetrics"],
+            "tests/EvaCamExplorerTest.cpp",
+            "TestParallelConstrainedEnumerationIsDeterministic",
+            "test-evacam-explorer")
+    map_indirect("src/app/EvaCamExplorer.cpp", ["RunExplorationPass"],
+            "tests/EvaCamExplorerTest.cpp",
+            "TestWorkerExceptionJoinsEveryThreadAndRethrows",
             "test-evacam-explorer")
     map_indirect("src/app/EvaCamExplorer.cpp", ["PrintSolutionCount"],
             "tests/EvaCamExplorerTest.cpp", "TestConstrainedPassCanReturnZeroSolutions",
+            "test-evacam-explorer")
+    map_indirect("src/app/CandidateSpec.cpp",
+            ["CandidateTuple", "HashCombine", "StableId", "operator==", "operator<",
+             "operator()"],
+            "tests/EvaCamExplorerTest.cpp", "TestCandidateIdentityIsExactAndStable",
+            "test-evacam-explorer")
+    map_indirect("src/app/CandidateSpec.cpp",
+            ["operator+=", "HasConsistentEnumerationCounts",
+             "HasConsistentModelCounts"],
+            "tests/EvaCamExplorerTest.cpp", "TestDisabledPriorityOptimizationIsCanonicalizedBeforeModeling",
+            "test-evacam-explorer")
+    map_indirect("src/app/CandidateSpec.cpp", ["FromBank"],
+            "tests/EvaCamExplorerTest.cpp", "TestParallelEnumerationIsDeterministic",
             "test-evacam-explorer")
 
     map_indirect("src/app/EvaCAM_Match.cpp", ["EvaCAM_Match", "InitializeConfiguredBank",

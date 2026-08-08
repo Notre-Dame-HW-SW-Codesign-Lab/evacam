@@ -4,12 +4,13 @@
 
 - `g++` with C++17 support
 - `yaml-cpp`
-- OpenMP support
+- C++ standard library thread support
 - `make`
 
 Optional tools:
 
 - `valgrind` for runtime checks
+- `clang++` for ThreadSanitizer checks
 - `pdflatex` for the UML diagram target
 
 ## Common Commands
@@ -32,6 +33,38 @@ Run focused tests:
 make test-yaml
 make test-exploration
 ```
+
+Run the ultra-long deep-exploration threading regression separately:
+
+```bash
+make test-deep-exploration-threading
+```
+
+This test exhausts the fully unpinned deep geometry and mux domains once with
+1, 2, 3, 7, and 16 workers. It forces scheduler yields, compares exact candidate
+accounting and the selected organization for every optimization objective, and
+prints informational scaling timings without imposing a timing assertion.
+
+Run the focused multithreading suite under Clang ThreadSanitizer:
+
+```bash
+make test-thread-sanitizer
+make TSAN_STRESS_ITERATIONS=5 test-thread-sanitizer
+```
+
+ThreadSanitizer uses isolated objects under `thread-sanitizer/`. The stress
+count repeats the deterministic thread-count matrix, worker-exception and
+one-shot lifecycle tests, concurrent quiet/visible Python-backend runs, and
+mixed `run()`/`EvaCAMMatch` configuration loading.
+
+Run the same suite under Helgrind:
+
+```bash
+make test-thread-helgrind
+```
+
+Pull requests run ThreadSanitizer once. Scheduled CI repeats ThreadSanitizer
+five times and also runs Helgrind.
 
 Run the default valgrind check:
 

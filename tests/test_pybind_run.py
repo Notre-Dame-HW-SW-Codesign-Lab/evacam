@@ -210,6 +210,51 @@ evacam_py.run(sys.argv[2], threads=1, stdout=bool(int(sys.argv[3])))
     assert visible.stdout
 
 
+def assert_concurrent_stdout_isolation(repo_root, config_path):
+    script = """
+import sys
+import threading
+
+sys.path.insert(0, sys.argv[1])
+import evacam_py
+
+stdout_options = [True, False, False, False]
+barrier = threading.Barrier(len(stdout_options))
+results = [None] * len(stdout_options)
+errors = [None] * len(stdout_options)
+
+def run(index):
+    try:
+        barrier.wait()
+        results[index] = evacam_py.run(
+            sys.argv[2], threads=2, stdout=stdout_options[index]
+        )
+    except BaseException as error:
+        errors[index] = error
+
+threads = [threading.Thread(target=run, args=(index,))
+           for index in range(len(stdout_options))]
+for thread in threads:
+    thread.start()
+for thread in threads:
+    thread.join()
+
+if any(error is not None for error in errors):
+    raise AssertionError(errors)
+if any(result.num_solutions <= 0 or not result.best_results for result in results):
+    raise AssertionError("concurrent run returned an incomplete result")
+if len({result.num_solutions for result in results}) != 1:
+    raise AssertionError("concurrent runs returned different solution counts")
+"""
+    concurrent = subprocess.run(
+        [sys.executable, "-c", script, str(repo_root), config_path],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert concurrent.stdout.count("DESIGN SPECIFICATION") == 1
+
+
 def test_pybind_run_module(config_path):
     repo_root = pathlib.Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(repo_root))
@@ -264,6 +309,7 @@ def test_pybind_run_module(config_path):
         assert_run_result_matches_yaml(yaml_result, output_yaml_path)
 
     assert_stdout_option(repo_root, config_path)
+    assert_concurrent_stdout_isolation(repo_root, config_path)
 
     print("Pybind run test passed")
 

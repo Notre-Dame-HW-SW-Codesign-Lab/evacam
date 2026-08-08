@@ -1,5 +1,6 @@
 #include "input/SenseAmpYamlLoader.h"
 
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -84,6 +85,7 @@ std::vector<SenseAmpModel::NodeValue> ReadNodeTable(
 namespace YamlHelpers {
 
 SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
+    std::lock_guard<std::recursive_mutex> parserLock(ParserMutex());
     const YAML::Node root = YAML::LoadFile(inputFile);
     require_schema(root, "sense_amp", "sense amp config");
     reject_unknown_keys(root,

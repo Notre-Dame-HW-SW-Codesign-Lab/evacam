@@ -35,7 +35,7 @@ void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _sens
     if (pitchSenseAmp <= tech.featureSize() * model.minPitch) {
         /* too small, cannot do the layout */
         invalid = true;
-        std::cout << "Sense Amp too small, cannot do the layout" << std::endl;
+        config->logger.Log() << "Sense Amp too small, cannot do the layout";
     }
 
     initialized = true;

@@ -8,6 +8,11 @@
 
 namespace YamlHelpers {
 
+std::recursive_mutex &ParserMutex() {
+    static std::recursive_mutex mutex;
+    return mutex;
+}
+
 std::string kind(const YAML::Node& n) {
     if (!n)
         return "missing";

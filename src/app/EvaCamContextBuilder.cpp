@@ -2,9 +2,11 @@
 
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 
 #include "EvaCamConfig.h"
 #include "config/OutputPathBuilder.h"
+#include "input/YamlNodeHelpers.h"
 
 namespace {
 
@@ -26,7 +28,13 @@ void ValidateInputFile(const std::string &inputFileName) {
 EvaCamContext EvaCamContextBuilder::Build(const CliOptions &options) {
     ValidateInputFile(options.inputFileName);
 
+    // yaml-cpp performs mutable process-global work while decoding some
+    // scalars. Keep configuration parsing exclusive while allowing the much
+    // more expensive exploration phase of independent runs to overlap.
+    std::lock_guard<std::recursive_mutex> parserLock(YamlHelpers::ParserMutex());
+
     auto config = std::make_shared<EvaCamConfig>();
+    config->logger.SetOutputEnabled(options.stdoutOutput);
     if (options.verbose) {
         config->logger.SetVerbose(true);
         config->logger.Verbose() << "Verbose output enabled";

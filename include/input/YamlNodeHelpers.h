@@ -6,6 +6,7 @@
 #include <cmath>
 #include <initializer_list>
 #include <limits>
+#include <mutex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -16,6 +17,8 @@
 #include "typedef.h"
 
 namespace YamlHelpers {
+
+std::recursive_mutex &ParserMutex();
 
 template <typename T>
     std::string value_string(T value) {

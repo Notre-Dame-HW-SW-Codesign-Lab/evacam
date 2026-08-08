@@ -73,6 +73,16 @@ Arguments:
 - `verbose`: enables the existing EvaCAM verbose logger. If `stdout=False`, verbose output is still suppressed from stdout.
 - `variation_plots`: enables Monte Carlo variation histogram SVG generation when YAML/sample files are written.
 
+`run()` releases the Python GIL while EvaCAM is modeling. Independent calls may
+therefore execute concurrently from different Python threads. Each call owns
+its stdout policy: a quiet call does not redirect or suppress output from a
+simultaneous call with `stdout=True`. When concurrent calls write files, give
+them distinct output paths; EvaCAM rejects simultaneous ownership of the same
+result path.
+Configuration parsing is briefly serialized because the linked `yaml-cpp`
+decoder uses shared process state; exploration and result generation remain
+concurrent after each configuration has loaded.
+
 The return object has:
 
 - `num_solutions`: number of valid solutions found.

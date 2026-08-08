@@ -1,23 +1,26 @@
 #include "EvaCamExplorer.h"
 
-#include <omp.h>
-
+#include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <memory>
+#include <mutex>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "Bank.h"
-#include "Result.h"
 #include "EvaCamConfig.h"
 #include "Logger.h"
+#include "Result.h"
 #include "Wire.h"
 #include "config/EvaCamConfigPrinter.h"
 #include "config/EvaCamConfigValidator.h"
@@ -27,30 +30,58 @@
 #include "factories/WireFactory.h"
 
 EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config, int numThreads)
+    : EvaCamExplorer(std::move(config), numThreads, {}) {
+}
+
+EvaCamExplorer::EvaCamExplorer(std::shared_ptr<EvaCamConfig> config, int numThreads,
+        EvaCamExplorerTestHooks testHooks)
     : config_(std::move(config)),
-      numThreads_(numThreads > 0 ? numThreads : 1) {
+      numThreads_(numThreads > 0 ? numThreads : 1),
+      outputEnabled_(config_ && config_->logger.IsOutputEnabled()),
+      testHooks_(std::move(testHooks)) {
 }
 
 EvaCamExplorationResult EvaCamExplorer::Run() {
-    {
+    bool expected = false;
+    if (!runStarted_.compare_exchange_strong(expected, true,
+            std::memory_order_acq_rel, std::memory_order_acquire)) {
+        throw std::logic_error(
+                "EvaCamExplorer::Run() may only be called once per instance.");
+    }
+
+    if (outputEnabled_) {
         std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
         config_->technology.cell->PrintCell();
     }
     InitializeExploration();
-    RunExplorationPass(nullptr);
+    RunExplorationPass();
     PrintSolutionCount();
     RunConstrainedExploration();
 
+    if (!config_->constraints.enabled
+            || config_->input.optimizationTarget == full_exploration) {
+        candidateAccounting_.retainedCandidates = candidateAccounting_.validCandidates;
+    }
+    if (!candidateAccounting_.HasConsistentEnumerationCounts()
+            || !candidateAccounting_.HasConsistentModelCounts()) {
+        throw std::logic_error("Candidate accounting invariants failed.");
+    }
+    config_->logger.Verbose()
+        << "Candidate accounting: raw=" << candidateAccounting_.rawCandidates
+        << ", structural_rejections=" << candidateAccounting_.structurallyRejected
+        << ", duplicates=" << candidateAccounting_.duplicateCandidates
+        << ", modeled=" << candidateAccounting_.modeledCandidates
+        << ", invalid=" << candidateAccounting_.invalidCandidates
+        << ", valid=" << candidateAccounting_.validCandidates
+        << ", constraint_rejections=" << candidateAccounting_.constraintRejected
+        << ", retained=" << candidateAccounting_.retainedCandidates
+        << ", reconstructions=" << candidateAccounting_.reconstructionEvaluations;
+
     EvaCamExplorationResult result;
-    {
-        std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
-        result.numSolution = numSolution_;
-    }
-    {
-        std::lock_guard<std::mutex> resultsLock(bestResultsMutex_);
-        result.bestResults = bestResults_;
-    }
+    result.numSolution = numSolution_;
+    result.bestResults = bestResults_;
     result.explorationCsvPath = explorationCsvPath_;
+    result.candidateAccounting = candidateAccounting_;
     return result;
 }
 
@@ -59,7 +90,7 @@ void EvaCamExplorer::InitializeExploration() {
     InitializeBestResults();
     InitializeWireCandidates();
 
-    {
+    if (outputEnabled_) {
         std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
         EvaCamConfigPrinter::Print(*config_);
     }
@@ -144,7 +175,7 @@ void EvaCamExplorer::OpenExplorationCsv() {
     }
 }
 
-void EvaCamExplorer::RunExplorationPass(const ResultLimits *limits) {
+void EvaCamExplorer::RunExplorationPass() {
     const long long total = (long long)numRowMatValues_.size()
         * (long long)numColumnMatValues_.size()
         * (long long)numRowSubarrayValues_.size();
@@ -153,72 +184,210 @@ void EvaCamExplorer::RunExplorationPass(const ResultLimits *limits) {
     if (fixedOuterGeometry_) {
         config_->logger.Verbose() << "Fixed bank/mat/subarray sizes detected; bypassing outer geometry loops.";
         std::ostringstream fixedCsv;
+        CandidateAccounting accounting;
+        std::vector<EvaluatedCandidate> evaluatedCandidates;
         EvaluateGeometry(numRowMatValues_.front(), numColumnMatValues_.front(), numRowSubarrayValues_.front(),
-                bestResults_, numSolution_, &fixedCsv, limits);
+                bestResults_, numSolution_, &fixedCsv,
+                config_->constraints.enabled && config_->input.optimizationTarget != full_exploration
+                    ? &evaluatedCandidates : nullptr,
+                accounting);
+        candidateAccounting_ += accounting;
+        evaluatedCandidates_.insert(evaluatedCandidates_.end(),
+                evaluatedCandidates.begin(), evaluatedCandidates.end());
         FlushExplorationCsvBuffer(fixedCsv.str());
         return;
     }
 
     std::atomic<bool> progressDone = false;
+    std::atomic<bool> workerFailed = false;
+    std::exception_ptr workerException;
+    std::mutex workerExceptionMutex;
+    const auto captureWorkerException = [&]() {
+        {
+            std::lock_guard<std::mutex> exceptionLock(workerExceptionMutex);
+            if (!workerException) {
+                workerException = std::current_exception();
+            }
+        }
+        workerFailed.store(true, std::memory_order_release);
+    };
+    const std::size_t totalOuterGeometries = static_cast<std::size_t>(total);
+    const std::size_t workerCount = std::min(
+            static_cast<std::size_t>(numThreads_), totalOuterGeometries);
+    std::atomic<std::size_t> nextOuterIndex = 0;
+    std::mutex workerStartMutex;
+    std::condition_variable workerStartCondition;
+    bool workersMayStart = false;
+    std::vector<std::vector<std::shared_ptr<Result>>> threadBestResults(
+            workerCount);
+    std::vector<long long> threadNumSolutions(workerCount, 0);
+    std::vector<CandidateAccounting> threadAccounting(workerCount);
+    std::vector<std::string> outerCsvBuffers(totalOuterGeometries);
+    std::vector<std::vector<EvaluatedCandidate>> outerEvaluatedCandidates(totalOuterGeometries);
+    // These vectors never resize while workers run. Each worker owns one
+    // thread slot, and nextOuterIndex gives it exclusive ownership of one
+    // outer-geometry slot. The main thread reads them only after every join.
+    std::vector<std::thread> workers;
+    workers.reserve(workerCount);
     std::thread progressThread;
-    if (total > 1) {
+    if (total > 1 && outputEnabled_) {
         progressThread = std::thread([&]() {
-            long long lastReportedPercentage = -1;
-            while (!progressDone.load(std::memory_order_relaxed)) {
-                const long long percentage = loopsComplete.load(std::memory_order_relaxed) * 100 / total;
-                if (percentage > lastReportedPercentage) {
-                    std::lock_guard<std::mutex> progressLock(progressMutex_);
-                    std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
-                    std::cout << "\rProgress: " << percentage << "%" << std::flush;
-                    lastReportedPercentage = percentage;
+            try {
+                long long lastReportedPercentage = -1;
+                while (!progressDone.load(std::memory_order_acquire)) {
+                    const long long percentage =
+                        loopsComplete.load(std::memory_order_relaxed) * 100 / total;
+                    if (percentage > lastReportedPercentage) {
+                        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+                        std::cout << "\rProgress: " << percentage << "%" << std::flush;
+                        lastReportedPercentage = percentage;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            } catch (...) {
+                captureWorkerException();
             }
         });
     }
 
-#pragma omp parallel num_threads(numThreads_)
-    {
-        auto threadBestResults = CreateBestResultsBuffer();
-        long long threadNumSolutions = 0;
-        std::ostringstream threadCsv;
+    try {
+        for (std::size_t threadIndex = 0; threadIndex < workerCount; ++threadIndex) {
+            workers.emplace_back([&, threadIndex]() {
+                try {
+                    if (testHooks_.workerStarted) {
+                        testHooks_.workerStarted(threadIndex);
+                    }
+                    if (testHooks_.schedulerPoint) {
+                        testHooks_.schedulerPoint();
+                    }
+                    {
+                        std::unique_lock<std::mutex> startLock(workerStartMutex);
+                        workerStartCondition.wait(startLock,
+                                [&workersMayStart]() { return workersMayStart; });
+                    }
+                    if (testHooks_.schedulerPoint) {
+                        testHooks_.schedulerPoint();
+                    }
+                    auto localBestResults = CreateBestResultsBuffer();
+                    long long localNumSolutions = 0;
+                    CandidateAccounting localAccounting;
 
-#pragma omp for collapse(3)
-        for (int i = 0; i < (int)numRowMatValues_.size(); i++) {
-            for (int j = 0; j < (int)numColumnMatValues_.size(); j++) {
-                for (int k = 0; k < (int)numRowSubarrayValues_.size(); k++) {
-                    loopsComplete.fetch_add(1, std::memory_order_relaxed);
-                    EvaluateGeometry(numRowMatValues_[i], numColumnMatValues_[j], numRowSubarrayValues_[k],
-                            threadBestResults, threadNumSolutions, &threadCsv, limits);
+                    while (!workerFailed.load(std::memory_order_acquire)) {
+                        if (testHooks_.schedulerPoint) {
+                            testHooks_.schedulerPoint();
+                        }
+                        const std::size_t outerIndex =
+                            nextOuterIndex.fetch_add(1, std::memory_order_relaxed);
+                        if (testHooks_.schedulerPoint) {
+                            testHooks_.schedulerPoint();
+                        }
+                        if (outerIndex >= totalOuterGeometries) {
+                            break;
+                        }
+                        if (testHooks_.beforeGeometry) {
+                            testHooks_.beforeGeometry(outerIndex);
+                        }
+
+                        const std::size_t rowSubarrayIndex =
+                            outerIndex % numRowSubarrayValues_.size();
+                        const std::size_t remainingIndex =
+                            outerIndex / numRowSubarrayValues_.size();
+                        const std::size_t columnMatIndex =
+                            remainingIndex % numColumnMatValues_.size();
+                        const std::size_t rowMatIndex =
+                            remainingIndex / numColumnMatValues_.size();
+                        std::ostringstream csv;
+                        std::vector<EvaluatedCandidate> evaluatedCandidates;
+                        EvaluateGeometry(numRowMatValues_[rowMatIndex],
+                                numColumnMatValues_[columnMatIndex],
+                                numRowSubarrayValues_[rowSubarrayIndex],
+                                localBestResults, localNumSolutions, &csv,
+                                config_->constraints.enabled
+                                        && config_->input.optimizationTarget != full_exploration
+                                    ? &evaluatedCandidates : nullptr,
+                                localAccounting);
+                        if (testHooks_.schedulerPoint) {
+                            testHooks_.schedulerPoint();
+                        }
+                        outerCsvBuffers[outerIndex] = csv.str();
+                        outerEvaluatedCandidates[outerIndex] =
+                            std::move(evaluatedCandidates);
+                        loopsComplete.fetch_add(1, std::memory_order_relaxed);
+                        if (testHooks_.schedulerPoint) {
+                            testHooks_.schedulerPoint();
+                        }
+                    }
+
+                    threadBestResults[threadIndex] = std::move(localBestResults);
+                    threadNumSolutions[threadIndex] = localNumSolutions;
+                    threadAccounting[threadIndex] = localAccounting;
+                } catch (...) {
+                    captureWorkerException();
                 }
-            }
+                try {
+                    if (testHooks_.workerFinished) {
+                        testHooks_.workerFinished(threadIndex);
+                    }
+                } catch (...) {
+                    captureWorkerException();
+                }
+            });
         }
-
         {
-            std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
-            numSolution_ += threadNumSolutions;
+            std::lock_guard<std::mutex> startLock(workerStartMutex);
+            workersMayStart = true;
+            workerStartCondition.notify_all();
         }
-
+    } catch (...) {
+        workerFailed.store(true, std::memory_order_release);
         {
-            std::lock_guard<std::mutex> resultsLock(bestResultsMutex_);
-            MergeBestResults(threadBestResults);
+            std::lock_guard<std::mutex> startLock(workerStartMutex);
+            workersMayStart = true;
+            workerStartCondition.notify_all();
         }
-
-        FlushExplorationCsvBuffer(threadCsv.str());
+        for (std::thread &worker : workers) {
+            worker.join();
+        }
+        progressDone.store(true, std::memory_order_release);
+        if (progressThread.joinable()) {
+            progressThread.join();
+        }
+        throw;
     }
 
-    progressDone.store(true, std::memory_order_relaxed);
+    for (std::thread &worker : workers) {
+        worker.join();
+    }
+    progressDone.store(true, std::memory_order_release);
     if (progressThread.joinable()) {
         progressThread.join();
-        std::lock_guard<std::mutex> progressLock(progressMutex_);
-        std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
-        std::cout << "\rProgress: 100%" << std::endl;
+        if (!workerException) {
+            std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
+            std::cout << "\rProgress: 100%" << std::endl;
+        }
+    }
+
+    if (workerException) {
+        std::rethrow_exception(workerException);
+    }
+
+    for (std::size_t threadIndex = 0; threadIndex < threadBestResults.size(); ++threadIndex) {
+        numSolution_ += threadNumSolutions[threadIndex];
+        candidateAccounting_ += threadAccounting[threadIndex];
+        if (!threadBestResults[threadIndex].empty()) {
+            MergeBestResults(threadBestResults[threadIndex]);
+        }
+    }
+    for (std::size_t outerIndex = 0; outerIndex < totalOuterGeometries; ++outerIndex) {
+        evaluatedCandidates_.insert(evaluatedCandidates_.end(),
+                outerEvaluatedCandidates[outerIndex].begin(),
+                outerEvaluatedCandidates[outerIndex].end());
+        FlushExplorationCsvBuffer(outerCsvBuffers[outerIndex]);
     }
 }
 
 void EvaCamExplorer::PrintSolutionCount() {
-    std::lock_guard<std::mutex> solutionsLock(numSolutionsMutex_);
-    if (numSolution_ <= 0) {
+    if (!outputEnabled_ || numSolution_ <= 0) {
         return;
     }
     std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
@@ -230,7 +399,8 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
         std::vector<std::shared_ptr<Result>> &bestResults,
         long long &numSolutions,
         std::ostream *csvStream,
-        const ResultLimits *limits) {
+        std::vector<EvaluatedCandidate> *evaluatedCandidates,
+        CandidateAccounting &accounting) {
     const auto numActiveMatPerRowValues = config_->exploration.ActiveMatPerRowValues(numColumnMat);
     const auto numActiveMatPerColumnValues = config_->exploration.ActiveMatPerColumnValues(numRowMat);
     const auto &resolved = config_->resolvedExploration;
@@ -242,6 +412,7 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
     const auto &rowDriverOptimizationLevels = resolved.cam.rowDriverOptLevelValues;
     const auto &priorityOptimizationLevels = resolved.cam.priorityOptLevelValues;
     const auto &bitSerialWidthValues = resolved.cam.bitSerialWidthValues;
+    std::unordered_set<CandidateSpec, CandidateSpecHash> seenCandidates;
 
     for (const Wire &localWire : localWireCandidates_)
         for (const Wire &globalWire : globalWireCandidates_)
@@ -257,39 +428,52 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                 for (int rowDriverOptLevel : rowDriverOptimizationLevels)
                                                     for (int priorityOptLevel : priorityOptimizationLevels)
                                                         for (int bitSerialWidth : bitSerialWidthValues) {
+                                                        accounting.rawCandidates++;
                                                         if (!config_->exploration.IsValidPartitioning(blockSizeBits_,
                                                                     numActiveMatPerRow,
                                                                     numActiveMatPerColumn,
                                                                     numActiveSubarrayPerRow,
                                                                     numActiveSubarrayPerColumn)) {
+                                                            accounting.structurallyRejected++;
                                                             continue;
                                                         }
 
-                                                        CAM_Opt iterCamOpt{};
-                                                        iterCamOpt.RowDriver = rowDriverOptLevel;
-                                                        iterCamOpt.Proirity = priorityOptLevel;
-                                                        iterCamOpt.BitSerialWidth = bitSerialWidth;
-
-                                                        const auto dataBank = BuildBank(numRowMat, numColumnMat, numRowSubarray,
+                                                        const int effectivePriorityOptLevel =
+                                                            config_->peripherals.withPriorityEnc
+                                                                ? priorityOptLevel : latency_first;
+                                                        const CandidateSpec candidate = MakeCandidateSpec(
+                                                                numRowMat, numColumnMat, numRowSubarray,
                                                                 numColumnSubarray, numActiveMatPerRow,
                                                                 numActiveMatPerColumn, numActiveSubarrayPerRow,
-                                                                numActiveSubarrayPerColumn, muxSenseAmp, muxOutputLev1,
-                                                                muxOutputLev2,
-                                                                (BufferDesignTarget)areaOptimizationLevel,
-                                                                localWire, globalWire, iterCamOpt);
-
-                                                        if (!IsValidCandidate(dataBank)
-                                                                || !MeetsConstraints(dataBank, limits)) {
+                                                                numActiveSubarrayPerColumn, muxSenseAmp,
+                                                                muxOutputLev1, muxOutputLev2,
+                                                                areaOptimizationLevel, localWire, globalWire,
+                                                                rowDriverOptLevel, effectivePriorityOptLevel,
+                                                                bitSerialWidth);
+                                                        if (!seenCandidates.insert(candidate).second) {
+                                                            accounting.duplicateCandidates++;
                                                             continue;
                                                         }
+                                                        accounting.modeledCandidates++;
+                                                        const auto dataBank = BuildBank(candidate);
+
+                                                        if (!IsValidCandidate(dataBank)) {
+                                                            accounting.invalidCandidates++;
+                                                            continue;
+                                                        }
+                                                        accounting.validCandidates++;
 
                                                         ValidateCapacityOrThrow(dataBank);
                                                         numSolutions++;
 
                                                         const auto tempResult = MakeResult(dataBank, localWire, globalWire);
                                                         UpdateBestResults(bestResults, tempResult);
+                                                        if (evaluatedCandidates) {
+                                                            evaluatedCandidates->push_back(
+                                                                    {candidate, CandidateMetrics::FromBank(*dataBank)});
+                                                        }
                                                         if (csvStream) {
-                                                            MaybeWriteExplorationCsv(tempResult, *csvStream);
+                                                            MaybeWriteExplorationCsv(tempResult, candidate, *csvStream);
                                                         }
                                                     }
 }
@@ -303,24 +487,117 @@ void EvaCamExplorer::RunConstrainedExploration() {
     config_->ApplyResultLimits(constraintLimits, bestResults_);
 
     numSolution_ = 0;
+    std::array<const EvaluatedCandidate *, static_cast<std::size_t>(full_exploration)> winners{};
+    for (const EvaluatedCandidate &candidate : evaluatedCandidates_) {
+        if (!MeetsConstraints(candidate.metrics, constraintLimits)) {
+            candidateAccounting_.constraintRejected++;
+            continue;
+        }
 
-    RunExplorationPass(&constraintLimits);
+        numSolution_++;
+        candidateAccounting_.retainedCandidates++;
+        for (std::size_t index = 0; index < winners.size(); ++index) {
+            const EvaluatedCandidate *winner = winners[index];
+            if (!winner
+                    || candidate.metrics.objectiveValues[index]
+                        < winner->metrics.objectiveValues[index]
+                    || (candidate.metrics.objectiveValues[index]
+                            == winner->metrics.objectiveValues[index]
+                        && candidate.spec < winner->spec)) {
+                winners[index] = &candidate;
+            }
+        }
+    }
+
+    std::vector<std::pair<CandidateSpec, std::shared_ptr<Bank>>> reconstructed;
+    for (std::size_t index = 0; index < winners.size(); ++index) {
+        if (!winners[index]) {
+            continue;
+        }
+        const auto existing = std::find_if(reconstructed.begin(), reconstructed.end(),
+                [&winners, index](const auto &entry) {
+                    return entry.first == winners[index]->spec;
+                });
+        std::shared_ptr<Bank> bank;
+        if (existing != reconstructed.end()) {
+            bank = existing->second;
+        } else {
+            bank = BuildBank(winners[index]->spec);
+            candidateAccounting_.reconstructionEvaluations++;
+            if (!IsValidCandidate(bank)) {
+                throw std::runtime_error(
+                        "A valid candidate became invalid while reconstructing constrained results.");
+            }
+            RestoreMetrics(winners[index]->metrics, *bank);
+            reconstructed.emplace_back(winners[index]->spec, bank);
+        }
+        bestResults_[index]->bank = bank;
+        bestResults_[index]->localWire = bank->localWire;
+        bestResults_[index]->globalWire = bank->globalWire;
+    }
     PrintSolutionCount();
 }
 
-std::shared_ptr<Bank> EvaCamExplorer::BuildBank(int numRowMat, int numColumnMat, int numRowSubarray,
-        int numColumnSubarray, int numActiveMatPerRow, int numActiveMatPerColumn,
-        int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn, int muxSenseAmp,
-        int muxOutputLev1, int muxOutputLev2,
-        BufferDesignTarget areaOptimizationLevel, const Wire &localWire,
-        const Wire &globalWire, const CAM_Opt &camOpt) const {
+CandidateSpec EvaCamExplorer::MakeCandidateSpec(int numRowMat, int numColumnMat,
+        int numRowSubarray, int numColumnSubarray, int numActiveMatPerRow,
+        int numActiveMatPerColumn, int numActiveSubarrayPerRow,
+        int numActiveSubarrayPerColumn, int muxSenseAmp, int muxOutputLev1,
+        int muxOutputLev2, int areaOptimizationLevel, const Wire &localWire,
+        const Wire &globalWire, int rowDriverOptLevel, int priorityOptLevel,
+        int bitSerialWidth) const {
+    CandidateSpec candidate;
+    candidate.numRowMat = numRowMat;
+    candidate.numColumnMat = numColumnMat;
+    candidate.numActiveMatPerRow = numActiveMatPerRow;
+    candidate.numActiveMatPerColumn = numActiveMatPerColumn;
+    candidate.numRowSubarray = numRowSubarray;
+    candidate.numColumnSubarray = numColumnSubarray;
+    candidate.numActiveSubarrayPerRow = numActiveSubarrayPerRow;
+    candidate.numActiveSubarrayPerColumn = numActiveSubarrayPerColumn;
+    candidate.muxSenseAmp = muxSenseAmp;
+    candidate.muxOutputLev1 = muxOutputLev1;
+    candidate.muxOutputLev2 = muxOutputLev2;
+    candidate.areaOptimizationLevel = areaOptimizationLevel;
+    candidate.rowDriverOptimizationLevel = rowDriverOptLevel;
+    candidate.priorityOptimizationLevel = priorityOptLevel;
+    candidate.bitSerialWidth = bitSerialWidth;
+    candidate.localWire = {localWire.wireType,
+        localWire.wireRepeaterType, localWire.isLowSwing};
+    candidate.globalWire = {globalWire.wireType,
+        globalWire.wireRepeaterType, globalWire.isLowSwing};
+    return candidate;
+}
+
+std::shared_ptr<Bank> EvaCamExplorer::BuildBank(const CandidateSpec &candidate) const {
+    const Wire &localWire = FindWireCandidate(localWireCandidates_, candidate.localWire);
+    const Wire &globalWire = FindWireCandidate(globalWireCandidates_, candidate.globalWire);
+    CAM_Opt camOpt{};
+    camOpt.RowDriver = candidate.rowDriverOptimizationLevel;
+    camOpt.Proirity = candidate.priorityOptimizationLevel;
+    camOpt.BitSerialWidth = candidate.bitSerialWidth;
     const auto bank = BankFactory::CreateBank(*config_);
-    BankFactory::InitializeBank(config_, bank, numRowMat, numColumnMat, capacityBits_, blockSizeBits_,
-            numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
-            muxOutputLev1, muxOutputLev2, numRowSubarray, numColumnSubarray,
-            numActiveSubarrayPerRow, numActiveSubarrayPerColumn, areaOptimizationLevel,
+    BankFactory::InitializeBank(config_, bank, candidate.numRowMat,
+            candidate.numColumnMat, capacityBits_, blockSizeBits_,
+            candidate.numActiveMatPerRow, candidate.numActiveMatPerColumn,
+            candidate.muxSenseAmp, candidate.muxOutputLev1, candidate.muxOutputLev2,
+            candidate.numRowSubarray, candidate.numColumnSubarray,
+            candidate.numActiveSubarrayPerRow, candidate.numActiveSubarrayPerColumn,
+            static_cast<BufferDesignTarget>(candidate.areaOptimizationLevel),
             localWire, globalWire, camOpt);
     return bank;
+}
+
+const Wire &EvaCamExplorer::FindWireCandidate(const std::vector<Wire> &wires,
+        const WireSpec &spec) const {
+    const auto match = std::find_if(wires.begin(), wires.end(), [&spec](const Wire &wire) {
+        return wire.wireType == spec.type
+            && wire.wireRepeaterType == spec.repeaterType
+            && wire.isLowSwing == static_cast<bool>(spec.isLowSwing);
+    });
+    if (match == wires.end()) {
+        throw std::logic_error("Candidate references a wire outside the resolved exploration space.");
+    }
+    return *match;
 }
 
 std::shared_ptr<Result> EvaCamExplorer::MakeResult(const std::shared_ptr<Bank> &bank,
@@ -338,17 +615,27 @@ bool EvaCamExplorer::IsValidCandidate(const std::shared_ptr<Bank> &bank) const {
     return !bank->invalid && !bank->mat->subarray->invalid;
 }
 
-bool EvaCamExplorer::MeetsConstraints(const std::shared_ptr<Bank> &bank,
-        const ResultLimits *limits) const {
-    return limits == nullptr
-        || (bank->readLatency <= limits->readLatency
-            && bank->writeLatency <= limits->writeLatency
-            && bank->readDynamicEnergy <= limits->readDynamicEnergy
-            && bank->writeDynamicEnergy <= limits->writeDynamicEnergy
-            && bank->leakage <= limits->leakage
-            && bank->area <= limits->area
-            && bank->readLatency * bank->readDynamicEnergy <= limits->readEdp
-            && bank->writeLatency * bank->writeDynamicEnergy <= limits->writeEdp);
+bool EvaCamExplorer::MeetsConstraints(const CandidateMetrics &metrics,
+        const ResultLimits &limits) const {
+    return metrics.readLatency <= limits.readLatency
+        && metrics.writeLatency <= limits.writeLatency
+        && metrics.readDynamicEnergy <= limits.readDynamicEnergy
+        && metrics.writeDynamicEnergy <= limits.writeDynamicEnergy
+        && metrics.leakage <= limits.leakage
+        && metrics.area <= limits.area
+        && metrics.readEdp <= limits.readEdp
+        && metrics.writeEdp <= limits.writeEdp;
+}
+
+void EvaCamExplorer::RestoreMetrics(const CandidateMetrics &metrics, Bank &bank) const {
+    bank.readLatency = metrics.readLatency;
+    bank.writeLatency = metrics.writeLatency;
+    bank.readDynamicEnergy = metrics.readDynamicEnergy;
+    bank.writeDynamicEnergy = metrics.writeDynamicEnergy;
+    bank.area = metrics.area;
+    bank.leakage = metrics.leakage;
+    bank.searchLatency = metrics.objectiveValues[search_latency_optimized];
+    bank.searchDynamicEnergy = metrics.objectiveValues[search_energy_optimized];
 }
 
 void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const {
@@ -358,7 +645,7 @@ void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) 
         return;
     }
 
-    {
+    if (outputEnabled_) {
         std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
         std::cout << "numcolumn x numrow x numcolumnmat x numrowmat x numcolumnsubarry x numrowsubarray"
             << bank->mat->subarray->numColumn << ": " << bank->mat->subarray->numRow
@@ -381,13 +668,39 @@ void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) 
 void EvaCamExplorer::UpdateBestResults(std::vector<std::shared_ptr<Result>> &bestResults,
         const std::shared_ptr<Result> &result) const {
     for (int i = 0; i < (int)full_exploration; i++) {
-        bestResults[i]->compareAndUpdate(result);
+        UpdateBestResult(bestResults[i], result);
+    }
+}
+
+void EvaCamExplorer::UpdateBestResult(const std::shared_ptr<Result> &bestResult,
+        const std::shared_ptr<Result> &candidate) const {
+    if (!bestResult || !bestResult->bank || !candidate || !candidate->bank
+            || !candidate->bank->initialized) {
+        return;
+    }
+
+    const std::size_t target = static_cast<std::size_t>(bestResult->optimizationTarget);
+    const double candidateValue = CandidateMetrics::FromBank(*candidate->bank)
+        .objectiveValues[target];
+    bool shouldUpdate = !bestResult->bank->initialized;
+    if (!shouldUpdate) {
+        const double bestValue = CandidateMetrics::FromBank(*bestResult->bank)
+            .objectiveValues[target];
+        shouldUpdate = candidateValue < bestValue
+            || (candidateValue == bestValue
+                && CandidateSpec::FromBank(*candidate->bank)
+                    < CandidateSpec::FromBank(*bestResult->bank));
+    }
+    if (shouldUpdate) {
+        bestResult->bank = candidate->bank;
+        bestResult->localWire = candidate->localWire;
+        bestResult->globalWire = candidate->globalWire;
     }
 }
 
 void EvaCamExplorer::MergeBestResults(const std::vector<std::shared_ptr<Result>> &bestResults) {
     for (int i = 0; i < (int)full_exploration; i++) {
-        bestResults_[i]->compareAndUpdate(bestResults[i]);
+        UpdateBestResult(bestResults_[i], bestResults[i]);
     }
 }
 
@@ -396,7 +709,6 @@ void EvaCamExplorer::FlushExplorationCsvBuffer(const std::string &buffer) {
         return;
     }
 
-    std::lock_guard<std::mutex> csvLock(explorationCsvMutex_);
     std::ofstream csv(explorationCsvPath_.c_str(), std::ofstream::app);
     if (!csv) {
         throw std::runtime_error("Failed to append exploration CSV file: " + explorationCsvPath_);
@@ -404,11 +716,16 @@ void EvaCamExplorer::FlushExplorationCsvBuffer(const std::string &buffer) {
     csv << buffer;
 }
 
-void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result, std::ostream &stream) const {
+void EvaCamExplorer::MaybeWriteExplorationCsv(const std::shared_ptr<Result> &result,
+        const CandidateSpec &candidate, std::ostream &stream) const {
     if (!result || !DerivedValueHelpers::ShouldWriteExplorationCsv(config_->input)) {
         return;
     }
 
     result->printToCsvFile(stream);
+    stream << candidate.StableId() << ","
+        << candidate.rowDriverOptimizationLevel << ","
+        << candidate.priorityOptimizationLevel << ","
+        << candidate.bitSerialWidth << ",";
     stream << std::endl;
 }

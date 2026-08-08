@@ -125,3 +125,9 @@ The exploration CSV is emitted for full exploration. Its name is:
 ```
 
 `<prefix>` comes from `output.exploration_csv_prefix`. For a non-default YAML path, use CLI `--output`.
+
+Each row ends with four candidate-audit fields: a versioned canonical candidate
+identity, row-driver optimization level, priority-encoder optimization level,
+and bit-serial width. The identity serializes every modeled exploration input;
+it is not a floating-point metric hash. Rows with the same identity therefore
+represent the same canonical design candidate.

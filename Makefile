@@ -1,5 +1,7 @@
 CC=g++
-CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -fopenmp -MMD -MP \
+TSAN_CXX ?= clang++
+TSAN_STRESS_ITERATIONS ?= 1
+CPP_FLAGS=-std=c++17 -O0 -Wall -Wextra -Wpedantic -g3 -fno-omit-frame-pointer -pthread -MMD -MP \
 	-I$(ROOT_DIR)/include \
 	-I$(ROOT_DIR)/include/app \
 	-I$(ROOT_DIR)/include/cam \
@@ -30,6 +32,16 @@ COVERAGE_XML=$(COVERAGE_REPORT_DIR)/coverage.xml
 GCOVR ?= gcovr
 COVERAGE_CPP_FLAGS=$(CPP_FLAGS) --coverage -fprofile-abs-path
 COVERAGE_LD_LIBS=$(LD_LIBS) --coverage
+TSAN_ROOT_DIR=$(ROOT_DIR)/thread-sanitizer
+TSAN_DIR=$(TSAN_ROOT_DIR)/$(notdir $(TSAN_CXX))
+TSAN_OBJ_DIR=$(TSAN_DIR)/obj
+TSAN_TEST_BIN_DIR=$(TSAN_DIR)/test-bin
+TSAN_EXPLORER_TEST_BIN=$(TSAN_TEST_BIN_DIR)/EvaCamExplorerTest
+TSAN_EXPLORER_TEST_SOURCE=tests/EvaCamExplorerTest.cpp
+TSAN_RUN_EVACAM_CONCURRENCY_TEST_BIN=$(TSAN_TEST_BIN_DIR)/RunEvaCamConcurrencyTest
+TSAN_RUN_EVACAM_CONCURRENCY_TEST_SOURCE=tests/RunEvaCamConcurrencyTest.cpp
+TSAN_CPP_FLAGS=$(CPP_FLAGS) -O1 -fsanitize=thread -fPIE
+TSAN_LD_LIBS=$(LD_LIBS) -fsanitize=thread -pie
 
 BIN=EvaCAM
 TEST_YAML_BIN=$(TEST_BIN_DIR)/YamlHelpersTest
@@ -89,8 +101,10 @@ TEST_RESULTS_SERIALIZATION_BIN=$(TEST_BIN_DIR)/ResultsSerializationTest
 TEST_OUTPUT_SERVICES_BIN=$(TEST_BIN_DIR)/OutputServicesTest
 TEST_APP_SERVICES_BIN=$(TEST_BIN_DIR)/AppServicesTest
 TEST_EVACAM_EXPLORER_BIN=$(TEST_BIN_DIR)/EvaCamExplorerTest
+TEST_DEEP_EXPLORATION_THREADING_BIN=$(TEST_BIN_DIR)/DeepExplorationThreadingTest
 TEST_EVACAM_MATCH_FOCUSED_BIN=$(TEST_BIN_DIR)/EvaCAMMatchFocusedTest
 TEST_RUN_EVACAM_BOUNDARY_BIN=$(TEST_BIN_DIR)/RunEvaCamBoundaryTest
+TEST_RUN_EVACAM_CONCURRENCY_BIN=$(TEST_BIN_DIR)/RunEvaCamConcurrencyTest
 PYBIND_MODULE_BASE=evacam_py
 PYBIND_MODULE=$(PYBIND_MODULE_BASE)$(shell python3-config --extension-suffix)
 PYBIND_OBJ_DIR=$(OBJ_DIR)/pybind
@@ -106,6 +120,9 @@ SOURCES=$(shell find $(SRC_DIR) -type f -name '*.cpp' | sort)
 # Create corresponding OBJ file paths in the object directory
 OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 OBJECTS_NO_MAIN=$(filter-out $(OBJ_DIR)/app/main.o, $(OBJECTS))
+TSAN_SOURCES=$(filter-out $(SRC_DIR)/app/main.cpp, $(SOURCES))
+TSAN_OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(TSAN_OBJ_DIR)/%.o, $(TSAN_SOURCES))
+TSAN_DEPS=$(TSAN_OBJECTS:.o=.d)
 PYBIND_OBJECTS=$(patsubst $(SRC_DIR)/%.cpp, $(PYBIND_OBJ_DIR)/%.o, $(filter-out $(SRC_DIR)/app/main.cpp, $(SOURCES)))
 DEPS=$(OBJECTS:.o=.d)
 PYBIND_DEPS=$(PYBIND_OBJECTS:.o=.d) $(PYBIND_BINDING_OBJECT:.o=.d)
@@ -129,6 +146,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 -include $(DEPS)
 -include $(PYBIND_DEPS)
+-include $(TSAN_DEPS)
+
+$(TSAN_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(TSAN_CXX) $(TSAN_CPP_FLAGS) -c $< -o $@
 
 $(PYBIND_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
@@ -141,7 +163,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-evacam-explorer test-evacam-match-focused test-run-evacam-boundary test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-evacam-explorer test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
 sync-python-package-data:
 	python3 scripts/sync_python_package_config_lib.py
 
@@ -169,6 +191,7 @@ UNIT_TEST_TARGETS=test-test-support test-derived-values test-config-normalizer t
 		test-bank-with-htree-coverage \
 		test-unit-formatter test-results-serialization test-output-services test-app-services \
 		test-evacam-explorer test-evacam-match-focused test-run-evacam-boundary \
+		test-run-evacam-concurrency \
 		test-yaml test-top-level-parser test-cell-loader test-cli-options \
 		test-custom-sa-loader test-technology-loader test-new-input-names \
 		test-input-validation test-output-path-builder test-exploration \
@@ -365,6 +388,33 @@ test-evacam-explorer: $(OBJECTS_NO_MAIN) tests/EvaCamExplorerTest.cpp tests/Test
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_EVACAM_EXPLORER_BIN)).d -MT $(TEST_EVACAM_EXPLORER_BIN) -o $(TEST_EVACAM_EXPLORER_BIN) tests/EvaCamExplorerTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	$(TEST_EVACAM_EXPLORER_BIN)
 
+test-deep-exploration-threading: $(OBJECTS_NO_MAIN) tests/DeepExplorationThreadingTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_DEEP_EXPLORATION_THREADING_BIN)).d -MT $(TEST_DEEP_EXPLORATION_THREADING_BIN) -o $(TEST_DEEP_EXPLORATION_THREADING_BIN) tests/DeepExplorationThreadingTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_DEEP_EXPLORATION_THREADING_BIN)
+
+$(TSAN_EXPLORER_TEST_BIN): $(TSAN_OBJECTS) $(TSAN_EXPLORER_TEST_SOURCE) tests/TestSupport.h
+	@mkdir -p $(TSAN_TEST_BIN_DIR)
+	$(TSAN_CXX) $(TSAN_CPP_FLAGS) -o $@ $(TSAN_EXPLORER_TEST_SOURCE) $(TSAN_OBJECTS) $(TSAN_LD_LIBS)
+
+$(TSAN_RUN_EVACAM_CONCURRENCY_TEST_BIN): $(TSAN_OBJECTS) $(TSAN_RUN_EVACAM_CONCURRENCY_TEST_SOURCE) tests/TestSupport.h
+	@mkdir -p $(TSAN_TEST_BIN_DIR)
+	$(TSAN_CXX) $(TSAN_CPP_FLAGS) -o $@ $(TSAN_RUN_EVACAM_CONCURRENCY_TEST_SOURCE) $(TSAN_OBJECTS) $(TSAN_LD_LIBS)
+
+test-thread-sanitizer: $(TSAN_EXPLORER_TEST_BIN) $(TSAN_RUN_EVACAM_CONCURRENCY_TEST_BIN)
+	@iteration=1; while [ $$iteration -le $(TSAN_STRESS_ITERATIONS) ]; do \
+		echo "ThreadSanitizer stress iteration $$iteration/$(TSAN_STRESS_ITERATIONS)"; \
+		TSAN_OPTIONS=halt_on_error=1:detect_deadlocks=1:second_deadlock_stack=1 $(TSAN_EXPLORER_TEST_BIN) || exit $$?; \
+		TSAN_OPTIONS=halt_on_error=1:detect_deadlocks=1:second_deadlock_stack=1 $(TSAN_RUN_EVACAM_CONCURRENCY_TEST_BIN) || exit $$?; \
+		iteration=$$((iteration + 1)); \
+	done
+
+test-thread-helgrind: test-evacam-explorer test-run-evacam-concurrency
+	valgrind --tool=helgrind --error-exitcode=1 --fair-sched=yes \
+		--history-level=full $(TEST_EVACAM_EXPLORER_BIN)
+	valgrind --tool=helgrind --error-exitcode=1 --fair-sched=yes \
+		--history-level=full $(TEST_RUN_EVACAM_CONCURRENCY_BIN)
+
 test-evacam-match-focused: $(OBJECTS_NO_MAIN) tests/EvaCAMMatchFocusedTest.cpp tests/TestSupport.h
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_EVACAM_MATCH_FOCUSED_BIN)).d -MT $(TEST_EVACAM_MATCH_FOCUSED_BIN) -o $(TEST_EVACAM_MATCH_FOCUSED_BIN) tests/EvaCAMMatchFocusedTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
@@ -374,6 +424,11 @@ test-run-evacam-boundary: $(BIN) $(OBJECTS_NO_MAIN) tests/RunEvaCamBoundaryTest.
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_RUN_EVACAM_BOUNDARY_BIN)).d -MT $(TEST_RUN_EVACAM_BOUNDARY_BIN) -o $(TEST_RUN_EVACAM_BOUNDARY_BIN) tests/RunEvaCamBoundaryTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	$(TEST_RUN_EVACAM_BOUNDARY_BIN)
+
+test-run-evacam-concurrency: $(OBJECTS_NO_MAIN) tests/RunEvaCamConcurrencyTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/$(notdir $(TEST_RUN_EVACAM_CONCURRENCY_BIN)).d -MT $(TEST_RUN_EVACAM_CONCURRENCY_BIN) -o $(TEST_RUN_EVACAM_CONCURRENCY_BIN) tests/RunEvaCamConcurrencyTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_RUN_EVACAM_CONCURRENCY_BIN)
 
 test-yaml: $(OBJECTS_NO_MAIN)
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
@@ -527,7 +582,7 @@ open-uml: uml
 
 .PHONY: clean
 clean:
-	@rm -rf $(OBJ_DIR) $(TEST_BIN_DIR) $(BIN) \
+	@rm -rf $(OBJ_DIR) $(TEST_BIN_DIR) $(TSAN_ROOT_DIR) $(BIN) \
 		$(PYBIND_MODULE_BASE)*.so $(PYBIND_MODULE_BASE)*.d \
 		tests/tmp_cell_config.yaml tests/tmp_cell_variation.yaml tests/tmp_variation_cell_config.yaml tests/tmp_variation_system_config.yaml \
 		tests/tmp_top_level.config.yaml tests/tmp_top_level.architecture.yaml \

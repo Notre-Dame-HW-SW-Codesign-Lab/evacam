@@ -7,6 +7,17 @@ not an assertion that the current model outputs are SPICE-validated.
 ## Current status
 
 - Exhaustive exploration is the supported behavior.
+- Structurally valid candidates are canonicalized and deduplicated by their
+  complete modeled-input identity before bank construction. This removes
+  equivalent inactive-option settings, but it is not performance pruning.
+- Constrained optimization reuses compact metrics from the exhaustive pass and
+  reconstructs only the unique winning organizations; it does not model the
+  entire design space a second time.
+- Parallel exploration uses fixed C++ worker threads. Workers only mutate their
+  own result/count/accounting slots and the output slot for their assigned outer
+  geometry. After every worker is joined, the main thread merges those slots in
+  canonical order and resolves exact metric ties by canonical candidate identity.
+  The validated configuration and model inputs are read-only during this pass.
 - `exploration.enable_pruning: true` is rejected because pruning semantics have
   not yet been agreed upon.
 - Configuration and model-file loaders reject non-finite and physically invalid

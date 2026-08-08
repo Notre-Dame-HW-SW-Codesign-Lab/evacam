@@ -1,8 +1,5 @@
 #include "EvaCamRun.h"
 
-#include <iostream>
-#include <sstream>
-
 #include "EvaCamContextBuilder.h"
 #include "EvaCamExplorer.h"
 #include "EvaCamOutput.h"
@@ -11,29 +8,6 @@
 #include "input/CliOptions.h"
 
 namespace {
-
-class ScopedStdoutRedirect {
-    public:
-        explicit ScopedStdoutRedirect(bool enabled) : enabled_(enabled) {
-            if (enabled_) {
-                previous_ = std::cout.rdbuf(buffer_.rdbuf());
-            }
-        }
-
-        ~ScopedStdoutRedirect() {
-            if (enabled_) {
-                std::cout.rdbuf(previous_);
-            }
-        }
-
-        ScopedStdoutRedirect(const ScopedStdoutRedirect&) = delete;
-        ScopedStdoutRedirect& operator=(const ScopedStdoutRedirect&) = delete;
-
-    private:
-        bool enabled_;
-        std::ostringstream buffer_;
-        std::streambuf *previous_ = nullptr;
-};
 
 CliOptions BuildCliOptions(const EvaCamRunOptions &options) {
     CliOptions cliOptions;
@@ -49,8 +23,6 @@ CliOptions BuildCliOptions(const EvaCamRunOptions &options) {
 }  // namespace
 
 EvaCamRunResultDto RunEvaCam(const EvaCamRunOptions &options) {
-    ScopedStdoutRedirect stdoutRedirect(!options.stdoutOutput);
-
     CliOptions cliOptions = BuildCliOptions(options);
     EvaCamContext context = EvaCamContextBuilder::Build(cliOptions);
     auto config = context.config;

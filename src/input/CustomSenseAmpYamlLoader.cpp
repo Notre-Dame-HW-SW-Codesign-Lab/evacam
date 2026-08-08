@@ -1,5 +1,6 @@
 #include "input/CustomSenseAmpYamlLoader.h"
 
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -71,6 +72,7 @@ void ReadCustomSenseAmpFromYaml(
         SenseAmp& senseAmp,
         const std::string& inputFile,
         double featureSize) {
+    std::lock_guard<std::recursive_mutex> parserLock(ParserMutex());
     YamlHelpers::require_positive(featureSize, "sense_amp feature size");
     if (!is_yaml_file(inputFile)) {
         throw std::runtime_error(

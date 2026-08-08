@@ -7,10 +7,19 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <mutex>
 #include <string>
 #include <vector>
 
 namespace {
+
+void TestParserMutexIsProcessWideAndRecursive() {
+    std::recursive_mutex &first = YamlHelpers::ParserMutex();
+    std::recursive_mutex &second = YamlHelpers::ParserMutex();
+    assert(&first == &second);
+    std::lock_guard<std::recursive_mutex> outer(first);
+    std::lock_guard<std::recursive_mutex> inner(second);
+}
 
 void ExpectThrows(const std::function<void()>& action, const std::string& text) {
     try {
@@ -159,6 +168,7 @@ void TestQuantityPrivateParserBehaviorAndErrors() {
 }  // namespace
 
 int main() {
+    TestParserMutexIsProcessWideAndRecursive();
     TestNodeKindsChildrenAndIndices();
     TestBooleanKeysSchemaSuffixesAndUnknownKeys();
     TestReadTemplatesAndValidationTemplates();

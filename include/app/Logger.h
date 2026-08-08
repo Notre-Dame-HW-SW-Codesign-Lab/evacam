@@ -67,16 +67,25 @@ class Logger {
             return enabled_;
         }
 
+        void SetOutputEnabled(bool enabled) {
+            outputEnabled_ = enabled;
+        }
+
+        bool IsOutputEnabled() const {
+            return outputEnabled_;
+        }
+
         Line Log() const {
-            return Line(&std::cout);
+            return Line(outputEnabled_ ? &std::cout : nullptr);
         }
 
         Line Verbose() const {
-            return Line(enabled_ ? &std::cout : nullptr);
+            return Line(enabled_ && outputEnabled_ ? &std::cout : nullptr);
         }
 
     private:
         bool enabled_;
+        bool outputEnabled_ = true;
 };
 
 #endif /* LOGGER_H_ */

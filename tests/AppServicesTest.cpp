@@ -40,6 +40,13 @@ void TestLoggerOutputAndManipulators() {
     assert(disabled.IsVerbose());
     disabled.Verbose() << "shown " << std::hex << 255 << std::dec << ' ' << 10;
     disabled.Verbose() << "manipulator" << std::endl;
+    assert(disabled.IsOutputEnabled());
+    disabled.SetOutputEnabled(false);
+    assert(!disabled.IsOutputEnabled());
+    disabled.Log() << "hidden while output is disabled";
+    disabled.Verbose() << "also hidden";
+    disabled.SetOutputEnabled(true);
+    assert(disabled.IsOutputEnabled());
 
     const std::vector<std::string> lines = Lines(capture.Text());
     assert(lines.size() == 4);

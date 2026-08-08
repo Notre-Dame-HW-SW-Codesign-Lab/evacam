@@ -3,9 +3,12 @@ name: cpp-tests
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "17 5 * * 0"
 
 jobs:
   test-cpp:
+    if: github.event_name != 'schedule'
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
@@ -51,8 +54,10 @@ jobs:
           - test-output-services
           - test-app-services
           - test-evacam-explorer
+          - test-deep-exploration-threading
           - test-evacam-match-focused
           - test-run-evacam-boundary
+          - test-run-evacam-concurrency
           - test-yaml
           - test-top-level-parser
           - test-cell-loader
@@ -104,8 +109,59 @@ jobs:
       - name: Run ${{ matrix.target }}
         run: make ${{ matrix.target }}
 
+  thread-sanitizer:
+    name: Clang ThreadSanitizer
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ThreadSanitizer build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang make libyaml-cpp-dev
+
+      - name: Run ThreadSanitizer
+        if: github.event_name != 'schedule'
+        run: make test-thread-sanitizer
+
+      - name: Run scheduled ThreadSanitizer stress
+        if: github.event_name == 'schedule'
+        run: make TSAN_STRESS_ITERATIONS=5 test-thread-sanitizer
+
+  scheduled-helgrind:
+    name: Scheduled Helgrind stress
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Helgrind build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++ make libyaml-cpp-dev valgrind
+
+      - name: Run Helgrind stress
+        run: make test-thread-helgrind
+
   coverage:
     name: GCC branch coverage
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
 
     steps:

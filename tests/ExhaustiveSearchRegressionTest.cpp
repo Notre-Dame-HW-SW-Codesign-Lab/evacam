@@ -58,9 +58,21 @@ int main() {
     const EvaCamExplorationResult unconstrained = RunSearch(false);
     const EvaCamExplorationResult permissivelyConstrained = RunSearch(true);
 
-    // 3 buffer x 3 row-driver x 3 priority x 2 local-wire x 2 global-wire.
-    assert(unconstrained.numSolution == 108);
+    // The priority encoder is disabled, so its three configured optimization
+    // levels canonicalize to one physical candidate before bank modeling.
+    // Raw: 3 buffer x 3 row-driver x 3 priority x 2 local x 2 global = 108.
+    // Unique: 3 buffer x 3 row-driver x 1 priority x 2 local x 2 global = 36.
+    assert(unconstrained.candidateAccounting.rawCandidates == 108);
+    assert(unconstrained.candidateAccounting.duplicateCandidates == 72);
+    assert(unconstrained.candidateAccounting.modeledCandidates == 36);
+    assert(unconstrained.numSolution == 36);
     assert(permissivelyConstrained.numSolution == unconstrained.numSolution);
+    assert(permissivelyConstrained.candidateAccounting.rawCandidates == 108);
+    assert(permissivelyConstrained.candidateAccounting.duplicateCandidates == 72);
+    assert(permissivelyConstrained.candidateAccounting.modeledCandidates == 36);
+    assert(permissivelyConstrained.candidateAccounting.retainedCandidates == 36);
+    assert(permissivelyConstrained.candidateAccounting.reconstructionEvaluations <=
+            static_cast<long long>(full_exploration));
     assert(permissivelyConstrained.bestResults.size()
             == unconstrained.bestResults.size());
 

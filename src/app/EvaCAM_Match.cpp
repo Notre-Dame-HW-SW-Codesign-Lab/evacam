@@ -1,6 +1,7 @@
 #include "EvaCAM_Match.h"
 
 #include <algorithm>
+#include <mutex>
 #include <stdexcept>
 
 #include "Bank.h"
@@ -10,11 +11,16 @@
 #include "EvaCamConfig.h"
 #include "Wire.h"
 #include "config/EvaCamConfigValidator.h"
+#include "input/YamlNodeHelpers.h"
 
 EvaCAM_Match::EvaCAM_Match(const std::string &configPath) {
     config = std::make_shared<EvaCamConfig>();
     config->SetDeepExploration(false);
-    config->ReadConfigFromFile(configPath);
+    {
+        std::lock_guard<std::recursive_mutex> parserLock(
+                YamlHelpers::ParserMutex());
+        config->ReadConfigFromFile(configPath);
+    }
     EvaCamConfigValidator::Validate(*config);
 
     InitializeConfiguredBank();

@@ -82,7 +82,8 @@ void AssertThrows(Callable &&callable, const std::string &messageSubstring) {
 class StreamCapture {
     public:
         explicit StreamCapture(std::ostream &stream)
-            : stream_(stream), originalBuffer_(stream.rdbuf(buffer_.rdbuf())) {}
+            : stream_(stream), buffer_(),
+              originalBuffer_(stream.rdbuf(buffer_.rdbuf())) {}
 
         StreamCapture(const StreamCapture&) = delete;
         StreamCapture& operator=(const StreamCapture&) = delete;
@@ -104,8 +105,8 @@ class StreamCapture {
 
     private:
         std::ostream &stream_;
-        std::streambuf *originalBuffer_;
         std::ostringstream buffer_;
+        std::streambuf *originalBuffer_;
 };
 
 class TemporaryDirectory {

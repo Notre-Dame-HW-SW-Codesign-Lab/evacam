@@ -27,7 +27,8 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
     config = _config;
     if(isCustom) {
         // TODO Customizable Input Encoder
-        std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
+        config->logger.Log()
+            << "[CAM_InputEncoder] Error: Customized input encoder is under development.";
         return;
     }
     else if(typeEncoder == encoding_two_bit) {
@@ -42,7 +43,8 @@ void CAM_InputEncoder::Initialize(TypeOfInputEncoder _typeEncoder, bool _isCusto
     }
     else {
         // TODO Encoding scheme look up table
-        std::cout<<"[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version."<<std::endl;
+        config->logger.Log()
+            << "[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version.";
         return;
     }
 }
@@ -53,7 +55,8 @@ void CAM_InputEncoder::CalculateArea(){
     } else {
         if(isCustom) {
             // TODO Customizable Input Encoder
-            std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Customized input encoder is under development.";
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
@@ -68,7 +71,8 @@ void CAM_InputEncoder::CalculateArea(){
         }
         else {
             // TODO Encoding scheme look up table
-            std::cout<<"[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version.";
             return;
         }
     }
@@ -80,7 +84,8 @@ void CAM_InputEncoder::CalculateRC() {
     } else {
         if(isCustom) {
             // TODO Customizable Input Encoder
-            std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Customized input encoder is under development.";
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
@@ -89,7 +94,8 @@ void CAM_InputEncoder::CalculateRC() {
         }
         else {
             // TODO Encoding scheme look up table
-            std::cout<<"[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version.";
             return;
         }
     }
@@ -102,7 +108,8 @@ void CAM_InputEncoder::CalculateLatency(double _rampInput) {
 
         if(isCustom) {
             // TODO Customizable Input Encoder
-            std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Customized input encoder is under development.";
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
@@ -128,7 +135,8 @@ void CAM_InputEncoder::CalculateLatency(double _rampInput) {
         }
         else {
             // TODO Encoding scheme look up table
-            std::cout<<"[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version.";
             return;
         }
     }
@@ -140,7 +148,8 @@ void CAM_InputEncoder::CalculatePower() {
     } else {
         if(isCustom) {
             // TODO Customizable Input Encoder
-            std::cout<<"[CAM_InputEncoder] Error: Customized input encoder is under development."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Customized input encoder is under development.";
             return;
         }
         else if(typeEncoder == encoding_two_bit) {
@@ -157,7 +166,8 @@ void CAM_InputEncoder::CalculatePower() {
         }
         else {
             // TODO Encoding scheme look up table
-            std::cout<<"[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version."<<std::endl;
+            config->logger.Log()
+                << "[CAM_InputEncoder] Error: Two-bit encoder in JSSC11 is the only scheme supported in this version.";
             return;
         }
     }
