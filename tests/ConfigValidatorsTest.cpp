@@ -206,7 +206,8 @@ void TestInputRuleValidatorRejectsCamModelAndPortRules() {
 
 void TestInputRuleValidatorValidatesMcamStateBoundaries() {
     const std::string validMcam =
-            "mcam:\n  num_resistance_state: 2\n  resistance_state: [1kohm, 2kohm]\n";
+            "mcam:\n  num_resistance_state: 2\n  resistance_state: [1kohm, 2kohm]\n"
+            "  searchline_voltage: [0.2V, 0.8V]\n";
     ValidationFixture accepted("FEFETRAM", "MCAM", validMcam);
     accepted.ValidateInput();
 
@@ -217,11 +218,19 @@ void TestInputRuleValidatorValidatesMcamStateBoundaries() {
     ValidationFixture negativeResistance("FEFETRAM", "MCAM",
             "mcam:\n  num_resistance_state: 2\n  resistance_state: [1kohm, 0ohm]\n");
     AssertThrows<std::runtime_error>([&] { negativeResistance.ValidateInput(); }, "must be positive");
+
+    ValidationFixture nonPowerOfTwo("FEFETRAM", "MCAM",
+            "mcam:\n  num_resistance_state: 3\n"
+            "  resistance_state: [1kohm, 2kohm, 3kohm]\n"
+            "  searchline_voltage: [0.2V, 0.5V, 0.8V]\n");
+    AssertThrows<std::runtime_error>([&] { nonPowerOfTwo.ValidateInput(); },
+            "power of two");
 }
 
 void TestInputRuleValidatorEnforcesSupportedMcamTopology() {
     const std::string mcam =
-            "mcam:\n  num_resistance_state: 2\n  resistance_state: [1kohm, 2kohm]\n";
+            "mcam:\n  num_resistance_state: 2\n  resistance_state: [1kohm, 2kohm]\n"
+            "  searchline_voltage: [0.2V, 0.8V]\n";
     const std::string twoSearchlines =
             "    0: {type: searchline, cmos_region: gate}\n"
             "    1: {type: searchline, cmos_region: gate}\n";
@@ -298,7 +307,8 @@ void TestInputRuleValidatorInfersCamTypeFromCellName() {
     AssertThrows<std::runtime_error>([&] { inferredAcam.ValidateInput(); }, "ACAM is not supported");
 
     ValidationFixture inferredMcam("FEFETRAM", "TCAM",
-            "mcam:\n  resistance_state: [1kohm, 2kohm]\n");
+            "mcam:\n  resistance_state: [1kohm, 2kohm]\n"
+            "  searchline_voltage: [0.2V, 0.8V]\n");
     inferredMcam.config->input.fileMemCell = inferredMcam.directory.WriteFile("mcam-cell.yaml",
             MakeCellYaml("TCAM").replace(MakeCellYaml("TCAM").find("cam_type: TCAM\n"), 15, "")).string();
     inferredMcam.ValidateInput();
@@ -338,30 +348,41 @@ void TestInputRuleValidatorValidatesCamPortPresenceAndConnections() {
     AssertThrows<std::runtime_error>([&] { unsupportedConnection.ValidateInput(); }, "unsupported connection.kind");
 }
 
-// Mapping: MCAM sequence/map states, optional state voltages, pairing, topology,
-// and complementary-voltage limits all execute ValidateMcamResistanceStates.
+// Mapping: MCAM sequence/map states, optional state voltages, paper-style
+// analog-inverse pairing, and topology all execute ValidateMcamResistanceStates.
 void TestInputRuleValidatorValidatesMcamMapsAndVoltages() {
     const std::string ports = "    0: {type: searchline, cmos_region: gate}\n    1: {type: searchline, cmos_region: gate}\n";
     ValidationFixture mapStates("FEFETRAM", "MCAM",
             "mcam:\n  num_resistance_state: 2\n  resistance_state: {0: 1kohm, 1: 2kohm}\n"
-            "  ml_precharge_voltage: {0: 0V, 1: 1V}\n  searchline_voltage: [1V, 1V]\n  center_voltage: 1V\n",
+            "  ml_precharge_voltage: {0: 0V, 1: 1V}\n  searchline_voltage: [0.2V, 0.8V]\n",
             ports);
     mapStates.ValidateInput();
     ValidationFixture missingState("FEFETRAM", "MCAM",
             "mcam:\n  num_resistance_state: 2\n  resistance_state: {0: 1kohm}\n");
-    AssertThrows<std::runtime_error>([&] { missingState.ValidateInput(); }, "invalid node");
-    ValidationFixture unpaired("FEFETRAM", "MCAM",
+    AssertThrows<std::runtime_error>([&] { missingState.ValidateInput(); },
+            "must contain exactly");
+    ValidationFixture derivedCenter("FEFETRAM", "MCAM",
             "mcam:\n  resistance_state: [1kohm, 2kohm]\n  searchline_voltage: [1V, 1V]\n");
-    AssertThrows<std::runtime_error>([&] { unpaired.ValidateInput(); }, "provided together");
+    AssertThrows<std::runtime_error>([&] { derivedCenter.ValidateInput(); },
+            "must be distinct");
+    ValidationFixture missingVariationState("FEFETRAM", "MCAM",
+            "mcam:\n  resistance_state: [1kohm, 2kohm]\n"
+            "  state_variation: [5%]\n"
+            "  searchline_voltage: [0.2V, 0.8V]\n");
+    AssertThrows<std::runtime_error>([&] { missingVariationState.ValidateInput(); },
+            "mcam.state_variation must define every configured resistance state");
     ValidationFixture wrongRows("FEFETRAM", "MCAM",
-            "mcam:\n  resistance_state: [1kohm, 2kohm]\n  searchline_voltage: [1V, 1V]\n  center_voltage: 1V\n");
+            "mcam:\n  resistance_state: [1kohm, 2kohm]\n  searchline_voltage: [0.2V, 0.8V]\n");
     wrongRows.config->input.fileMemCell = wrongRows.directory.WriteFile("one-row-cell.yaml",
             MakeCellYaml("MCAM",
                     "    0: {type: searchline, cmos_region: gate}\n")).string();
     AssertThrows<std::runtime_error>([&] { wrongRows.ValidateInput(); }, "exactly two row ports");
-    ValidationFixture negativeComplement("FEFETRAM", "MCAM",
-            "mcam:\n  resistance_state: [1kohm, 2kohm]\n  searchline_voltage: [3V, 1V]\n  center_voltage: 1V\n", ports);
-    AssertThrows<std::runtime_error>([&] { negativeComplement.ValidateInput(); }, "complementary");
+    ValidationFixture invalidAnalogInverse("FEFETRAM", "MCAM",
+            "mcam:\n  num_resistance_state: 4\n"
+            "  resistance_state: [1kohm, 2kohm, 3kohm, 4kohm]\n"
+            "  searchline_voltage: [0.1V, 0.4V, 0.8V, 1V]\n", ports);
+    AssertThrows<std::runtime_error>(
+            [&] { invalidAnalogInverse.ValidateInput(); }, "analog-inverse");
 }
 
 // Mapping: supported sense modes plus custom/default sense-amp file validation,

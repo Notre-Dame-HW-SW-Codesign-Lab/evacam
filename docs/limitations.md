@@ -27,6 +27,14 @@ Known unsupported or incomplete modes:
 - `eDRAM` is under development
 - `MLCNAND` is under development
 
+## MCAM
+
+- MCAM is limited to the shipped two-FeFET topology: `FEFETRAM`, no access device, two gate-connected searchlines, and two drain-connected matchlines.
+- Exact integer-vector and array evaluation is supported for symbols in `0..num_resistance_state-1`.
+- Best-match and threshold MCAM evaluation are not implemented.
+- The shipped resistance states and eight-state searchline voltages are provisional infrastructure examples, not calibrated device-correlation data.
+- A configured `read.min_sense_voltage` greater than zero rejects a nominal exact-match boundary below that margin. The shipped provisional fixture uses `0V` to leave this gate disabled.
+
 ## Geometry And Sizing Rules
 
 - Fixed geometry values in `organization.*` are interpreted as powers-of-two domains

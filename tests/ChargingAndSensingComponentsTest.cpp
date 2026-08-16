@@ -164,6 +164,13 @@ void TestSenseAmpVoltageAndCurrentModes() {
             "current sense includes converter energy");
     Require(current.leakage > voltage.leakage, "current sense includes converter leakage");
 
+    const double configuredVoltageLatency = voltage.readLatency;
+    voltage.CalculateLatency(0.01);
+    Require(voltage.readLatency > configuredVoltageLatency,
+            "a smaller observed sense signal must take longer to resolve");
+    AssertThrows<std::invalid_argument>(
+            [&]() { voltage.CalculateLatency(0); }, "must be positive");
+
     const double firstEnergy = current.readDynamicEnergy;
     current.CalculatePower();
     AssertNear(current.readDynamicEnergy, firstEnergy);

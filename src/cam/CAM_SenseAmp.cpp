@@ -132,6 +132,10 @@ void CAM_SenseAmp::CalculateRC() {
 }
 
 void CAM_SenseAmp::CalculateLatency() {
+    CalculateLatency(senseVoltage);
+}
+
+void CAM_SenseAmp::CalculateLatency(double observedSenseVoltage) {
     if (!initialized) {
         ThrowInitializationError("[CAM_SenseAmp]");
     } else {
@@ -141,7 +145,7 @@ void CAM_SenseAmp::CalculateLatency() {
             writeLatency = readLatency;
         }
         else if (typeSA == nvsim_voltage_sense || typeSA == nvsim_current_sense || typeSA == discharge) {
-            normalSenseAmp->CalculateLatency();
+            normalSenseAmp->CalculateLatency(observedSenseVoltage);
             readLatency = normalSenseAmp->readLatency;
             writeLatency = normalSenseAmp->writeLatency;
         }

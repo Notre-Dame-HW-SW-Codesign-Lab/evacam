@@ -40,6 +40,17 @@ Fixture MakeFixture() {
     return {context.config, result, result->bank->mat->subarray.get()};
 }
 
+Fixture MakeMcamFixture() {
+    CliOptions options;
+    options.inputFileName = "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml";
+    EvaCamContext context = EvaCamContextBuilder::Build(options);
+    EvaCamExplorer explorer(context.config, 1);
+    EvaCamExplorationResult exploration = explorer.Run();
+    std::shared_ptr<Result> result = exploration.bestResults.at(leakage_optimized);
+    assert(result && result->bank && result->bank->mat && result->bank->mat->subarray);
+    return {context.config, result, result->bank->mat->subarray.get()};
+}
+
 void ConfigureMonteCarlo(Fixture &fixture, int samples = 7) {
     VariationConfig &variation = fixture.config->variation;
     variation.enabled = true;
@@ -201,6 +212,46 @@ void TestPowerSummaryAndCellReadEnergy() {
     assert(singleSubarray.variationSummary.searchDynamicEnergy.sample > 0.0);
 }
 
+void TestMcamExactMatchStateVariationIsDeterministic() {
+    Fixture fixture = MakeMcamFixture();
+    CAM_SubArray &subarray = *fixture.subarray;
+    auto &cell = *fixture.config->technology.cell;
+    cell.hasMcamStateVariations = true;
+    for (int state = 0; state < cell.numResistanceState; state++) {
+        cell.resStateVariation[state] = 0.15;
+    }
+
+    VariationConfig &variation = fixture.config->variation;
+    variation.enabled = true;
+    variation.mode = "monte_carlo";
+    variation.samples = 7;
+    variation.seed = 9876u;
+    variation.monteCarloGranularity = "cell";
+
+    std::vector<int> stored(subarray.CAM_opt.BitSerialWidth);
+    for (size_t index = 0; index < stored.size(); index++) {
+        stored[index] = static_cast<int>(index % cell.numResistanceState);
+    }
+    std::vector<int> query = stored;
+    query[0] = (query[0] + 1) % cell.numResistanceState;
+
+    const EvaCAMMatchResult first = subarray.EvaluateMcamExactMatch(stored, query);
+    const EvaCAMMatchResult repeated = subarray.EvaluateMcamExactMatch(stored, query);
+    assert(!first.hit && !repeated.hit);
+    assert(first.searchLatency == repeated.searchLatency);
+    assert(first.searchDynamicEnergy == repeated.searchDynamicEnergy);
+    assert(first.matchlineDelay == repeated.matchlineDelay);
+    assert(first.senseMargin == repeated.senseMargin);
+    assert(std::isfinite(first.searchLatency) && first.searchLatency > 0);
+    assert(std::isfinite(first.searchDynamicEnergy) && first.searchDynamicEnergy > 0);
+
+    variation.seed++;
+    const EvaCAMMatchResult differentSeed =
+            subarray.EvaluateMcamExactMatch(stored, query);
+    assert(!Near(first.matchlineDelay, differentSeed.matchlineDelay)
+            || !Near(first.senseMargin, differentSeed.senseMargin));
+}
+
 }  // namespace
 
 int main() {
@@ -208,6 +259,7 @@ int main() {
     TestMonteCarloCellAndCornerResistanceSamples();
     TestTimingSummaryHandlesDisabledSinglePointAndMonteCarlo();
     TestPowerSummaryAndCellReadEnergy();
+    TestMcamExactMatchStateVariationIsDeterministic();
     std::cout << "CAM_SubArray variation tests passed\n";
     return 0;
 }

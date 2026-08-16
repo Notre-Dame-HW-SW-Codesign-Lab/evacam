@@ -3,6 +3,28 @@
 #include "Result.h"
 #include "UnitFormatter.h"
 
+namespace {
+
+double LocalSearchLatency(const Result &result) {
+    const auto &bank = result.bank;
+    const auto &subarray = bank->mat->subarray;
+    if (result.config->peripherals.noPrechargeInc) {
+        return subarray->matchlineDelay
+            + subarray->ColMux[subarray->indexMatchline]->readLatency
+            + subarray->senseAmpLatency
+            + subarray->outputAcc->readLatency;
+    }
+
+    double latency = subarray->searchLatency * bank->mat->muxSenseAmp
+        - subarray->inputBuf->readLatency * (bank->mat->muxSenseAmp - 1);
+    if (result.config->peripherals.withOutputAcc) {
+        latency *= result.config->input.wordWidth / bank->CAM_opt.BitSerialWidth;
+    }
+    return latency;
+}
+
+}  // namespace
+
 void Result::print() {
     // std::cout << "Bank Area: " << bank->area * 1e12 << std::endl;
     // std::cout << "Bank Search Latency: " << bank->searchLatency * 1e9 << std::endl;
@@ -180,12 +202,13 @@ void Result::print() {
         * bank->capacity / bank->area * 100 << "%" << std::endl;
     std::cout << "Timing:" << std::endl;
 
-    std::cout << " -  Search Latency = " << ToSecond(bank->readLatency) << std::endl;
+    const double localSearchLatency = LocalSearchLatency(*this);
+    std::cout << " -  Search Latency = " << ToSecond(bank->searchLatency) << std::endl;
     if (config->input.routingMode == h_tree)
-        std::cout << " |--- H-Tree Latency = " << ToSecond(bank->readLatency - bank->mat->readLatency) << std::endl;
+        std::cout << " |--- H-Tree Latency = " << ToSecond(bank->searchLatency - localSearchLatency) << std::endl;
     else
-        std::cout << " |--- Non-H-Tree Latency = " << ToSecond(bank->readLatency - bank->mat->readLatency) << std::endl;
-    std::cout << " |--- Mat Latency    = " << ToSecond(bank->mat->readLatency) << std::endl;
+        std::cout << " |--- Non-H-Tree Latency = " << ToSecond(bank->searchLatency - localSearchLatency) << std::endl;
+    std::cout << " |--- Mat Latency    = " << ToSecond(localSearchLatency) << std::endl;
     std::cout << "    |--- Predecoder Latency = " << ToSecond(bank->mat->predecoderLatency) << std::endl;
     // std::cout << "       |--- Row Decoder Latency = " << ToSecond(bank->mat->subarray->rowDecoder->readLatency) << std::endl;
     // std::cout << "       |--- Matchline Latency     = " << ToSecond(bank->mat->subarray->MatchlineDelay) << std::endl;
@@ -416,7 +439,7 @@ void Result::print() {
             bank->mat->bitlineMuxPredecoderBlock1->leakage + bank->mat->bitlineMuxPredecoderBlock2->leakage +
             bank->mat->senseAmpMuxLev1PredecoderBlock1->leakage + bank->mat->senseAmpMuxLev1PredecoderBlock2->leakage +
             bank->mat->senseAmpMuxLev2PredecoderBlock1->leakage + bank->mat->senseAmpMuxLev2PredecoderBlock2->leakage ) << std::endl;
-    std::cout << "    |--- Subarray Leakage Power   = " << ToJoule(bank->mat->subarray->leakage) << std::endl;
+    std::cout << "    |--- Subarray Leakage Power   = " << ToWatt(bank->mat->subarray->leakage) << std::endl;
 
     std::cout << std::endl;        
     std::cout << "==============================================" << std::endl << "         RESULT BREAKDOWN (SUBARRAY)" << std::endl << "==============================================" << std::endl;

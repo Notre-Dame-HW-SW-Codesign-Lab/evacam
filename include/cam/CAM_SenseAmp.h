@@ -26,6 +26,7 @@ class CAM_SenseAmp: public FunctionUnit {
         void CalculateArea();
         void CalculateRC();
         void CalculateLatency();
+        void CalculateLatency(double observedSenseVoltage);
         void CalculatePower();
         /* Note that this is a single SA, not yet multiplied by number of columns */
         std::unique_ptr<SenseAmp> customSA;

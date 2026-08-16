@@ -50,9 +50,13 @@ void OutputDriver::Initialize(double _logicEffort, double _inputCap, double _out
 
         numStage = optimalNumStage;
 
-        /* A non-inverting latency-first driver can choose zero stages even when
-         * minDriverCurrent is nonzero. Confirm whether the current requirement
-         * should force a real final driver stage before changing this behavior. */
+        /* A real capacitive load must be driven by at least one inverter. A
+         * zero-stage chain neither models that load nor produces an output
+         * ramp, which causes downstream Horowitz delays to become infinite. */
+        if (numStage == 0 && (outputCap > 0 || minDriverCurrent > 0)) {
+            effectiveDesignTarget = latency_area_trade_off;
+        }
+
         if (numStage > 0) {
             double f = pow(F, 1.0 / (optimalNumStage + 1));	/* Logic effort per stage */
             double inputCapLast = outputCap / f;

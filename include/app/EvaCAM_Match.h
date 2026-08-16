@@ -62,6 +62,7 @@ class EvaCAM_Match {
         void ValidateThresholdSenseMargin(int maxMismatches) const;
         void ValidateVectorLength(size_t size, const char *name) const;
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
+        void ValidateMcamVector(const std::vector<int> &value, const char *name) const;
         void ValidateTcamStoredVector(const std::vector<int> &value, const char *name) const;
         Wire CreateLocalWire() const;
         Wire CreateGlobalWire() const;

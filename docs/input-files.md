@@ -141,7 +141,29 @@ Memory-device files own electrical behavior and variation. Common sections are:
 MCAM is currently limited to the shipped 2FeFET topology: a `FEFETRAM`
 memory device, `access_device.type: none`, two gate-connected searchline row
 ports, and two drain-connected matchline column ports. Both port maps must use
-the indices `0` and `1`.
+the indices `0` and `1`. The `mcam` section must define
+`num_resistance_state`, one positive `resistance_state` and one non-negative
+`searchline_voltage` for every state. The state count must be a power of two,
+and MCAM match inputs are integer symbols from `0` through
+`num_resistance_state - 1`.
+
+EvaCAM sorts the resistance table internally from HRS to LRS. Distance `0`
+therefore represents the all-match HRS path, while increasing absolute symbol
+distance selects progressively lower resistance paths. Optional
+`state_variation` and `ml_precharge_voltage` collections must also contain one
+entry per state when present. Without `ml_precharge_voltage`, MCAM reads use
+the technology `Vdd` as the matchline precharge voltage.
+
+EvaCAM also sorts the searchline-voltage table from low to high. Following the
+paper's analog-inverse scheme, symbol `s` drives the paired FeFET gates with
+`V[s]` and `V[N - 1 - s]`. Every reversed pair must have the same sum. EvaCAM
+therefore derives the analog center as `(V[0] + V[N - 1]) / 2` and validates
+the other pairs against it; the center is not a separate input.
+
+The shipped eight-state resistance and searchline-voltage values are
+provisional infrastructure inputs, not a calibrated device model. The voltage
+table and complementary mapping are based on the illustrative 3-bit inputs in Kazemi et al.,
+[Scientific Reports 12, 19201 (2022)](https://www.nature.com/articles/s41598-022-23116-w).
 
 If the memory-device config contains a `variation` section, EvaCAM uses its
 built-in resistance variation model. Omit the section for nominal-only runs.
@@ -160,6 +182,11 @@ Supported memory-device variation controls:
 - `variation.lut_file` as an optional path to a future external variation LUT file
 
 For `single_point` and `monte_carlo`, use `*_stdev` fields such as `memory_device_resistance_on_stdev`; these are interpreted as bounded-Gaussian standard-deviation fractions. In Monte Carlo `cell` granularity, EvaCAM samples the effective memory resistance of each modeled matchline cell branch independently, then reduces those branches into the aggregate matchline resistance used by the timing model. In `effective` granularity, EvaCAM samples one effective on/off resistance pair per Monte Carlo sample and applies it across all modeled matchline cells. For `corner`, use `*_max_var` fields such as `memory_device_resistance_on_max_var`; these are interpreted as deterministic raw variation bounds, so `5%` produces low/high corners at `0.95x` and `1.05x` nominal resistance. Corner mode derives its own sample count from the number of active effective resistance components and ignores user-provided `variation.samples` and `variation.seed`.
+
+For MCAM exact-match calls, `mcam.state_variation` supplies the bounded-Gaussian
+fraction for each sorted resistance state in `single_point` and `monte_carlo`
+modes. Sampling is deterministic for a fixed seed and honors `cell` versus
+`effective` granularity.
 
 ## Units and Formatting
 

@@ -170,7 +170,6 @@ void TestVariationDefaultsWhenOmitted() {
     assert(cell.resistanceOnMaxVariation == 0.0);
     assert(cell.resistanceOffMaxVariation == 0.0);
     assert(cell.hasMcamSearchlineVoltages == false);
-    assert(cell.hasMcamCenterVoltage == false);
 }
 
 void TestVariationSectionParses() {
@@ -214,8 +213,8 @@ void TestMcamVoltagesParse() {
         "    1: 900mV\n"
         "    2: 0.75V\n"
         "    3: 600mV\n"
-        "  searchline_voltage: [0.4V, 500mV, 0.6V, 700mV]\n"
-        "  center_voltage: 840mV\n");
+        "  state_variation: [1%, 2%, 3%, 4%]\n"
+        "  searchline_voltage: [0.4V, 500mV, 0.6V, 700mV]\n");
 
     MemCell cell;
     cell.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
@@ -229,9 +228,9 @@ void TestMcamVoltagesParse() {
     assert(near(cell.searchlineVoltage[1], 0.5));
     assert(near(cell.searchlineVoltage[2], 0.6));
     assert(near(cell.searchlineVoltage[3], 0.7));
-    assert(near(cell.centerVoltage, 0.84));
+    assert(cell.hasMcamStateVariations == true);
+    assert(cell.hasMcamPrechargeVoltages == true);
     assert(cell.hasMcamSearchlineVoltages == true);
-    assert(cell.hasMcamCenterVoltage == true);
 
     WriteMinimalCellFile(
         kCellPath,
@@ -239,18 +238,7 @@ void TestMcamVoltagesParse() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500kohm]\n"
         "  center_voltage: 1.25V\n");
-
-    MemCell cellWithVolts;
-    cellWithVolts.ReadCellFromFile(kCellPath, CAM_chip, 1.0);
-    assert(near(cellWithVolts.centerVoltage, 1.25));
-
-    WriteMinimalCellFile(
-        kCellPath,
-        "mcam:\n"
-        "  num_resistance_state: 2\n"
-        "  resistance_state: [1Mohm, 500kohm]\n"
-        "  center_voltage: 840uV\n");
-    assert(LoadCellThrows(kCellPath));
+    assert(LoadCellThrowsWithMessage(kCellPath, "center_voltage"));
 }
 
 void TestMissingRequiredCellFieldThrows() {

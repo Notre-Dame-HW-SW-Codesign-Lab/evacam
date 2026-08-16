@@ -147,13 +147,18 @@ Important notes:
 - `variation.monte_carlo_granularity` is optional for `monte_carlo`; supported values are `cell` and `effective`, and the default is `cell`.
 - `variation.seed` is an optional memory-device override intended for reproducible testing; otherwise the variation seed is derived from the current time.
 - `variation.mode: corner` uses deterministic `*_max_var` fields, derives `samples`, and ignores user-provided `samples` and `seed`.
-- `multilevel.enabled` appears in some shipped legacy configs but is not currently parsed.
+- Multi-bit CAM behavior is selected exclusively with `cam_type: MCAM` in the
+  cell file and configured through the memory-device `mcam` section.
 - `flash.mlc` is not a parsed memory-device key; MLC/SLC behavior comes from `type`.
 - `read.wordline_boost_ratio` and `read.read_floating` are parsed but currently have no model effect.
-- `mcam.resistance_state` is used by the experimental MCAM matchline timing model. The model evaluates the nonzero MCAM states and uses the state that produces the largest one-mismatch matchline delay.
-- `mcam.searchline_voltage` together with `mcam.center_voltage` is used for MCAM searchline row-driver energy. Without these fields, the model falls back to the per-port `search0`/`search1` voltages.
-- `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Some parsed MCAM fields remain reserved for future model extensions.
+- `mcam.num_resistance_state` must be a power of two in `2..64`. `mcam.resistance_state` and `mcam.searchline_voltage` are required and must each contain exactly that many entries.
+- The resistance entries may be supplied in any order. EvaCAM sorts them from HRS to LRS so distance `0` is the all-match state and larger absolute symbol distances select lower resistance states.
+- Exact MCAM vectors contain integer symbols in `0..num_resistance_state-1`. A row is a hit only when every stored symbol equals the corresponding query symbol.
+- Searchline-voltage entries may be supplied in any order and must be distinct. EvaCAM sorts them from low to high and drives the paired FeFET gates for symbol `s` with `V[s]` and `V[N-1-s]`, following the paper's analog-inverse mapping. Every reversed pair must have the same sum; EvaCAM derives the common center from that sum rather than accepting a separate center input. MCAM does not fall back to binary per-port search voltages.
+- `mcam.ml_precharge_voltage` is optional; otherwise the MCAM matchline precharges to technology `Vdd`. `mcam.state_variation` is optional and is sampled by exact-match `single_point` and `monte_carlo` evaluation.
+- `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Every supplied collection must define all configured states.
 - MCAM inputs are restricted to the shipped 2FeFET topology: a `FEFETRAM` memory device, `access_device.type: none`, two gate-connected searchline row ports, and two drain-connected matchline column ports, all indexed `0` and `1`.
+- The shipped eight-state resistance and searchline-voltage tables are provisional infrastructure examples, not calibrated correlation data. The voltage examples and reversed-pair mapping come from Kazemi et al., [Scientific Reports 12, 19201 (2022)](https://www.nature.com/articles/s41598-022-23116-w).
 
 ## Sensing File
 

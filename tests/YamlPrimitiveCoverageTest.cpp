@@ -136,7 +136,7 @@ void TestEnumMappingsCaseBehaviorAndInitializerList() {
 
 void TestAllUnitTablesAndUnitlessPolicy() {
     const std::vector<std::pair<const std::vector<YamlHelpers::UnitSpec>*, double>> tables = {
-        {&YamlHelpers::VoltageUnits(), 2.0}, {&YamlHelpers::McamCenterVoltageUnits(), 2.0}, {&YamlHelpers::CurrentUnits(), 2.0},
+        {&YamlHelpers::VoltageUnits(), 2.0}, {&YamlHelpers::CurrentUnits(), 2.0},
         {&YamlHelpers::TimeUnits(), 2.0}, {&YamlHelpers::CapacitanceUnits(), 2.0}, {&YamlHelpers::ResistanceUnits(), 2.0},
         {&YamlHelpers::PowerUnits(), 2.0}, {&YamlHelpers::EnergyUnits(), 2.0}, {&YamlHelpers::TemperatureUnits(), 2.0},
         {&YamlHelpers::DataSizeUnits(), 2.0}, {&YamlHelpers::BitUnits(), 2.0}, {&YamlHelpers::LengthUnits(), 2.0},

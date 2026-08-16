@@ -1,7 +1,7 @@
 schema: architecture
 design:
   target: CAM
-  search_function: TH
+  search_function: EX
   system_process_node: 22nm
   device_roadmap: HP
   temperature: 350K

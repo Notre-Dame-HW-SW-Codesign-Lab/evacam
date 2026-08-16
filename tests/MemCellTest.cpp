@@ -55,6 +55,9 @@ void TestConstructorEstablishesDocumentedDefaults() {
     assert(cell.variationMode == "nominal");
     assert(cell.monteCarloGranularity == "cell");
     assert(cell.variationSamples == 1);
+    assert(!cell.hasMcamStateVariations);
+    assert(!cell.hasMcamPrechargeVoltages);
+    assert(!cell.hasMcamSearchlineVoltages);
     for (int index = 0; index < 64; ++index) {
         AssertNear(cell.ResistanceState[index], 0);
         AssertNear(cell.mlPrechargeVoltage[index], 0);

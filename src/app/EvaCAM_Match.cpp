@@ -246,9 +246,9 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateExactVector(
         case TCAM:
             return EvaluateExactTcamVector(stored, query);
         case MCAM:
-            ValidateVectorLength(stored.size(), "stored");
-            ValidateVectorLength(query.size(), "query");
-            throw std::runtime_error("[EvaCAM_Match] Error: exact MCAM vector evaluation is not implemented.");
+            ValidateMcamVector(stored, "stored");
+            ValidateMcamVector(query, "query");
+            return bank->mat->subarray->EvaluateMcamExactMatch(stored, query);
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value vector input.");
     }
@@ -424,6 +424,20 @@ void EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const cha
         if (bit != 0 && bit != 1) {
             throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
                     + " vector must contain only binary values.");
+        }
+    }
+}
+
+void EvaCAM_Match::ValidateMcamVector(
+        const std::vector<int> &value,
+        const char *name) const {
+    ValidateVectorLength(value.size(), name);
+    const int numStates = config->technology.cell->numResistanceState;
+    for (int symbol : value) {
+        if (symbol < 0 || symbol >= numStates) {
+            throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
+                    + " MCAM vector values must be between 0 and "
+                    + std::to_string(numStates - 1) + ".");
         }
     }
 }

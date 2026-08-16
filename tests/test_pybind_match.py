@@ -352,11 +352,29 @@ def test_pybind_match_module(config_path):
             str(write_config_with_search_function(mcam_source, "EX", tmp_dir))
         )
         mcam_ex_width = mcam_ex_matcher.word_width()
-        mcam_ex_stored = [0] * mcam_ex_width
+        mcam_ex_stored = [index % 8 for index in range(mcam_ex_width)]
+        mcam_ex_query = list(mcam_ex_stored)
+        mcam_ex_query[0] = (mcam_ex_query[0] + 1) % 8
+        mcam_exact = mcam_ex_matcher.evaluate_vector(mcam_ex_stored, mcam_ex_stored)
+        mcam_miss = mcam_ex_matcher.evaluate_vector(mcam_ex_stored, mcam_ex_query)
+        assert mcam_exact.hit
+        assert not mcam_miss.hit
+        for result in (mcam_exact, mcam_miss):
+            assert math.isfinite(result.search_latency) and result.search_latency > 0
+            assert math.isfinite(result.search_dynamic_energy) and result.search_dynamic_energy > 0
+            assert math.isfinite(result.matchline_delay) and result.matchline_delay > 0
+            assert math.isfinite(result.sense_margin) and result.sense_margin >= 0
+        mcam_rows = mcam_ex_matcher.evaluate_array(
+            [mcam_ex_stored, mcam_ex_query], mcam_ex_stored
+        )
+        assert mcam_rows[0].hit
+        assert not mcam_rows[1].hit
+        invalid_mcam = list(mcam_ex_stored)
+        invalid_mcam[0] = -1
         assert_raises_message(
-            RuntimeError,
-            "exact MCAM vector evaluation is not implemented",
-            lambda: mcam_ex_matcher.evaluate_vector(mcam_ex_stored, mcam_ex_stored),
+            ValueError,
+            "between 0 and 7",
+            lambda: mcam_ex_matcher.evaluate_vector(invalid_mcam, mcam_ex_stored),
         )
         assert_raises_message(
             ValueError,

@@ -80,5 +80,4 @@ mcam:
   resistance_state: [2Mohm, 1Mohm] # units: ohm | kohm | Mohm | Gohm
   ml_precharge_voltage: [1V, 1V] # units: V | mV
   searchline_voltage: [0V, 1V] # units: V | mV
-  center_voltage: 500mV # units: V | mV
   state_variation: [0%, 0%] # fraction or percent

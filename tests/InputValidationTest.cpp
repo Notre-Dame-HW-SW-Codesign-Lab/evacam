@@ -386,7 +386,8 @@ void TestMcamFixedSubarrayDimensionsAllowIndependentRows() {
     WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
         "mcam:\n"
         "  num_resistance_state: 2\n"
-        "  resistance_state: [1Mohm, 500kohm]\n");
+        "  resistance_state: [1Mohm, 500kohm]\n"
+        "  searchline_voltage: [0.2V, 0.8V]\n");
     WriteConfig("  word_width: 64bits\n", kReadLatencyOptimization,
         "organization:\n"
         "  banks:\n"
@@ -529,7 +530,7 @@ void TestMcamResistanceStateCountMismatchThrows() {
         "  num_resistance_state: 4\n"
         "  resistance_state: [1Mohm, 500Kohm]\n");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    assert(LoadThrowsWithMessage("must define every configured resistance state"));
+    assert(LoadThrowsWithMessage("must contain exactly"));
     WriteMinimalCellFile();
 }
 
@@ -539,7 +540,7 @@ void TestMcamRequiresAtLeastTwoResistanceStatesThrows() {
         "  num_resistance_state: 1\n"
         "  resistance_state: [1Mohm]\n");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    assert(LoadThrowsWithMessage("mcam.num_resistance_state must be between 2 and 64"));
+    assert(LoadThrowsWithMessage("mcam.num_resistance_state must be a power of two between 2 and 64"));
     WriteMinimalCellFile();
 }
 
@@ -556,8 +557,8 @@ void TestMcamResistanceStatesMustBePositiveThrows() {
 void TestMcamMlPrechargeVoltageCountMismatchThrows() {
     WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
         "mcam:\n"
-        "  num_resistance_state: 3\n"
-        "  resistance_state: [1Mohm, 500Kohm, 250Kohm]\n"
+        "  num_resistance_state: 4\n"
+        "  resistance_state: [1Mohm, 500Kohm, 250Kohm, 125Kohm]\n"
         "  ml_precharge_voltage: [1V, 900mV]\n");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.ml_precharge_voltage must define every configured resistance state"));
@@ -578,8 +579,8 @@ void TestMcamMlPrechargeVoltagesMustBeNonNegativeThrows() {
 void TestMcamSearchlineVoltageCountMismatchThrows() {
     WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
         "mcam:\n"
-        "  num_resistance_state: 3\n"
-        "  resistance_state: [1Mohm, 500Kohm, 250Kohm]\n"
+        "  num_resistance_state: 4\n"
+        "  resistance_state: [1Mohm, 500Kohm, 250Kohm, 125Kohm]\n"
         "  searchline_voltage: [1V, 900mV]\n");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.searchline_voltage must define every configured resistance state"));
@@ -597,26 +598,26 @@ void TestMcamSearchlineVoltagesMustBeNonNegativeThrows() {
     WriteMinimalCellFile();
 }
 
-void TestMcamCenterVoltageMustBeNonNegativeThrows() {
+void TestMcamCenterVoltageIsRejected() {
     WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
         "mcam:\n"
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
-        "  center_voltage: -1mV\n");
+        "  searchline_voltage: [100mV, 1V]\n"
+        "  center_voltage: 550mV\n");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    assert(LoadThrowsWithMessage("mcam.center_voltage must be non-negative"));
+    assert(LoadThrowsWithMessage("center_voltage"));
     WriteMinimalCellFile();
 }
 
-void TestMcamSearchlineVoltageMappingRequiresBothInputs() {
+void TestMcamSearchlineVoltageMappingDerivesCenter() {
     WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
         "mcam:\n"
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
-        "  searchline_voltage: [1V, 900mV]\n");
+        "  searchline_voltage: [100mV, 1V]\n");
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    assert(LoadThrowsWithMessage(
-            "mcam.searchline_voltage and mcam.center_voltage must be provided together"));
+    assert(!LoadThrows());
     WriteMinimalCellFile();
 }
 
@@ -625,25 +626,22 @@ void TestMcamSearchlineVoltageMappingRequiresTwoSearchlines() {
         "mcam:\n"
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
-        "  searchline_voltage: [1V, 900mV]\n"
-        "  center_voltage: 600mV\n",
+        "  searchline_voltage: [100mV, 1V]\n",
         RowPort(1, "dataline"));
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("both row ports to be gate-connected searchlines"));
     WriteMinimalCellFile();
 }
 
-void TestMcamComplementarySearchlineVoltageMustBeNonNegative() {
+void TestMcamSearchlineVoltagesMustSatisfyAnalogInverse() {
     WriteMinimalCellFile("FEFETRAM", "MCAM", "matchline", "drain",
         "mcam:\n"
-        "  num_resistance_state: 2\n"
-        "  resistance_state: [1Mohm, 500Kohm]\n"
-        "  searchline_voltage: [1V, 900mV]\n"
-        "  center_voltage: 400mV\n",
+        "  num_resistance_state: 4\n"
+        "  resistance_state: [1Mohm, 500Kohm, 250Kohm, 125Kohm]\n"
+        "  searchline_voltage: [100mV, 400mV, 800mV, 1V]\n",
         RowPort(1));
     WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
-    assert(LoadThrowsWithMessage(
-            "MCAM derived complementary searchline voltage must be non-negative"));
+    assert(LoadThrowsWithMessage("analog-inverse"));
     WriteMinimalCellFile();
 }
 
@@ -782,10 +780,10 @@ int main() {
     TestMcamMlPrechargeVoltagesMustBeNonNegativeThrows();
     TestMcamSearchlineVoltageCountMismatchThrows();
     TestMcamSearchlineVoltagesMustBeNonNegativeThrows();
-    TestMcamCenterVoltageMustBeNonNegativeThrows();
-    TestMcamSearchlineVoltageMappingRequiresBothInputs();
+    TestMcamCenterVoltageIsRejected();
+    TestMcamSearchlineVoltageMappingDerivesCenter();
     TestMcamSearchlineVoltageMappingRequiresTwoSearchlines();
-    TestMcamComplementarySearchlineVoltageMustBeNonNegative();
+    TestMcamSearchlineVoltagesMustSatisfyAnalogInverse();
     TestMatchlineGateConnectionThrows();
     TestBitlineOnlyColumnRequiresMatchline();
     TestMissingMatchlineColumnThrows();

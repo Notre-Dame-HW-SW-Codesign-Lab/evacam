@@ -69,12 +69,11 @@ std::string DeviceBody() {
         "  memory_device_resistance_on_max_var: 14%\n"
         "  memory_device_resistance_off_max_var: 0.15\n"
         "mcam:\n"
-        "  num_resistance_state: 3\n"
-        "  resistance_state: {0: 10kohm, 2: 30kohm}\n"
-        "  state_variation: {0: 5%, 2: 0.07}\n"
-        "  ml_precharge_voltage: {0: 1V, 2: 800mV}\n"
-        "  searchline_voltage: {0: 0.2V, 2: 0.4V}\n"
-        "  center_voltage: 0.3V\n";
+        "  num_resistance_state: 4\n"
+        "  resistance_state: {0: 10kohm, 3: 30kohm}\n"
+        "  state_variation: {0: 5%, 3: 0.07}\n"
+        "  ml_precharge_voltage: {0: 1V, 3: 800mV}\n"
+        "  searchline_voltage: {0: 0.2V, 3: 0.4V}\n";
 }
 
 std::string V2Cell(const std::string& deviceRef, const std::string& extra = "") {
@@ -121,10 +120,12 @@ void TestReadMemCellFromYamlV2ResolvesRelativeDeviceAndParsesEverySection() {
             "optional read and variation fields");
     Require(cell.variationSeed == 42 && cell.variationSamples == 9, "variation seed and samples");
     AssertNear(cell.resistanceOnVariation, .12); AssertNear(cell.resistanceOffMaxVariation, .15);
-    Require(cell.numResistanceState == 3 && cell.hasMcamSearchlineVoltages && cell.hasMcamCenterVoltage,
+    Require(cell.numResistanceState == 4 && cell.hasMcamStateVariations
+                    && cell.hasMcamPrechargeVoltages
+                    && cell.hasMcamSearchlineVoltages,
             "MCAM flags");
-    AssertNear(cell.ResistanceState[2], 3e4); AssertNear(cell.resStateVariation[0], .05);
-    AssertNear(cell.mlPrechargeVoltage[2], .8); AssertNear(cell.searchlineVoltage[2], .4);
+    AssertNear(cell.ResistanceState[3], 3e4); AssertNear(cell.resStateVariation[0], .05);
+    AssertNear(cell.mlPrechargeVoltage[3], .8); AssertNear(cell.searchlineVoltage[3], .4);
     Require(cell.camNumRow == 1 && cell.camNumCol == 2, "sparse port indices preserve extent");
     Require(cell.camPort[0][0].ConnectedRegion == gate && cell.camPort[1][1].ConnectedRegion == drain,
             "v2 direct port connection");
@@ -155,12 +156,10 @@ void TestReadMemoryDeviceFromYamlLegacyCellAndSections() {
         "cell: {type: FEFETRAM, cell_process_node: 28nm, area: 16F^2, aspect_ratio: 4}\n"
         "resistance: {on: 2kohm, off: 3Mohm}\n"
         "read: {mode: voltage, voltage: 0.6V, current: 2uA, power: 3uW, energy: 4fJ, min_sense_voltage: 5mV}\n"
-        "write: {set: {voltage: 1V, current: 2uA, pulse: 3ns, energy: 4pJ}, reset: {voltage: 5V, current: 6uA, pulse: 7ns, energy: 8pJ}}\n"
-        "mcam: {center_voltage: 0.7V}\n");
+        "write: {set: {voltage: 1V, current: 2uA, pulse: 3ns, energy: 4pJ}, reset: {voltage: 5V, current: 6uA, pulse: 7ns, energy: 8pJ}}\n");
     MemCell cell = LoadDevice(path);
     Require(cell.memCellType == FEFETRAM && cell.processNode == 28 && cell.readMode, "legacy memory device cell override");
     AssertNear(cell.area, 16); AssertNear(cell.readEnergy, 4e-15); AssertNear(cell.resetPulse, 7e-9);
-    Require(cell.hasMcamCenterVoltage, "legacy memory device MCAM field"); AssertNear(cell.centerVoltage, .7);
 }
 
 void TestLoadersRejectSchemasKeysAndUnsupportedForms() {

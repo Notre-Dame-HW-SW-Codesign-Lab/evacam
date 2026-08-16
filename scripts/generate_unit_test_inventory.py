@@ -1184,7 +1184,10 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
     map_indirect("src/app/EvaCAM_Match.cpp", ["evaluate_vector", "evaluate_array",
             "EvaluateBestVector", "EvaluateThresholdVector", "ValidateAnalogVector",
             "ValidateAcamRangeVector"],
-            "tests/EvaCAMMatchFocusedTest.cpp", "TestNonTcamAndAnalogPublicOverloadGaps",
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestUnimplementedCamPublicOverloads",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp", ["ValidateMcamVector"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestMcamExactMatchAndValidationRules",
             "test-evacam-match-focused")
 
     map_indirect("src/app/EvaCamRun.cpp",

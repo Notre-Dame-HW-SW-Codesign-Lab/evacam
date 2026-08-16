@@ -185,8 +185,29 @@ Current support:
 - TCAM `EX`: supported
 - TCAM `BE`: supported through array evaluation
 - TCAM `TH`: use explicit threshold evaluation with `max_mismatches`
-- MCAM binary vector paths: not implemented
+- MCAM `EX`: supported for integer vectors and arrays; symbols must be in `0..num_resistance_state-1`
+- MCAM `BE` and `TH`: not implemented
 - ACAM requires range/value inputs
+
+For an eight-state MCAM configuration:
+
+```python
+stored = [index % 8 for index in range(matcher.word_width())]
+query = stored.copy()
+
+exact = matcher.evaluate_vector(stored, query)
+assert exact.hit
+
+query[0] = (query[0] + 1) % 8
+miss = matcher.evaluate_vector(stored, query)
+assert not miss.hit
+
+rows = matcher.evaluate_array([stored, query], stored)
+```
+
+MCAM exact results include query-specific searchline energy and matchline
+delay. The semantic hit remains strict element-wise equality even when sampled
+state variation is enabled.
 
 ## Threshold TCAM Evaluation
 

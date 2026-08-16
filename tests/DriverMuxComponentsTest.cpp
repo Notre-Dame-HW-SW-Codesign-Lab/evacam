@@ -132,6 +132,23 @@ void TestOutputDriverModelsLatencyAndAreaTargets() {
     AssertFinitePositive(areaDriver.readDynamicEnergy, "area-first driver energy");
 }
 
+void TestOutputDriverModelsSmallLatencyFirstLoad() {
+    const auto config = MakeComponentConfig();
+    OutputDriver driver;
+    driver.Initialize(1, 1e-15, 1e-15, 0, false, latency_first, 0, config);
+
+    assert(driver.initialized);
+    assert(!driver.invalid);
+    assert(driver.numStage > 0);
+    AssertFinitePositive(driver.area, "small-load driver area");
+
+    driver.CalculateLatency(2e-12);
+    driver.CalculatePower();
+    AssertFinitePositive(driver.readLatency, "small-load driver latency");
+    AssertFinitePositive(driver.rampOutput, "small-load driver output ramp");
+    AssertFinitePositive(driver.readDynamicEnergy, "small-load driver energy");
+}
+
 void TestOutputDriverMarksOversizedMinimumCurrentInvalid() {
     const auto config = MakeComponentConfig();
     config->input.maxNmosSize = 1;
@@ -174,6 +191,7 @@ int main() {
     TestMuxPrintsIdentityAndFunctionUnitProperties();
     TestOutputDriverRequiresInitialization();
     TestOutputDriverModelsLatencyAndAreaTargets();
+    TestOutputDriverModelsSmallLatencyFirstLoad();
     TestOutputDriverMarksOversizedMinimumCurrentInvalid();
     TestOutputDriverPrintsIdentityAndStageCount();
 

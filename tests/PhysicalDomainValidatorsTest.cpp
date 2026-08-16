@@ -213,6 +213,22 @@ void TestValidateMemCellChecksOptionalResistanceAndFlashFields() {
     ExpectCellFailure(samples, "memory_device.variation.samples");
 }
 
+void TestValidateMemCellAllowsDisabledMcamThresholdAndChecksStateVariation() {
+    MemCell cell = MakeValidNvmCell();
+    cell.camType = MCAM;
+    cell.minSenseVoltage = 0;
+    cell.numResistanceState = 2;
+    cell.hasMcamStateVariations = true;
+    cell.resStateVariation[0] = 0.1;
+    cell.resStateVariation[1] = 0.2;
+    PhysicalDomainValidators::ValidateMemCell(cell);
+
+    cell.resStateVariation[1] = -0.1;
+    ExpectCellFailure(cell, "mcam.state_variation");
+    cell.resStateVariation[1] = std::numeric_limits<double>::infinity();
+    ExpectCellFailure(cell, "mcam.state_variation");
+}
+
 void TestValidateTechnologyAcceptsPlanarAndFinFetFixtures() {
     PhysicalDomainValidators::ValidateTechnology(MakeValidTechnology());
     PhysicalDomainValidators::ValidateTechnology(MakeValidTechnology(true));
@@ -282,6 +298,7 @@ int main() {
     TestValidateMemCellChecksLayoutAndCommonFields();
     TestValidateMemCellChecksNvmResistanceProgrammingAndRelations();
     TestValidateMemCellChecksOptionalResistanceAndFlashFields();
+    TestValidateMemCellAllowsDisabledMcamThresholdAndChecksStateVariation();
     TestValidateTechnologyAcceptsPlanarAndFinFetFixtures();
     TestValidateTechnologyChecksInitializationFieldsAndUpdatedThreshold();
     TestValidateTechnologyChecksEveryCurrentTable();

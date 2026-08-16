@@ -1,14 +1,18 @@
 #include "config/InputRuleValidator.h"
 
+#include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "EvaCamConfig.h"
 #include "SenseAmp.h"
 #include "input/CustomSenseAmpYamlLoader.h"
+#include "input/MemoryDeviceYamlLoader.h"
 #include "input/SenseAmpYamlLoader.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
@@ -44,9 +48,13 @@ std::string ResolveReference(const std::string &ownerFile, const std::string &re
 YAML::Node LoadMemoryDeviceForValidation(const YAML::Node &cellRoot,
         const std::string &cellFile) {
     const YAML::Node reference = YamlHelpers::child_required(cellRoot, "memory_device");
-    return YAML::LoadFile(ResolveReference(cellFile,
+    const YAML::Node memoryDevice = YAML::LoadFile(ResolveReference(cellFile,
             YamlHelpers::read_scalar_required<std::string>(
                 reference, "memory_device")));
+    YamlHelpers::require_schema(
+            memoryDevice, "memory_device", "memory device config");
+    YamlHelpers::validate_memory_device_keys(memoryDevice);
+    return memoryDevice;
 }
 
 std::string InferCamTypeToken(const YAML::Node &cellNode, const std::string &cellFile) {
@@ -249,9 +257,15 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
     if (numStates == 0 && states.IsSequence()) {
         numStates = static_cast<int>(states.size());
     }
-    if (numStates < 2 || numStates > 64) {
+    if (numStates < 2 || numStates > 64
+            || (numStates & (numStates - 1)) != 0) {
         throw std::runtime_error(
-                "[Input] Error: mcam.num_resistance_state must be between 2 and 64.");
+                "[Input] Error: mcam.num_resistance_state must be a power of two between 2 and 64.");
+    }
+    if (static_cast<int>(states.size()) != numStates) {
+        throw std::runtime_error(
+                "[Input] Error: mcam.resistance_state must contain exactly "
+                "mcam.num_resistance_state entries.");
     }
 
     for (int state = 0; state < numStates; state++) {
@@ -278,11 +292,30 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
         }
     }
 
+    const YAML::Node stateVariations = YamlHelpers::child_optional(mcam, "state_variation");
+    if (stateVariations) {
+        if ((!stateVariations.IsSequence() && !stateVariations.IsMap())
+                || static_cast<int>(stateVariations.size()) != numStates) {
+            throw std::runtime_error(
+                    "[Input] Error: mcam.state_variation must define every configured resistance state.");
+        }
+        for (int state = 0; state < numStates; state++) {
+            if (!stateVariations[state]) {
+                throw std::runtime_error(
+                        "[Input] Error: mcam.state_variation must define every configured resistance state.");
+            }
+        }
+    }
+
     const YAML::Node mlPrechargeVoltages = YamlHelpers::child_optional(mcam, "ml_precharge_voltage");
     if (mlPrechargeVoltages) {
         if (!mlPrechargeVoltages.IsSequence() && !mlPrechargeVoltages.IsMap()) {
             throw std::runtime_error(
                     "[Input] Error: mcam.ml_precharge_voltage must be a sequence or map.");
+        }
+        if (static_cast<int>(mlPrechargeVoltages.size()) != numStates) {
+            throw std::runtime_error(
+                    "[Input] Error: mcam.ml_precharge_voltage must define every configured resistance state.");
         }
         for (int state = 0; mlPrechargeVoltages.size() != 0 && state < numStates; state++) {
             YAML::Node voltageNode;
@@ -310,11 +343,21 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
     }
 
     const YAML::Node searchlineVoltages = YamlHelpers::child_optional(mcam, "searchline_voltage");
+    if (!searchlineVoltages) {
+        throw std::runtime_error(
+                "[Input] Error: MCAM requires mcam.searchline_voltage with one value per resistance state.");
+    }
+    std::vector<double> orderedSearchlineVoltages;
     if (searchlineVoltages) {
         if (!searchlineVoltages.IsSequence() && !searchlineVoltages.IsMap()) {
             throw std::runtime_error(
                     "[Input] Error: mcam.searchline_voltage must be a sequence or map.");
         }
+        if (static_cast<int>(searchlineVoltages.size()) != numStates) {
+            throw std::runtime_error(
+                "[Input] Error: mcam.searchline_voltage must define every configured resistance state.");
+        }
+        orderedSearchlineVoltages.reserve(numStates);
         for (int state = 0; searchlineVoltages.size() != 0 && state < numStates; state++) {
             YAML::Node voltageNode;
             if (searchlineVoltages.IsSequence()) {
@@ -337,48 +380,32 @@ void ValidateMcamResistanceStates(const EvaCamConfig &config, const YAML::Node &
                 throw std::runtime_error(
                         "[Input] Error: mcam.searchline_voltage values must be non-negative.");
             }
+            orderedSearchlineVoltages.push_back(voltage);
         }
     }
 
-    const YAML::Node centerVoltage = YamlHelpers::child_optional(mcam, "center_voltage");
-    if (centerVoltage) {
-        const double voltage = YamlHelpers::parse_quantity_node(
-                centerVoltage, YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
-        if (voltage < 0) {
-            throw std::runtime_error(
-                    "[Input] Error: mcam.center_voltage must be non-negative.");
-        }
-    }
-
-    if (static_cast<bool>(searchlineVoltages) != static_cast<bool>(centerVoltage)) {
-        throw std::runtime_error(
-                "[Input] Error: mcam.searchline_voltage and mcam.center_voltage must be provided together.");
-    }
-    if (searchlineVoltages && centerVoltage) {
-        const YAML::Node ports = YamlHelpers::child_required(root, "ports");
-        const YAML::Node rowPorts = YamlHelpers::child_required(ports, "row");
-        int searchlineCount = 0;
-        for (auto it = rowPorts.begin(); it != rowPorts.end(); ++it) {
-            const CAM_PortType type =
-                    YamlHelpers::read_enum_required<CAM_PortType>(it->second, "type", false);
-            if (type == Searchline) {
-                searchlineCount++;
+    if (!orderedSearchlineVoltages.empty()) {
+        std::sort(orderedSearchlineVoltages.begin(), orderedSearchlineVoltages.end());
+        for (size_t state = 1; state < orderedSearchlineVoltages.size(); state++) {
+            if (orderedSearchlineVoltages[state]
+                    == orderedSearchlineVoltages[state - 1]) {
+                throw std::runtime_error(
+                        "[Input] Error: mcam.searchline_voltage values must be distinct.");
             }
         }
-        if (searchlineCount != 2) {
-            throw std::runtime_error(
-                    "[Input] Error: MCAM state voltage mapping requires exactly two searchline row ports.");
-        }
 
-        const double center = YamlHelpers::parse_quantity_node(
-                centerVoltage, YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
+        const double analogInverseSum = orderedSearchlineVoltages.front()
+            + orderedSearchlineVoltages.back();
+        const double tolerance = std::max(1e-12,
+                std::abs(analogInverseSum) * 1e-9);
         for (int state = 0; state < numStates; state++) {
-            const YAML::Node voltageNode = searchlineVoltages[state];
-            const double primary = YamlHelpers::parse_quantity_node(
-                    voltageNode, YamlHelpers::VoltageUnits(), 1.0, "mcam.searchline_voltage");
-            if (2 * center - primary < 0) {
+            const double pairSum = orderedSearchlineVoltages[state]
+                + orderedSearchlineVoltages[numStates - state - 1];
+            if (std::abs(pairSum - analogInverseSum) > tolerance) {
                 throw std::runtime_error(
-                        "[Input] Error: MCAM derived complementary searchline voltage must be non-negative.");
+                        "[Input] Error: mcam.searchline_voltage must satisfy the "
+                        "paper's analog-inverse mapping: every reversed pair "
+                        "must have the same derived center.");
             }
         }
     }

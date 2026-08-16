@@ -605,6 +605,7 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
 
     auto stateVar = YamlHelpers::child_optional(mcam, "state_variation");
     if (stateVar) {
+        cell.hasMcamStateVariations = true;
         if (stateVar.IsSequence()) {
             const int n = std::min<int>(stateVar.size(), 64);
             for (int i = 0; i < n; i++) {
@@ -624,6 +625,7 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
 
     auto mlPrechargeVoltage = YamlHelpers::child_optional(mcam, "ml_precharge_voltage");
     if (mlPrechargeVoltage) {
+        cell.hasMcamPrechargeVoltages = true;
         if (mlPrechargeVoltage.IsSequence()) {
             const int n = std::min<int>(mlPrechargeVoltage.size(), 64);
             for (int i = 0; i < n; i++) {
@@ -665,11 +667,6 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
         }
     }
 
-    if (YamlHelpers::child_optional(mcam, "center_voltage")) {
-        cell.hasMcamCenterVoltage = true;
-        cell.centerVoltage = YamlHelpers::read_quantity_required(
-                mcam, "center_voltage", YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
-    }
 }
 
 void ReadPortsSection(MemCell& cell, const YAML::Node& root) {

@@ -60,8 +60,13 @@ void ValidateMemCell(const MemCell& cell) {
     YamlHelpers::require_non_negative(cell.readCurrent, "memory_device.read.current");
     YamlHelpers::require_non_negative(cell.readPower, "memory_device.read.power");
     YamlHelpers::require_non_negative(cell.readEnergy, "memory_device.read.energy");
-    YamlHelpers::require_positive(
-            cell.minSenseVoltage, "memory_device.read.min_sense_voltage");
+    if (cell.camType == MCAM) {
+        YamlHelpers::require_non_negative(
+                cell.minSenseVoltage, "memory_device.read.min_sense_voltage");
+    } else {
+        YamlHelpers::require_positive(
+                cell.minSenseVoltage, "memory_device.read.min_sense_voltage");
+    }
     YamlHelpers::require_positive(
             cell.wordlineBoostRatio, "memory_device.read.wordline_boost_ratio");
 
@@ -131,6 +136,10 @@ void ValidateMemCell(const MemCell& cell) {
     YamlHelpers::require_non_negative(
             cell.resistanceOffMaxVariation,
             "memory_device.variation.memory_device_resistance_off_max_var");
+    for (int state = 0; state < cell.numResistanceState; state++) {
+        YamlHelpers::require_non_negative(
+                cell.resStateVariation[state], "mcam.state_variation");
+    }
     if (cell.hasVariationSamples && cell.variationSamples <= 0) {
         throw std::runtime_error(
                 "[Input] Error: memory_device.variation.samples must be positive; got "

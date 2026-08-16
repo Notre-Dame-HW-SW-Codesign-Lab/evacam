@@ -24,11 +24,50 @@ struct CamSubArrayTestAccessor {
     static std::vector<double> EffectiveMcamStateResistances(const CAM_SubArray &subarray) {
         return subarray.EffectiveMcamStateResistances();
     }
+    static std::vector<int> McamResistanceOrder(const CAM_SubArray &subarray) {
+        return subarray.McamResistanceOrder();
+    }
+    static double McamDistanceResistance(const CAM_SubArray &subarray, int distance,
+            int sampleIndex, int cellIndex) {
+        return subarray.McamDistanceResistance(distance, sampleIndex, cellIndex);
+    }
+    static double McamVectorEffectiveResistance(const CAM_SubArray &subarray,
+            const std::vector<int> &stored, const std::vector<int> &query) {
+        return subarray.McamVectorEffectiveResistance(stored, query);
+    }
+    static double McamAllMatchEffectiveResistance(const CAM_SubArray &subarray) {
+        return subarray.McamAllMatchEffectiveResistance();
+    }
+    static double McamBoundaryMismatchEffectiveResistance(const CAM_SubArray &subarray) {
+        return subarray.McamBoundaryMismatchEffectiveResistance();
+    }
+    static double McamPrechargeVoltage(const CAM_SubArray &subarray, int distance) {
+        return subarray.McamPrechargeVoltage(distance);
+    }
+    static std::vector<double> OrderedMcamSearchlineVoltages(
+            const CAM_SubArray &subarray) {
+        return subarray.OrderedMcamSearchlineVoltages();
+    }
+    static double CalculateMcamQuerySearchlineDriveEnergy(const CAM_SubArray &subarray,
+            const std::vector<int> &query) {
+        return subarray.CalculateMcamQuerySearchlineDriveEnergy(query);
+    }
     static double MeanSquaredSearchVoltage(const CAM_SubArray &subarray, int rowPortIndex) {
         return subarray.MeanSquaredSearchVoltage(rowPortIndex);
     }
     static double CalculateSearchlineDriveEnergy(const CAM_SubArray &subarray) {
         return subarray.CalculateSearchlineDriveEnergy();
+    }
+    static double McamMatchlineDynamicEnergy(const CAM_SubArray &subarray,
+            double resistance, double senseTime, double prechargeVoltage) {
+        return subarray.McamMatchlineDynamicEnergy(
+                resistance, senseTime, prechargeVoltage);
+    }
+    static EvaCAMMatchResult EvaluateMcamExactMatchSample(
+            const CAM_SubArray &subarray,
+            const std::vector<int> &stored,
+            const std::vector<int> &query) {
+        return subarray.EvaluateMcamExactMatchSample(stored, query, -1);
     }
     static std::vector<double> McamStateTaus(const CAM_SubArray &subarray,
             const std::vector<double> &resistances) {
@@ -106,6 +145,8 @@ struct SubArrayFixture {
         subarray.searchLatency = 100e-12;
         subarray.searchDynamicEnergy = 2e-15;
         subarray.decoderLatency = 3e-12;
+        subarray.numColumn = 4;
+        subarray.muxSenseAmp = 1;
 
         subarray.Col.resize(1);
         subarray.Col[0].cap = 2e-15;
@@ -221,8 +262,8 @@ void TestMcamAndSearchlineHelpers() {
     cell.ResistanceState[0] = 1000;
     cell.ResistanceState[1] = 2000;
     cell.hasMcamSearchlineVoltages = true;
-    cell.searchlineVoltage[0] = 0.2;
-    cell.searchlineVoltage[1] = 0.8;
+    cell.searchlineVoltage[0] = 0.8;
+    cell.searchlineVoltage[1] = 0.2;
     cell.camPort[0][1].Type = Searchline;
     cell.camPort[0][1].volSearch0 = 0.4;
     cell.camPort[0][1].volSearch1 = 0.6;
@@ -241,15 +282,72 @@ void TestMcamAndSearchlineHelpers() {
     }, "positive");
     const std::vector<double> effective =
             CamSubArrayTestAccessor::EffectiveMcamStateResistances(subarray);
+    const std::vector<int> order =
+            CamSubArrayTestAccessor::McamResistanceOrder(subarray);
+    assert((order == std::vector<int>{1, 0}));
+    assert((CamSubArrayTestAccessor::OrderedMcamSearchlineVoltages(subarray)
+            == std::vector<double>{0.2, 0.8}));
     assert(effective.size() == 2);
-    Require(effective[1] > effective[0], "higher MCAM state resistance must remain higher");
+    Require(effective[0] > effective[1],
+            "distance zero must use the sorted HRS state");
+    AssertNear(CamSubArrayTestAccessor::McamDistanceResistance(
+            subarray, 0, -1, 0), 2000);
+    AssertNear(CamSubArrayTestAccessor::McamDistanceResistance(
+            subarray, 1, -1, 0), 1000);
+    AssertNear(CamSubArrayTestAccessor::McamAllMatchEffectiveResistance(subarray), 500);
+    AssertNear(CamSubArrayTestAccessor::McamBoundaryMismatchEffectiveResistance(subarray), 400);
+    AssertNear(CamSubArrayTestAccessor::McamPrechargeVoltage(subarray, 1), 1.2);
+    cell.hasMcamPrechargeVoltages = true;
+    cell.mlPrechargeVoltage[0] = 0.7;
+    cell.mlPrechargeVoltage[1] = 0.9;
+    AssertNear(CamSubArrayTestAccessor::McamPrechargeVoltage(subarray, 0), 0.9);
+    AssertNear(CamSubArrayTestAccessor::McamPrechargeVoltage(subarray, 1), 0.7);
     const std::vector<double> taus = CamSubArrayTestAccessor::McamStateTaus(subarray, effective);
     assert(taus.size() == effective.size());
-    Require(taus[1] > taus[0], "MCAM tau must increase with effective resistance");
+    Require(taus[0] > taus[1], "MCAM tau must increase with effective resistance");
     double ramp = 0;
     AssertFinitePositive(CamSubArrayTestAccessor::McamStateDelay(subarray, taus[0], &ramp),
             "MCAM state delay");
     AssertFinitePositive(ramp, "MCAM state ramp");
+
+    const std::vector<int> stored{0, 1, 0, 1};
+    const std::vector<int> oneMismatch{1, 1, 0, 1};
+    const std::vector<int> twoMismatches{1, 0, 0, 1};
+    Require(CamSubArrayTestAccessor::McamVectorEffectiveResistance(
+                    subarray, stored, stored)
+                > CamSubArrayTestAccessor::McamVectorEffectiveResistance(
+                    subarray, stored, oneMismatch),
+            "an MCAM mismatch must lower the matchline resistance");
+    AssertFinitePositive(CamSubArrayTestAccessor::CalculateMcamQuerySearchlineDriveEnergy(
+            subarray, stored), "query-specific MCAM searchline energy");
+    AssertNear(CamSubArrayTestAccessor::CalculateMcamQuerySearchlineDriveEnergy(
+            subarray, {0, 0, 0, 0}),
+            8e-15 * (0.04 + 0.64) / (1.2 * 1.2));
+
+    const EvaCAMMatchResult exact = subarray.EvaluateMcamExactMatch(stored, stored);
+    const EvaCAMMatchResult miss = subarray.EvaluateMcamExactMatch(stored, oneMismatch);
+    const EvaCAMMatchResult directSample =
+            CamSubArrayTestAccessor::EvaluateMcamExactMatchSample(
+                    subarray, stored, oneMismatch);
+    const EvaCAMMatchResult strongerMiss =
+            subarray.EvaluateMcamExactMatch(stored, twoMismatches);
+    assert(exact.hit);
+    assert(!miss.hit);
+    assert(!strongerMiss.hit);
+    AssertFinitePositive(exact.searchLatency, "MCAM exact search latency");
+    AssertFinitePositive(exact.searchDynamicEnergy, "MCAM exact search energy");
+    AssertFinitePositive(exact.senseMargin, "MCAM exact sense margin");
+    AssertNear(directSample.matchlineDelay, miss.matchlineDelay);
+    AssertNear(directSample.searchLatency, miss.searchLatency);
+    AssertNear(directSample.searchDynamicEnergy, miss.searchDynamicEnergy);
+    AssertFinitePositive(CamSubArrayTestAccessor::McamMatchlineDynamicEnergy(
+            subarray, 400, miss.matchlineDelay, 0.7),
+            "MCAM matchline dynamic energy");
+    Require(strongerMiss.matchlineDelay < miss.matchlineDelay,
+            "more MCAM mismatch paths must discharge faster");
+    AssertThrows<std::invalid_argument>([&] {
+        subarray.EvaluateMcamExactMatch({-1, 1, 0, 1}, stored);
+    }, "between 0 and num_resistance_state - 1");
 }
 
 }  // namespace

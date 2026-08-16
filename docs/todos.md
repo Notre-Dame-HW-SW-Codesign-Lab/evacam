@@ -5,7 +5,7 @@ actionable code debt. The priority roadmap highlights work that can affect
 correctness or reported metrics; the source index provides a complete inventory
 of inline `TODO`, `FIXME`, and `HACK` markers.
 
-Last reviewed: 2026-08-05.
+Last reviewed: 2026-08-16.
 
 The inventory can be refreshed with:
 
@@ -31,12 +31,9 @@ These items can affect correctness, supported behavior, or confidence in reporte
 
 ### 1. Implement or explicitly reject incomplete match APIs
 
-- `src/app/EvaCAM_Match.cpp:259`: exact MCAM vector evaluation is not implemented.
-- `src/app/EvaCAM_Match.cpp:278`: best-match MCAM vector evaluation is not implemented.
-- `src/app/EvaCAM_Match.cpp:297`: threshold MCAM vector evaluation is not implemented.
-- `src/app/EvaCAM_Match.cpp:319`: exact ACAM vector evaluation is not implemented.
-- `src/app/EvaCAM_Match.cpp:327`: best-match ACAM vector evaluation is not implemented.
-- `src/app/EvaCAM_Match.cpp:335`: threshold ACAM vector evaluation is not implemented.
+- `src/app/EvaCAM_Match.cpp:270`: best-match MCAM vector evaluation is not implemented.
+- `src/app/EvaCAM_Match.cpp:289`: threshold MCAM vector evaluation is not implemented.
+- ACAM vector and array evaluation are not implemented.
 
 The current exceptions are intentional and covered by `tests/test_pybind_match.py`; completing a path requires updating those tests and `docs/python-api.md`.
 
@@ -180,6 +177,6 @@ These are user-visible limitations and should remain tracked even though the cod
 
 - DRAM, eDRAM, and MLC NAND models are rejected as under development.
 - H-tree and non-H-tree routing require internal sensing; bank-level external sensing is not modeled.
-- MCAM binary-vector exact, best, and threshold match evaluation is not implemented.
+- MCAM best-match and threshold vector evaluation is not implemented; exact integer-vector evaluation is supported.
 - ACAM exact, best, and threshold match evaluation is not implemented.
 - `variation.lut_file` is accepted and propagated but not consumed.

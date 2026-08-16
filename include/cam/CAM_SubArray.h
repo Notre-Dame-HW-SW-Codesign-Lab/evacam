@@ -120,6 +120,9 @@ class CAM_SubArray: public FunctionUnit {
         void CalculatePower();
         EvaCAMMatchResult EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateBinaryMatchByMismatches(int mismatchCount) const;
+        EvaCAMMatchResult EvaluateMcamExactMatch(
+                const std::vector<int> &stored,
+                const std::vector<int> &query) const;
         CAMResistanceSample BuildNominalResistanceSample() const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         CAMResistanceSample BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const;
@@ -137,9 +140,26 @@ class CAM_SubArray: public FunctionUnit {
         int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
         double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
         double EffectiveMcamStateResistance(double stateResistance, double baseStateResistance) const;
+        std::vector<int> McamResistanceOrder() const;
         std::vector<double> EffectiveMcamStateResistances() const;
+        double McamDistanceResistance(int distance, int sampleIndex = -1,
+                int cellIndex = 0) const;
+        double McamVectorEffectiveResistance(const std::vector<int> &stored,
+                const std::vector<int> &query, int sampleIndex = -1) const;
+        double McamAllMatchEffectiveResistance(int sampleIndex = -1) const;
+        double McamBoundaryMismatchEffectiveResistance(int sampleIndex = -1) const;
+        double McamPrechargeVoltage(int distance) const;
+        std::vector<double> OrderedMcamSearchlineVoltages() const;
         double MeanSquaredSearchVoltage(int rowPortIndex) const;
         double CalculateSearchlineDriveEnergy() const;
+        double CalculateMcamQuerySearchlineDriveEnergy(
+                const std::vector<int> &query) const;
+        double McamMatchlineDynamicEnergy(double effectiveResistance,
+                double senseTime, double prechargeVoltage) const;
+        EvaCAMMatchResult EvaluateMcamExactMatchSample(
+                const std::vector<int> &stored,
+                const std::vector<int> &query,
+                int sampleIndex) const;
         double McamStateTau(double effectiveStateResistance, double mlWireRes) const;
         std::vector<double> McamStateTaus(const std::vector<double> &effectiveStateResistances) const;
         double McamStateDelay(double stateTau, double *ramp) const;
@@ -301,6 +321,7 @@ class CAM_SubArray: public FunctionUnit {
         double searchLatency;
         double searchDynamicEnergy;
         double searchlineDriveDynamicEnergy;
+        double mcamMatchlineDynamicEnergy = 0;
         double rampOutput;
         double resetEnergyPerBit;
         double setEnergyPerBit;

@@ -1,7 +1,9 @@
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -11,6 +13,7 @@
 #include "EvaCamContextBuilder.h"
 #include "Mat.h"
 #include "TestSupport.h"
+#include "UnitFormatter.h"
 #include "Wire.h"
 #include "input/CliOptions.h"
 
@@ -170,6 +173,30 @@ void TestMatVariantsAndBankBaseBehavior() {
             "breakdown must include latency aggregate");
     Require(text.find("Leakage Breakdown") != std::string::npos,
             "breakdown must include leakage aggregate");
+    double expectedRowDriverLatency = 0;
+    for (const auto &driver : bank.mat->subarray->RowDriver) {
+        if (driver) {
+            expectedRowDriverLatency = std::max(
+                    expectedRowDriverLatency, driver->readLatency);
+        }
+    }
+    std::ostringstream expectedRowDriver;
+    expectedRowDriver << "Row Driver Latency         = "
+                      << ToSecond(expectedRowDriverLatency);
+    Require(text.find(expectedRowDriver.str()) != std::string::npos,
+            "breakdown must report the component row-driver latency");
+    double expectedColumnMuxLatency = 0;
+    for (const auto &mux : bank.mat->subarray->ColMux) {
+        if (mux) {
+            expectedColumnMuxLatency = std::max(
+                    expectedColumnMuxLatency, mux->readLatency);
+        }
+    }
+    std::ostringstream expectedColumnMux;
+    expectedColumnMux << "Column Mux Latency         = "
+                      << ToSecond(expectedColumnMuxLatency);
+    Require(text.find(expectedColumnMux.str()) != std::string::npos,
+            "breakdown must report the component column-mux latency");
 }
 
 }  // namespace

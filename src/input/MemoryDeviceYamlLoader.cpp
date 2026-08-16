@@ -54,14 +54,6 @@ void ReadWriteSection(MemCell& cell, const YAML::Node& root) {
         if (child_optional(reset, "energy")) cell.resetEnergy = read_quantity_required(reset, "energy", YamlHelpers::EnergyUnits(), 1.0, "write.reset.energy");
     }
 }
-void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
-    auto mcam = child_optional(root, "mcam");
-    if (!mcam) return;
-    if (child_optional(mcam, "center_voltage")) {
-        cell.hasMcamCenterVoltage = true;
-        cell.centerVoltage = read_quantity_required(mcam, "center_voltage", YamlHelpers::McamCenterVoltageUnits(), 1.0, "mcam.center_voltage");
-    }
-}
 }  // namespace
 
 namespace YamlHelpers {
@@ -123,7 +115,7 @@ void validate_memory_device_keys(const YAML::Node& root) {
             "memory_device.variation");
     reject_unknown_keys(child_optional(root, "mcam"),
             {"num_resistance_state", "resistance_state", "state_variation",
-             "ml_precharge_voltage", "searchline_voltage", "center_voltage"},
+             "ml_precharge_voltage", "searchline_voltage"},
             "memory_device.mcam");
 }
 
@@ -152,7 +144,6 @@ void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile) {
     ReadResistanceSection(cell, root);
     ReadReadSection(cell, root);
     ReadWriteSection(cell, root);
-    ReadMcamSection(cell, root);
     PhysicalDomainValidators::ValidateMemCell(cell);
 }
 }  // namespace YamlHelpers

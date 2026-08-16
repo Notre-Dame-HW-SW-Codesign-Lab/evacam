@@ -4,6 +4,7 @@
 #include "Result.h"
 #include "TestModelBuilders.h"
 #include "TestSupport.h"
+#include "UnitFormatter.h"
 #include "input/CliOptions.h"
 
 #include <cassert>
@@ -200,6 +201,15 @@ void TestConsolePrintForCalculatedResult() {
     assert(output.find("CONFIGURATION") != std::string::npos);
     assert(output.find("SUMMARY RESULT") != std::string::npos);
     assert(output.find("Subarray Dimensions") != std::string::npos);
+    std::ostringstream expectedSearchLatency;
+    expectedSearchLatency << "Search Latency = "
+                          << ToSecond(result->bank->searchLatency);
+    assert(output.find(expectedSearchLatency.str()) != std::string::npos);
+    const size_t leakageStart = output.find("Subarray Leakage Power");
+    assert(leakageStart != std::string::npos);
+    const size_t leakageEnd = output.find('\n', leakageStart);
+    assert(output.substr(leakageStart, leakageEnd - leakageStart).find('J')
+            == std::string::npos);
 }
 
 }  // namespace

@@ -123,14 +123,6 @@ const std::vector<UnitSpec>& VoltageUnits() {
     return k;
 }
 
-const std::vector<UnitSpec>& McamCenterVoltageUnits() {
-    static const std::vector<UnitSpec> k = {
-        {"V", 1.0},
-        {"mV", 1e-3},
-    };
-    return k;
-}
-
 const std::vector<UnitSpec>& CurrentUnits() {
     static const std::vector<UnitSpec> k = {
         {"A", 1.0},

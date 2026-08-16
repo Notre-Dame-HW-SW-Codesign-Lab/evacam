@@ -313,7 +313,11 @@ This sense-margin check is one of the main validity gates in the current model.
 
 ### MCAM Matchline Delay
 
-For MCAM, EvaCAM uses the configured `mcam.resistance_state` values to build an effective one-mismatch resistance for each state. State `0` is treated as the all-base reference, and the nonzero state with the largest matchline delay is selected for the nominal search path.
+For MCAM, EvaCAM sorts the configured `mcam.resistance_state` values from HRS
+to LRS. The sorted HRS entry is distance `0`, representing equality. Nonzero
+absolute symbol distances select the progressively lower-resistance entries.
+For each candidate one-mismatch distance, that mismatch branch is placed in
+parallel with the HRS branches of the other cells in the word.
 
 That selected state drives:
 
@@ -322,7 +326,20 @@ That selected state drives:
 - `matchlineDelay`
 - total search/read latency composition
 
-This makes the nominal MCAM latency path worst-case across configured nonzero MCAM states. The broader MCAM query-evaluation API remains limited; binary vector, best-match, and threshold vector evaluation for MCAM are not implemented.
+This makes the nominal MCAM latency path worst-case across configured nonzero
+MCAM distances. Matchline precharge uses the per-distance
+`mcam.ml_precharge_voltage` value when supplied and technology `Vdd` otherwise.
+`read.min_sense_voltage` remains the acceptance threshold; a provisional value
+of `0V` disables that rejection gate, while sense-amplifier latency still uses
+the positive modeled boundary margin rather than dividing by zero.
+
+Exact MCAM vector evaluation is query-aware. Inputs are integers from `0` to
+`num_resistance_state - 1`; a hit requires element-wise equality across the
+whole word. Each cell contributes the conductance selected by
+`abs(stored_symbol - query_symbol)`, and the row resistance is the parallel
+reduction of those cell branches. This produces query-specific matchline delay,
+sense margin, and discharge energy. Best-match and threshold MCAM evaluation
+remain unimplemented.
 
 ### Total Search and Read Latency
 
@@ -488,7 +505,15 @@ This cell-read energy is then scaled by the number of columns sharing the active
 
 The model separately accumulates energy to drive the search values on the row-side lines. For ordinary binary ports, it scales the row-driver dynamic energy by the configured search voltages for logic `0` and logic `1`, then averages the two squared-voltage terms.
 
-For MCAM ports with `mcam.searchline_voltage` and `mcam.center_voltage`, it averages the squared searchline voltage across configured resistance states. For the complementary MCAM searchline, the voltage is derived as `2 * center_voltage - searchline_voltage[state]`.
+For MCAM, `mcam.searchline_voltage` is required. EvaCAM sorts the configured
+values from low to high. For state `s`, the two FeFET gates receive `V[s]` and
+`V[N - 1 - s]`, respectively, matching the paper's analog-inverse scheme. The
+common analog center is derived from half the reversed-pair sum, and validation
+requires every reversed pair to produce that same center. Nominal exploration
+averages the squared voltage across all states for each searchline. Exact match
+evaluation instead uses the concrete query symbols, so row-driver energy
+changes with the query. The matchline energy is the modeled capacitive energy
+lost between precharge and the voltage reached at the boundary sensing time.
 
 ### Read Dynamic Energy Aggregation
 
@@ -669,14 +694,14 @@ The strongest support today is for:
 ### Explicitly Limited or Unsupported Paths
 
 - ACAM is not supported.
-- MCAM has an experimental subarray timing and energy path for 2FeFET-style inputs, including resistance-state-based matchline latency and searchline-voltage-based row-driver energy. MCAM vector/query evaluation APIs are still limited.
+- MCAM has an experimental exact-match timing and energy path for the shipped 2FeFET topology, including integer vector/query evaluation, resistance-distance matchline behavior, query-specific searchline energy, and per-state sampled variation. Best-match and threshold MCAM APIs remain unsupported.
 - External sense amplifiers are rejected for non-SRAM cells.
 - Some sense-amp modes exist in the type system but are not fully implemented.
 - Some topologies are rejected early because the current matchline model does not cover them.
 
 ### Simplifying Assumptions Worth Remembering
 
-- precharge is currently assumed to be full `Vdd`
+- precharge is full `Vdd` unless MCAM supplies `mcam.ml_precharge_voltage`
 - matchline timing is an analytical RC approximation, not a SPICE transient
 - query-dependent energy for mismatches is scaled by a simple mismatch-ratio heuristic in `EvaluateBinaryMatch()`
 - write energy uses analytical pulse-energy formulas and line-charging approximations

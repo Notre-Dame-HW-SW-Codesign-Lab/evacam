@@ -2,6 +2,7 @@
 #include "formula.h"
 #include "input/SenseAmpYamlLoader.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 namespace {
@@ -110,8 +111,14 @@ void SenseAmp::CalculateRC() {
 }
 
 void SenseAmp::CalculateLatency() {
+    CalculateLatency(senseVoltage);
+}
+
+void SenseAmp::CalculateLatency(double observedSenseVoltage) {
     if (!initialized) {
         ThrowInitializationError("[Sense Amp]");
+    } else if (observedSenseVoltage <= 0) {
+        throw std::invalid_argument("[Sense Amp] observed sense voltage must be positive.");
     } else {
         readLatency = writeLatency = 0;
         auto& tech = *config->technology.tech;
@@ -123,7 +130,7 @@ void SenseAmp::CalculateLatency() {
         double gm = CalculateTransconductance(model.nSenseWidth * tech.featureSize(), NMOS, tech)
             + CalculateTransconductance(model.pSenseWidth * tech.featureSize(), PMOS, tech);
         double tau = capLoad / gm;
-        readLatency += tau * log(tech.vdd() / senseVoltage);
+        readLatency += tau * log(tech.vdd() / std::min(observedSenseVoltage, tech.vdd()));
     }
 }
 

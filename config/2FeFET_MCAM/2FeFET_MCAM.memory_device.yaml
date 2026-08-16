@@ -9,7 +9,9 @@ read:
   voltage: 1V
   current: 5.62uA
   power: 5.62uW
-  min_sense_voltage: 70mV
+  # Provisional infrastructure fixture: use 0V until the MCAM sensing path is
+  # calibrated. Any future nonzero value enables the modeled margin gate.
+  min_sense_voltage: 0V
 write:
   set:
     mode: voltage
@@ -25,6 +27,7 @@ write:
     energy: 2e-05pJ
 mcam:
   num_resistance_state: 8
+  # Provisional device data; replace with calibrated values when available.
   resistance_state:
   - 1.616Mohm
   - 854.7kohm
@@ -34,3 +37,9 @@ mcam:
   - 33kohm
   - 24.39kohm
   - 20.04kohm
+  # Provisional 3-bit search inputs from Kazemi et al., Scientific Reports
+  # 12, 19201 (2022), Supplementary Fig. 1. The production model is driven by
+  # these configured values and does not claim numerical correlation yet.
+  # EvaCAM sorts the table and applies V[s] and V[N - 1 - s] to the paired
+  # FeFET gates. Each reversed pair sums to 1.1V, so the derived center is 550mV.
+  searchline_voltage: [25mV, 175mV, 325mV, 475mV, 625mV, 775mV, 925mV, 1075mV]

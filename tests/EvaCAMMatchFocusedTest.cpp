@@ -71,7 +71,10 @@ std::filesystem::path WriteMcamSearchVariant(
     const std::filesystem::path source(kMcamConfig);
     const std::filesystem::path sourceDirectory = source.parent_path();
     std::string architecture = ReadFile(sourceDirectory / "2FeFET_MCAM.architecture.yaml");
-    ReplaceAll(architecture, "search_function: TH", "search_function: " + searchFunction);
+    for (const std::string value : {"EX", "BE", "TH"}) {
+        ReplaceAll(architecture, "search_function: " + value,
+                "search_function: " + searchFunction);
+    }
     ReplaceAll(architecture, "sensing: ./2FeFET_MCAM.sensing.yaml",
             "sensing: " + std::filesystem::absolute(
                     sourceDirectory / "2FeFET_MCAM.sensing.yaml").string());
@@ -90,6 +93,14 @@ std::filesystem::path WriteMcamSearchVariant(
 
 std::vector<int> Bits(size_t width, int bit = 0) {
     return std::vector<int>(width, bit);
+}
+
+std::vector<int> McamSymbols(size_t width) {
+    std::vector<int> symbols(width);
+    for (size_t index = 0; index < width; index++) {
+        symbols[index] = static_cast<int>(index % 8);
+    }
+    return symbols;
 }
 
 std::vector<int> WithMismatches(std::vector<int> bits, size_t mismatches) {
@@ -195,17 +206,51 @@ void TestBestArrayOverloadsAndValidationRules() {
     }, "out of range");
 }
 
-void TestNonTcamAndAnalogPublicOverloadGaps() {
+void TestMcamExactMatchAndValidationRules() {
+    EvaCAM_Match matcher(kMcamConfig);
+    const std::vector<int> stored = McamSymbols(matcher.word_width());
+    std::vector<int> oneMismatch = stored;
+    oneMismatch[0] = (oneMismatch[0] + 1) % 8;
+
+    const EvaCAMMatchResult exact = matcher.evaluate_vector(stored, stored);
+    const EvaCAMMatchResult miss = matcher.evaluate_vector(stored, oneMismatch);
+    assert(exact.hit);
+    assert(!miss.hit);
+    assert(matcher.match(stored, stored));
+    assert(!matcher.match(stored, oneMismatch));
+    AssertMetrics(exact);
+    AssertMetrics(miss);
+
+    const auto rows = matcher.evaluate_array(
+            std::vector<std::vector<int>>{stored, oneMismatch}, stored);
+    assert(rows.size() == 2);
+    assert(rows[0].hit);
+    assert(!rows[1].hit);
+
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_vector({}, stored); }, "stored vector length");
+    std::vector<int> negative = stored;
+    negative[0] = -1;
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_vector(negative, stored); }, "between 0 and 7");
+    std::vector<int> tooLarge = stored;
+    tooLarge[0] = 8;
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_vector(stored, tooLarge); }, "between 0 and 7");
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_mismatches(0); }, "only valid for TCAM");
+}
+
+void TestUnimplementedCamPublicOverloads() {
     // The application can explore this shipped BCAM configuration, but the
     // matcher rejects its configured bank before any BCAM public operation.
     AssertThrows<std::runtime_error>([] { EvaCAM_Match bcam(kBcamConfig); }, "configured bank is invalid");
 
     TestSupport::TemporaryDirectory temporary("evacam-match-mcam");
-    for (const std::string searchFunction : {"EX", "BE", "TH"}) {
+    for (const std::string searchFunction : {"BE", "TH"}) {
         EvaCAM_Match mcam(WriteMcamSearchVariant(temporary, searchFunction).string());
         const std::vector<int> mcamBits = Bits(mcam.word_width());
-        const std::string operation = searchFunction == "EX" ? "exact" :
-                (searchFunction == "BE" ? "best" : "threshold");
+        const std::string operation = searchFunction == "BE" ? "best" : "threshold";
         AssertThrows<std::runtime_error>([&] { mcam.evaluate_vector(mcamBits, mcamBits); },
                 operation + " MCAM vector evaluation is not implemented");
         AssertThrows<std::runtime_error>([&] {
@@ -247,7 +292,8 @@ int main() {
     TestExactTcamValidationRules();
     TestThresholdOverloadsAndValidationRules();
     TestBestArrayOverloadsAndValidationRules();
-    TestNonTcamAndAnalogPublicOverloadGaps();
+    TestMcamExactMatchAndValidationRules();
+    TestUnimplementedCamPublicOverloads();
     TestMoveAndConstructionFailures();
     return 0;
 }

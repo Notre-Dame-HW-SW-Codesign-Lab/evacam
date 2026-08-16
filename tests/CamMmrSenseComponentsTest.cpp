@@ -233,7 +233,16 @@ void TestCamSenseAmpSupportedModesAndInvalidPitch() {
         CAM_SenseAmp senseAmp;
         senseAmp.Initialize(64, type, false, 0.05, pitch, "", config);
         VerifySupportedCamSenseAmp(senseAmp);
+        senseAmp.CalculateLatency(0.01);
+        AssertFinitePositive(senseAmp.readLatency,
+                "CAM sense-amp observed-signal latency");
     }
+
+    CAM_SenseAmp zeroThreshold;
+    zeroThreshold.Initialize(64, nvsim_voltage_sense, false, 0, pitch, "", config);
+    zeroThreshold.CalculateLatency(0.01);
+    AssertFinitePositive(zeroThreshold.readLatency,
+            "zero threshold with positive observed signal");
 
     CAM_SenseAmp tooNarrow;
     tooNarrow.Initialize(8, nvsim_voltage_sense, false, 0.05,

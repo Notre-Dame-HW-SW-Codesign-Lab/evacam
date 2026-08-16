@@ -62,14 +62,14 @@ void PrintSearchLatencyBreakdown(const Bank &bank, const CAM_SubArray &subarray)
     std::cout << " |--- Row Decoder Latency        = " << ToSecond(subarray.RowDecMergeNand->readLatency + subarray.senseAmpMuxLev1Nand->readLatency + subarray.senseAmpMuxLev2Nand->readLatency) << std::endl;
     double rowDriverLatency = 0;
     for (int i = 0; i < config.technology.cell->camNumRow; i++) {
-        rowDriverLatency = std::max(subarray.RowDriver[i]->readLatency, bank.readLatency);
+        rowDriverLatency = std::max(rowDriverLatency, subarray.RowDriver[i]->readLatency);
     }
     std::cout << " |--- Row Driver Latency         = " << ToSecond(rowDriverLatency) << std::endl;
     std::cout << " |--- Precharger Latency         = " << ToSecond(subarray.precharger->readLatency) << std::endl;
     std::cout << " |--- Matchline Latency          = " << ToSecond(subarray.matchlineDelay) << std::endl;
     double columnDriverLatency = 0;
     for (int i = 0; i < config.technology.cell->camNumCol; i++) {
-        columnDriverLatency = std::max(subarray.ColMux[i]->readLatency, bank.readLatency);
+        columnDriverLatency = std::max(columnDriverLatency, subarray.ColMux[i]->readLatency);
     }
     std::cout << " |--- Column Mux Latency         = " << ToSecond(columnDriverLatency) << std::endl;
     std::cout << " |--- Sense Amplifier Latency    = " << ToSecond(subarray.senseAmpLatency) << std::endl;
