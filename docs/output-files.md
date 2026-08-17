@@ -65,6 +65,7 @@ Representative metrics include:
 - total area
 - read and write latency
 - search latency
+- nominal exact-match sense margin and the configured minimum required margin
 - dynamic energy
 - leakage
 

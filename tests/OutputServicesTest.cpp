@@ -51,6 +51,10 @@ void TestExtractorCompletePartialAndNoSolutions() {
     assert(design.optimizationTarget == "LeakagePower");
     assert(design.summary.at("area.total.area_m2") == valid->bank->area);
     assert(design.summary.at("bandwidth.write_Bps") > 0);
+    assert(design.summary.at("timing.exact_match_sense_margin_v")
+            == valid->bank->mat->subarray->senseMargin);
+    assert(design.summary.at("timing.minimum_required_sense_margin_v")
+            == valid->bank->mat->subarray->senseVoltage);
     assert(design.geometry.at("capacity_bits") == valid->bank->capacity);
     assert(design.breakdown.count("search_latency.h_tree_s") == 1);
     assert(!design.variation.enabled);
@@ -104,6 +108,8 @@ void TestConfigPrinterAndConsoleSummary() {
             exploration.bestResults, "unused.csv");
     solutionCapture.Stop();
     assert(solutionCapture.Text().find("SUMMARY RESULT") != std::string::npos);
+    assert(solutionCapture.Text().find("Exact-Match Sense Margin") != std::string::npos);
+    assert(solutionCapture.Text().find("Minimum Required Sense Margin") != std::string::npos);
     assert(solutionCapture.Text().find("Finished!") != std::string::npos);
 
     config->input.optimizationTarget = full_exploration;

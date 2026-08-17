@@ -397,6 +397,13 @@ namespace {
         y.line("mat", fmt_second(localSearchLatency));
         y.end_map();
 
+        const auto &subarray = *bank->mat->subarray;
+        const double nominalSenseMargin = subarray.variationSummary.senseMargin.available
+            ? subarray.variationSummary.senseMargin.nominal
+            : subarray.senseMargin;
+        y.line("exact_match_sense_margin", fmt_voltage(nominalSenseMargin));
+        y.line("minimum_required_sense_margin", fmt_voltage(subarray.senseVoltage));
+
         if (input->technology.cell->memCellType == PCRAM || input->technology.cell->memCellType == FBRAM ||
                 input->technology.cell->memCellType == FEFETRAM ||
                 (input->technology.cell->memCellType == memristor &&

@@ -15,6 +15,8 @@ summary:
       area: ...
   timing:
     search_latency: ...
+    exact_match_sense_margin: ...
+    minimum_required_sense_margin: ...
     variation:
       mode: monte_carlo
       samples: 9
@@ -61,7 +63,8 @@ status: no_valid_solutions
 `summary` contains three main groups:
 
 - `area`: bank, mat, and subarray dimensions plus area efficiency
-- `timing`: search latency, write/reset/set timing, and bandwidth
+- `timing`: search latency, sense-margin diagnostics, write/reset/set timing,
+  and bandwidth
 - `power`: search/read/write dynamic-energy metrics and leakage
 
 Write-related keys vary by cell type:
@@ -70,9 +73,13 @@ Write-related keys vary by cell type:
 - `reset_*` and `set_*` for some NVM types
 - `erase_*` and `program_*` for `SLCNAND`
 
-Variation summary keys:
+Sense-margin and variation keys:
 
 - `summary.timing.variation` is emitted only when variation is enabled
+- `summary.timing.exact_match_sense_margin` is the nominal modeled voltage
+  separation at the exact-match decision boundary and is always emitted
+- `summary.timing.minimum_required_sense_margin` is the configured
+  `read.min_sense_voltage` acceptance threshold and is always emitted
 - `mode` and `samples` describe the aggregation run
 - `sample_file` is emitted for Monte Carlo and corner runs and points to the per-sample CSV
 - `plot_file` is emitted for Monte Carlo runs when SVG histogram generation succeeds and is not disabled

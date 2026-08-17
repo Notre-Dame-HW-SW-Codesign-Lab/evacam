@@ -110,6 +110,8 @@ print(search.geometry["bit_serial_width"])
 
 - `optimization_target`: target name, for example `SearchLatency`.
 - `summary`: raw SI-valued top-level metrics keyed by dotted names.
+  Sense diagnostics include `timing.exact_match_sense_margin_v` and
+  `timing.minimum_required_sense_margin_v`, even when variation is disabled.
 - `breakdown`: raw SI-valued component breakdown metrics keyed by dotted names.
 - `geometry`: selected raw geometry and design settings.
 - `variation`: Monte Carlo summary and sample data when variation is enabled.

@@ -68,6 +68,8 @@ void TestSingleResultStructureAssumptionsAndBreakdowns() {
     result->config->peripherals.noPrechargeInc = true;
     result->config->peripherals.includeLeakage = true;
     result->config->peripherals.scaledVoltage = 0.9;
+    result->bank->mat->subarray->senseMargin = 0.1234;
+    result->bank->mat->subarray->senseVoltage = 0.0456;
     const YAML::Node root = WriteAndParse(*result, "samples.csv", "plot.svg");
 
     Require(root["assumptions"]["model_identifier"].as<std::string>() == "evacam-cam-v1",
@@ -84,6 +86,12 @@ void TestSingleResultStructureAssumptionsAndBreakdowns() {
             "nominal result does not invent variation output");
     AssertScalar(root["summary"]["area"]["total"], "area");
     AssertScalar(root["summary"]["timing"], "search_latency");
+    Require(root["summary"]["timing"]["exact_match_sense_margin"].as<std::string>()
+                == "0.123V",
+            "nominal exact-match sense margin is emitted without variation");
+    Require(root["summary"]["timing"]["minimum_required_sense_margin"].as<std::string>()
+                == "0.046V",
+            "minimum required sense margin is emitted without variation");
     AssertScalar(root["summary"]["timing"]["search_latency_breakdown"], "non_h_tree");
     AssertScalar(root["summary"]["power"], "search_dynamic_energy");
     AssertScalar(root["summary"]["power"]["search_dynamic_energy_breakdown"], "non_h_tree");
@@ -135,6 +143,9 @@ void TestVariationSummarySinglePointAndMonteCarlo() {
     SetAvailable(summary.referenceDelay, 7e-9, 8e-9);
     YAML::Node root = WriteAndParse(*result, "single.csv", "single.svg");
     const YAML::Node variation = root["summary"]["timing"]["variation"];
+    Require(root["summary"]["timing"]["exact_match_sense_margin"].as<std::string>()
+                == "0.700V",
+            "always-on sense margin remains nominal when variation is enabled");
     Require(variation["mode"].as<std::string>() == "single_point", "single-point mode");
     Require(variation["samples"].as<int>() == 1, "single-point samples");
     Require(variation["sample_file"].as<std::string>() == "single.csv", "sample path");

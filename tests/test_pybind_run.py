@@ -58,6 +58,7 @@ def parse_quantity(value):
         "uW": 1e-6,
         "mW": 1e-3,
         "W": 1.0,
+        "V": 1.0,
         "pm": 1e-12,
         "nm": 1e-9,
         "um": 1e-6,
@@ -94,6 +95,16 @@ def assert_run_result_matches_yaml(run_result, output_yaml_path):
 
     assert_yaml_close(yaml_scalars, "summary.area.total.area", summary["area.total.area_m2"])
     assert_yaml_close(yaml_scalars, "summary.timing.search_latency", summary["timing.search_latency_s"])
+    assert_yaml_close(
+        yaml_scalars,
+        "summary.timing.exact_match_sense_margin",
+        summary["timing.exact_match_sense_margin_v"],
+    )
+    assert_yaml_close(
+        yaml_scalars,
+        "summary.timing.minimum_required_sense_margin",
+        summary["timing.minimum_required_sense_margin_v"],
+    )
     assert_yaml_close(
         yaml_scalars,
         "summary.timing.search_latency_breakdown.h_tree",

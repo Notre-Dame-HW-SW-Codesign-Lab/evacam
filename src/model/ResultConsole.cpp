@@ -210,6 +210,13 @@ void Result::print() {
         std::cout << " |--- Non-H-Tree Latency = " << ToSecond(bank->searchLatency - localSearchLatency) << std::endl;
     std::cout << " |--- Mat Latency    = " << ToSecond(localSearchLatency) << std::endl;
     std::cout << "    |--- Predecoder Latency = " << ToSecond(bank->mat->predecoderLatency) << std::endl;
+    const auto &subarray = *bank->mat->subarray;
+    const double nominalSenseMargin = subarray.variationSummary.senseMargin.available
+        ? subarray.variationSummary.senseMargin.nominal
+        : subarray.senseMargin;
+    std::cout << " - Exact-Match Sense Margin = " << nominalSenseMargin * 1e3 << "mV" << std::endl;
+    std::cout << " |--- Minimum Required Sense Margin = " << subarray.senseVoltage * 1e3
+        << "mV" << std::endl;
     // std::cout << "       |--- Row Decoder Latency = " << ToSecond(bank->mat->subarray->rowDecoder->readLatency) << std::endl;
     // std::cout << "       |--- Matchline Latency     = " << ToSecond(bank->mat->subarray->MatchlineDelay) << std::endl;
     // if (config->input.internalSensing)
