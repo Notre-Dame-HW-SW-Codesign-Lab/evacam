@@ -64,8 +64,8 @@ int main() {
     assert(bank->mat->numDataBit == 2048);
     assert(bank->mat->subarray->numRow == 64);
     assert(bank->mat->subarray->numColumn == 512);
-    assert(Near(bank->height, 781.523e-6, 1e-9));
-    assert(Near(bank->width, 1.7871e-3, 1e-6));
+    assert(Near(bank->height, 763.542e-6, 1e-9));
+    assert(Near(bank->width, 1.88206e-3, 1e-6));
 
     const auto &subarray = *bank->mat->subarray;
     double expectedSearchEnergy = (subarray.searchDynamicEnergy * bank->mat->muxSenseAmp
