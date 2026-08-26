@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "EvaCAM_Match.h"
+#include "McamTestConfig.h"
 #include "TestSupport.h"
 
 namespace {
@@ -78,13 +79,20 @@ std::filesystem::path WriteMcamSearchVariant(
     ReplaceAll(architecture, "sensing: ./2FeFET_MCAM.sensing.yaml",
             "sensing: " + std::filesystem::absolute(
                     sourceDirectory / "2FeFET_MCAM.sensing.yaml").string());
+    std::string memoryDevice = ReadFile(sourceDirectory / "2FeFET_MCAM.memory_device.yaml");
+    ReplaceAll(memoryDevice, "min_sense_voltage: 70mV", "min_sense_voltage: 0V");
+    const auto memoryDevicePath = temporary.WriteFile(
+            "mcam.memory_device.yaml", memoryDevice);
+    std::string cell = ReadFile(sourceDirectory / "2FeFET_MCAM.cell.yaml");
+    ReplaceAll(cell, "memory_device: ./2FeFET_MCAM.memory_device.yaml",
+            "memory_device: " + memoryDevicePath.string());
+    const auto cellPath = temporary.WriteFile("mcam.cell.yaml", cell);
     const std::filesystem::path architecturePath = temporary.WriteFile(
             "mcam-" + searchFunction + ".architecture.yaml", architecture);
     std::string tool = ReadFile(source);
     ReplaceAll(tool, "architecture: 2FeFET_MCAM.architecture.yaml",
             "architecture: " + architecturePath.string());
-    ReplaceAll(tool, "cell: 2FeFET_MCAM.cell.yaml",
-            "cell: " + std::filesystem::absolute(sourceDirectory / "2FeFET_MCAM.cell.yaml").string());
+    ReplaceAll(tool, "cell: 2FeFET_MCAM.cell.yaml", "cell: " + cellPath.string());
     ReplaceAll(tool, "technology: ../lib/technology/cmos.legacy.yaml",
             "technology: " + std::filesystem::absolute(
                     sourceDirectory / "../lib/technology/cmos.legacy.yaml").string());
@@ -207,13 +215,24 @@ void TestBestArrayOverloadsAndValidationRules() {
 }
 
 void TestMcamExactMatchAndValidationRules() {
-    EvaCAM_Match matcher(kMcamConfig);
-    const std::vector<int> stored = McamSymbols(matcher.word_width());
+    TestSupport::TemporaryDirectory temporary("evacam-match-mcam-exact");
+    EvaCAM_Match matcher(WriteMcamSearchVariant(temporary, "EX").string());
+    assert(matcher.word_width() == 64);
+    assert(matcher.logical_word_width_bits() == 64);
+    assert(matcher.symbol_width() == 22);
+    const std::vector<int> stored = McamSymbols(matcher.symbol_width());
     std::vector<int> oneMismatch = stored;
     oneMismatch[0] = (oneMismatch[0] + 1) % 8;
 
     const EvaCAMMatchResult exact = matcher.evaluate_vector(stored, stored);
     const EvaCAMMatchResult miss = matcher.evaluate_vector(stored, oneMismatch);
+    assert(matcher.evaluate_symbols(stored, stored).hit);
+
+    std::vector<int> storedBits(matcher.logical_word_width_bits(), 0);
+    std::vector<int> queryBits = storedBits;
+    assert(matcher.evaluate_bits(storedBits, queryBits).hit);
+    queryBits.back() = 1;
+    assert(!matcher.evaluate_bits(storedBits, queryBits).hit);
     assert(exact.hit);
     assert(!miss.hit);
     assert(matcher.match(stored, stored));
@@ -228,7 +247,9 @@ void TestMcamExactMatchAndValidationRules() {
     assert(!rows[1].hit);
 
     AssertThrows<std::invalid_argument>(
-            [&] { matcher.evaluate_vector({}, stored); }, "stored vector length");
+            [&] { matcher.evaluate_vector({}, stored); }, "physical columns per word");
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_bits({}, storedBits); }, "logical bit vector length");
     std::vector<int> negative = stored;
     negative[0] = -1;
     AssertThrows<std::invalid_argument>(
@@ -241,6 +262,22 @@ void TestMcamExactMatchAndValidationRules() {
             [&] { matcher.evaluate_mismatches(0); }, "only valid for TCAM");
 }
 
+void TestOversizedMcamPhysicalWordPadsUnusedCells() {
+    TestSupport::TemporaryDirectory temporary("evacam-match-mcam-oversized");
+    EvaCAM_Match matcher(McamTestConfig::WriteZeroSenseVariant(temporary,
+            "config/2FeFET_MCAM/2FeFET_MCAM_explicit_subarray.config.yaml").string());
+    assert(matcher.logical_word_width_bits() == 64);
+    assert(matcher.symbol_width() == 64);
+
+    std::vector<int> bits(matcher.logical_word_width_bits(), 0);
+    bits.back() = 1;
+    assert(matcher.evaluate_bits(bits, bits).hit);
+
+    std::vector<int> different = bits;
+    different.back() = 0;
+    assert(!matcher.evaluate_bits(bits, different).hit);
+}
+
 void TestUnimplementedCamPublicOverloads() {
     // The application can explore this shipped BCAM configuration, but the
     // matcher rejects its configured bank before any BCAM public operation.
@@ -249,7 +286,7 @@ void TestUnimplementedCamPublicOverloads() {
     TestSupport::TemporaryDirectory temporary("evacam-match-mcam");
     for (const std::string searchFunction : {"BE", "TH"}) {
         EvaCAM_Match mcam(WriteMcamSearchVariant(temporary, searchFunction).string());
-        const std::vector<int> mcamBits = Bits(mcam.word_width());
+        const std::vector<int> mcamBits = McamSymbols(mcam.symbol_width());
         const std::string operation = searchFunction == "BE" ? "best" : "threshold";
         AssertThrows<std::runtime_error>([&] { mcam.evaluate_vector(mcamBits, mcamBits); },
                 operation + " MCAM vector evaluation is not implemented");
@@ -293,6 +330,7 @@ int main() {
     TestThresholdOverloadsAndValidationRules();
     TestBestArrayOverloadsAndValidationRules();
     TestMcamExactMatchAndValidationRules();
+    TestOversizedMcamPhysicalWordPadsUnusedCells();
     TestUnimplementedCamPublicOverloads();
     TestMoveAndConstructionFailures();
     return 0;

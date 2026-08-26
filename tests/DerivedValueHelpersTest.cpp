@@ -36,15 +36,15 @@ void TestEffectiveCapacityBitsConvertsBytesAndPreservesLargeValues() {
             == (static_cast<long long>(std::numeric_limits<int>::max()) + 1) * 8);
 }
 
-void TestEffectiveBlockSizeBitsUsesIntegerDivisionAndZeroCapacity() {
+void TestEffectiveBlockSizeBitsReturnsLogicalWordWidth() {
     const InputConfig exactInput = MakeInputConfig(1024, 64, read_latency_optimized);
-    assert(DerivedValueHelpers::EffectiveBlockSizeBits(exactInput) == 128);
+    assert(DerivedValueHelpers::EffectiveBlockSizeBits(exactInput) == 64);
 
     const InputConfig truncatedInput = MakeInputConfig(1025, 64, read_latency_optimized);
-    assert(DerivedValueHelpers::EffectiveBlockSizeBits(truncatedInput) == 128);
+    assert(DerivedValueHelpers::EffectiveBlockSizeBits(truncatedInput) == 64);
 
     const InputConfig emptyInput = MakeInputConfig(0, 64, read_latency_optimized);
-    assert(DerivedValueHelpers::EffectiveBlockSizeBits(emptyInput) == 0);
+    assert(DerivedValueHelpers::EffectiveBlockSizeBits(emptyInput) == 64);
 }
 
 void TestIsFullExplorationRecognizesDseTargetOnly() {
@@ -92,7 +92,7 @@ void TestHasFixedOuterGeometryRequiresExactlyOneValueForEveryOuterDimension() {
 
 int main() {
     TestEffectiveCapacityBitsConvertsBytesAndPreservesLargeValues();
-    TestEffectiveBlockSizeBitsUsesIntegerDivisionAndZeroCapacity();
+    TestEffectiveBlockSizeBitsReturnsLogicalWordWidth();
     TestIsFullExplorationRecognizesDseTargetOnly();
     TestShouldWriteExplorationCsvMatchesDseTarget();
     TestHasFixedOuterGeometryRequiresExactlyOneValueForEveryOuterDimension();

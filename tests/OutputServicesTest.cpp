@@ -101,6 +101,7 @@ void TestConfigPrinterAndConsoleSummary() {
     EvaCamOutput::PrintConsoleSummary(*config, 0, {}, "unused.csv");
     noSolutionCapture.Stop();
     assert(noSolutionCapture.Text().find("No valid solutions.") != std::string::npos);
+    assert(noSolutionCapture.Text().find("Minimum Required Sense Margin") != std::string::npos);
     assert(noSolutionCapture.Text().find("Finished!") != std::string::npos);
 
     TestSupport::StreamCapture solutionCapture(std::cout);
@@ -150,6 +151,7 @@ void TestYamlAndVariationSampleWrites() {
     EvaCamOutput::WriteYamlResults(*config, noSolutionsPath.string(), 0, {});
     YAML::Node noSolutions = YAML::LoadFile(noSolutionsPath.string());
     assert(noSolutions["status"].as<std::string>() == "no_valid_solutions");
+    assert(noSolutions["summary"]["timing"]["minimum_required_sense_margin"]);
 }
 
 void TestHistogramCommandQuotingAndFailureInjection() {

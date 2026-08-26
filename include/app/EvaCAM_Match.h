@@ -40,7 +40,14 @@ class EvaCAM_Match {
         std::vector<EvaCAMMatchResult> evaluate_array(
                 const std::vector<std::vector<std::pair<double, double>>> &storedRows,
                 const std::vector<double> &query) const;
+        // Logical width is measured in bits; MCAM symbol vectors use symbol_width().
         size_t word_width() const;
+        size_t logical_word_width_bits() const;
+        size_t symbol_width() const;
+        EvaCAMMatchResult evaluate_symbols(const std::vector<int> &stored,
+                const std::vector<int> &query) const;
+        EvaCAMMatchResult evaluate_bits(const std::vector<int> &storedBits,
+                const std::vector<int> &queryBits) const;
 
     private:
         void InitializeConfiguredBank();
@@ -63,6 +70,7 @@ class EvaCAM_Match {
         void ValidateVectorLength(size_t size, const char *name) const;
         void ValidateBinaryVector(const std::vector<int> &value, const char *name) const;
         void ValidateMcamVector(const std::vector<int> &value, const char *name) const;
+        std::vector<int> PackMcamBits(const std::vector<int> &bits, const char *name) const;
         void ValidateTcamStoredVector(const std::vector<int> &value, const char *name) const;
         Wire CreateLocalWire() const;
         Wire CreateGlobalWire() const;

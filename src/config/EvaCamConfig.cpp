@@ -3,8 +3,10 @@
 #include "config/EvaCamYamlLoader.h"
 #include "config/TechnologyLoader.h"
 
-#include <array>
+#include <limits>
 #include <stdexcept>
+
+#include <array>
 //#include <magic_enum.hpp>
 
 namespace {
@@ -100,4 +102,35 @@ void EvaCamConfig::ReadConfigFromFile(const std::string &inputFile) {
             logger.Verbose() << "[Input] Warning: variation.seed is ignored because corner mode is deterministic.";
         }
     }
+}
+
+void EvaCamConfig::ResolveWordGeometry(int bitsPerCell, long physicalColumnsPerWord) {
+    if (bitsPerCell <= 0 || input.wordWidth <= 0) {
+        throw std::runtime_error("[Input] Error: cannot resolve word geometry with bits_per_cell="
+                + std::to_string(bitsPerCell) + " and logical_word_bits="
+                + std::to_string(input.wordWidth) + ".");
+    }
+    const int64_t allocatedCapacityBytes = runtimeSizing.realCapacity > 0
+        ? runtimeSizing.realCapacity : input.capacity;
+    if (input.capacity > std::numeric_limits<int64_t>::max() / 8
+            || allocatedCapacityBytes > std::numeric_limits<int64_t>::max() / 8) {
+        throw std::runtime_error("[Input] Error: resolved capacity exceeds int64_t range.");
+    }
+    wordGeometry.logicalCapacityBits = input.capacity > 0 ? input.capacity * 8 : 0;
+    wordGeometry.allocatedCapacityBits = allocatedCapacityBytes > 0
+        ? allocatedCapacityBytes * 8 : 0;
+    wordGeometry.logicalWordBits = input.wordWidth;
+    wordGeometry.entryCount = wordGeometry.allocatedCapacityBits / input.wordWidth;
+    wordGeometry.bitsPerCell = bitsPerCell;
+    const long minimumPhysicalColumns =
+        (input.wordWidth + bitsPerCell - 1) / bitsPerCell;
+    if (physicalColumnsPerWord > 0
+            && physicalColumnsPerWord < minimumPhysicalColumns) {
+        throw std::runtime_error(
+                "[Input] Error: supplied physical columns are below the minimum required for the logical word.");
+    }
+    wordGeometry.physicalColumnsPerWord = physicalColumnsPerWord > 0
+        ? physicalColumnsPerWord : minimumPhysicalColumns;
+    wordGeometry.paddingBits = static_cast<int>(
+            wordGeometry.physicalColumnsPerWord * bitsPerCell - input.wordWidth);
 }

@@ -112,8 +112,14 @@ void EvaCamExplorer::InitializeExploration() {
         EvaCamConfigPrinter::Print(*config_);
     }
 
-    capacityBits_ = DerivedValueHelpers::EffectiveCapacityBits(config_->input);
-    blockSizeBits_ = DerivedValueHelpers::EffectiveBlockSizeBits(config_->input);
+    modelCapacityCells_ = config_->wordGeometry.logicalCapacityBits;
+    physicalColumnsPerWord_ = modelCapacityCells_
+        / config_->wordGeometry.logicalWordBits;
+    if (config_->technology.cell->camType == MCAM) {
+        modelCapacityCells_ = config_->wordGeometry.entryCount
+            * config_->wordGeometry.physicalColumnsPerWord;
+        physicalColumnsPerWord_ = config_->wordGeometry.physicalColumnsPerWord;
+    }
 
     const auto &resolved = config_->resolvedExploration;
     fixedOuterGeometry_ = DerivedValueHelpers::HasFixedOuterGeometry(resolved);
@@ -456,7 +462,7 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                     for (int priorityOptLevel : priorityOptimizationLevels)
                                                         for (int bitSerialWidth : bitSerialWidthValues) {
                                                         accounting.rawCandidates++;
-                                                        if (!config_->exploration.IsValidPartitioning(blockSizeBits_,
+                                                        if (!config_->exploration.IsValidPartitioning(physicalColumnsPerWord_,
                                                                     numActiveMatPerRow,
                                                                     numActiveMatPerColumn,
                                                                     numActiveSubarrayPerRow,
@@ -657,10 +663,11 @@ std::shared_ptr<Bank> EvaCamExplorer::BuildBank(const CandidateSpec &candidate) 
     CAM_Opt camOpt{};
     camOpt.RowDriver = candidate.rowDriverOptimizationLevel;
     camOpt.Proirity = candidate.priorityOptimizationLevel;
+    camOpt.ComparisonColumns = candidate.bitSerialWidth;
     camOpt.BitSerialWidth = candidate.bitSerialWidth;
     const auto bank = BankFactory::CreateBank(*config_);
     BankFactory::InitializeBank(config_, bank, candidate.numRowMat,
-            candidate.numColumnMat, capacityBits_, blockSizeBits_,
+            candidate.numColumnMat, modelCapacityCells_, physicalColumnsPerWord_,
             candidate.numActiveMatPerRow, candidate.numActiveMatPerColumn,
             candidate.muxSenseAmp, candidate.muxOutputLev1, candidate.muxOutputLev2,
             candidate.numRowSubarray, candidate.numColumnSubarray,
@@ -724,7 +731,7 @@ void EvaCamExplorer::RestoreMetrics(const CandidateMetrics &metrics, Bank &bank)
 void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) const {
     if ((long long)bank->mat->subarray->numColumn * bank->mat->subarray->numRow
             * bank->numColumnMat * bank->numRowMat * bank->numColumnSubarray
-            * bank->numRowSubarray == capacityBits_) {
+            * bank->numRowSubarray == modelCapacityCells_) {
         return;
     }
 

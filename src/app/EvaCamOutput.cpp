@@ -193,6 +193,11 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
             }
         } else {
             std::cout << "No valid solutions." << std::endl;
+            const double minimumSenseMargin = config.technology.cell
+                ? config.technology.cell->minSenseVoltage : 0.0;
+            std::cout << "Minimum Required Sense Margin: "
+                      << minimumSenseMargin * 1e3
+                      << " mV" << std::endl;
         }
 
         std::cout << std::endl << "Finished!" << std::endl;
@@ -201,6 +206,11 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
 
     if (numSolution <= 0) {
         std::cout << "No valid solutions." << std::endl;
+        const double minimumSenseMargin = config.technology.cell
+            ? config.technology.cell->minSenseVoltage : 0.0;
+        std::cout << "Minimum Required Sense Margin: "
+                  << minimumSenseMargin * 1e3
+                  << " mV" << std::endl;
         std::cout << std::endl << "Finished!" << std::endl;
         return;
     }

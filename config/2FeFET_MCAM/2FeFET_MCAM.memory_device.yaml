@@ -9,9 +9,7 @@ read:
   voltage: 1V
   current: 5.62uA
   power: 5.62uW
-  # Provisional infrastructure fixture: use 0V until the MCAM sensing path is
-  # calibrated. Any future nonzero value enables the modeled margin gate.
-  min_sense_voltage: 0V
+  min_sense_voltage: 70mV
 write:
   set:
     mode: voltage

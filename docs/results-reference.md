@@ -7,6 +7,17 @@ EvaCAM always writes a YAML results file. Exploration runs may also write a CSV.
 Single-objective runs write:
 
 ```yaml
+geometry:
+  logical_capacity_bits: 4096
+  allocated_capacity_bits: 4096
+  logical_word_width_bits: 64
+  entry_count: 64
+  bits_per_cell: 3
+  physical_columns_per_word: 22
+  word_padding_bits: 2
+  physical_cell_count: 1408
+  comparison_columns_per_step: 22
+  comparison_steps: 1
 summary:
   area:
     total:
@@ -37,6 +48,12 @@ breakdown:
     total_cell_area: ...
 ```
 
+For single-bit CAM, logical bits and physical columns are one-to-one. For
+MCAM, `bits_per_cell` is `log2(num_resistance_state)` and the inferred physical
+width is `ceil(logical_word_width_bits / bits_per_cell)`. Explicit MCAM
+dimensions may be wider and the surplus appears in `word_padding_bits`; a
+narrower supplied width is rejected before modeling.
+
 Exploration runs write one top-level map per objective, for example:
 
 - `ReadLatency`
@@ -55,8 +72,14 @@ dominated on other metrics.
 If no legal design point is found, the output is:
 
 ```yaml
+summary:
+  timing:
+    minimum_required_sense_margin: 0.070V
 status: no_valid_solutions
 ```
+
+The configured requirement remains available even though there is no valid
+candidate from which to report a modeled exact-match margin.
 
 ## Summary Section
 
@@ -144,6 +167,6 @@ The exploration CSV is emitted for full exploration. Its name is:
 
 Each row ends with four candidate-audit fields: a versioned canonical candidate
 identity, row-driver optimization level, priority-encoder optimization level,
-and bit-serial width. The identity serializes every modeled exploration input;
+and comparison columns per step. The identity serializes every modeled exploration input;
 it is not a floating-point metric hash. Rows with the same identity therefore
 represent the same canonical design candidate.

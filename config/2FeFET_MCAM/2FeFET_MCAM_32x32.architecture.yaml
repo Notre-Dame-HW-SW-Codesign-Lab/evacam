@@ -6,7 +6,7 @@ design:
   device_roadmap: HP
   temperature: 350K
 memory:
-  word_width: 32bits
+  word_width: 32bits # logical bits; 11 columns are required, 32 are provided
 routing:
   type: H-tree
 peripherals:
@@ -29,7 +29,7 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 organization:
-  bit_serial_width: 32bits
+  comparison_columns_per_step: 32
   banks:
     total: [1, 1]
     active: [1, 1]

@@ -52,8 +52,8 @@ class Bank: public FunctionUnit {
         bool internalSenseAmp;
         int numRowMat;		/* Number of mat rows in a bank */
         int numColumnMat;	/* Number of mat columns in a bank */
-        long long capacity;		/* The capacity of this bank, Unit: bit */
-        long blockSize;		/* The basic block size in this bank, Unit: bit */
+        long long capacity;		/* Capacity in the model's storage units */
+        long blockSize;		/* Word width in the model's storage units */
         int numActiveMatPerRow;	/* For different access types */
         int numActiveMatPerColumn;	/* For different access types */
         int muxSenseAmp;	/* How many bitlines connect to one sense amplifier */

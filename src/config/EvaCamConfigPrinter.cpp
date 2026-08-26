@@ -171,7 +171,8 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
         std::cout << " - Priority Encoder: "
             << ToString((BufferDesignTarget)exploration.cam.priorityOptLevel.Min()) << std::endl;
     if (peripherals.withOutputAcc)
-        std::cout << " - Bit Serial Width: " << exploration.cam.bitSerialWidth.Min() << std::endl;
+        std::cout << " - Comparison Columns Per Step: "
+                  << exploration.cam.bitSerialWidth.Min() << std::endl;
 
     if (constraints.enabled) {
         std::cout << "Constraints:" << std::endl;

@@ -47,8 +47,17 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     camType = _camType;
     searchFunction = _searchFunction;
     CAM_opt = _CAM_opt;
+    CAM_opt.NormalizeComparisonColumns();
 
     /* Calculate the physical signals that are required in routing */
+    if (blockSize <= 0 || capacity <= 0 || capacity % blockSize != 0
+            || CAM_opt.ComparisonColumns <= 0) {
+        invalid = true;
+        initialized = true;
+        config->logger.Verbose()
+            << "[BankWithoutHtree] Physical cell capacity must be exactly divisible by columns per word.";
+        return;
+    }
     numAddressBit = (int)(log2((double)capacity / blockSize) + 0.1);
     /* use double during the calculation to avoid overflow */
 
@@ -210,7 +219,8 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
         searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
             - mat->subarray->inputBuf->readLatency * (mat->muxSenseAmp - 1);
         if (config->peripherals.withOutputAcc) {
-            searchLatency *= config->input.wordWidth / CAM_opt.BitSerialWidth;
+            searchLatency *= config->wordGeometry.physicalColumnsPerWord
+                / CAM_opt.ComparisonColumns;
         }
     }
 
@@ -219,11 +229,12 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
                 + mat->subarray->inputEnc->readDynamicEnergy)
         * (mat->muxSenseAmp - 1);
     if (config->peripherals.withOutputAcc) {
-        localSearchEnergy *= config->input.wordWidth / CAM_opt.BitSerialWidth;
+        localSearchEnergy *= config->wordGeometry.physicalColumnsPerWord
+            / CAM_opt.ComparisonColumns;
     }
     searchDynamicEnergy = localSearchEnergy
         * numRowMat * numColumnMat * numRowSubarray * numColumnSubarray;
-    numBitSerial = CAM_opt.BitSerialWidth;
+    numBitSerial = CAM_opt.ComparisonColumns;
 
     double lengthWire = mat->height * (numRowMat + 1);
     for (int i = 0; i < numRowMat; i++) {

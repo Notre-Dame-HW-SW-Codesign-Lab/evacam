@@ -18,7 +18,8 @@ double LocalSearchLatency(const Result &result) {
     double latency = subarray->searchLatency * bank->mat->muxSenseAmp
         - subarray->inputBuf->readLatency * (bank->mat->muxSenseAmp - 1);
     if (result.config->peripherals.withOutputAcc) {
-        latency *= result.config->input.wordWidth / bank->CAM_opt.BitSerialWidth;
+        latency *= result.config->wordGeometry.physicalColumnsPerWord
+            / bank->CAM_opt.ComparisonColumns;
     }
     return latency;
 }
@@ -41,6 +42,15 @@ void Result::print() {
     std::cout << " - Column Activation: " << bank->numActiveSubarrayPerRow << " / " << bank->numColumnSubarray << std::endl;
     std::cout << " - Subarray Size    : " << bank->mat->subarray->ConfiguredRows()
               << " Rows x " << bank->mat->subarray->ConfiguredColumns()
+              << " Columns" << std::endl;
+    std::cout << " - Logical Word     : " << config->wordGeometry.logicalWordBits
+              << " Bits" << std::endl;
+    std::cout << " - Bits Per Cell    : " << config->wordGeometry.bitsPerCell << std::endl;
+    std::cout << " - Physical Word    : " << config->wordGeometry.physicalColumnsPerWord
+              << " Columns" << std::endl;
+    std::cout << " - Word Padding     : " << config->wordGeometry.paddingBits
+              << " Bits" << std::endl;
+    std::cout << " - Compared Per Step: " << bank->CAM_opt.ComparisonColumns
               << " Columns" << std::endl;
     std::cout << "Mux Level:" << std::endl;
     std::cout << " - Senseamp Mux      : " << bank->muxSenseAmp << std::endl;
@@ -280,11 +290,11 @@ void Result::print() {
         // std::cout << "       |--- Charge Latency      = " << ToSecond(bank->mat->subarray->chargeLatency) << std::endl;
     }
 
-    double readBandwidth = (double)bank->blockSize /
+    double readBandwidth = (double)config->wordGeometry.logicalWordBits /
         (bank->mat->subarray->readLatency - bank->mat->subarray->rowDecoder->readLatency
          + bank->mat->subarray->precharger->readLatency) / 8;
     std::cout << " - Read Bandwidth  = " << ToBps(readBandwidth) << std::endl;
-    double writeBandwidth = (double)bank->blockSize /
+    double writeBandwidth = (double)config->wordGeometry.logicalWordBits /
         (bank->mat->subarray->writeLatency) / 8;
     std::cout << " - Write Bandwidth = " << ToBps(writeBandwidth) << std::endl;
 

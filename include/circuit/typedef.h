@@ -151,9 +151,29 @@ struct CAMPort {
 
 
 struct CAM_Opt {
-    int RowDriver;
-    int Proirity;
-    int BitSerialWidth;
+    int RowDriver = 0;
+    int Proirity = 0;
+    // Number of physical columns compared in one electrical step.
+    int ComparisonColumns = 0;
+    // Deprecated compatibility name; kept until all circuit consumers migrate.
+    int BitSerialWidth = 0;
+
+    CAM_Opt() = default;
+
+    CAM_Opt(int rowDriver, int priority, int comparisonColumns)
+        : RowDriver(rowDriver),
+          Proirity(priority),
+          ComparisonColumns(comparisonColumns),
+          BitSerialWidth(comparisonColumns) {
+    }
+
+    void NormalizeComparisonColumns() {
+        if (ComparisonColumns > 0) {
+            BitSerialWidth = ComparisonColumns;
+        } else {
+            ComparisonColumns = BitSerialWidth;
+        }
+    }
 };
 
 #endif /* TYPEDEF_H_ */

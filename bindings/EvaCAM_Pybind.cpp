@@ -57,7 +57,13 @@ PYBIND11_MODULE(evacam_py, module) {
                         const std::vector<double>&>(
                         &EvaCAM_Match::evaluate_array, py::const_),
                 py::arg("stored_rows"), py::arg("query"))
-        .def("word_width", &EvaCAM_Match::word_width);
+        .def("evaluate_symbols", &EvaCAM_Match::evaluate_symbols,
+                py::arg("stored"), py::arg("query"))
+        .def("evaluate_bits", &EvaCAM_Match::evaluate_bits,
+                py::arg("stored_bits"), py::arg("query_bits"))
+        .def("word_width", &EvaCAM_Match::word_width)
+        .def("logical_word_width_bits", &EvaCAM_Match::logical_word_width_bits)
+        .def("symbol_width", &EvaCAM_Match::symbol_width);
 
     py::class_<EvaCamMetricStatsDto>(module, "EvaCAMMetricStats")
         .def_readonly("available", &EvaCamMetricStatsDto::available)

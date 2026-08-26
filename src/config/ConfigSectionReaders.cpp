@@ -347,6 +347,7 @@ void ReadAdvancedSection(const YAML::Node &root, EvaCamConfig &config) {
                         "advanced.bit_serial_width"),
                 "advanced.bit_serial_width in bits");
         config.exploration.cam.bitSerialWidth = IntValueDomain::PowersOfTwo((int)bsw, (int)bsw);
+        config.runtimeSizing.hasExplicitComparisonColumns = true;
     }
     if (YamlHelpers::child_optional(advanced, "input_encoder_type")) {
         config.peripherals.typeInputEnc =

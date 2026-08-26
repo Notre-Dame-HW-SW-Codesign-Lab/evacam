@@ -64,7 +64,23 @@ def write_config_with_search_function(
 
     tool["architecture"] = str(architecture_path)
     if cell_override is None:
-        tool["cell"] = str((source_config.parent / tool["cell"]).resolve())
+        source_cell = (source_config.parent / tool["cell"]).resolve()
+        if source_config.parent.name == "2FeFET_MCAM":
+            source_device = source_config.parent / "2FeFET_MCAM.memory_device.yaml"
+            device_text = source_device.read_text().replace(
+                "min_sense_voltage: 70mV", "min_sense_voltage: 0V"
+            )
+            device_path = pathlib.Path(tmp_dir) / "mcam_zero_sense.memory_device.yaml"
+            device_path.write_text(device_text)
+            cell_text = source_cell.read_text().replace(
+                "memory_device: ./2FeFET_MCAM.memory_device.yaml",
+                f"memory_device: {device_path}",
+            )
+            cell_path = pathlib.Path(tmp_dir) / "mcam_zero_sense.cell.yaml"
+            cell_path.write_text(cell_text)
+            tool["cell"] = str(cell_path)
+        else:
+            tool["cell"] = str(source_cell)
     else:
         tool["cell"] = str(cell_override)
     tool["technology"] = str((source_config.parent / tool["technology"]).resolve())
@@ -351,7 +367,10 @@ def test_pybind_match_module(config_path):
         mcam_ex_matcher = evacam_py.EvaCAMMatch(
             str(write_config_with_search_function(mcam_source, "EX", tmp_dir))
         )
-        mcam_ex_width = mcam_ex_matcher.word_width()
+        assert mcam_ex_matcher.word_width() == 64
+        assert mcam_ex_matcher.logical_word_width_bits() == 64
+        mcam_ex_width = mcam_ex_matcher.symbol_width()
+        assert mcam_ex_width == 22
         mcam_ex_stored = [index % 8 for index in range(mcam_ex_width)]
         mcam_ex_query = list(mcam_ex_stored)
         mcam_ex_query[0] = (mcam_ex_query[0] + 1) % 8
@@ -359,6 +378,11 @@ def test_pybind_match_module(config_path):
         mcam_miss = mcam_ex_matcher.evaluate_vector(mcam_ex_stored, mcam_ex_query)
         assert mcam_exact.hit
         assert not mcam_miss.hit
+        assert mcam_ex_matcher.evaluate_symbols(
+            mcam_ex_stored, mcam_ex_stored
+        ).hit
+        logical_bits = [0] * mcam_ex_matcher.logical_word_width_bits()
+        assert mcam_ex_matcher.evaluate_bits(logical_bits, logical_bits).hit
         for result in (mcam_exact, mcam_miss):
             assert math.isfinite(result.search_latency) and result.search_latency > 0
             assert math.isfinite(result.search_dynamic_energy) and result.search_dynamic_energy > 0
@@ -385,7 +409,7 @@ def test_pybind_match_module(config_path):
         mcam_be_matcher = evacam_py.EvaCAMMatch(
             str(write_config_with_search_function(mcam_source, "BE", tmp_dir))
         )
-        mcam_be_width = mcam_be_matcher.word_width()
+        mcam_be_width = mcam_be_matcher.symbol_width()
         mcam_be_stored = [0] * mcam_be_width
         assert_raises_message(
             RuntimeError,
@@ -396,7 +420,7 @@ def test_pybind_match_module(config_path):
         mcam_th_matcher = evacam_py.EvaCAMMatch(
             str(write_config_with_search_function(mcam_source, "TH", tmp_dir))
         )
-        mcam_th_width = mcam_th_matcher.word_width()
+        mcam_th_width = mcam_th_matcher.symbol_width()
         mcam_th_stored = [0] * mcam_th_width
         assert_raises_message(
             RuntimeError,

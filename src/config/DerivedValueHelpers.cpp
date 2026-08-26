@@ -5,7 +5,7 @@ long long DerivedValueHelpers::EffectiveCapacityBits(const InputConfig &input) {
 }
 
 long DerivedValueHelpers::EffectiveBlockSizeBits(const InputConfig &input) {
-    return input.capacity * 8 / input.wordWidth;
+    return input.wordWidth;
 }
 
 bool DerivedValueHelpers::IsFullExploration(const InputConfig &input) {

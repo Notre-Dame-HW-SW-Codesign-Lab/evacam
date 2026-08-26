@@ -320,7 +320,13 @@ This sense-margin check is one of the main validity gates in the current model.
 
 ### MCAM Matchline Delay
 
-For MCAM, EvaCAM sorts the configured `mcam.resistance_state` values from HRS
+For MCAM, `word_width` denotes logical bits while the array is sized in
+physical multi-bit symbols. The exact bits per cell is `log2` of the configured
+state count, and the physical column count is the ceiling of logical width
+divided by that value when dimensions are inferred. Explicit dimensions may
+provide more than this minimum, in which case the surplus cell capacity is
+modeled and reported as padding; smaller dimensions are rejected. Any
+remainder is zero-padded. EvaCAM sorts the configured `mcam.resistance_state` values from HRS
 to LRS. The sorted HRS entry is distance `0`, representing equality. Nonzero
 absolute symbol distances select the progressively lower-resistance entries.
 For each candidate one-mismatch distance, that mismatch branch is placed in

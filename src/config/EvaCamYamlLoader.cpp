@@ -79,7 +79,8 @@ void ValidateArchitectureConfigKeys(const YAML::Node &root) {
             {"type", "repeater", "low_swing"}, "wires.global");
 
     const YAML::Node organization = YamlHelpers::child_optional(root, "organization");
-    reject_unknown_keys(organization, {"banks", "mats", "mux", "subarray", "bit_serial_width"},
+    reject_unknown_keys(organization, {"banks", "mats", "mux", "subarray", "bit_serial_width",
+            "comparison_columns_per_step"},
             "organization");
     for (const char *section : {"banks", "mats"}) {
         reject_unknown_keys(YamlHelpers::child_optional(organization, section), {"total", "active"},
@@ -296,6 +297,13 @@ YAML::Node BuildMergedRootV2(const std::string &configFile, const YAML::Node &ro
     const YAML::Node organization =
             YamlHelpers::child_optional(architectureRoot, "organization");
     if (organization) {
+        if (YamlHelpers::child_optional(organization, "bit_serial_width")
+                && YamlHelpers::child_optional(organization, "comparison_columns_per_step")) {
+            throw std::runtime_error(
+                    "[Input] Error: organization cannot specify both comparison_columns_per_step and bit_serial_width.");
+        }
+        CopyMappedIfPresent(organization, "comparison_columns_per_step",
+                advanced, "bit_serial_width");
         CopyMappedIfPresent(organization, "bit_serial_width", advanced, "bit_serial_width");
     }
     const YAML::Node physicalLimits =

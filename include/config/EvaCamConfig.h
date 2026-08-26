@@ -14,6 +14,7 @@
 #include "config/ExplorationSpaceResolver.h"
 #include "config/InputConfig.h"
 #include "config/PeripheralConfig.h"
+#include "config/ResolvedWordGeometry.h"
 #include "config/ResolvedExplorationSpace.h"
 #include "config/RuntimeSizingConfig.h"
 #include "config/TechnologyContext.h"
@@ -49,6 +50,7 @@ class EvaCamConfig {
         /* Functions */
         void ReadConfigFromFile(const std::string & inputFile);
         void SetDeepExploration(bool enabled);
+        void ResolveWordGeometry(int bitsPerCell, long physicalColumnsPerWord = 0);
         ResultLimits BuildResultLimits(const std::vector<std::shared_ptr<Result>> &bestResults) const;
         void ApplyResultLimits(const ResultLimits &limits, const std::vector<std::shared_ptr<Result>> &results) const;
 
@@ -64,6 +66,7 @@ class EvaCamConfig {
         bool variationPlots = true;
 
         RuntimeSizingConfig runtimeSizing;
+        ResolvedWordGeometry wordGeometry;
 
         ExplorationSpec exploration;
         ResolvedExplorationSpace resolvedExploration;

@@ -1,5 +1,6 @@
 #include "output/ResultsYaml.h"
 
+#include <cmath>
 #include <functional>
 #include <iomanip>
 #include <string>
@@ -105,6 +106,21 @@ namespace {
         return numerator / denominator * 100;
     }
 
+    int comparison_columns(const Bank &bank) {
+        return bank.CAM_opt.ComparisonColumns > 0
+            ? bank.CAM_opt.ComparisonColumns
+            : bank.CAM_opt.BitSerialWidth;
+    }
+
+    double comparison_steps(const Result &result) {
+        const long physicalColumns = result.config->wordGeometry.physicalColumnsPerWord;
+        const int comparedColumns = comparison_columns(*result.bank);
+        if (physicalColumns <= 0 || comparedColumns <= 0) {
+            return 0;
+        }
+        return std::ceil(static_cast<double>(physicalColumns) / comparedColumns);
+    }
+
     double local_search_latency(const Result& result) {
         const auto& bank = result.bank;
         const auto& sub = bank->mat->subarray;
@@ -116,7 +132,7 @@ namespace {
         double latency = sub->searchLatency * bank->mat->muxSenseAmp
             - sub->inputBuf->readLatency * (bank->mat->muxSenseAmp - 1);
         if (result.config->peripherals.withOutputAcc) {
-            latency *= result.config->input.wordWidth / bank->CAM_opt.BitSerialWidth;
+            latency *= comparison_steps(result);
         }
         return latency;
     }
@@ -129,7 +145,7 @@ namespace {
             - (sub->inputBuf->readDynamicEnergy + sub->inputEnc->readDynamicEnergy)
             * (mat->muxSenseAmp - 1);
         if (result.config->peripherals.withOutputAcc) {
-            energy *= result.config->input.wordWidth / bank->CAM_opt.BitSerialWidth;
+            energy *= comparison_steps(result);
         }
         return energy * bank->numRowMat * bank->numColumnMat
             * bank->numRowSubarray * bank->numColumnSubarray;
@@ -348,6 +364,27 @@ namespace {
         y.end_map();
     }
 
+    void write_geometry(YamlWriter& y, const Result& result) {
+        const auto &word = result.config->wordGeometry;
+        const auto &bank = *result.bank;
+        const int comparedColumns = comparison_columns(bank);
+
+        y.begin_map("geometry");
+        y.line("logical_capacity_bits", std::to_string(word.logicalCapacityBits));
+        y.line("allocated_capacity_bits", std::to_string(word.allocatedCapacityBits));
+        y.line("logical_word_width_bits", std::to_string(word.logicalWordBits));
+        y.line("entry_count", std::to_string(word.entryCount));
+        y.line("bits_per_cell", std::to_string(word.bitsPerCell));
+        y.line("physical_columns_per_word",
+                std::to_string(word.physicalColumnsPerWord));
+        y.line("word_padding_bits", std::to_string(word.paddingBits));
+        y.line("physical_cell_count", std::to_string(bank.capacity));
+        y.line("comparison_columns_per_step", std::to_string(comparedColumns));
+        y.line("comparison_steps", std::to_string(
+                static_cast<long long>(comparison_steps(result))));
+        y.end_map();
+    }
+
     void write_summary(YamlWriter& y, const Result& result,
             const std::string &variationSamplesFile = "",
             const std::string &variationPlotFile = "") {
@@ -443,11 +480,12 @@ namespace {
             y.end_map();
         }
 
-        double read_bandwidth = (double)bank->blockSize /
+        double read_bandwidth = (double)input->wordGeometry.logicalWordBits /
             (bank->mat->subarray->readLatency - bank->mat->subarray->rowDecoder->readLatency +
              bank->mat->subarray->precharger->readLatency) / 8;
         y.line("read_bandwidth", fmt_bps(read_bandwidth));
-        double write_bandwidth = (double)bank->blockSize / (bank->mat->subarray->writeLatency) / 8;
+        double write_bandwidth = (double)input->wordGeometry.logicalWordBits
+            / (bank->mat->subarray->writeLatency) / 8;
         y.line("write_bandwidth", fmt_bps(write_bandwidth));
         if (bank->mat->subarray->variationSummary.enabled) {
             y.begin_map("variation");
@@ -568,6 +606,7 @@ namespace {
     void write_results_body(YamlWriter& y, const Result& result,
             const std::string &variationSamplesFile = "",
             const std::string &variationPlotFile = "") {
+        write_geometry(y, result);
         write_summary(y, result, variationSamplesFile, variationPlotFile);
         write_breakdown(y, result);
     }
@@ -615,5 +654,12 @@ void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<R
 void WriteResultsYamlNoSolutions(std::ostream& os, const EvaCamConfig &config) {
     YamlWriter y(os);
     write_assumptions(y, config);
+    y.begin_map("summary");
+    y.begin_map("timing");
+    const double minimumSenseMargin = config.technology.cell
+        ? config.technology.cell->minSenseVoltage : 0.0;
+    y.line("minimum_required_sense_margin", fmt_voltage(minimumSenseMargin));
+    y.end_map();
+    y.end_map();
     y.line("status", "no_valid_solutions");
 }

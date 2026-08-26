@@ -60,6 +60,8 @@ std::vector<int> ExplorationSpec::ActiveSubarrayPerColumnValues(int numRowSubarr
 bool ExplorationSpec::IsValidPartitioning(long blockSizeBits, int numActiveMatPerRow,
         int numActiveMatPerColumn, int numActiveSubarrayPerRow,
         int numActiveSubarrayPerColumn) const {
-    return blockSizeBits / (numActiveMatPerRow * numActiveMatPerColumn
-            * numActiveSubarrayPerRow * numActiveSubarrayPerColumn) != 0;
+    const long partitionCount = static_cast<long>(numActiveMatPerRow)
+        * numActiveMatPerColumn * numActiveSubarrayPerRow * numActiveSubarrayPerColumn;
+    return partitionCount > 0 && blockSizeBits >= partitionCount
+        && blockSizeBits % partitionCount == 0;
 }

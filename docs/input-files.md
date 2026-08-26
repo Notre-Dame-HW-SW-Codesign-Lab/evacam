@@ -68,12 +68,12 @@ output:
 Specify exactly one of `config_pattern` or `base_config`. Both are resolved
 relative to the tester config. A pattern must contain both placeholders and
 uses existing per-size configs. A base config is loaded for every run and the
-compiled tester overrides dimensions, capacity, word width, and bit-serial
-width in memory; it does not generate run configs. EvaCAM runs the Cartesian
+compiled tester overrides dimensions, capacity, logical word width, and
+comparison-column width; it does not generate run configs. EvaCAM runs the Cartesian
 product in row-major order and
 verifies that each result reports the requested physical subarray dimensions,
-word width, and bit-serial width. For these complete-word single-subarray
-tests, both widths must equal the requested column count.
+logical word width, and comparison-column width. For MCAM, columns are
+physical multi-bit symbols, so logical word width is columns times bits/cell.
 Dimension values must be unique integers from `8` through `512`.
 
 `--threads` controls concurrent configuration runs. `threads_per_run` is a
@@ -86,8 +86,9 @@ Referenced configs must be single-target configs. Pattern-mode inputs must be
 fixed configs whose
 architecture files should use explicit single-bank, single-mat organization,
 `organization.subarray.dimensions` matching the filename expansion, and
-`memory.word_width` plus `organization.bit_serial_width` matching the number
-of columns.
+`organization.comparison_columns_per_step` matching the physical column count.
+`memory.word_width` is always logical bits and may be smaller than the encoded
+capacity of those columns, but it must not exceed it.
 Base-config mode preserves its technology, cell, topology, peripherals,
 sensing, routing, and optimization target while replacing only the matrix
 sizing fields for each run.
@@ -144,8 +145,8 @@ Representative fields:
 - `organization.banks.total` and `organization.banks.active`: bank organization
 - `organization.mats.total` and `organization.mats.active`: mat organization
 - `organization.subarray.dimensions`: optional fixed physical subarray `[rows, columns]`; requires explicit bank and mat organization and is not supported with DSE/deep exploration
-- `organization.bit_serial_width`: optional fixed bit-serial width; it is the
-  number of word columns evaluated on each matchline in one serial step
+- `organization.comparison_columns_per_step`: optional number of physical
+  columns evaluated on each matchline in one serial step
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
 - `sensing`: reference to a `*.sensing.yaml` file
 - `matchline.additional_cap`: optional additional matchline capacitance; it loads
@@ -215,12 +216,16 @@ the indices `0` and `1`. The `mcam` section must define
 and MCAM match inputs are integer symbols from `0` through
 `num_resistance_state - 1`.
 
-CAM rows are stored words and columns are the symbols or bits within each
-word. A matchline belongs to one row and spans the columns. Consequently, an
-CAM configuration that evaluates a complete row in one step should set both
-`memory.word_width` and `organization.bit_serial_width` equal to the physical
-subarray column count. The number of matchlines and sensing paths scales with
-the row count.
+CAM rows are stored words and columns are physical symbols or bits within each
+word. For MCAM, `mcam.num_resistance_state` determines exact bits/cell
+(`log2(states)`), and physical columns are
+`ceil(memory.word_width / bits_per_cell)`. Unused bits in the final symbol are
+zero padding. Thus an eight-state, 64-bit word uses 22 physical columns and two
+padding bits when dimensions are inferred. Explicit subarray dimensions may
+provide more than this minimum; the surplus is retained and reported as
+padding capacity. Fewer columns are rejected with the supplied and required
+widths. Complete-word search sets `organization.comparison_columns_per_step`
+to the selected physical column count.
 
 EvaCAM sorts the resistance table internally from HRS to LRS. Distance `0`
 therefore represents the all-match HRS path, while increasing absolute symbol

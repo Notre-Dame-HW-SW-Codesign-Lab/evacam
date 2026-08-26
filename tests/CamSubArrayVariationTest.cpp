@@ -4,6 +4,8 @@
 #include "EvaCamExplorer.h"
 #include "Mat.h"
 #include "Result.h"
+#include "McamTestConfig.h"
+#include "TestSupport.h"
 #include "input/CliOptions.h"
 
 #include <algorithm>
@@ -27,6 +29,7 @@ struct Fixture {
     std::shared_ptr<EvaCamConfig> config;
     std::shared_ptr<Result> result;
     CAM_SubArray *subarray = nullptr;
+    std::shared_ptr<TestSupport::TemporaryDirectory> temporary;
 };
 
 Fixture MakeFixture() {
@@ -37,18 +40,21 @@ Fixture MakeFixture() {
     EvaCamExplorationResult exploration = explorer.Run();
     std::shared_ptr<Result> result = exploration.bestResults.at(leakage_optimized);
     assert(result && result->bank && result->bank->mat && result->bank->mat->subarray);
-    return {context.config, result, result->bank->mat->subarray.get()};
+    return {context.config, result, result->bank->mat->subarray.get(), nullptr};
 }
 
 Fixture MakeMcamFixture() {
+    auto temporary = std::make_shared<TestSupport::TemporaryDirectory>("mcam-variation");
+    const auto configPath = McamTestConfig::WriteZeroSenseVariant(*temporary,
+            "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml");
     CliOptions options;
-    options.inputFileName = "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml";
+    options.inputFileName = configPath.string();
     EvaCamContext context = EvaCamContextBuilder::Build(options);
     EvaCamExplorer explorer(context.config, 1);
     EvaCamExplorationResult exploration = explorer.Run();
     std::shared_ptr<Result> result = exploration.bestResults.at(leakage_optimized);
     assert(result && result->bank && result->bank->mat && result->bank->mat->subarray);
-    return {context.config, result, result->bank->mat->subarray.get()};
+    return {context.config, result, result->bank->mat->subarray.get(), temporary};
 }
 
 void ConfigureMonteCarlo(Fixture &fixture, int samples = 7) {

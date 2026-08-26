@@ -49,6 +49,21 @@ double SafeRatio(double numerator, double denominator) {
     return numerator / denominator;
 }
 
+int ComparisonColumns(const Bank &bank) {
+    return bank.CAM_opt.ComparisonColumns > 0
+        ? bank.CAM_opt.ComparisonColumns
+        : bank.CAM_opt.BitSerialWidth;
+}
+
+double ComparisonSteps(const Result &result) {
+    const long physicalColumns = result.config->wordGeometry.physicalColumnsPerWord;
+    const int comparisonColumns = ComparisonColumns(*result.bank);
+    if (physicalColumns <= 0 || comparisonColumns <= 0) {
+        return 0;
+    }
+    return std::ceil(static_cast<double>(physicalColumns) / comparisonColumns);
+}
+
 double LocalSearchLatency(const Result &result) {
     const auto &bank = *result.bank;
     const auto &sub = *bank.mat->subarray;
@@ -60,7 +75,7 @@ double LocalSearchLatency(const Result &result) {
     double latency = sub.searchLatency * bank.mat->muxSenseAmp
         - sub.inputBuf->readLatency * (bank.mat->muxSenseAmp - 1);
     if (result.config->peripherals.withOutputAcc) {
-        latency *= result.config->input.wordWidth / bank.CAM_opt.BitSerialWidth;
+        latency *= ComparisonSteps(result);
     }
     return latency;
 }
@@ -73,7 +88,7 @@ double LocalSearchEnergy(const Result &result) {
         - (sub.inputBuf->readDynamicEnergy + sub.inputEnc->readDynamicEnergy)
         * (mat.muxSenseAmp - 1);
     if (result.config->peripherals.withOutputAcc) {
-        energy *= result.config->input.wordWidth / bank.CAM_opt.BitSerialWidth;
+        energy *= ComparisonSteps(result);
     }
     return energy * bank.numRowMat * bank.numColumnMat
         * bank.numRowSubarray * bank.numColumnSubarray;
@@ -180,10 +195,12 @@ void AddCoreSummary(EvaCamDesignResultDto &dto, const Result &result) {
 
     if (HasUnit(sub.rowDecoder) && HasUnit(sub.precharger)) {
         dto.summary["bandwidth.read_Bps"] = SafeRatio(
-                static_cast<double>(bank.blockSize),
+                static_cast<double>(result.config->wordGeometry.logicalWordBits),
                 sub.readLatency - sub.rowDecoder->readLatency + sub.precharger->readLatency) / 8;
     }
-    dto.summary["bandwidth.write_Bps"] = SafeRatio(static_cast<double>(bank.blockSize), sub.writeLatency) / 8;
+    dto.summary["bandwidth.write_Bps"] = SafeRatio(
+            static_cast<double>(result.config->wordGeometry.logicalWordBits),
+            sub.writeLatency) / 8;
 }
 
 void AddGeometry(EvaCamDesignResultDto &dto, const Result &result) {
@@ -191,15 +208,28 @@ void AddGeometry(EvaCamDesignResultDto &dto, const Result &result) {
     const auto &mat = *bank.mat;
     const auto &sub = *mat.subarray;
 
-    dto.geometry["capacity_bits"] = static_cast<double>(bank.capacity);
-    dto.geometry["block_size_bits"] = static_cast<double>(bank.blockSize);
+    const auto &word = result.config->wordGeometry;
+    const int comparisonColumns = ComparisonColumns(bank);
+    dto.geometry["capacity_bits"] = static_cast<double>(word.logicalCapacityBits);
+    dto.geometry["block_size_bits"] = static_cast<double>(word.logicalWordBits);
+    dto.geometry["logical_capacity_bits"] = static_cast<double>(word.logicalCapacityBits);
+    dto.geometry["allocated_capacity_bits"] =
+        static_cast<double>(word.allocatedCapacityBits);
+    dto.geometry["logical_word_width_bits"] = static_cast<double>(word.logicalWordBits);
+    dto.geometry["entry_count"] = static_cast<double>(word.entryCount);
+    dto.geometry["bits_per_cell"] = static_cast<double>(word.bitsPerCell);
+    dto.geometry["physical_columns_per_word"] =
+        static_cast<double>(word.physicalColumnsPerWord);
+    dto.geometry["word_padding_bits"] = static_cast<double>(word.paddingBits);
+    dto.geometry["physical_cell_count"] = static_cast<double>(bank.capacity);
+    dto.geometry["physical_block_size_cells"] = static_cast<double>(bank.blockSize);
     dto.geometry["num_row_mat"] = bank.numRowMat;
     dto.geometry["num_column_mat"] = bank.numColumnMat;
     dto.geometry["num_row_subarray"] = mat.numRowSubarray;
     dto.geometry["num_column_subarray"] = mat.numColumnSubarray;
     dto.geometry["subarray_rows"] = static_cast<double>(sub.ConfiguredRows());
     dto.geometry["subarray_columns"] = static_cast<double>(sub.ConfiguredColumns());
-    dto.geometry["word_width_bits"] = static_cast<double>(result.config->input.wordWidth);
+    dto.geometry["word_width_bits"] = static_cast<double>(word.logicalWordBits);
     dto.geometry["num_active_mat_per_row"] = bank.numActiveMatPerRow;
     dto.geometry["num_active_mat_per_column"] = bank.numActiveMatPerColumn;
     dto.geometry["num_active_subarray_per_row"] = mat.numActiveSubarrayPerRow;
@@ -207,7 +237,9 @@ void AddGeometry(EvaCamDesignResultDto &dto, const Result &result) {
     dto.geometry["mux_sense_amp"] = bank.muxSenseAmp;
     dto.geometry["mux_output_level_1"] = bank.muxOutputLev1;
     dto.geometry["mux_output_level_2"] = bank.muxOutputLev2;
-    dto.geometry["bit_serial_width"] = bank.CAM_opt.BitSerialWidth;
+    dto.geometry["comparison_columns_per_step"] = comparisonColumns;
+    dto.geometry["comparison_steps"] = ComparisonSteps(result);
+    dto.geometry["bit_serial_width"] = comparisonColumns;
     dto.geometry["area_optimization_level"] = mat.areaOptimizationLevel;
     dto.geometry["row_driver_optimization_level"] = sub.DriverOptLevel;
     dto.geometry["priority_optimization_level"] = sub.PriorityOptLevel;

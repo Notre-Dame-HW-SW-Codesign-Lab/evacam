@@ -3,8 +3,11 @@
 
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
+#include <vector>
 
 #include "EvaCamConfig.h"
 #include "TestModelBuilders.h"
@@ -176,6 +179,91 @@ void TestInputRuleValidatorResolvesFixedDimensionsAndRejectsMismatch() {
     mismatch.config->runtimeSizing.fixedSubarrayRows = 64;
     mismatch.config->runtimeSizing.fixedSubarrayColumns = 64;
     AssertThrows<std::runtime_error>([&] { mismatch.ValidateInput(); }, "does not match organization.subarray.dimensions");
+}
+
+void TestInputRuleValidatorResolvesMcamLogicalAndPhysicalGeometry() {
+    for (const auto &sample : std::vector<std::pair<int, int>>{
+            {1, 64}, {2, 32}, {3, 22}, {4, 16}}) {
+        auto config = TestModelBuilders::MakeEvaCamConfig();
+        config->input.capacity = 512;
+        config->input.wordWidth = 64;
+        config->ResolveWordGeometry(sample.first);
+        Require(config->wordGeometry.physicalColumnsPerWord == sample.second,
+                "MCAM columns must be ceil(logical bits / bits per cell)");
+    }
+
+    for (const auto &sample : std::vector<std::tuple<int, int, int>>{
+            {2, 1, 64}, {4, 2, 32}, {8, 3, 22}, {16, 4, 16}}) {
+        const int numStates = std::get<0>(sample);
+        const int expectedBitsPerCell = std::get<1>(sample);
+        const int expectedColumns = std::get<2>(sample);
+        std::ostringstream mcam;
+        mcam << "mcam:\n  num_resistance_state: " << numStates
+             << "\n  resistance_state: [";
+        for (int state = 1; state <= numStates; state++) {
+            if (state > 1) mcam << ", ";
+            mcam << state << "kohm";
+        }
+        mcam << "]\n  searchline_voltage: [";
+        for (int state = 1; state <= numStates; state++) {
+            if (state > 1) mcam << ", ";
+            mcam << state * 100 << "mV";
+        }
+        mcam << "]\n";
+
+        ValidationFixture stateFixture("FEFETRAM", "MCAM", mcam.str());
+        stateFixture.config->runtimeSizing.hasFixedSubarrayDimensions = true;
+        stateFixture.config->runtimeSizing.hasExplicitCapacity = false;
+        stateFixture.config->runtimeSizing.fixedSubarrayRows = 64;
+        stateFixture.config->runtimeSizing.fixedSubarrayColumns = expectedColumns;
+        stateFixture.config->input.wordWidth = 64;
+        stateFixture.ValidateInput();
+        Require(stateFixture.config->wordGeometry.bitsPerCell == expectedBitsPerCell,
+                "MCAM bits per cell must be log2(resistance states)");
+        Require(stateFixture.config->wordGeometry.physicalColumnsPerWord == expectedColumns,
+                "MCAM physical columns must follow the configured state count");
+    }
+
+    const std::string eightStateMcam =
+            "mcam:\n  num_resistance_state: 8\n"
+            "  resistance_state: [1kohm, 2kohm, 3kohm, 4kohm, 5kohm, 6kohm, 7kohm, 8kohm]\n"
+            "  searchline_voltage: [0.1V, 0.2V, 0.3V, 0.4V, 0.5V, 0.6V, 0.7V, 0.8V]\n";
+    ValidationFixture fixture("FEFETRAM", "MCAM", eightStateMcam);
+    fixture.config->runtimeSizing.hasFixedSubarrayDimensions = true;
+    fixture.config->runtimeSizing.hasExplicitCapacity = false;
+    fixture.config->runtimeSizing.fixedSubarrayRows = 64;
+    fixture.config->runtimeSizing.fixedSubarrayColumns = 22;
+    fixture.config->input.wordWidth = 64;
+    fixture.ValidateInput();
+
+    const ResolvedWordGeometry &geometry = fixture.config->wordGeometry;
+    Require(geometry.logicalCapacityBits == 4096, "MCAM logical capacity must use logical word bits");
+    Require(geometry.logicalWordBits == 64, "MCAM logical word width must remain 64 bits");
+    Require(geometry.entryCount == 64, "MCAM fixed rows must resolve to 64 entries");
+    Require(geometry.bitsPerCell == 3, "eight-state MCAM must encode three bits per cell");
+    Require(geometry.physicalColumnsPerWord == 22, "64 MCAM bits must occupy 22 cells");
+    Require(geometry.paddingBits == 2, "64 bits in 22 three-bit cells must have two padding bits");
+
+    ValidationFixture oversized("FEFETRAM", "MCAM", eightStateMcam);
+    oversized.config->runtimeSizing.hasFixedSubarrayDimensions = true;
+    oversized.config->runtimeSizing.hasExplicitCapacity = false;
+    oversized.config->runtimeSizing.fixedSubarrayRows = 64;
+    oversized.config->runtimeSizing.fixedSubarrayColumns = 32;
+    oversized.config->input.wordWidth = 64;
+    oversized.ValidateInput();
+    Require(oversized.config->wordGeometry.physicalColumnsPerWord == 32,
+            "user-supplied MCAM columns above the minimum must be retained");
+    Require(oversized.config->wordGeometry.paddingBits == 32,
+            "surplus MCAM cell capacity must be reported as padding bits");
+
+    ValidationFixture mismatch("FEFETRAM", "MCAM", eightStateMcam);
+    mismatch.config->runtimeSizing.hasFixedSubarrayDimensions = true;
+    mismatch.config->runtimeSizing.hasExplicitCapacity = false;
+    mismatch.config->runtimeSizing.fixedSubarrayRows = 64;
+    mismatch.config->runtimeSizing.fixedSubarrayColumns = 21;
+    mismatch.config->input.wordWidth = 64;
+    AssertThrows<std::runtime_error>([&] { mismatch.ValidateInput(); },
+            "provides 21 columns");
 }
 
 void TestInputRuleValidatorRejectsPeripheralRules() {
@@ -497,6 +585,7 @@ int main() {
     TestInputRuleValidatorRejectsScalarDomainRules();
     TestInputRuleValidatorRejectsDerivedCapacityAndConstraintRules();
     TestInputRuleValidatorResolvesFixedDimensionsAndRejectsMismatch();
+    TestInputRuleValidatorResolvesMcamLogicalAndPhysicalGeometry();
     TestInputRuleValidatorRejectsPeripheralRules();
     TestInputRuleValidatorRejectsCamModelAndPortRules();
     TestInputRuleValidatorValidatesMcamStateBoundaries();

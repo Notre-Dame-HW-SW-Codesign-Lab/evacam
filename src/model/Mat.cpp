@@ -94,6 +94,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     searchFunction = _searchFunction;
     localWire = _localWire;
     CAM_opt = _CAM_opt;
+    CAM_opt.NormalizeComparisonColumns();
 
     if (_numActiveSubarrayPerRow > numColumnSubarray) {
         config->logger.Log()

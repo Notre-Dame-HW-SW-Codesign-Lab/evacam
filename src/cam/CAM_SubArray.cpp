@@ -334,6 +334,7 @@ void CAM_SubArray::Initialize(
     config = _config;
     localWire = _localWire;
     CAM_opt = _CAM_opt;
+    CAM_opt.NormalizeComparisonColumns();
 
     rowDecoder = std::make_unique<RowDecoder>();
     bitlineMuxDecoder = std::make_unique<RowDecoder>();

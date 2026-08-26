@@ -103,7 +103,7 @@ search = result.best_results["SearchLatency"]
 print(search.summary["timing.search_latency_s"])
 print(search.summary["energy.search_dynamic_j"])
 print(search.breakdown["search_latency.matchline_s"])
-print(search.geometry["bit_serial_width"])
+print(search.geometry["comparison_columns_per_step"])
 ```
 
 `EvaCAMDesignResult` fields:
@@ -128,7 +128,11 @@ matcher = evacam_py.EvaCAMMatch(
 
 ## Word Width
 
-`word_width()` returns the configured word width in bits.
+`word_width()` returns the logical word width in bits. MCAM also exposes
+`logical_word_width_bits()` as an explicit alias and `symbol_width()` for the
+selected physical vector length. An inferred eight-state 64-bit word has 22
+symbols (3 bits/cell and two padding bits); an explicit wider array reports its
+larger supplied symbol width.
 
 ```python
 width = matcher.word_width()
@@ -191,10 +195,10 @@ Current support:
 - MCAM `BE` and `TH`: not implemented
 - ACAM requires range/value inputs
 
-For an eight-state MCAM configuration:
+For an eight-state MCAM configuration, vector APIs use physical symbols:
 
 ```python
-stored = [index % 8 for index in range(matcher.word_width())]
+stored = [index % 8 for index in range(matcher.symbol_width())]
 query = stored.copy()
 
 exact = matcher.evaluate_vector(stored, query)
@@ -205,6 +209,16 @@ miss = matcher.evaluate_vector(stored, query)
 assert not miss.hit
 
 rows = matcher.evaluate_array([stored, query], stored)
+```
+
+`evaluate_symbols(stored, query)` is the explicit form of MCAM symbol-vector
+evaluation. `evaluate_bits(stored_bits, query_bits)` instead accepts exactly
+`logical_word_width_bits()` binary values, packs them MSB-first into symbols,
+and zero-pads the end of the final symbol:
+
+```python
+bits = [0] * matcher.logical_word_width_bits()
+assert matcher.evaluate_bits(bits, bits).hit
 ```
 
 MCAM exact results include query-specific searchline energy and matchline

@@ -10,6 +10,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "McamTestConfig.h"
 #include "TestSupport.h"
 
 namespace {
@@ -69,25 +70,6 @@ std::string ReplaceOnce(
     TestSupport::Require(position != std::string::npos, "test fixture text was not found");
     value.replace(position, needle.size(), replacement);
     return value;
-}
-
-std::string MakeRunConfig(
-        const std::string &name,
-        const std::filesystem::path &architecture) {
-    std::ostringstream yaml;
-    yaml << "schema: config\n"
-         << "name: " << name << "\n"
-         << "architecture: " << architecture.string() << "\n"
-         << "cell: " << (kConfigDirectory / "2FeFET_MCAM.cell.yaml").string() << "\n"
-         << "technology: "
-         << std::filesystem::absolute("config/lib/technology/cmos.legacy.yaml").string()
-         << "\n"
-         << "optimization:\n"
-         << "  target: LeakagePower\n"
-         << "  buffer_design: latency\n"
-         << "  row_driver: latency\n"
-         << "  priority_encoder: latency\n";
-    return yaml.str();
 }
 
 void TestLoadConfigAndBuildCartesianRunSpecs() {
@@ -219,10 +201,18 @@ void TestRunContinuesAfterDimensionMismatchAndReportsFailure() {
     const std::filesystem::path outputDirectory = directory.Path() / "results";
     const std::filesystem::path architecture64x32 =
             kConfigDirectory / "2FeFET_MCAM_64x32.architecture.yaml";
+    const std::filesystem::path zeroSenseConfig = McamTestConfig::WriteZeroSenseVariant(
+            directory, kConfigDirectory / "2FeFET_MCAM.config.yaml");
+    std::string zeroSenseRun = ReadFile(zeroSenseConfig);
+    zeroSenseRun = ReplaceOnce(zeroSenseRun,
+            "architecture: " + (directory.Path() / "mcam.architecture.yaml").string(),
+            "architecture: " + architecture64x32.string());
     directory.WriteFile(
-            "case_64x32.config.yaml", MakeRunConfig("case_64x32", architecture64x32));
+            "case_64x32.config.yaml",
+            ReplaceOnce(zeroSenseRun, "name: 2FeFET_MCAM", "name: case_64x32"));
     directory.WriteFile(
-            "case_64x64.config.yaml", MakeRunConfig("case_64x64", architecture64x32));
+            "case_64x64.config.yaml",
+            ReplaceOnce(zeroSenseRun, "name: 2FeFET_MCAM", "name: case_64x64"));
 
     std::ostringstream tester;
     tester << "schema: subarray_dimension_test\n"

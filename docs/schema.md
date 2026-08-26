@@ -102,9 +102,9 @@ Useful optional keys:
 
 - `organization.banks.*`, `organization.mats.*`, `organization.mux.*`: pin exploration to fixed powers-of-two values
 - `organization.subarray.dimensions`: fixed physical subarray `[rows, columns]`; requires explicit `organization.banks` and `organization.mats`, derives or validates `memory.capacity`, and is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
-- `organization.bit_serial_width`: fixed number of word columns evaluated per
-  matchline step; complete-word fixed-subarray CAM configs set this equal to
-  `organization.subarray.dimensions[1]`
+- `organization.comparison_columns_per_step`: fixed number of physical columns
+  evaluated per matchline step; it defaults to the selected physical word
+  width and an explicit value must divide that width exactly
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
 - `memory.physical_capacity`: required when `memory.word_width` is not a power of two
 - `sensing`: reference to a `*.sensing.yaml` file
@@ -181,6 +181,11 @@ Important notes:
 - `mcam.num_resistance_state` must be a power of two in `2..64`. `mcam.resistance_state` and `mcam.searchline_voltage` are required and must each contain exactly that many entries.
 - The resistance entries may be supplied in any order. EvaCAM sorts them from HRS to LRS so distance `0` is the all-match state and larger absolute symbol distances select lower resistance states.
 - Exact MCAM vectors contain integer symbols in `0..num_resistance_state-1`. A row is a hit only when every stored symbol equals the corresponding query symbol.
+- For MCAM, `bits_per_cell = log2(num_resistance_state)` and
+  `minimum_physical_columns = ceil(word_width / bits_per_cell)`. The final
+  symbol is zero-padded when needed (64 logical bits need at least 22 columns
+  for eight states). Explicit dimensions may provide more columns and report
+  the surplus as padding; fewer columns are rejected.
 - Searchline-voltage entries may be supplied in any order and must be distinct. EvaCAM sorts them from low to high and drives the paired FeFET gates for symbol `s` with `V[s]` and `V[N-1-s]`, following the paper's analog-inverse mapping. Every reversed pair must have the same sum; EvaCAM derives the common center from that sum rather than accepting a separate center input. MCAM does not fall back to binary per-port search voltages.
 - `mcam.ml_precharge_voltage` is optional; otherwise the MCAM matchline precharges to technology `Vdd`. `mcam.state_variation` is optional and is sampled by exact-match `single_point` and `monte_carlo` evaluation.
 - `mcam.resistance_state`, `mcam.ml_precharge_voltage`, `mcam.searchline_voltage`, and `mcam.state_variation` accept either sequences or maps keyed by integer state index. Every supplied collection must define all configured states.

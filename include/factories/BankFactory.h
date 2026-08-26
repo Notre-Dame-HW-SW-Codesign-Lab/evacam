@@ -14,7 +14,7 @@ class BankFactory {
         static std::shared_ptr<Bank> CreateBank(const EvaCamConfig &config);
         static void InitializeBank(const std::shared_ptr<EvaCamConfig> &config,
                 const std::shared_ptr<Bank> &bank, int numRowMat, int numColumnMat,
-                long long capacityBits, long blockSizeBits,
+                long long modelCapacityCells, long physicalColumnsPerWord,
                 int numActiveMatPerRow, int numActiveMatPerColumn, int muxSenseAmp, int muxOutputLev1,
                 int muxOutputLev2, int numRowSubarray, int numColumnSubarray,
                 int numActiveSubarrayPerRow, int numActiveSubarrayPerColumn,

@@ -164,12 +164,42 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
 }
 
 size_t EvaCAM_Match::word_width() const {
-    return static_cast<size_t>(config->input.wordWidth);
+    return logical_word_width_bits();
+}
+
+size_t EvaCAM_Match::logical_word_width_bits() const {
+    return static_cast<size_t>(config->wordGeometry.logicalWordBits > 0
+            ? config->wordGeometry.logicalWordBits : config->input.wordWidth);
+}
+
+size_t EvaCAM_Match::symbol_width() const {
+    if (config->technology.cell->camType != MCAM) {
+        return word_width();
+    }
+    return static_cast<size_t>(config->wordGeometry.physicalColumnsPerWord > 0
+            ? config->wordGeometry.physicalColumnsPerWord : config->input.wordWidth);
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_symbols(
+        const std::vector<int> &stored, const std::vector<int> &query) const {
+    return evaluate_vector(stored, query);
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_bits(
+        const std::vector<int> &storedBits, const std::vector<int> &queryBits) const {
+    if (config->technology.cell->camType != MCAM) {
+        return evaluate_vector(storedBits, queryBits);
+    }
+    return evaluate_symbols(PackMcamBits(storedBits, "storedBits"),
+            PackMcamBits(queryBits, "queryBits"));
 }
 
 void EvaCAM_Match::InitializeConfiguredBank() {
-    long long capacity = config->input.capacity * 8;
-    long blockSize = config->input.wordWidth;
+    // Banks model physical cells.  Logical MCAM bits are expanded into symbols
+    // before reaching the array (one symbol occupies one multi-level cell).
+    long long capacity = config->wordGeometry.entryCount
+            * config->wordGeometry.physicalColumnsPerWord;
+    long blockSize = config->wordGeometry.physicalColumnsPerWord;
 
     const auto &resolved = config->resolvedExploration;
     int numRowMat = resolved.geometry.numRowMatValues.front();
@@ -193,6 +223,7 @@ void EvaCAM_Match::InitializeConfiguredBank() {
 
     camOpt.RowDriver = rowDriverOpt;
     camOpt.Proirity = priorityOpt;
+    camOpt.ComparisonColumns = bitSerialWidth;
     camOpt.BitSerialWidth = bitSerialWidth;
 
     if (config->input.routingMode == h_tree) {
@@ -265,8 +296,8 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateBestVector(
             ValidateBinaryVector(query, "query");
             throw std::runtime_error("[EvaCAM_Match] Error: best TCAM vector evaluation requires evaluate_array(rows, query).");
         case MCAM:
-            ValidateVectorLength(stored.size(), "stored");
-            ValidateVectorLength(query.size(), "query");
+            ValidateMcamVector(stored, "stored");
+            ValidateMcamVector(query, "query");
             throw std::runtime_error("[EvaCAM_Match] Error: best MCAM vector evaluation is not implemented.");
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value vector input.");
@@ -284,8 +315,8 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdVector(
             ValidateBinaryVector(query, "query");
             throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM vector evaluation requires evaluate_threshold(..., maxMismatches).");
         case MCAM:
-            ValidateVectorLength(stored.size(), "stored");
-            ValidateVectorLength(query.size(), "query");
+            ValidateMcamVector(stored, "stored");
+            ValidateMcamVector(query, "query");
             throw std::runtime_error("[EvaCAM_Match] Error: threshold MCAM vector evaluation is not implemented.");
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value vector input.");
@@ -431,7 +462,10 @@ void EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const cha
 void EvaCAM_Match::ValidateMcamVector(
         const std::vector<int> &value,
         const char *name) const {
-    ValidateVectorLength(value.size(), name);
+    if (value.size() != symbol_width()) {
+        throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
+                + " MCAM symbol vector length does not match physical columns per word.");
+    }
     const int numStates = config->technology.cell->numResistanceState;
     for (int symbol : value) {
         if (symbol < 0 || symbol >= numStates) {
@@ -440,6 +474,33 @@ void EvaCAM_Match::ValidateMcamVector(
                     + std::to_string(numStates - 1) + ".");
         }
     }
+}
+
+std::vector<int> EvaCAM_Match::PackMcamBits(
+        const std::vector<int> &bits, const char *name) const {
+    if (bits.size() != logical_word_width_bits()) {
+        throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
+                + " logical bit vector length does not match configured word width.");
+    }
+    const int bitsPerCell = std::max(1, config->wordGeometry.bitsPerCell);
+    std::vector<int> symbols(symbol_width(), 0);
+    // Bits are packed MSB-first within each symbol; the final symbol is zero padded.
+    for (size_t bitIndex = 0; bitIndex < bits.size(); ++bitIndex) {
+        if (bits[bitIndex] != 0 && bits[bitIndex] != 1) {
+            throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
+                    + " must contain only binary values.");
+        }
+        const size_t symbolIndex = bitIndex / bitsPerCell;
+        symbols[symbolIndex] = (symbols[symbolIndex] << 1) | bits[bitIndex];
+    }
+    const size_t usedSymbols =
+        (bits.size() + static_cast<size_t>(bitsPerCell) - 1) / bitsPerCell;
+    const int finalSymbolPadding = static_cast<int>(
+            usedSymbols * static_cast<size_t>(bitsPerCell) - bits.size());
+    if (finalSymbolPadding > 0 && usedSymbols > 0) {
+        symbols[usedSymbols - 1] <<= finalSymbolPadding;
+    }
+    return symbols;
 }
 
 void EvaCAM_Match::ValidateVectorLength(size_t size, const char *name) const {

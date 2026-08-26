@@ -98,8 +98,8 @@ class EvaCamExplorer {
         long long numSolution_ = 0;
         CandidateAccounting candidateAccounting_;
         std::vector<EvaluatedCandidate> evaluatedCandidates_;
-        long long capacityBits_ = 0;
-        long blockSizeBits_ = 0;
+        long long modelCapacityCells_ = 0;
+        long physicalColumnsPerWord_ = 0;
         bool fixedOuterGeometry_ = false;
         std::vector<int> numRowMatValues_;
         std::vector<int> numColumnMatValues_;

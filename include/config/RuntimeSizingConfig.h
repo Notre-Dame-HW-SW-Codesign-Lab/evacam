@@ -10,6 +10,7 @@ struct RuntimeSizingConfig {
     bool hasFixedSubarrayDimensions = false;
     int fixedSubarrayRows = 0;
     int fixedSubarrayColumns = 0;
+    bool hasExplicitComparisonColumns = false;
 };
 
 #endif  // EVACAM_CONFIG_RUNTIMESIZINGCONFIG_H_

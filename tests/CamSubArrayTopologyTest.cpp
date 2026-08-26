@@ -11,6 +11,8 @@
 #include "EvaCamRun.h"
 #include "Mat.h"
 #include "Result.h"
+#include "McamTestConfig.h"
+#include "TestSupport.h"
 #include "input/CliOptions.h"
 
 namespace {
@@ -27,9 +29,9 @@ CAM_SubArray *RunConfig(const std::string &path, EvaCamExplorationResult *explor
     return result->bank->mat->subarray.get();
 }
 
-EvaCamDesignResultDto RunDimensionConfig(int rows, int columns) {
+EvaCamDesignResultDto RunDimensionConfig(const std::string &configPath, int rows, int columns) {
     EvaCamRunOptions options;
-    options.configPath = "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml";
+    options.configPath = configPath;
     options.subarrayRows = rows;
     options.subarrayColumns = columns;
     options.stdoutOutput = false;
@@ -125,9 +127,11 @@ void TestResistiveTcamAggregateCalculations() {
 }
 
 void TestMcamTopologyAndAggregateCalculations() {
+    TestSupport::TemporaryDirectory temporary("mcam-topology");
+    const auto config = McamTestConfig::WriteZeroSenseVariant(temporary,
+            "config/2FeFET_MCAM/2FeFET_MCAM_64x32.config.yaml");
     EvaCamExplorationResult exploration;
-    const CAM_SubArray &constSubarray = *RunConfig(
-            "config/2FeFET_MCAM/2FeFET_MCAM_64x32.config.yaml", &exploration);
+    const CAM_SubArray &constSubarray = *RunConfig(config.string(), &exploration);
     CAM_SubArray &subarray = const_cast<CAM_SubArray &>(constSubarray);
 
     assert(subarray.initialized && !subarray.invalid);
@@ -152,9 +156,21 @@ void TestMcamTopologyAndAggregateCalculations() {
     assert(std::fabs(subarray.searchLatency - latency) <= latency * 1e-12);
 }
 
+void TestCanonicalMcamHasNoValidSolution() {
+    CliOptions options;
+    options.inputFileName = "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml";
+    options.stdoutOutput = false;
+    EvaCamContext context = EvaCamContextBuilder::Build(options);
+    const EvaCamExplorationResult exploration = EvaCamExplorer(context.config, 1).Run();
+    assert(exploration.numSolution == 0);
+}
+
 void TestMcamAsymmetricDimensionsFollowWordColumns() {
-    const EvaCamDesignResultDto wide = RunDimensionConfig(16, 64);
-    const EvaCamDesignResultDto deep = RunDimensionConfig(64, 16);
+    TestSupport::TemporaryDirectory temporary("mcam-dimensions");
+    const auto config = McamTestConfig::WriteZeroSenseVariant(temporary,
+            "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml");
+    const EvaCamDesignResultDto wide = RunDimensionConfig(config.string(), 16, 64);
+    const EvaCamDesignResultDto deep = RunDimensionConfig(config.string(), 64, 16);
 
     assert(wide.geometry.at("subarray_rows") == 16);
     assert(wide.geometry.at("subarray_columns") == 64);
@@ -173,6 +189,7 @@ int main() {
     TestSramTopology();
     TestResistiveTcamAggregateCalculations();
     TestMcamTopologyAndAggregateCalculations();
+    TestCanonicalMcamHasNoValidSolution();
     TestMcamAsymmetricDimensionsFollowWordColumns();
     std::cout << "CAM subarray topology tests passed\n";
     return 0;

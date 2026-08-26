@@ -101,6 +101,29 @@ CAMType LoadCamTypeForValidation(const YAML::Node &root, const std::string &cell
     return TCAM;
 }
 
+int LoadBitsPerCellForValidation(const EvaCamConfig &config) {
+    const YAML::Node root = LoadCellFileForValidation(config.input.fileMemCell);
+    if (LoadCamTypeForValidation(root, config.input.fileMemCell) != MCAM) {
+        return 1;
+    }
+    const YAML::Node memoryDevice = LoadMemoryDeviceForValidation(
+            root, config.input.fileMemCell);
+    const YAML::Node mcam = YamlHelpers::child_required(memoryDevice, "mcam");
+    int numStates = YamlHelpers::read_optional<int>(
+            mcam, "num_resistance_state", 0);
+    if (numStates == 0) {
+        const YAML::Node states = YamlHelpers::child_required(mcam, "resistance_state");
+        if (states.IsSequence()) {
+            numStates = static_cast<int>(states.size());
+        }
+    }
+    int bitsPerCell = 0;
+    for (int states = numStates; states > 1; states >>= 1) {
+        bitsPerCell++;
+    }
+    return bitsPerCell;
+}
+
 void ValidateCamPortPresence(const YAML::Node &root) {
     const YAML::Node ports = YamlHelpers::child_required(root, "ports");
     const YAML::Node rowPorts = YamlHelpers::child_optional(ports, "row");
@@ -563,9 +586,14 @@ void ValidateDerivedInputs(const EvaCamConfig &config) {
                 "[Input] Error: memory.capacity must be > 0 unless organization.subarray.dimensions derives it.");
     }
     const bool isWordWidthPow2 = (config.input.wordWidth & (config.input.wordWidth - 1)) == 0;
-    if (!isWordWidthPow2 && config.runtimeSizing.realCapacity == 0) {
+    if (!isWordWidthPow2 && config.wordGeometry.bitsPerCell == 1
+            && config.runtimeSizing.realCapacity == 0) {
         throw std::runtime_error(
                 "[Input] Error: non-power-of-two word_width requires extra.real_capacity to be set.");
+    }
+    if (config.wordGeometry.allocatedCapacityBits % config.input.wordWidth != 0) {
+        throw std::runtime_error(
+                "[Input] Error: resolved capacity must contain a whole number of memory.word_width logical words.");
     }
     if (config.runtimeSizing.realCapacity > 0) {
         if (config.runtimeSizing.realCapacity < config.input.capacity) {
@@ -584,14 +612,32 @@ void ValidateDerivedInputs(const EvaCamConfig &config) {
             throw std::runtime_error(
                     "[Input] Error: extra.real_capacity is incompatible with organization geometry.");
         }
-        if (((config.runtimeSizing.realCapacity / denom) % config.input.wordWidth) != 0) {
+        const long long allocatedBits = CheckedMultiply(
+                config.runtimeSizing.realCapacity, 8, "extra.real_capacity");
+        if (((allocatedBits / denom) % config.input.wordWidth) != 0) {
             throw std::runtime_error(
                     "[Input] Error: extra.real_capacity is incompatible with word_width.");
         }
     }
 }
 
-void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
+void ResolveComparisonColumns(EvaCamConfig &config) {
+    const long physicalColumns = config.wordGeometry.physicalColumnsPerWord;
+    if (!config.runtimeSizing.hasExplicitComparisonColumns) {
+        config.exploration.cam.bitSerialWidth = IntValueDomain::FixedSet(
+                {static_cast<int>(physicalColumns)});
+        return;
+    }
+    for (int width : config.exploration.cam.bitSerialWidth.Values()) {
+        if (width <= 0 || width > physicalColumns || physicalColumns % width != 0) {
+            throw std::runtime_error(
+                    "[Input] Error: organization.comparison_columns_per_step must be a positive divisor of the physical columns per word.");
+        }
+    }
+}
+
+void ValidateAndResolveExplicitSubarrayDimensions(
+        EvaCamConfig &config, bool isMcam) {
     if (!config.runtimeSizing.hasFixedSubarrayDimensions) {
         if (!config.runtimeSizing.hasExplicitCapacity || config.runtimeSizing.capacityIsAuto) {
             throw std::runtime_error(
@@ -630,26 +676,38 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
                 "[Input] Error: active bank/mat partitioning must divide total bank/mat geometry.");
     }
 
-    const long long partitionFactor = CheckedMultiply(banksTotal / banksActive,
-            matsTotal / matsActive, "active partitioning");
-    if (config.input.wordWidth % partitionFactor != 0) {
+    const long long dataPartitions = CheckedMultiply(
+            banksActive, matsActive, "active data partitioning");
+    const long long addressPartitions = CheckedMultiply(banksTotal / banksActive,
+            matsTotal / matsActive, "address partitioning");
+    const long long minimumPhysicalColumns =
+        config.wordGeometry.physicalColumnsPerWord;
+    const long long suppliedPhysicalColumns = CheckedMultiply(
+            subarrayColumns, dataPartitions, "supplied physical word columns");
+    if (suppliedPhysicalColumns < minimumPhysicalColumns) {
         throw std::runtime_error(
-                "[Input] Error: word_width is incompatible with active bank/mat partitioning.");
+                "[Input] Error: organization.subarray.dimensions provides "
+                + std::to_string(subarrayColumns) + " columns across each of "
+                + std::to_string(dataPartitions) + " active data partitions ("
+                + std::to_string(suppliedPhysicalColumns) + " per word), but "
+                + std::to_string(config.input.wordWidth) + " logical bits at "
+                + std::to_string(config.wordGeometry.bitsPerCell)
+                + " bits per cell require "
+                + std::to_string(minimumPhysicalColumns)
+                + " physical columns per word.");
     }
-    const long long effectiveSubarrayColumns = config.input.wordWidth / partitionFactor;
-    if (effectiveSubarrayColumns != subarrayColumns) {
+    if (!isMcam && suppliedPhysicalColumns != minimumPhysicalColumns) {
         throw std::runtime_error(
-                "[Input] Error: organization.subarray.dimensions column count is incompatible with word_width.");
-    }
-    if ((effectiveSubarrayColumns & (effectiveSubarrayColumns - 1)) != 0) {
-        throw std::runtime_error(
-                "[Input] Error: organization.subarray.dimensions column count must match a power-of-two effective column count.");
+                "[Input] Error: organization.subarray.dimensions must provide exactly "
+                + std::to_string(minimumPhysicalColumns)
+                + " columns per word for a single-bit CAM; oversized physical-word "
+                  "allocation is supported only for MCAM.");
     }
 
-    long long capacityBits = subarrayRows;
-    capacityBits = CheckedMultiply(capacityBits, subarrayColumns, "derived capacity");
-    capacityBits = CheckedMultiply(capacityBits, banksTotal, "derived capacity");
-    capacityBits = CheckedMultiply(capacityBits, matsTotal, "derived capacity");
+    const long long entryCount = CheckedMultiply(
+            subarrayRows, addressPartitions, "derived entry count");
+    long long capacityBits = CheckedMultiply(
+            entryCount, config.input.wordWidth, "derived capacity");
     if (capacityBits % 8 != 0) {
         throw std::runtime_error(
                 "[Input] Error: derived capacity from organization.subarray.dimensions is not byte-addressable.");
@@ -662,6 +720,9 @@ void ValidateAndResolveExplicitSubarrayDimensions(EvaCamConfig &config) {
         throw std::runtime_error(
                 "[Input] Error: memory.capacity does not match organization.subarray.dimensions.");
     }
+
+    config.ResolveWordGeometry(config.wordGeometry.bitsPerCell,
+            static_cast<long>(suppliedPhysicalColumns));
 
     if (config.runtimeSizing.realCapacity > 0
             && config.runtimeSizing.realCapacity != derivedCapacityBytes) {
@@ -702,8 +763,14 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
 
 void InputRuleValidator::Validate(EvaCamConfig &config) {
     ValidateScalarDomains(config);
-    ValidateAndResolveExplicitSubarrayDimensions(config);
+    ValidateMemCellSupport(config);
+    const YAML::Node cellRoot = LoadCellFileForValidation(config.input.fileMemCell);
+    const bool isMcam =
+        LoadCamTypeForValidation(cellRoot, config.input.fileMemCell) == MCAM;
+    const int bitsPerCell = LoadBitsPerCellForValidation(config);
+    config.ResolveWordGeometry(bitsPerCell);
+    ValidateAndResolveExplicitSubarrayDimensions(config, isMcam);
+    ResolveComparisonColumns(config);
     ValidateDerivedInputs(config);
     ValidatePeripheralSupport(config);
-    ValidateMemCellSupport(config);
 }

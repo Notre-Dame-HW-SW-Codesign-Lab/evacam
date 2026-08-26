@@ -202,6 +202,9 @@ void TestMultiResultTargetNamesAndRoadmapsAndNoSolutions() {
         const YAML::Node noSolutionRoot = YAML::Load(noSolutions.str());
         Require(noSolutionRoot["status"].as<std::string>() == "no_valid_solutions",
                 "no-solution status");
+        Require(noSolutionRoot["summary"]["timing"]
+                    ["minimum_required_sense_margin"].IsScalar(),
+                "no-solution minimum sense margin");
         Require(noSolutionRoot["assumptions"]["technology"]["roadmap"].IsScalar(),
                 "every roadmap serializes");
         Require(noSolutionRoot["assumptions"]["routing"].as<std::string>() == "h_tree",

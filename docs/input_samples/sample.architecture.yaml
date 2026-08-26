@@ -54,7 +54,7 @@ organization:
     sense_amp: 1 # positive integer
     output_level1: 1 # positive integer
     output_level2: 1 # positive integer
-  bit_serial_width: 128bits # units: bit | bits
+  comparison_columns_per_step: 128 # physical columns compared per serial step
 
 matchline:
   additional_cap: 4fF # units: F | mF | uF | nF | pF | fF

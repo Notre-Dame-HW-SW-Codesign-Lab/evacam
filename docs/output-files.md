@@ -35,7 +35,9 @@ output:
 For non-exploration runs:
 
 - EvaCAM prints the best result for the selected optimization target.
-- If no valid solution is found, it prints `No valid solutions.`
+- If no valid solution is found, it prints `No valid solutions.` followed by
+  the configured minimum required sense margin. The no-solution YAML preserves
+  the same requirement under `summary.timing.minimum_required_sense_margin`.
 
 For full-exploration runs:
 
@@ -57,6 +59,8 @@ Representative sections include:
 
 - `assumptions`: model identifier, design/routing choices, technology node and
   roadmap, modeling options, and a limitations-reference path
+- `geometry`: logical capacity and word width, entry count, bits per cell,
+  physical columns per word, padding, physical cell count, and comparison width
 - `summary`
 - `breakdown`
 
@@ -77,7 +81,8 @@ the configured summary CSV with one row per requested dimension pair.
 
 Summary columns are:
 
-- requested `rows` and `columns`, plus the reported bit-serial and word widths
+- requested `rows` and `columns`, plus the reported comparison-column width,
+  logical word width, and bits per cell
 - completion `status`, solution count, and elapsed seconds
 - input config and output result paths
 - search latency, exact-match sense margin, minimum required sense margin, and

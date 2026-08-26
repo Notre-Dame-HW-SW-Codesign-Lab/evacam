@@ -32,8 +32,9 @@ constexpr int kMaximumDimension = 512;
 struct RunOutcome {
     std::string status = "failed";
     long long numSolutions = 0;
-    int bitSerialWidth = 0;
+    int comparisonColumns = 0;
     int wordWidth = 0;
+    int bitsPerCell = 1;
     double elapsedSeconds = 0;
     double searchLatency = 0;
     double exactMatchSenseMargin = 0;
@@ -186,20 +187,27 @@ RunOutcome RunOne(
                     + "; expected " + spec.Label());
         }
 
-        outcome.bitSerialWidth = static_cast<int>(std::llround(
-                RequiredMetric(design.geometry, "bit_serial_width")));
+        outcome.comparisonColumns = static_cast<int>(std::llround(
+                RequiredMetric(design.geometry, "comparison_columns_per_step")));
         outcome.wordWidth = static_cast<int>(std::llround(
-                RequiredMetric(design.geometry, "word_width_bits")));
-        if (outcome.bitSerialWidth != spec.columns) {
+                RequiredMetric(design.geometry, "logical_word_width_bits")));
+        outcome.bitsPerCell = static_cast<int>(std::llround(
+                RequiredMetric(design.geometry, "bits_per_cell")));
+        if (outcome.comparisonColumns != spec.columns) {
             throw std::runtime_error(
-                    "result reported bit-serial width "
-                    + std::to_string(outcome.bitSerialWidth)
+                    "result reported comparison-column width "
+                    + std::to_string(outcome.comparisonColumns)
                     + "; expected column count " + std::to_string(spec.columns));
         }
-        if (outcome.wordWidth != spec.columns) {
+        const int availableWordBits = spec.columns * outcome.bitsPerCell;
+        if (outcome.wordWidth > availableWordBits) {
             throw std::runtime_error(
-                    "result reported word width " + std::to_string(outcome.wordWidth)
-                    + "; expected column count " + std::to_string(spec.columns));
+                    "result reported logical word width "
+                    + std::to_string(outcome.wordWidth)
+                    + ", which exceeds the " + std::to_string(availableWordBits)
+                    + " bits available from " + std::to_string(spec.columns)
+                    + " columns at " + std::to_string(outcome.bitsPerCell)
+                    + " bits per cell");
         }
 
         outcome.searchLatency = RequiredMetric(design.summary, "timing.search_latency_s");
@@ -261,8 +269,8 @@ void WriteSummaryCsv(
                 + temporary.string());
     }
 
-    output << "rows,columns,bit_serial_width,word_width,status,num_solutions,"
-              "elapsed_seconds,config,result,"
+    output << "rows,columns,comparison_columns_per_step,logical_word_width_bits,"
+              "status,num_solutions,bits_per_cell,elapsed_seconds,config,result,"
               "search_latency_s,exact_match_sense_margin_v,"
               "minimum_required_sense_margin_v,total_area_m2,message\n";
     for (std::size_t index = 0; index < specs.size(); index++) {
@@ -270,10 +278,11 @@ void WriteSummaryCsv(
         const RunOutcome &outcome = outcomes[index];
         output << spec.rows << ','
                << spec.columns << ','
-               << outcome.bitSerialWidth << ','
+               << outcome.comparisonColumns << ','
                << outcome.wordWidth << ','
                << outcome.status << ','
                << outcome.numSolutions << ','
+               << outcome.bitsPerCell << ','
                << FormatDouble(outcome.elapsedSeconds) << ','
                << CsvEscape(DisplayPath(spec.configPath).string()) << ','
                << CsvEscape(DisplayPath(spec.resultPath).string()) << ',';

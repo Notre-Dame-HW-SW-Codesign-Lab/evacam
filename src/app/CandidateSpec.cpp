@@ -52,7 +52,7 @@ CandidateSpec CandidateSpec::FromBank(const Bank &bank) {
     candidate.areaOptimizationLevel = bank.areaOptimizationLevel;
     candidate.rowDriverOptimizationLevel = bank.CAM_opt.RowDriver;
     candidate.priorityOptimizationLevel = bank.CAM_opt.Proirity;
-    candidate.bitSerialWidth = bank.CAM_opt.BitSerialWidth;
+    candidate.bitSerialWidth = bank.CAM_opt.ComparisonColumns;
     candidate.localWire = {bank.localWire.wireType,
         bank.localWire.wireRepeaterType, bank.localWire.isLowSwing};
     candidate.globalWire = {bank.globalWire.wireType,

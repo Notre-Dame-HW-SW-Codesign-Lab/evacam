@@ -6,7 +6,7 @@ design:
   device_roadmap: HP
   temperature: 350K
 memory:
-  word_width: 64bits
+  word_width: 64bits # logical bits; 8-state cells encode 3 bits per physical cell
 routing:
   type: H-tree
 peripherals:
@@ -29,7 +29,7 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 organization:
-  bit_serial_width: 64bits
+  comparison_columns_per_step: 64
   banks:
     total:
     - 1
@@ -45,7 +45,7 @@ organization:
     - 1
     - 1
   subarray:
-    dimensions: [64, 64]
+    dimensions: [64, 64] # 22 columns are required; the extra 42 are padding
   mux:
     sense_amp: 1
     output_level1: 1
