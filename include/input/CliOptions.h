@@ -11,6 +11,7 @@ struct CliOptions {
     bool verbose = false;
     bool stdoutOutput = true;
     bool variationPlots = true;
+    bool subarrayDimensionTest = false;
     bool showHelp = false;
 };
 

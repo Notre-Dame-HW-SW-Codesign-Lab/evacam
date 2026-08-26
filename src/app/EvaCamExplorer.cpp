@@ -731,7 +731,8 @@ void EvaCamExplorer::ValidateCapacityOrThrow(const std::shared_ptr<Bank> &bank) 
     if (outputEnabled_) {
         std::lock_guard<std::mutex> outputLock(Logger::OutputMutex());
         std::cout << "numcolumn x numrow x numcolumnmat x numrowmat x numcolumnsubarry x numrowsubarray"
-            << bank->mat->subarray->numColumn << ": " << bank->mat->subarray->numRow
+            << bank->mat->subarray->ConfiguredColumns() << ": "
+            << bank->mat->subarray->ConfiguredRows()
             << ": " << bank->numColumnMat << ": " << bank->numRowMat << ": "
             << bank->numColumnSubarray << ": " << bank->numRowSubarray << std::endl;
         std::cout << "1 Bank = " << bank->numRowMat << "x"

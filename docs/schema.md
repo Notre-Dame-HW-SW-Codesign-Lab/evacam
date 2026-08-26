@@ -4,6 +4,30 @@ This document covers the YAML fields currently parsed by EvaCAM. Treat this file
 and the shipped examples under `config/` as the source of truth for real
 runs.
 
+## Subarray Dimension Tester Config
+
+The compiled `--subarray-dimension-test` mode accepts a separate tester schema:
+
+- `schema: subarray_dimension_test`
+- `name`: non-empty test name
+- exactly one input source:
+  - `config_pattern`: ordinary run-config path template containing `{rows}`
+    and `{columns}`
+  - `base_config`: one ordinary run config whose sizing fields are overridden
+    in memory for each pair
+  Both paths are resolved relative to the tester config.
+- `rows`, `columns`: non-empty sequences of unique integers in `8..512`; their
+  Cartesian product defines the runs
+- `threads_per_run`: optional positive exploration thread count, default `1`
+- `output.directory`: required results directory
+- `output.summary_csv`: optional summary filename beneath the output directory,
+  default `summary.csv`
+
+Input run configs must use `schema: config` and a fixed optimization target.
+`base_config` mode does not generate per-dimension config files.
+The tester selects that target from each in-process result and rejects a run if
+its reported subarray dimensions differ from the requested pair.
+
 ## Run Config
 
 Required fields and sections:
@@ -78,11 +102,14 @@ Useful optional keys:
 
 - `organization.banks.*`, `organization.mats.*`, `organization.mux.*`: pin exploration to fixed powers-of-two values
 - `organization.subarray.dimensions`: fixed physical subarray `[rows, columns]`; requires explicit `organization.banks` and `organization.mats`, derives or validates `memory.capacity`, and is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
-- `organization.bit_serial_width`: fixed bit-serial width
+- `organization.bit_serial_width`: fixed number of word columns evaluated per
+  matchline step; complete-word fixed-subarray CAM configs set this equal to
+  `organization.subarray.dimensions[1]`
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
 - `memory.physical_capacity`: required when `memory.word_width` is not a power of two
 - `sensing`: reference to a `*.sensing.yaml` file
-- `matchline.additional_cap`: optional additional matchline capacitance
+- `matchline.additional_cap`: optional additional matchline capacitance applied
+  to every TCAM match state, including all-match and mismatch paths
 - `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size`: transistor-width limit in feature-size multiples
 - `physical_limits.max_driver_current`: retained but currently has no model effect

@@ -94,6 +94,10 @@ class CAM_SubArray: public FunctionUnit {
             nominalResMemCellOff = 0;
             voltageMemCellOn = 0;    // TODO: Actually calculate this somewhere
             WriteDriverArea = 0;     // TODO: This is calculate but says unitialized sometimes
+            numRow = 0;
+            numColumn = 0;
+            configuredNumRow = 0;
+            configuredNumColumn = 0;
         }
         CAM_SubArray(const CAM_SubArray&) = delete;
         CAM_SubArray& operator=(const CAM_SubArray&) = delete;
@@ -113,6 +117,9 @@ class CAM_SubArray: public FunctionUnit {
                 bool _withVariation, std::shared_ptr<EvaCamConfig> _config, 
                 const Wire &_localWire, const CAM_Opt &_CAM_opt
                 );
+
+        long long ConfiguredRows() const;
+        long long ConfiguredColumns() const;
 
         void ReadCustomDesign(char* _fileInputEnc, char* _fileSenseAmp);
         void CalculateArea();
@@ -165,10 +172,9 @@ class CAM_SubArray: public FunctionUnit {
         double McamStateDelay(double stateTau, double *ramp) const;
         std::vector<double> McamStateDelays(const std::vector<double> &stateTaus);
         void CalculateSearchPathLatenciesAfterMatchline();
-        double MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const;
+        double MatchlineTau(double effectiveCellRes, double mlWireRes) const;
         double MatchlineEffectiveResistance(const CAMResistanceSample &sample, int mismatches) const;
         double MatchlineAllMatchTau(const CAMResistanceSample &sample) const;
-        double MatchlineAllMatchTau(double cellResOff, double mlWireRes) const;
         double MatchlineSenseMargin(double tauAllMatch, double tauOneMiss, double senseTime) const;
         double MatchlineBeta(double effectiveCellRes, int activeDischargePaths = 1) const;
         double MatchlineHorowitzDelay(double tau, double effectiveCellRes, double *ramp,
@@ -210,8 +216,16 @@ class CAM_SubArray: public FunctionUnit {
         bool latencyCalculated; /* CalculatePower depends on latency-derived fields. */
 
         // structure
-        long long numRow;			/* Number of rows, number of words*/
-        long long numColumn;		/* Number of columns, word size */
+        /*
+         * The legacy electrical model represents matchlines as column ports.
+         * CAM subarrays therefore transpose the configured axes internally so
+         * those ports span the configured word width. Use ConfiguredRows() and
+         * ConfiguredColumns() for user-facing geometry.
+         */
+        long long numRow;			/* Electrical-model rows */
+        long long numColumn;		/* Electrical-model columns */
+        long long configuredNumRow;	/* User-facing rows, number of words */
+        long long configuredNumColumn;	/* User-facing columns, word width */
         int muxSenseAmp;		/* How many bitlines connect to one sense amplifier */
         int muxOutputLev1;		/* How many sense amplifiers connect to one output bit, level-1 */
         int muxOutputLev2;		/* How many sense amplifiers connect to one output bit, level-2 */

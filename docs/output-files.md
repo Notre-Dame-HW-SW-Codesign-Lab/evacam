@@ -69,6 +69,24 @@ Representative metrics include:
 - dynamic energy
 - leakage
 
+## Subarray Dimension Test Outputs
+
+Compiled `--subarray-dimension-test` runs write one ordinary results YAML per
+expanded run config beneath the tester's `output.directory`. They also write
+the configured summary CSV with one row per requested dimension pair.
+
+Summary columns are:
+
+- requested `rows` and `columns`, plus the reported bit-serial and word widths
+- completion `status`, solution count, and elapsed seconds
+- input config and output result paths
+- search latency, exact-match sense margin, minimum required sense margin, and
+  total area in raw SI units
+- a diagnostic message for failed runs
+
+The tester continues after an individual failure, records it in the summary,
+and returns a nonzero process status if any matrix entry fails.
+
 ## Exploration CSV
 
 When the optimization target is `Exploration`, EvaCAM may also emit a CSV containing explored design points.

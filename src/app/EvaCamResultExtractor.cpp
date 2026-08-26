@@ -197,8 +197,9 @@ void AddGeometry(EvaCamDesignResultDto &dto, const Result &result) {
     dto.geometry["num_column_mat"] = bank.numColumnMat;
     dto.geometry["num_row_subarray"] = mat.numRowSubarray;
     dto.geometry["num_column_subarray"] = mat.numColumnSubarray;
-    dto.geometry["subarray_rows"] = static_cast<double>(sub.numRow);
-    dto.geometry["subarray_columns"] = static_cast<double>(sub.numColumn);
+    dto.geometry["subarray_rows"] = static_cast<double>(sub.ConfiguredRows());
+    dto.geometry["subarray_columns"] = static_cast<double>(sub.ConfiguredColumns());
+    dto.geometry["word_width_bits"] = static_cast<double>(result.config->input.wordWidth);
     dto.geometry["num_active_mat_per_row"] = bank.numActiveMatPerRow;
     dto.geometry["num_active_mat_per_column"] = bank.numActiveMatPerColumn;
     dto.geometry["num_active_subarray_per_row"] = mat.numActiveSubarrayPerRow;

@@ -6,7 +6,7 @@ design:
   device_roadmap: HP
   temperature: 350K
 memory:
-  word_width: 64bits
+  word_width: 32bits
 routing:
   type: H-tree
 peripherals:
@@ -29,6 +29,7 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 organization:
+  bit_serial_width: 32bits
   banks:
     total: [1, 1]
     active: [1, 1]

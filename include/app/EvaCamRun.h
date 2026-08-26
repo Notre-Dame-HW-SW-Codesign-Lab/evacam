@@ -9,6 +9,8 @@ struct EvaCamRunOptions {
     std::string configPath;
     int threads = 1;
     std::string outputYamlPath;
+    int subarrayRows = 0;
+    int subarrayColumns = 0;
     bool writeYaml = false;
     bool stdoutOutput = false;
     bool verbose = false;

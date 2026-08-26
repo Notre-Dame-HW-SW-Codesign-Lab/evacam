@@ -541,7 +541,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "EvaCamContextBuilder": {"AppServices"},
         "EvaCamExplorer": {"EvaCamExplorer", "DeepExplorationThreading"},
         "EvaCAM_Match": {"EvaCAMMatchFocused"},
-        "EvaCamRun": {"RunEvaCamBoundary"},
+        "EvaCamRun": {"RunEvaCamBoundary", "SubarrayDimensionTester"},
         "main": {"RunEvaCamBoundary"},
         "VariationSampler": {"VariationSampler"},
         "EvaCamYamlLoader": {"TopLevelConfigParser"},
@@ -995,7 +995,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             "test-cam-subarray-variation")
     map_indirect("src/cam/CAM_SubArray.cpp",
             ["McamStateTau", "McamStateDelays", "CalculateSearchPathLatenciesAfterMatchline",
-             "MatchlineAllMatchTau"],
+             "MatchlineAllMatchTau", "MatchlineTau"],
             "tests/CamSubArrayMatchTest.cpp", "TestMcamAndSearchlineHelpers",
             "test-cam-subarray-match")
 
@@ -1198,6 +1198,30 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
     map_indirect("src/app/EvaCamRun.cpp", ["ScopedStdoutRedirect", "~ScopedStdoutRedirect", "RunEvaCam"],
             "tests/RunEvaCamBoundaryTest.cpp", "TestRunEvaCamErrorRestoresStdout",
             "test-run-evacam-boundary")
+    map_indirect("src/app/EvaCamRun.cpp", ["ApplySubarrayDimensions"],
+            "tests/SubarrayDimensionTesterTest.cpp",
+            "TestRunWritesPerDimensionYamlAndRawSiSummary",
+            "test-subarray-dimension-tester")
+    map_indirect("src/app/SubarrayDimensionTester.cpp",
+            ["AbsoluteNormalized", "ResolveReference", "ValidateRegularFile",
+             "ReadDimensions", "ReplaceAll", "ExpandConfigPattern", "ResultStem"],
+            "tests/SubarrayDimensionTesterTest.cpp",
+            "TestLoadConfigAndBuildCartesianRunSpecs",
+            "test-subarray-dimension-tester")
+    map_indirect("src/app/SubarrayDimensionTester.cpp", ["PathStaysWithin"],
+            "tests/SubarrayDimensionTesterTest.cpp",
+            "TestConfigValidationRejectsInvalidTesterInputs",
+            "test-subarray-dimension-tester")
+    map_indirect("src/app/SubarrayDimensionTester.cpp",
+            ["RunOne", "CsvEscape", "FormatDouble", "DisplayPath",
+             "WriteSummaryCsv", "PrintPlan"],
+            "tests/SubarrayDimensionTesterTest.cpp",
+            "TestRunWritesPerDimensionYamlAndRawSiSummary",
+            "test-subarray-dimension-tester")
+    map_indirect("src/app/SubarrayDimensionTester.cpp", ["RunOne", "RequiredMetric"],
+            "tests/SubarrayDimensionTesterTest.cpp",
+            "TestRunContinuesAfterDimensionMismatchAndReportsFailure",
+            "test-subarray-dimension-tester")
     map_indirect("src/app/main.cpp", ["ScopedStdoutRedirect", "~ScopedStdoutRedirect", "main"],
             "tests/RunEvaCamBoundaryTest.cpp", "TestExecutableHelpDiagnosticsQuietAndOutputPath",
             "test-run-evacam-boundary")

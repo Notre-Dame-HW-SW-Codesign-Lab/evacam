@@ -53,6 +53,7 @@ jobs:
           - test-results-serialization
           - test-output-services
           - test-app-services
+          - test-subarray-dimension-tester
           - test-evacam-explorer
           - test-pareto-pruner
           - test-deep-exploration-threading

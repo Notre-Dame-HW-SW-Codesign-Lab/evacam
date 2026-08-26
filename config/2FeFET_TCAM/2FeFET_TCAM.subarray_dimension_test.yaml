@@ -1,0 +1,9 @@
+schema: subarray_dimension_test
+name: 2FeFET_TCAM_power_of_two_spread
+base_config: 2FeFET_TCAM_match.config.yaml
+rows: [8, 16, 32, 64, 128]
+columns: [8, 16, 32, 64, 128]
+threads_per_run: 1
+output:
+  directory: ../../results/subarray_dimension_tests/2FeFET_TCAM
+  summary_csv: summary.csv

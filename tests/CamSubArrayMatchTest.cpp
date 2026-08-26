@@ -76,9 +76,9 @@ struct CamSubArrayTestAccessor {
     static double McamStateDelay(const CAM_SubArray &subarray, double tau, double *ramp) {
         return subarray.McamStateDelay(tau, ramp);
     }
-    static double MatchlineDischargeTau(const CAM_SubArray &subarray, double resistance,
+    static double MatchlineTau(const CAM_SubArray &subarray, double resistance,
             double wireResistance) {
-        return subarray.MatchlineDischargeTau(resistance, wireResistance);
+        return subarray.MatchlineTau(resistance, wireResistance);
     }
     static double MatchlineEffectiveResistance(const CAM_SubArray &subarray,
             const CAMResistanceSample &sample, int mismatches) {
@@ -87,10 +87,6 @@ struct CamSubArrayTestAccessor {
     static double MatchlineAllMatchTau(const CAM_SubArray &subarray,
             const CAMResistanceSample &sample) {
         return subarray.MatchlineAllMatchTau(sample);
-    }
-    static double MatchlineAllMatchTau(const CAM_SubArray &subarray, double resistance,
-            double wireResistance) {
-        return subarray.MatchlineAllMatchTau(resistance, wireResistance);
     }
     static double MatchlineSenseMargin(const CAM_SubArray &subarray, double allMatchTau,
             double oneMissTau, double senseTime) {
@@ -226,19 +222,19 @@ void TestResistanceAndMatchlineMath() {
             CamSubArrayTestAccessor::EffectiveMatchlineCellResistance(
                     subarray, 1, 100, 10000));
     AssertNear(CamSubArrayTestAccessor::MatchlineAllMatchTau(subarray, nominal),
-            CamSubArrayTestAccessor::MatchlineAllMatchTau(subarray, 10000, 40));
+            CamSubArrayTestAccessor::MatchlineTau(subarray, 2500, 40));
     nominal.hasAggregateMatchlineRes = true;
     nominal.oneMissEffectiveCellRes = 55;
     nominal.allMatchEffectiveCellRes = 2500;
     AssertNear(CamSubArrayTestAccessor::MatchlineEffectiveResistance(subarray, nominal, 1), 55);
     AssertNear(CamSubArrayTestAccessor::MatchlineEffectiveResistance(subarray, nominal, 0), 2500);
 
-    const double tauOne = CamSubArrayTestAccessor::MatchlineDischargeTau(subarray, 100, 40);
-    const double tauHigherResistance = CamSubArrayTestAccessor::MatchlineDischargeTau(
+    const double tauOne = CamSubArrayTestAccessor::MatchlineTau(subarray, 100, 40);
+    const double tauHigherResistance = CamSubArrayTestAccessor::MatchlineTau(
             subarray, 200, 40);
     AssertFinitePositive(tauOne, "matchline discharge tau");
     Require(tauHigherResistance > tauOne, "tau must increase with cell resistance");
-    AssertFinitePositive(CamSubArrayTestAccessor::MatchlineAllMatchTau(subarray, 10000, 40),
+    AssertFinitePositive(CamSubArrayTestAccessor::MatchlineTau(subarray, 2500, 40),
             "all-match tau");
     const double margin = CamSubArrayTestAccessor::MatchlineSenseMargin(
             subarray, 20e-12, 5e-12, 4e-12);
@@ -251,6 +247,33 @@ void TestResistanceAndMatchlineMath() {
             subarray, tauOne, 100, &ramp, 1);
     AssertFinitePositive(delay, "Horowitz matchline delay");
     AssertFinitePositive(ramp, "Horowitz output ramp");
+}
+
+void TestTcamStatesShareMatchlineCapacitance() {
+    SubArrayFixture fixture;
+    CAM_SubArray &subarray = fixture.subarray;
+    const double oneMismatchResistance = 100;
+    const double allMatchResistance = 2500;
+    const double wireResistance = 40;
+    const double additionalCapacitance = 7e-15;
+
+    const double baseOneMismatchTau = CamSubArrayTestAccessor::MatchlineTau(
+            subarray, oneMismatchResistance, wireResistance);
+    const double baseAllMatchTau = CamSubArrayTestAccessor::MatchlineTau(
+            subarray, allMatchResistance, wireResistance);
+
+    fixture.config->peripherals.addCapOnML += additionalCapacitance;
+    const double loadedOneMismatchTau = CamSubArrayTestAccessor::MatchlineTau(
+            subarray, oneMismatchResistance, wireResistance);
+    const double loadedAllMatchTau = CamSubArrayTestAccessor::MatchlineTau(
+            subarray, allMatchResistance, wireResistance);
+
+    AssertNear(
+            loadedOneMismatchTau - baseOneMismatchTau,
+            (oneMismatchResistance + wireResistance) * additionalCapacitance);
+    AssertNear(
+            loadedAllMatchTau - baseAllMatchTau,
+            (allMatchResistance + wireResistance) * additionalCapacitance);
 }
 
 void TestMcamAndSearchlineHelpers() {
@@ -355,6 +378,7 @@ void TestMcamAndSearchlineHelpers() {
 int main() {
     TestBinaryMatchAndValidation();
     TestResistanceAndMatchlineMath();
+    TestTcamStatesShareMatchlineCapacitance();
     TestMcamAndSearchlineHelpers();
     std::cout << "CAM subarray match tests passed\n";
     return 0;

@@ -1,0 +1,9 @@
+schema: subarray_dimension_test
+name: 2FeFET_MCAM_power_of_two_spread
+config_pattern: 2FeFET_MCAM_{rows}x{columns}.config.yaml
+rows: [8, 16, 32, 64, 128]
+columns: [8, 16, 32, 64, 128]
+threads_per_run: 1
+output:
+  directory: ../../results/subarray_dimension_tests/2FeFET_MCAM
+  summary_csv: summary.csv

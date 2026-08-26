@@ -81,6 +81,8 @@ Options:
 - `-v, --verbose`: enable verbose logging
 - `-q, --quiet`: suppress normal stdout output
 - `--no-variation-plots`: skip Monte Carlo variation histogram SVG generation
+- `--subarray-dimension-test`: treat the input as a subarray dimension tester
+  config and run its Cartesian matrix of ordinary EvaCAM configs
 - `-o, --output FILE`: write YAML results to a custom path
 - `-h, --help`: print usage and exit
 
@@ -94,6 +96,39 @@ Examples:
 ./EvaCAM -t 8 -o results/custom.yaml config/ReRAM-2T2R/ReRAM-2T2R.config.yaml
 ./EvaCAM -q config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE.config.yaml
 ```
+
+## Subarray Dimension Tester
+
+The compiled binary can run a configured spread of fixed subarray sizes in one
+invocation. The shipped 2FeFET MCAM and TCAM testers cover every row/column combination
+from `8` through `128` by powers of two:
+
+```bash
+./EvaCAM --subarray-dimension-test --threads 4 \
+  config/2FeFET_MCAM/2FeFET_MCAM.subarray_dimension_test.yaml
+./EvaCAM --subarray-dimension-test --threads 4 \
+  config/2FeFET_TCAM/2FeFET_TCAM.subarray_dimension_test.yaml
+```
+
+Or use the Make target:
+
+```bash
+make subarray-dimension-test
+```
+
+The tester prints the complete matrix before starting. In this mode,
+`--threads` controls how many independent configurations run concurrently;
+`threads_per_run` in the tester YAML controls the exploration workers inside
+each run. Every dimension still runs independently and receives its own
+results YAML. The tester also writes `summary.csv` containing dimensions,
+verified word and bit-serial widths, status, paths, latency, sense margins, and
+area in raw SI units. For the shipped MCAM spread, both widths equal the column
+count.
+
+The tester config uses `schema: subarray_dimension_test`, exactly one of a
+placeholder-based `config_pattern` or a single `base_config`, non-empty `rows`
+and `columns` sequences, and an output directory. The TCAM example uses one
+base config and creates no per-dimension config files.
 
 ## Python API
 

@@ -29,6 +29,7 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 organization:
+  bit_serial_width: 64bits
   banks:
     total:
     - 1

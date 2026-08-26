@@ -15,6 +15,8 @@ files and access-device path references are not supported.
 - `config/<cell-group>/*.sensing.yaml`: sensing mode and sense-amplifier reference
 - `config/lib/technology/*.yaml`: reusable technology tables
 - `config/lib/sense_amp/*.sense_amp.yaml`: reusable sense-amplifier model data
+- `config/<cell-group>/*.subarray_dimension_test.yaml`: compiled batch-test
+  manifests that expand row and column sets over ordinary run configs
 
 Example:
 
@@ -25,6 +27,70 @@ technology: ../lib/technology/cmos.updated.yaml
 ```
 
 All references are resolved relative to the file that contains them.
+
+## Subarray Dimension Tester Config
+
+Run a tester config with the compiled mode:
+
+```bash
+./EvaCAM --subarray-dimension-test --threads 4 \
+  config/2FeFET_MCAM/2FeFET_MCAM.subarray_dimension_test.yaml
+```
+
+The supported structure is:
+
+```yaml
+schema: subarray_dimension_test
+name: 2FeFET_MCAM_power_of_two_spread
+config_pattern: 2FeFET_MCAM_{rows}x{columns}.config.yaml
+rows: [8, 16, 32, 64, 128]
+columns: [8, 16, 32, 64, 128]
+threads_per_run: 1
+output:
+  directory: ../../results/subarray_dimension_tests/2FeFET_MCAM
+  summary_csv: summary.csv
+```
+
+A single ordinary config can instead serve as the electrical template:
+
+```yaml
+schema: subarray_dimension_test
+name: 2FeFET_TCAM_power_of_two_spread
+base_config: 2FeFET_TCAM_match.config.yaml
+rows: [8, 16, 32, 64, 128]
+columns: [8, 16, 32, 64, 128]
+threads_per_run: 1
+output:
+  directory: ../../results/subarray_dimension_tests/2FeFET_TCAM
+  summary_csv: summary.csv
+```
+
+Specify exactly one of `config_pattern` or `base_config`. Both are resolved
+relative to the tester config. A pattern must contain both placeholders and
+uses existing per-size configs. A base config is loaded for every run and the
+compiled tester overrides dimensions, capacity, word width, and bit-serial
+width in memory; it does not generate run configs. EvaCAM runs the Cartesian
+product in row-major order and
+verifies that each result reports the requested physical subarray dimensions,
+word width, and bit-serial width. For these complete-word single-subarray
+tests, both widths must equal the requested column count.
+Dimension values must be unique integers from `8` through `512`.
+
+`--threads` controls concurrent configuration runs. `threads_per_run` is a
+positive integer controlling exploration workers inside each configuration;
+keeping it at `1` avoids nested oversubscription for fixed single-subarray
+tests. `output.directory` is relative to the tester config unless absolute,
+and `output.summary_csv` must stay beneath that directory.
+
+Referenced configs must be single-target configs. Pattern-mode inputs must be
+fixed configs whose
+architecture files should use explicit single-bank, single-mat organization,
+`organization.subarray.dimensions` matching the filename expansion, and
+`memory.word_width` plus `organization.bit_serial_width` matching the number
+of columns.
+Base-config mode preserves its technology, cell, topology, peripherals,
+sensing, routing, and optimization target while replacing only the matrix
+sizing fields for each run.
 
 ## Run Config Structure
 
@@ -78,10 +144,12 @@ Representative fields:
 - `organization.banks.total` and `organization.banks.active`: bank organization
 - `organization.mats.total` and `organization.mats.active`: mat organization
 - `organization.subarray.dimensions`: optional fixed physical subarray `[rows, columns]`; requires explicit bank and mat organization and is not supported with DSE/deep exploration
-- `organization.bit_serial_width`: optional fixed bit-serial width
+- `organization.bit_serial_width`: optional fixed bit-serial width; it is the
+  number of word columns evaluated on each matchline in one serial step
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
 - `sensing`: reference to a `*.sensing.yaml` file
-- `matchline.additional_cap`: optional additional matchline capacitance
+- `matchline.additional_cap`: optional additional matchline capacitance; it loads
+  every TCAM match state, including all-match and mismatch paths
 - `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size` and `physical_limits.max_driver_current`
 - `sensing.sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from the referenced sense-amplifier name when omitted
@@ -146,6 +214,13 @@ the indices `0` and `1`. The `mcam` section must define
 `searchline_voltage` for every state. The state count must be a power of two,
 and MCAM match inputs are integer symbols from `0` through
 `num_resistance_state - 1`.
+
+CAM rows are stored words and columns are the symbols or bits within each
+word. A matchline belongs to one row and spans the columns. Consequently, an
+CAM configuration that evaluates a complete row in one step should set both
+`memory.word_width` and `organization.bit_serial_width` equal to the physical
+subarray column count. The number of matchlines and sensing paths scales with
+the row count.
 
 EvaCAM sorts the resistance table internally from HRS to LRS. Distance `0`
 therefore represents the all-match HRS path, while increasing absolute symbol

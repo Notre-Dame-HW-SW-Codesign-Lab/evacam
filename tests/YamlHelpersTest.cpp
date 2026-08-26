@@ -510,16 +510,16 @@ static void test_explicit_subarray_dimensions() {
     write_explicit_subarray_config(cfgPath, "1KB", "[64, 64]");
     assert(load_config_throws(cfgPath));
 
-    write_explicit_subarray_config(cfgPath, "", "[64, 72]");
+    write_explicit_subarray_config(cfgPath, "", "[72, 64]");
     {
         EvaCamConfig config;
         EvaCamYamlLoader::Load(cfgPath, config);
         assert(config.input.capacity == 576);
-        assert(config.runtimeSizing.fixedSubarrayColumns == 72);
-        assert(config.exploration.geometry.numColumn.Values() == std::vector<int>({72}));
+        assert(config.runtimeSizing.fixedSubarrayRows == 72);
+        assert(config.exploration.geometry.numRow.Values() == std::vector<int>({72}));
     }
 
-    write_explicit_subarray_config(cfgPath, "", "[8, 64]");
+    write_explicit_subarray_config(cfgPath, "", "[64, 8]");
     assert(load_config_throws(cfgPath));
 
     write_explicit_subarray_config(cfgPath, "", "[64]");

@@ -27,6 +27,20 @@ Run a known-good example:
 make run CONFIG_FILE=config/2FeFET_TCAM/2FeFET_TCAM.config.yaml
 ```
 
+Run the shipped compiled subarray-dimension matrix:
+
+```bash
+make subarray-dimension-test
+```
+
+Override the tester config or concurrent run count when needed:
+
+```bash
+make subarray-dimension-test \
+  SUBARRAY_DIMENSION_TEST_CONFIG=config/2FeFET_TCAM/2FeFET_TCAM.subarray_dimension_test.yaml \
+  SUBARRAY_DIMENSION_TEST_JOBS=8
+```
+
 Run focused tests:
 
 ```bash

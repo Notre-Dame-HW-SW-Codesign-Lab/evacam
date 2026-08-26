@@ -8,6 +8,7 @@
 #include "EvaCamContextBuilder.h"
 #include "EvaCamExplorer.h"
 #include "EvaCamOutput.h"
+#include "SubarrayDimensionTester.h"
 #include "config/OutputFileLock.h"
 
 namespace {
@@ -46,6 +47,23 @@ int main(int argc, char *argv[]) {
         if (cliOptions.showHelp) {
             CliOptionsParser::PrintUsage(std::cout);
             return 0;
+        }
+
+        if (cliOptions.subarrayDimensionTest) {
+            if (!cliOptions.outputYamlFileName.empty()) {
+                throw std::invalid_argument(
+                        "--output is not supported in subarray dimension test mode; "
+                        "set output.directory and output.summary_csv in the tester config.");
+            }
+            SubarrayDimensionTesterOptions testerOptions;
+            testerOptions.configPath = cliOptions.inputFileName;
+            testerOptions.jobs = cliOptions.threads;
+            testerOptions.stdoutOutput = cliOptions.stdoutOutput;
+            testerOptions.verbose = cliOptions.verbose;
+            testerOptions.variationPlots = cliOptions.variationPlots;
+            const SubarrayDimensionTestSummary summary =
+                    SubarrayDimensionTester::Run(testerOptions);
+            return summary.failedRuns == 0 ? 0 : 1;
         }
 
         ScopedStdoutRedirect stdoutRedirect(!cliOptions.stdoutOutput);

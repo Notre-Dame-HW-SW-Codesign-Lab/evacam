@@ -119,7 +119,8 @@ void Result::compareAndUpdate(std::shared_ptr<Result> newResult) {
 void Result::printToCsvFile(std::ostream &outputFile) {
     outputFile << bank->numRowMat << "," << bank->numColumnMat << "," << bank->numActiveMatPerColumn << "," << bank->numActiveMatPerRow << ",";
     outputFile << bank->numRowSubarray << "," << bank->numColumnSubarray << "," << bank->numActiveSubarrayPerColumn << "," << bank->numActiveSubarrayPerRow << ",";
-    outputFile << bank->mat->subarray->numRow << "," << bank->mat->subarray->numColumn << ",";
+    outputFile << bank->mat->subarray->ConfiguredRows() << ","
+               << bank->mat->subarray->ConfiguredColumns() << ",";
     outputFile << bank->muxSenseAmp << "," << bank->muxOutputLev1 << "," << bank->muxOutputLev2 << ",";
     outputFile << "N/A,";
 

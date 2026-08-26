@@ -161,6 +161,16 @@ void TestInputRuleValidatorResolvesFixedDimensionsAndRejectsMismatch() {
     fixture.ValidateInput();
     Require(fixture.config->input.capacity == 512, "fixed dimensions must derive byte capacity");
 
+    ValidationFixture asymmetric;
+    asymmetric.config->runtimeSizing.hasFixedSubarrayDimensions = true;
+    asymmetric.config->runtimeSizing.hasExplicitCapacity = false;
+    asymmetric.config->runtimeSizing.fixedSubarrayRows = 16;
+    asymmetric.config->runtimeSizing.fixedSubarrayColumns = 64;
+    asymmetric.config->input.wordWidth = 64;
+    asymmetric.ValidateInput();
+    Require(asymmetric.config->input.capacity == 128,
+            "fixed dimensions must treat columns as word width");
+
     ValidationFixture mismatch;
     mismatch.config->runtimeSizing.hasFixedSubarrayDimensions = true;
     mismatch.config->runtimeSizing.fixedSubarrayRows = 64;

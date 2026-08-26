@@ -35,6 +35,8 @@ void TestPreInitializationAndCalculationOrderGuards() {
     CAM_SubArray subarray;
     assert(!subarray.initialized);
     assert(!subarray.invalid);
+    assert(subarray.ConfiguredRows() == 0);
+    assert(subarray.ConfiguredColumns() == 0);
 
     bool threw = false;
     try {
@@ -117,8 +119,13 @@ void TestMcamTopologyAndAggregateCalculations() {
 
     assert(subarray.initialized && !subarray.invalid);
     assert(subarray.camType == MCAM);
-    assert(subarray.numRow == 64 && subarray.numColumn == 32);
+    assert(subarray.ConfiguredRows() == 64);
+    assert(subarray.ConfiguredColumns() == 32);
+    assert(subarray.numRow == 32 && subarray.numColumn == 64);
+    assert(subarray.CAM_opt.BitSerialWidth == 32);
     assert(subarray.precharger && subarray.senseAmp && subarray.ColMux.at(0));
+    assert(subarray.precharger->numColumn == 64);
+    assert(subarray.senseAmp->numColumn == 64);
     AssertFinitePositive(subarray.area);
     AssertFinitePositive(subarray.matchlineDelay);
     AssertFinitePositive(subarray.searchLatency);
@@ -132,6 +139,28 @@ void TestMcamTopologyAndAggregateCalculations() {
     assert(std::fabs(subarray.searchLatency - latency) <= latency * 1e-12);
 }
 
+void TestMcamAsymmetricDimensionsFollowWordColumns() {
+    EvaCamExplorationResult wideExploration;
+    const CAM_SubArray &wide = *RunConfig(
+            "config/2FeFET_MCAM/2FeFET_MCAM_16x64.config.yaml",
+            &wideExploration);
+    EvaCamExplorationResult deepExploration;
+    const CAM_SubArray &deep = *RunConfig(
+            "config/2FeFET_MCAM/2FeFET_MCAM_64x16.config.yaml",
+            &deepExploration);
+
+    assert(wide.ConfiguredRows() == 16 && wide.ConfiguredColumns() == 64);
+    assert(deep.ConfiguredRows() == 64 && deep.ConfiguredColumns() == 16);
+    assert(wide.CAM_opt.BitSerialWidth == 64);
+    assert(deep.CAM_opt.BitSerialWidth == 16);
+    assert(wide.precharger->numColumn == 16);
+    assert(deep.precharger->numColumn == 64);
+    assert(wide.numRow == 64 && wide.numColumn == 16);
+    assert(deep.numRow == 16 && deep.numColumn == 64);
+    assert(wide.matchlineWireRes > deep.matchlineWireRes);
+    assert(wide.senseMargin < deep.senseMargin);
+}
+
 }  // namespace
 
 int main() {
@@ -139,6 +168,7 @@ int main() {
     TestSramTopology();
     TestResistiveTcamAggregateCalculations();
     TestMcamTopologyAndAggregateCalculations();
+    TestMcamAsymmetricDimensionsFollowWordColumns();
     std::cout << "CAM subarray topology tests passed\n";
     return 0;
 }

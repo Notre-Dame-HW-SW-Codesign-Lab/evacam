@@ -39,7 +39,9 @@ void Result::print() {
     std::cout << "Mat Organization: " << bank->numRowSubarray << " x " << bank->numColumnSubarray << std::endl;
     std::cout << " - Row Activation   : " << bank->numActiveSubarrayPerColumn << " / " << bank->numRowSubarray << std::endl;
     std::cout << " - Column Activation: " << bank->numActiveSubarrayPerRow << " / " << bank->numColumnSubarray << std::endl;
-    std::cout << " - Subarray Size    : " << bank->mat->subarray->numRow << " Rows x " << bank->mat->subarray->numColumn << " Columns" << std::endl;
+    std::cout << " - Subarray Size    : " << bank->mat->subarray->ConfiguredRows()
+              << " Rows x " << bank->mat->subarray->ConfiguredColumns()
+              << " Columns" << std::endl;
     std::cout << "Mux Level:" << std::endl;
     std::cout << " - Senseamp Mux      : " << bank->muxSenseAmp << std::endl;
     std::cout << " - Output Level-1 Mux: " << bank->muxOutputLev1 << std::endl;
@@ -196,8 +198,8 @@ void Result::print() {
         << config->technology.cell->area * config->technology.tech->featureSize() * config->technology.tech->featureSize() * bank->capacity / bank->numRowMat
         / bank->numColumnMat / bank->numRowSubarray / bank->numColumnSubarray
         / bank->mat->subarray->area * 100 << "%)" <<std::endl;
-    std::cout << " |--- Subarray Dimensions = " << bank->mat->subarray->numRow
-        << " Rows x " << bank->mat->subarray->numColumn << " Columns" << std::endl;
+    std::cout << " |--- Subarray Dimensions = " << bank->mat->subarray->ConfiguredRows()
+        << " Rows x " << bank->mat->subarray->ConfiguredColumns() << " Columns" << std::endl;
     std::cout << " - Area Efficiency = " << config->technology.cell->area * config->technology.tech->featureSize() * config->technology.tech->featureSize()
         * bank->capacity / bank->area * 100 << "%" << std::endl;
     std::cout << "Timing:" << std::endl;

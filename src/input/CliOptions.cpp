@@ -67,6 +67,15 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
             continue;
         }
 
+        if (arg == "--subarray-dimension-test") {
+            if (options.subarrayDimensionTest) {
+                throw std::invalid_argument(
+                        "Subarray dimension test mode may only be selected once.");
+            }
+            options.subarrayDimensionTest = true;
+            continue;
+        }
+
         if (!arg.empty() && arg.front() == '-') {
             throw std::invalid_argument("Unknown option: " + std::string(arg));
         }
@@ -87,11 +96,15 @@ CliOptions CliOptionsParser::Parse(int argc, char *argv[]) {
 
 void CliOptionsParser::PrintUsage(std::ostream &os) {
     os << std::endl << "Usage: ./EvaCAM [OPTIONS] <tool_config.yaml>" << std::endl << std::endl;
+    os << "       ./EvaCAM --subarray-dimension-test [OPTIONS] <tester_config.yaml>"
+       << std::endl << std::endl;
     os << "Options:" << std::endl;
     os << "  -t, --threads N           Number of parallel threads (default: all cores)" << std::endl;
     os << "  -o, --output FILE         Write YAML results to FILE" << std::endl;
     os << "  -v, --verbose             Enable verbose output" << std::endl;
     os << "  -q, --quiet               Suppress normal stdout output" << std::endl;
     os << "      --no-variation-plots  Skip Monte Carlo variation histogram SVG generation" << std::endl;
+    os << "      --subarray-dimension-test" << std::endl;
+    os << "                            Run a subarray dimension tester config" << std::endl;
     os << "  -h, --help                Show this help and exit" << std::endl;
 }

@@ -362,7 +362,7 @@ void TestFixedSubarrayDimensionsDeriveCapacity() {
 }
 
 void TestFixedSubarrayDimensionsAllowEightRows() {
-    WriteConfig("  word_width: 8bits\n", kReadLatencyOptimization,
+    WriteConfig("  word_width: 64bits\n", kReadLatencyOptimization,
         "organization:\n"
         "  banks:\n"
         "    total: [1, 1]\n"
@@ -388,7 +388,7 @@ void TestMcamFixedSubarrayDimensionsAllowIndependentRows() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500kohm]\n"
         "  searchline_voltage: [0.2V, 0.8V]\n");
-    WriteConfig("  word_width: 64bits\n", kReadLatencyOptimization,
+    WriteConfig("  word_width: 256bits\n", kReadLatencyOptimization,
         "organization:\n"
         "  banks:\n"
         "    total: [1, 1]\n"

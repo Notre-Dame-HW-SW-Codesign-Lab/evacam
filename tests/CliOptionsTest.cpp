@@ -68,6 +68,23 @@ void TestQuietOptionShortForm() {
     assert(!options.stdoutOutput);
 }
 
+void TestSubarrayDimensionTestMode() {
+    const CliOptions options = Parse({
+            "EvaCAM",
+            "--subarray-dimension-test",
+            "--threads", "4",
+            "config/dimensions.yaml",
+    });
+
+    assert(options.subarrayDimensionTest);
+    assert(options.threads == 4);
+    assert(options.inputFileName == "config/dimensions.yaml");
+    AssertThrowsInvalidArgument([] {
+        Parse({"EvaCAM", "--subarray-dimension-test",
+                "--subarray-dimension-test", "config/dimensions.yaml"});
+    });
+}
+
 void TestOutputOptionValidation() {
     AssertThrowsInvalidArgument([] {
         Parse({"EvaCAM", "-o"});
@@ -84,6 +101,7 @@ void TestUsageIncludesOutputOption() {
     const std::string usage = os.str();
     assert(usage.find("-o, --output FILE") != std::string::npos);
     assert(usage.find("-q, --quiet") != std::string::npos);
+    assert(usage.find("--subarray-dimension-test") != std::string::npos);
 }
 
 }  // namespace
@@ -92,6 +110,7 @@ int main() {
     TestOutputOptionShortForm();
     TestOutputOptionLongForm();
     TestQuietOptionShortForm();
+    TestSubarrayDimensionTestMode();
     TestOutputOptionValidation();
     TestUsageIncludesOutputOption();
 

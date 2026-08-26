@@ -256,6 +256,14 @@ int CamDecoderNandInputCount(long long numRows) {
 
 }  // namespace
 
+long long CAM_SubArray::ConfiguredRows() const {
+    return configuredNumRow > 0 ? configuredNumRow : numRow;
+}
+
+long long CAM_SubArray::ConfiguredColumns() const {
+    return configuredNumColumn > 0 ? configuredNumColumn : numColumn;
+}
+
 
 void CAM_SubArray::Initialize(
         long long _numRow, 
@@ -372,6 +380,13 @@ void CAM_SubArray::Initialize(
             / geometry.numActiveMatPerRow.Min()
             / geometry.numActiveMatPerColumn.Min() / numColumn;
     }
+
+    configuredNumRow = numRow;
+    configuredNumColumn = numColumn;
+    // A CAM row is one stored word and its matchline spans the configured
+    // columns. The legacy circuit model attaches matchlines to column ports,
+    // so rotate its internal electrical axes for both TCAM and MCAM cells.
+    std::swap(numRow, numColumn);
 
     /*****************************************************************************
      * Derived parameters
@@ -846,7 +861,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             resTotalCell = EffectiveMatchlineCellResistance(1, resMemCellOn, resMemCellOff);
             capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
-            tau = MatchlineDischargeTau(resTotalCell, matchlineWireRes);
+            tau = MatchlineTau(resTotalCell, matchlineWireRes);
             const double oneMissTau = tau;
             // tau = resTotalCell * capTotalCell + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation);
             // referDelay = tau * log((voltagePrecharge) / (config->technology.cell->readVoltage)); // Too hard for user to provide read voltage
@@ -857,7 +872,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
             // Estimate the ML latency for all-match case
             resTotalCell = resMemCellOff / CAM_opt.BitSerialWidth;//  
-            tau = MatchlineAllMatchTau(resMemCellOff, matchlineWireRes);
+            tau = MatchlineTau(resTotalCell, matchlineWireRes);
             //TODO: Need to get referDelay to be an expected value, took the following line from a commented out line above
             referDelay = matchlineDelay;
             volMatchDrop = voltagePrecharge - voltagePrecharge * exp(-referDelay / tau);
@@ -883,8 +898,8 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
                     capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
 
-                    double tauTemp0 = MatchlineDischargeTau(resTemp0, matchlineWireRes);
-                    double tauTemp1 = MatchlineDischargeTau(resTemp1, matchlineWireRes);
+                    double tauTemp0 = MatchlineTau(resTemp0, matchlineWireRes);
+                    double tauTemp1 = MatchlineTau(resTemp1, matchlineWireRes);
                     double matchlineRamptemp;
 
                     double delayTemp0 = MatchlineHorowitzDelay(tauTemp0, resTemp0, &matchlineRamp);
@@ -1341,7 +1356,12 @@ void CAM_SubArray::CalculatePower() {
 void CAM_SubArray::PrintProperty() {
     std::cout << "CAMSubarray Properties:" << std::endl;
     //FunctionUnit::PrintProperty();
-    std::cout << "numRow:" << numRow << " numColumn:" << numColumn << std::endl;
+    std::cout << "numRow:" << ConfiguredRows()
+              << " numColumn:" << ConfiguredColumns() << std::endl;
+    if (numRow != ConfiguredRows() || numColumn != ConfiguredColumns()) {
+        std::cout << "electricalModelRows:" << numRow
+                  << " electricalModelColumns:" << numColumn << std::endl;
+    }
     // area wise
     std::cout << "Input Encoder Area:" << inputEnc->area*1e12 << " um^2 (" << inputEnc->area/area*100 << "%)" << std::endl;
     for (int i=0; i<config->technology.cell->camNumRow; i++) {
@@ -1838,10 +1858,12 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
         + outputLS->readLatency;
 }
 
-double CAM_SubArray::MatchlineDischargeTau(double effectiveCellRes, double mlWireRes) const {
+double CAM_SubArray::MatchlineTau(double effectiveCellRes, double mlWireRes) const {
     const auto &peripherals = config->peripherals;
     const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
 
+    // Match state changes the effective discharge resistance, not the physical
+    // matchline load. All TCAM states must use this shared capacitance inventory.
     return effectiveCellRes * (capTotalCellTemp
                 + ColMux[indexMatchline]->capForPreviousDelayCalculation
                 + peripherals.addCapOnML
@@ -1869,21 +1891,10 @@ double CAM_SubArray::MatchlineEffectiveResistance(
 }
 
 double CAM_SubArray::MatchlineAllMatchTau(const CAMResistanceSample &sample) const {
-    if (sample.hasAggregateMatchlineRes) {
-        return sample.allMatchEffectiveCellRes * (Col[indexMatchline].cap
-                    + ColMux[indexMatchline]->capForPreviousDelayCalculation)
-            + sample.mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                    + Col[indexMatchline].cap / 2);
-    }
-    return MatchlineAllMatchTau(sample.cellResOff, sample.mlWireRes);
-}
-
-double CAM_SubArray::MatchlineAllMatchTau(double cellResOff, double mlWireRes) const {
-    const double effectiveCellRes = cellResOff / CAM_opt.BitSerialWidth;
-    return effectiveCellRes * (Col[indexMatchline].cap
-                + ColMux[indexMatchline]->capForPreviousDelayCalculation)
-        + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                + Col[indexMatchline].cap / 2);
+    const double effectiveCellRes = sample.hasAggregateMatchlineRes
+        ? sample.allMatchEffectiveCellRes
+        : sample.cellResOff / CAM_opt.BitSerialWidth;
+    return MatchlineTau(effectiveCellRes, sample.mlWireRes);
 }
 
 double CAM_SubArray::MatchlineSenseMargin(
@@ -1958,14 +1969,16 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
 
     auto matchlineTau = [&](int mismatches) {
         if (mismatches == 0) {
-            return MatchlineAllMatchTau(resMemCellOff, matchlineWireRes);
+            return MatchlineTau(
+                    resMemCellOff / CAM_opt.BitSerialWidth,
+                    matchlineWireRes);
         }
 
         const double effectiveCellRes = EffectiveMatchlineCellResistance(
                 mismatches,
                 resMemCellOn,
                 resMemCellOff);
-        return MatchlineDischargeTau(effectiveCellRes, matchlineWireRes);
+        return MatchlineTau(effectiveCellRes, matchlineWireRes);
     };
 
     const double tauAllMatch = matchlineTau(0);
@@ -2196,7 +2209,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
         }
 
         const double sampleResTotalCell = MatchlineEffectiveResistance(sample, 1);
-        const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
+        const double sampleTau = MatchlineTau(sampleResTotalCell, sample.mlWireRes);
         double sampleRamp = 0;
         double sampleMatchlineDelay = MatchlineHorowitzDelay(
                 sampleTau,
@@ -2255,7 +2268,7 @@ void CAM_SubArray::UpdateVariationTimingSummary() {
     for (int sampleIndex = 0; sampleIndex < variation.samples; sampleIndex++) {
         const CAMResistanceSample sample = BuildVariationResistanceSample(sampleIndex);
         const double sampleResTotalCell = MatchlineEffectiveResistance(sample, 1);
-        const double sampleTau = MatchlineDischargeTau(sampleResTotalCell, sample.mlWireRes);
+        const double sampleTau = MatchlineTau(sampleResTotalCell, sample.mlWireRes);
         double sampleRamp = 0;
         double sampleMatchlineDelay = MatchlineHorowitzDelay(
                 sampleTau,

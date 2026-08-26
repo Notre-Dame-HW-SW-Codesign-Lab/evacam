@@ -183,6 +183,49 @@ void TestExecutableHelpDiagnosticsQuietAndOutputPath() {
     assert(YAML::LoadFile(yamlPath.string())["summary"]);
 }
 
+void TestExecutableSubarrayDimensionTestMode() {
+    TestSupport::TemporaryDirectory directory("evacam-dimension-mode");
+    const std::filesystem::path executable = std::filesystem::absolute("EvaCAM");
+    const std::filesystem::path configDirectory =
+            std::filesystem::absolute("config/2FeFET_MCAM");
+    const std::filesystem::path outputDirectory = directory.Path() / "results";
+    std::ostringstream tester;
+    tester << "schema: subarray_dimension_test\n"
+           << "name: executable_boundary\n"
+           << "config_pattern: "
+           << (configDirectory / "2FeFET_MCAM_{rows}x{columns}.config.yaml").string()
+           << "\n"
+           << "rows: [8]\n"
+           << "columns: [8]\n"
+           << "threads_per_run: 1\n"
+           << "output:\n"
+           << "  directory: " << outputDirectory.string() << "\n";
+    const std::filesystem::path testerPath =
+            directory.WriteFile("tester.yaml", tester.str());
+    const std::filesystem::path consolePath = directory.Path() / "console.txt";
+
+    assert(RunCommand(ShellQuote(executable.string())
+            + " --subarray-dimension-test --threads 1 "
+            + ShellQuote(testerPath.string()) + " > "
+            + ShellQuote(consolePath.string()) + " 2>&1") == 0);
+    const std::string console = ReadFile(consolePath);
+    assert(console.find("Subarray dimension test: executable_boundary")
+            != std::string::npos);
+    assert(console.find("All 1 configurations completed successfully")
+            != std::string::npos);
+    assert(std::filesystem::exists(outputDirectory / "summary.csv"));
+    assert(std::filesystem::exists(
+            outputDirectory / "2FeFET_MCAM_8x8_results.yaml"));
+
+    assert(RunCommand(ShellQuote(executable.string())
+            + " --subarray-dimension-test --output ignored.yaml "
+            + ShellQuote(testerPath.string()) + " > "
+            + ShellQuote(consolePath.string()) + " 2>&1") == 1);
+    assert(ReadFile(consolePath).find(
+            "--output is not supported in subarray dimension test mode")
+            != std::string::npos);
+}
+
 }  // namespace
 
 int main() {
@@ -190,6 +233,7 @@ int main() {
     TestRunEvaCamErrorRestoresStdout();
     TestRunEvaCamSupportsNonHtreeSearchRouting();
     TestExecutableHelpDiagnosticsQuietAndOutputPath();
+    TestExecutableSubarrayDimensionTestMode();
     std::cout << "RunEvaCam boundary tests passed\n";
     return 0;
 }

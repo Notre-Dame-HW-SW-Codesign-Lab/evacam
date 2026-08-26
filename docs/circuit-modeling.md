@@ -271,7 +271,9 @@ The effective cell capacitance is:
 
 `C_total_cell = C_cell_access * N`
 
-The matchline time constant is then modeled as:
+Every TCAM match state uses the same matchline capacitance inventory. Only the
+effective cell resistance changes with the number of mismatches. The time
+constant is modeled as:
 
 `tau = R_total_cell * (C_total_cell + C_mux + C_extra_ML + C_precharge + C_sense)`
 `    + R_wire_ML * (C_mux + C_extra_ML + C_precharge + C_sense + C_wire_ML / 2)`
@@ -294,18 +296,23 @@ EvaCAM separately estimates the all-match case. In that case the effective match
 
 `R_all_match = R_off / N`
 
-The corresponding all-match time constant is:
+The all-match resistance is passed through the same time-constant function and
+therefore sees the same cell, mux, configured additional, precharger,
+sense-amplifier, and distributed matchline capacitances as the one-mismatch
+state:
 
-`tau_all_match = R_all_match * (C_wire_ML + C_mux)`
-`              + R_wire_ML * (C_mux + C_wire_ML / 2)`
+`tau_all_match = R_all_match * (C_total_cell + C_mux + C_extra_ML + C_precharge + C_sense)`
+`              + R_wire_ML * (C_mux + C_extra_ML + C_precharge + C_sense + C_wire_ML / 2)`
 
-The code then defines a reference sensing delay:
+The code uses the one-mismatch Horowitz delay as the reference sensing delay:
 
-`referDelay = tau_all_match * ln(2)`
+`referDelay = one_mismatch_delay`
 
-At that instant, the expected all-match voltage drop is used to compute:
+At that instant, it evaluates both matchline voltages with their respective
+resistances and shared capacitance model:
 
-`senseMargin = Vprecharge / 2 - Vmatch_drop`
+`senseMargin = Vprecharge * exp(-referDelay / tau_all_match)`
+`            - Vprecharge * exp(-referDelay / tau_one_mismatch)`
 
 If `senseMargin < senseVoltage`, the configuration is marked invalid because the model predicts that the matchline is too long or too heavily loaded to sense reliably.
 
@@ -618,6 +625,14 @@ If `corner` is selected, EvaCAM enumerates independent deterministic low/high co
 The current sampled quantities are the effective memory-device resistance in the on-state path and the effective memory-device resistance in the off-state path. Access-device resistance, wire resistance, and peripheral circuit parameters remain nominal.
 
 For Monte Carlo `cell` granularity, the number of sampled matchline branches is `CAM_opt.BitSerialWidth`. The representative one-mismatch path uses one sampled on branch and the remaining sampled off branches. The all-match/reference path reuses the same sampled off-branch population from that Monte Carlo sample. For Monte Carlo `effective` granularity and corner mode, EvaCAM varies the effective on/off resistance values directly before the existing aggregate matchline equations consume them.
+
+For CAM, configured rows are stored words and configured columns are the word
+dimensions connected to one matchline. The cell topology historically
+represents matchlines as electrical-model column ports, so EvaCAM rotates
+the internal electrical axes during subarray initialization. User-facing
+geometry remains rows by columns. This makes matchline branch count and wire
+length follow configured columns, while prechargers and sense amplifiers follow
+configured rows.
 
 ### Sampling Method
 

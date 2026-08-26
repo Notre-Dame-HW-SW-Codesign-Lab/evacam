@@ -378,8 +378,8 @@ namespace {
         y.line("cell_area_utilization", fmt_percent(mat_area_pct));
         y.end_map();
         y.begin_map("subarray");
-        y.line("dimensions", std::to_string(bank->mat->subarray->numRow) + "x" +
-                std::to_string(bank->mat->subarray->numColumn));
+        y.line("dimensions", std::to_string(bank->mat->subarray->ConfiguredRows()) + "x" +
+                std::to_string(bank->mat->subarray->ConfiguredColumns()));
         y.line("width", fmt_meter(bank->mat->subarray->height));
         y.line("height", fmt_meter(bank->mat->subarray->width));
         y.line("area", fmt_sqm(bank->mat->subarray->area));
