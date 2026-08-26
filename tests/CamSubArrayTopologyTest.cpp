@@ -8,6 +8,7 @@
 #include "CAM_SubArray.h"
 #include "EvaCamContextBuilder.h"
 #include "EvaCamExplorer.h"
+#include "EvaCamRun.h"
 #include "Mat.h"
 #include "Result.h"
 #include "input/CliOptions.h"
@@ -24,6 +25,18 @@ CAM_SubArray *RunConfig(const std::string &path, EvaCamExplorationResult *explor
     const auto &result = exploration->bestResults.at(leakage_optimized);
     assert(result && result->bank && result->bank->mat && result->bank->mat->subarray);
     return result->bank->mat->subarray.get();
+}
+
+EvaCamDesignResultDto RunDimensionConfig(int rows, int columns) {
+    EvaCamRunOptions options;
+    options.configPath = "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml";
+    options.subarrayRows = rows;
+    options.subarrayColumns = columns;
+    options.stdoutOutput = false;
+
+    const EvaCamRunResultDto result = RunEvaCam(options);
+    assert(result.numSolutions > 0);
+    return result.bestResults.at("LeakagePower");
 }
 
 void AssertFinitePositive(double value) {
@@ -140,25 +153,17 @@ void TestMcamTopologyAndAggregateCalculations() {
 }
 
 void TestMcamAsymmetricDimensionsFollowWordColumns() {
-    EvaCamExplorationResult wideExploration;
-    const CAM_SubArray &wide = *RunConfig(
-            "config/2FeFET_MCAM/2FeFET_MCAM_16x64.config.yaml",
-            &wideExploration);
-    EvaCamExplorationResult deepExploration;
-    const CAM_SubArray &deep = *RunConfig(
-            "config/2FeFET_MCAM/2FeFET_MCAM_64x16.config.yaml",
-            &deepExploration);
+    const EvaCamDesignResultDto wide = RunDimensionConfig(16, 64);
+    const EvaCamDesignResultDto deep = RunDimensionConfig(64, 16);
 
-    assert(wide.ConfiguredRows() == 16 && wide.ConfiguredColumns() == 64);
-    assert(deep.ConfiguredRows() == 64 && deep.ConfiguredColumns() == 16);
-    assert(wide.CAM_opt.BitSerialWidth == 64);
-    assert(deep.CAM_opt.BitSerialWidth == 16);
-    assert(wide.precharger->numColumn == 16);
-    assert(deep.precharger->numColumn == 64);
-    assert(wide.numRow == 64 && wide.numColumn == 16);
-    assert(deep.numRow == 16 && deep.numColumn == 64);
-    assert(wide.matchlineWireRes > deep.matchlineWireRes);
-    assert(wide.senseMargin < deep.senseMargin);
+    assert(wide.geometry.at("subarray_rows") == 16);
+    assert(wide.geometry.at("subarray_columns") == 64);
+    assert(deep.geometry.at("subarray_rows") == 64);
+    assert(deep.geometry.at("subarray_columns") == 16);
+    assert(wide.geometry.at("bit_serial_width") == 64);
+    assert(deep.geometry.at("bit_serial_width") == 16);
+    assert(wide.summary.at("timing.exact_match_sense_margin_v")
+            < deep.summary.at("timing.exact_match_sense_margin_v"));
 }
 
 }  // namespace

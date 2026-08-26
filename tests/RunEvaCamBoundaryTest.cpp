@@ -192,9 +192,8 @@ void TestExecutableSubarrayDimensionTestMode() {
     std::ostringstream tester;
     tester << "schema: subarray_dimension_test\n"
            << "name: executable_boundary\n"
-           << "config_pattern: "
-           << (configDirectory / "2FeFET_MCAM_{rows}x{columns}.config.yaml").string()
-           << "\n"
+           << "base_config: "
+           << (configDirectory / "2FeFET_MCAM.config.yaml").string() << "\n"
            << "rows: [8]\n"
            << "columns: [8]\n"
            << "threads_per_run: 1\n"

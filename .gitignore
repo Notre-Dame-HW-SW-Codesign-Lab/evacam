@@ -7,6 +7,7 @@
 # Build targets
 EvaCAM
 test-bin/
+coverage/
 evacam_py*.so
 
 # Generated results

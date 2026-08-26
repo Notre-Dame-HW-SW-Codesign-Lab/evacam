@@ -42,7 +42,7 @@ The supported structure is:
 ```yaml
 schema: subarray_dimension_test
 name: 2FeFET_MCAM_power_of_two_spread
-config_pattern: 2FeFET_MCAM_{rows}x{columns}.config.yaml
+base_config: 2FeFET_MCAM.config.yaml
 rows: [8, 16, 32, 64, 128]
 columns: [8, 16, 32, 64, 128]
 threads_per_run: 1
@@ -51,17 +51,17 @@ output:
   summary_csv: summary.csv
 ```
 
-A single ordinary config can instead serve as the electrical template:
+A per-dimension config pattern can instead select existing fixed configs:
 
 ```yaml
 schema: subarray_dimension_test
-name: 2FeFET_TCAM_power_of_two_spread
-base_config: 2FeFET_TCAM_match.config.yaml
+name: fixed_config_spread
+config_pattern: fixed_{rows}x{columns}.config.yaml
 rows: [8, 16, 32, 64, 128]
 columns: [8, 16, 32, 64, 128]
 threads_per_run: 1
 output:
-  directory: ../../results/subarray_dimension_tests/2FeFET_TCAM
+  directory: ../../results/subarray_dimension_tests/fixed
   summary_csv: summary.csv
 ```
 

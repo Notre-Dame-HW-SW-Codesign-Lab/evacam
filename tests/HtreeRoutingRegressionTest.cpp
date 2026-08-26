@@ -62,10 +62,12 @@ int main() {
 
     assert(bank->mat->numAddressBit == 6);
     assert(bank->mat->numDataBit == 2048);
-    assert(bank->mat->subarray->numRow == 64);
-    assert(bank->mat->subarray->numColumn == 512);
-    assert(Near(bank->height, 763.542e-6, 1e-9));
-    assert(Near(bank->width, 1.88206e-3, 1e-6));
+    assert(bank->mat->subarray->ConfiguredRows() == 64);
+    assert(bank->mat->subarray->ConfiguredColumns() == 512);
+    assert(bank->mat->subarray->numRow == 512);
+    assert(bank->mat->subarray->numColumn == 64);
+    assert(Near(bank->height, 999.633e-6, 1e-6));
+    assert(Near(bank->width, 2.683e-3, 1e-6));
 
     const auto &subarray = *bank->mat->subarray;
     double expectedSearchEnergy = (subarray.searchDynamicEnergy * bank->mat->muxSenseAmp

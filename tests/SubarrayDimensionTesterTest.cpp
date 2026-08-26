@@ -26,9 +26,7 @@ std::string MakeTesterConfig(
     std::ostringstream yaml;
     yaml << "schema: subarray_dimension_test\n"
          << "name: focused_dimension_test\n"
-         << "config_pattern: "
-         << (kConfigDirectory / "2FeFET_MCAM_{rows}x{columns}.config.yaml").string()
-         << "\n"
+         << "config_pattern: case_{rows}x{columns}.config.yaml\n"
          << "rows: " << rows << "\n"
          << "columns: " << columns << "\n"
          << "threads_per_run: 1\n"
@@ -94,6 +92,14 @@ std::string MakeRunConfig(
 
 void TestLoadConfigAndBuildCartesianRunSpecs() {
     TestSupport::TemporaryDirectory directory("subarray-dimension-config");
+    const std::string runConfig =
+            "schema: config\n"
+            "optimization:\n"
+            "  target: LeakagePower\n";
+    directory.WriteFile("case_8x8.config.yaml", runConfig);
+    directory.WriteFile("case_8x16.config.yaml", runConfig);
+    directory.WriteFile("case_16x8.config.yaml", runConfig);
+    directory.WriteFile("case_16x16.config.yaml", runConfig);
     const std::filesystem::path testerPath = directory.WriteFile(
             "tester.yaml", MakeTesterConfig(directory.Path() / "results"));
 
@@ -113,8 +119,8 @@ void TestLoadConfigAndBuildCartesianRunSpecs() {
     assert(specs[2].Label() == "16x8");
     assert(specs[3].Label() == "16x16");
     assert(specs[0].optimizationTarget == "LeakagePower");
-    assert(specs[0].configPath.filename() == "2FeFET_MCAM_8x8.config.yaml");
-    assert(specs[3].resultPath.filename() == "2FeFET_MCAM_16x16_results.yaml");
+    assert(specs[0].configPath.filename() == "case_8x8.config.yaml");
+    assert(specs[3].resultPath.filename() == "case_16x16_results.yaml");
 }
 
 void TestConfigValidationRejectsInvalidTesterInputs() {
@@ -211,17 +217,19 @@ void TestRunWritesPerDimensionYamlAndRawSiSummary() {
 void TestRunContinuesAfterDimensionMismatchAndReportsFailure() {
     TestSupport::TemporaryDirectory directory("subarray-dimension-failure");
     const std::filesystem::path outputDirectory = directory.Path() / "results";
-    const std::filesystem::path architecture8x8 =
-            kConfigDirectory / "2FeFET_MCAM_8x8.architecture.yaml";
-    directory.WriteFile("case_8x8.config.yaml", MakeRunConfig("case_8x8", architecture8x8));
-    directory.WriteFile("case_8x16.config.yaml", MakeRunConfig("case_8x16", architecture8x8));
+    const std::filesystem::path architecture64x32 =
+            kConfigDirectory / "2FeFET_MCAM_64x32.architecture.yaml";
+    directory.WriteFile(
+            "case_64x32.config.yaml", MakeRunConfig("case_64x32", architecture64x32));
+    directory.WriteFile(
+            "case_64x64.config.yaml", MakeRunConfig("case_64x64", architecture64x32));
 
     std::ostringstream tester;
     tester << "schema: subarray_dimension_test\n"
            << "name: mismatch_test\n"
            << "config_pattern: case_{rows}x{columns}.config.yaml\n"
-           << "rows: [8]\n"
-           << "columns: [8, 16]\n"
+           << "rows: [64]\n"
+           << "columns: [32, 64]\n"
            << "output:\n"
            << "  directory: " << outputDirectory.string() << "\n";
     const std::filesystem::path testerPath =
@@ -242,9 +250,9 @@ void TestRunContinuesAfterDimensionMismatchAndReportsFailure() {
     assert(errorCapture.Text().find("1 of 2 configurations failed") != std::string::npos);
 
     const std::string csv = ReadFile(summary.summaryCsvPath);
-    assert(csv.find("8,8,8,8,complete,1") != std::string::npos);
-    assert(csv.find("8,16,0,0,failed,1") != std::string::npos);
-    assert(csv.find("expected 8x16") != std::string::npos);
+    assert(csv.find("64,32,32,32,complete,1") != std::string::npos);
+    assert(csv.find("64,64,0,0,failed,1") != std::string::npos);
+    assert(csv.find("expected 64x64") != std::string::npos);
 }
 
 }  // namespace
