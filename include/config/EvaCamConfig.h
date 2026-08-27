@@ -50,7 +50,8 @@ class EvaCamConfig {
         /* Functions */
         void ReadConfigFromFile(const std::string & inputFile);
         void SetDeepExploration(bool enabled);
-        void ResolveWordGeometry(int bitsPerCell, long physicalColumnsPerWord = 0);
+        void ResolveWordGeometry(int bitsPerCell, long physicalColumnsPerWord = 0,
+                bool isMcam = false);
         ResultLimits BuildResultLimits(const std::vector<std::shared_ptr<Result>> &bestResults) const;
         void ApplyResultLimits(const ResultLimits &limits, const std::vector<std::shared_ptr<Result>> &results) const;
 

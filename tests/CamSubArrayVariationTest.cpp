@@ -45,7 +45,7 @@ Fixture MakeFixture() {
 
 Fixture MakeMcamFixture() {
     auto temporary = std::make_shared<TestSupport::TemporaryDirectory>("mcam-variation");
-    const auto configPath = McamTestConfig::WriteZeroSenseVariant(*temporary,
+    const auto configPath = McamTestConfig::WriteMcamConfigVariant(*temporary,
             "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml");
     CliOptions options;
     options.inputFileName = configPath.string();
@@ -248,8 +248,16 @@ void TestMcamExactMatchStateVariationIsDeterministic() {
     assert(first.searchDynamicEnergy == repeated.searchDynamicEnergy);
     assert(first.matchlineDelay == repeated.matchlineDelay);
     assert(first.senseMargin == repeated.senseMargin);
+    assert(first.squaredEuclideanDistance == 1);
+    assert(first.squaredEuclideanDistance == repeated.squaredEuclideanDistance);
+    assert(first.matchlineConductance == repeated.matchlineConductance);
+    assert(first.matchlineVoltage == repeated.matchlineVoltage);
     assert(std::isfinite(first.searchLatency) && first.searchLatency > 0);
     assert(std::isfinite(first.searchDynamicEnergy) && first.searchDynamicEnergy > 0);
+    assert(std::isfinite(first.matchlineConductance)
+            && first.matchlineConductance > 0);
+    assert(std::isfinite(first.matchlineVoltage)
+            && first.matchlineVoltage >= 0);
 
     variation.seed++;
     const EvaCAMMatchResult differentSeed =

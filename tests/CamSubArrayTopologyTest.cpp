@@ -128,7 +128,7 @@ void TestResistiveTcamAggregateCalculations() {
 
 void TestMcamTopologyAndAggregateCalculations() {
     TestSupport::TemporaryDirectory temporary("mcam-topology");
-    const auto config = McamTestConfig::WriteZeroSenseVariant(temporary,
+    const auto config = McamTestConfig::WriteMcamConfigVariant(temporary,
             "config/2FeFET_MCAM/2FeFET_MCAM_64x32.config.yaml");
     EvaCamExplorationResult exploration;
     const CAM_SubArray &constSubarray = *RunConfig(config.string(), &exploration);
@@ -156,18 +156,26 @@ void TestMcamTopologyAndAggregateCalculations() {
     assert(std::fabs(subarray.searchLatency - latency) <= latency * 1e-12);
 }
 
-void TestCanonicalMcamHasNoValidSolution() {
+void TestCanonicalMcamReportsSenseMarginDiagnostic() {
     CliOptions options;
     options.inputFileName = "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml";
     options.stdoutOutput = false;
     EvaCamContext context = EvaCamContextBuilder::Build(options);
     const EvaCamExplorationResult exploration = EvaCamExplorer(context.config, 1).Run();
-    assert(exploration.numSolution == 0);
+    assert(exploration.numSolution > 0);
+    const auto result = exploration.bestResults.at(leakage_optimized);
+    assert(result && result->bank && result->bank->mat
+            && result->bank->mat->subarray);
+    const CAM_SubArray &subarray = *result->bank->mat->subarray;
+    assert(!subarray.invalid);
+    assert(std::fabs(subarray.senseVoltage - 0.070) < 1e-12);
+    assert(subarray.senseMargin > 0);
+    assert(subarray.senseMargin < subarray.senseVoltage);
 }
 
 void TestMcamAsymmetricDimensionsFollowWordColumns() {
     TestSupport::TemporaryDirectory temporary("mcam-dimensions");
-    const auto config = McamTestConfig::WriteZeroSenseVariant(temporary,
+    const auto config = McamTestConfig::WriteMcamConfigVariant(temporary,
             "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml");
     const EvaCamDesignResultDto wide = RunDimensionConfig(config.string(), 16, 64);
     const EvaCamDesignResultDto deep = RunDimensionConfig(config.string(), 64, 16);
@@ -189,7 +197,7 @@ int main() {
     TestSramTopology();
     TestResistiveTcamAggregateCalculations();
     TestMcamTopologyAndAggregateCalculations();
-    TestCanonicalMcamHasNoValidSolution();
+    TestCanonicalMcamReportsSenseMarginDiagnostic();
     TestMcamAsymmetricDimensionsFollowWordColumns();
     std::cout << "CAM subarray topology tests passed\n";
     return 0;

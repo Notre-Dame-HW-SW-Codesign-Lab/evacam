@@ -73,6 +73,16 @@ void TestReadMemorySection() {
     assert(!explicitCapacity.runtimeSizing.capacityIsAuto);
     assert(explicitCapacity.input.capacity == 2 * 1024);
 
+    EvaCamConfig vectorMemory;
+    ConfigSectionReaders::ReadMemorySection(YAML::Load(
+            "memory:\n"
+            "  cell_file: mcam.cell.yaml\n"
+            "  capacity: 1536B\n"
+            "  vector_dimensions: 64\n"), vectorMemory);
+    assert(vectorMemory.input.wordWidth == 0);
+    assert(vectorMemory.input.vectorDimensions == 64);
+    AssertFixed(vectorMemory.exploration.cam.bitSerialWidth, 64);
+
     TestSupport::AssertThrows<std::runtime_error>([&] {
         ConfigSectionReaders::ReadMemorySection(YAML::Load("memory: {}\n"), omitted);
     }, "Missing key: cell_file");
@@ -127,10 +137,12 @@ void TestReadSensingSection() {
             "  internal: false\n"
             "  custom_sense_amp: true\n"
             "  sensing_mode: nvsim_cur\n"
+            "  strict_sense_margin: true\n"
             "  ignored_by_reader: true\n"), config);
     assert(!config.input.internalSensing);
     assert(config.peripherals.customSenseAmp);
     assert(config.peripherals.typeSenseAmp == nvsim_current_sense);
+    assert(config.peripherals.strictSenseMargin);
 
     TestSupport::AssertThrows<std::runtime_error>([&] {
         ConfigSectionReaders::ReadSensingSection(YAML::Load("sensing:\n  internal: true\n"), config);

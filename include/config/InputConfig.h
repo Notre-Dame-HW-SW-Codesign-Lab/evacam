@@ -14,6 +14,7 @@ struct InputConfig {
     int processNode = 90;
     int64_t capacity = 0;
     long wordWidth = 0;
+    long vectorDimensions = 0;
     DeviceRoadmap deviceRoadmap = HP;
     std::string fileMemCell;
     std::string fileTechnology;

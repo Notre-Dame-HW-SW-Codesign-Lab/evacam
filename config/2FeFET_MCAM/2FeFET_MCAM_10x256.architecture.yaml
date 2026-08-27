@@ -6,7 +6,7 @@ design:
   device_roadmap: HP
   temperature: 350K
 memory:
-  word_width: 256bits # logical bits; 86 columns are required, 256 are provided
+  vector_dimensions: 256
 routing:
   type: H-tree
 peripherals:

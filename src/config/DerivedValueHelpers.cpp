@@ -1,10 +1,16 @@
 #include "config/DerivedValueHelpers.h"
 
+#include <stdexcept>
+
 long long DerivedValueHelpers::EffectiveCapacityBits(const InputConfig &input) {
     return static_cast<long long>(input.capacity) * 8;
 }
 
 long DerivedValueHelpers::EffectiveBlockSizeBits(const InputConfig &input) {
+    if (input.vectorDimensions > 0) {
+        throw std::logic_error(
+                "[DerivedValueHelpers] Error: block-size word bits are not defined for MCAM vectors.");
+    }
     return input.wordWidth;
 }
 

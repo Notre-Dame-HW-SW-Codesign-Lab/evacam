@@ -192,6 +192,8 @@ void TestRunWritesPerDimensionYamlAndRawSiSummary() {
     const std::string csv = ReadFile(summary.summaryCsvPath);
     assert(csv.find("search_latency_s") != std::string::npos);
     assert(csv.find("exact_match_sense_margin_v") != std::string::npos);
+    assert(csv.find("sense_margin_slack_v") != std::string::npos);
+    assert(csv.find("sense_margin_pass") != std::string::npos);
     assert(csv.find("8,8,8,8,complete,1") != std::string::npos);
     assert(csv.find("8,16,16,16,complete,1") != std::string::npos);
 }
@@ -201,18 +203,18 @@ void TestRunContinuesAfterDimensionMismatchAndReportsFailure() {
     const std::filesystem::path outputDirectory = directory.Path() / "results";
     const std::filesystem::path architecture64x32 =
             kConfigDirectory / "2FeFET_MCAM_64x32.architecture.yaml";
-    const std::filesystem::path zeroSenseConfig = McamTestConfig::WriteZeroSenseVariant(
+    const std::filesystem::path mcamConfig = McamTestConfig::WriteMcamConfigVariant(
             directory, kConfigDirectory / "2FeFET_MCAM.config.yaml");
-    std::string zeroSenseRun = ReadFile(zeroSenseConfig);
-    zeroSenseRun = ReplaceOnce(zeroSenseRun,
+    std::string mcamRun = ReadFile(mcamConfig);
+    mcamRun = ReplaceOnce(mcamRun,
             "architecture: " + (directory.Path() / "mcam.architecture.yaml").string(),
             "architecture: " + architecture64x32.string());
     directory.WriteFile(
             "case_64x32.config.yaml",
-            ReplaceOnce(zeroSenseRun, "name: 2FeFET_MCAM", "name: case_64x32"));
+            ReplaceOnce(mcamRun, "name: 2FeFET_MCAM", "name: case_64x32"));
     directory.WriteFile(
             "case_64x64.config.yaml",
-            ReplaceOnce(zeroSenseRun, "name: 2FeFET_MCAM", "name: case_64x64"));
+            ReplaceOnce(mcamRun, "name: 2FeFET_MCAM", "name: case_64x64"));
 
     std::ostringstream tester;
     tester << "schema: subarray_dimension_test\n"
@@ -240,7 +242,7 @@ void TestRunContinuesAfterDimensionMismatchAndReportsFailure() {
     assert(errorCapture.Text().find("1 of 2 configurations failed") != std::string::npos);
 
     const std::string csv = ReadFile(summary.summaryCsvPath);
-    assert(csv.find("64,32,32,32,complete,1") != std::string::npos);
+    assert(csv.find("64,32,32,96,complete,1") != std::string::npos);
     assert(csv.find("64,64,0,0,failed,1") != std::string::npos);
     assert(csv.find("expected 64x64") != std::string::npos);
 }

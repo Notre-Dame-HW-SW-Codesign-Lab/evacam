@@ -1,6 +1,8 @@
 #include <cassert>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -68,7 +70,8 @@ std::filesystem::path WriteSearchVariant(
 
 std::filesystem::path WriteMcamSearchVariant(
         TestSupport::TemporaryDirectory &temporary,
-        const std::string &searchFunction) {
+        const std::string &searchFunction,
+        bool strictSenseMargin = false) {
     const std::filesystem::path source(kMcamConfig);
     const std::filesystem::path sourceDirectory = source.parent_path();
     std::string architecture = ReadFile(sourceDirectory / "2FeFET_MCAM.architecture.yaml");
@@ -76,19 +79,27 @@ std::filesystem::path WriteMcamSearchVariant(
         ReplaceAll(architecture, "search_function: " + value,
                 "search_function: " + searchFunction);
     }
+    std::filesystem::path sensingPath = std::filesystem::absolute(
+            sourceDirectory / "2FeFET_MCAM.sensing.yaml");
+    const std::string variant = strictSenseMargin ? "strict-" : "";
+    if (strictSenseMargin) {
+        std::string sensing = ReadFile(sensingPath);
+        ReplaceAll(sensing, "strict_sense_margin: false",
+                "strict_sense_margin: true");
+        ReplaceAll(sensing, "sense_amplifier: ../lib/sense_amp/nvsim_vol.sense_amp.yaml",
+                "sense_amplifier: " + std::filesystem::absolute(
+                        sourceDirectory / "../lib/sense_amp/nvsim_vol.sense_amp.yaml").string());
+        sensingPath = temporary.WriteFile("mcam-strict.sensing.yaml", sensing);
+    }
     ReplaceAll(architecture, "sensing: ./2FeFET_MCAM.sensing.yaml",
-            "sensing: " + std::filesystem::absolute(
-                    sourceDirectory / "2FeFET_MCAM.sensing.yaml").string());
-    std::string memoryDevice = ReadFile(sourceDirectory / "2FeFET_MCAM.memory_device.yaml");
-    ReplaceAll(memoryDevice, "min_sense_voltage: 70mV", "min_sense_voltage: 0V");
-    const auto memoryDevicePath = temporary.WriteFile(
-            "mcam.memory_device.yaml", memoryDevice);
+            "sensing: " + sensingPath.string());
     std::string cell = ReadFile(sourceDirectory / "2FeFET_MCAM.cell.yaml");
     ReplaceAll(cell, "memory_device: ./2FeFET_MCAM.memory_device.yaml",
-            "memory_device: " + memoryDevicePath.string());
+            "memory_device: " + std::filesystem::absolute(
+                    sourceDirectory / "2FeFET_MCAM.memory_device.yaml").string());
     const auto cellPath = temporary.WriteFile("mcam.cell.yaml", cell);
     const std::filesystem::path architecturePath = temporary.WriteFile(
-            "mcam-" + searchFunction + ".architecture.yaml", architecture);
+            "mcam-" + variant + searchFunction + ".architecture.yaml", architecture);
     std::string tool = ReadFile(source);
     ReplaceAll(tool, "architecture: 2FeFET_MCAM.architecture.yaml",
             "architecture: " + architecturePath.string());
@@ -96,7 +107,8 @@ std::filesystem::path WriteMcamSearchVariant(
     ReplaceAll(tool, "technology: ../lib/technology/cmos.legacy.yaml",
             "technology: " + std::filesystem::absolute(
                     sourceDirectory / "../lib/technology/cmos.legacy.yaml").string());
-    return temporary.WriteFile("mcam-" + searchFunction + ".config.yaml", tool);
+    return temporary.WriteFile(
+            "mcam-" + variant + searchFunction + ".config.yaml", tool);
 }
 
 std::vector<int> Bits(size_t width, int bit = 0) {
@@ -123,11 +135,24 @@ void AssertMetrics(const EvaCAMMatchResult &result) {
     AssertFiniteNonNegative(result.searchDynamicEnergy, "search energy");
     AssertFiniteNonNegative(result.matchlineDelay, "matchline delay");
     AssertFiniteNonNegative(result.senseMargin, "sense margin");
+    AssertFiniteNonNegative(result.requiredSenseMargin, "required sense margin");
+    assert(std::isfinite(result.senseMarginSlack));
+}
+
+void AssertMcamMetrics(const EvaCAMMatchResult &result) {
+    AssertMetrics(result);
+    AssertFiniteNonNegative(result.squaredEuclideanDistance,
+            "squared Euclidean distance");
+    AssertFiniteNonNegative(result.matchlineConductance,
+            "matchline conductance");
+    AssertFiniteNonNegative(result.matchlineVoltage, "matchline voltage");
 }
 
 void TestConstructorWordWidthAndExactPublicOverloads() {
     EvaCAM_Match matcher(kTcamConfig);
     Require(matcher.word_width() > 3, "TCAM fixture must provide a usable word width");
+    AssertThrows<std::logic_error>([&] { (void)matcher.vector_dimensions(); },
+            "vector_dimensions is only defined for MCAM");
     const std::vector<int> stored = Bits(matcher.word_width());
     const std::vector<int> oneMiss = WithMismatches(stored, 1);
 
@@ -217,9 +242,15 @@ void TestBestArrayOverloadsAndValidationRules() {
 void TestMcamExactMatchAndValidationRules() {
     TestSupport::TemporaryDirectory temporary("evacam-match-mcam-exact");
     EvaCAM_Match matcher(WriteMcamSearchVariant(temporary, "EX").string());
-    assert(matcher.word_width() == 64);
-    assert(matcher.logical_word_width_bits() == 64);
-    assert(matcher.symbol_width() == 22);
+    AssertThrows<std::logic_error>([&] { (void)matcher.word_width(); },
+            "word_width is not defined for MCAM");
+    assert(matcher.vector_dimensions() == 64);
+    assert(matcher.symbol_width() == 64);
+    assert(matcher.storage_width_bits() == 192);
+    AssertThrows<std::logic_error>(
+            [&] { (void)matcher.logical_word_width_bits(); },
+            "logical_word_width_bits is not defined for MCAM");
+    assert(matcher.bits_per_symbol() == 3);
     const std::vector<int> stored = McamSymbols(matcher.symbol_width());
     std::vector<int> oneMismatch = stored;
     oneMismatch[0] = (oneMismatch[0] + 1) % 8;
@@ -228,7 +259,7 @@ void TestMcamExactMatchAndValidationRules() {
     const EvaCAMMatchResult miss = matcher.evaluate_vector(stored, oneMismatch);
     assert(matcher.evaluate_symbols(stored, stored).hit);
 
-    std::vector<int> storedBits(matcher.logical_word_width_bits(), 0);
+    std::vector<int> storedBits(matcher.storage_width_bits(), 0);
     std::vector<int> queryBits = storedBits;
     assert(matcher.evaluate_bits(storedBits, queryBits).hit);
     queryBits.back() = 1;
@@ -237,8 +268,34 @@ void TestMcamExactMatchAndValidationRules() {
     assert(!miss.hit);
     assert(matcher.match(stored, stored));
     assert(!matcher.match(stored, oneMismatch));
-    AssertMetrics(exact);
-    AssertMetrics(miss);
+    AssertMcamMetrics(exact);
+    AssertMcamMetrics(miss);
+    assert(exact.squaredEuclideanDistance == 0);
+    assert(miss.squaredEuclideanDistance == 1);
+    assert(exact.matchlineConductance < miss.matchlineConductance);
+    assert(exact.matchlineVoltage > miss.matchlineVoltage);
+    assert(exact.senseMarginApplicable);
+    assert(!exact.senseMarginPass);
+    assert(exact.requiredSenseMargin == 0.07);
+    assert(exact.senseMarginSlack < 0);
+
+    const std::vector<int> zero(matcher.vector_dimensions(), 0);
+    std::vector<int> oneLargeDelta = zero;
+    std::vector<int> twoSmallDeltas = zero;
+    oneLargeDelta[0] = 7;
+    twoSmallDeltas[0] = 1;
+    twoSmallDeltas[1] = 1;
+    const auto largeDelta = matcher.evaluate_distance(zero, oneLargeDelta);
+    const auto smallDeltas = matcher.evaluate_distance(zero, twoSmallDeltas);
+    assert(largeDelta.squaredEuclideanDistance == 49);
+    assert(smallDeltas.squaredEuclideanDistance == 2);
+    assert(smallDeltas.matchlineConductance < largeDelta.matchlineConductance);
+    std::vector<int> oneDeltaFour = zero;
+    oneDeltaFour[0] = 4;
+    const auto detectable = matcher.evaluate_distance(zero, oneDeltaFour);
+    assert(detectable.squaredEuclideanDistance == 16);
+    assert(detectable.senseMarginPass);
+    assert(detectable.senseMarginSlack > 0);
 
     const auto rows = matcher.evaluate_array(
             std::vector<std::vector<int>>{stored, oneMismatch}, stored);
@@ -247,9 +304,9 @@ void TestMcamExactMatchAndValidationRules() {
     assert(!rows[1].hit);
 
     AssertThrows<std::invalid_argument>(
-            [&] { matcher.evaluate_vector({}, stored); }, "physical columns per word");
+            [&] { matcher.evaluate_vector({}, stored); }, "memory.vector_dimensions");
     AssertThrows<std::invalid_argument>(
-            [&] { matcher.evaluate_bits({}, storedBits); }, "logical bit vector length");
+            [&] { matcher.evaluate_bits({}, storedBits); }, "MCAM storage width");
     std::vector<int> negative = stored;
     negative[0] = -1;
     AssertThrows<std::invalid_argument>(
@@ -262,14 +319,15 @@ void TestMcamExactMatchAndValidationRules() {
             [&] { matcher.evaluate_mismatches(0); }, "only valid for TCAM");
 }
 
-void TestOversizedMcamPhysicalWordPadsUnusedCells() {
-    TestSupport::TemporaryDirectory temporary("evacam-match-mcam-oversized");
-    EvaCAM_Match matcher(McamTestConfig::WriteZeroSenseVariant(temporary,
+void TestExplicitMcamVectorGeometry() {
+    TestSupport::TemporaryDirectory temporary("evacam-match-mcam-explicit");
+    EvaCAM_Match matcher(McamTestConfig::WriteMcamConfigVariant(temporary,
             "config/2FeFET_MCAM/2FeFET_MCAM_explicit_subarray.config.yaml").string());
-    assert(matcher.logical_word_width_bits() == 64);
+    assert(matcher.vector_dimensions() == 64);
+    assert(matcher.storage_width_bits() == 192);
     assert(matcher.symbol_width() == 64);
 
-    std::vector<int> bits(matcher.logical_word_width_bits(), 0);
+    std::vector<int> bits(matcher.storage_width_bits(), 0);
     bits.back() = 1;
     assert(matcher.evaluate_bits(bits, bits).hit);
 
@@ -278,22 +336,91 @@ void TestOversizedMcamPhysicalWordPadsUnusedCells() {
     assert(!matcher.evaluate_bits(bits, different).hit);
 }
 
-void TestUnimplementedCamPublicOverloads() {
+void TestMcamBestAndThresholdSearches() {
     // The application can explore this shipped BCAM configuration, but the
     // matcher rejects its configured bank before any BCAM public operation.
     AssertThrows<std::runtime_error>([] { EvaCAM_Match bcam(kBcamConfig); }, "configured bank is invalid");
 
     TestSupport::TemporaryDirectory temporary("evacam-match-mcam");
-    for (const std::string searchFunction : {"BE", "TH"}) {
-        EvaCAM_Match mcam(WriteMcamSearchVariant(temporary, searchFunction).string());
-        const std::vector<int> mcamBits = McamSymbols(mcam.symbol_width());
-        const std::string operation = searchFunction == "BE" ? "best" : "threshold";
-        AssertThrows<std::runtime_error>([&] { mcam.evaluate_vector(mcamBits, mcamBits); },
-                operation + " MCAM vector evaluation is not implemented");
-        AssertThrows<std::runtime_error>([&] {
-            mcam.evaluate_array(std::vector<std::vector<int>>{mcamBits}, mcamBits);
-        }, operation + " MCAM vector evaluation is not implemented");
-    }
+    AssertThrows<std::runtime_error>([&] {
+        EvaCAM_Match strict(WriteMcamSearchVariant(
+                temporary, "EX", true).string());
+    }, "configured bank is invalid");
+    EvaCAM_Match best(WriteMcamSearchVariant(temporary, "BE").string());
+    const std::vector<int> query(best.vector_dimensions(), 0);
+    std::vector<int> oneLargeDelta = query;
+    oneLargeDelta[0] = 7;
+    std::vector<int> twoSmallDeltas = query;
+    twoSmallDeltas[0] = 1;
+    twoSmallDeltas[1] = 1;
+    const auto bestResults = best.evaluate_array(
+            std::vector<std::vector<int>>{oneLargeDelta, twoSmallDeltas}, query);
+    assert(bestResults.size() == 2);
+    assert(!bestResults[0].hit);
+    assert(bestResults[1].hit);
+    assert(bestResults[0].squaredEuclideanDistance == 49);
+    assert(bestResults[1].squaredEuclideanDistance == 2);
+    assert(bestResults[0].senseMarginPass);
+    assert(bestResults[1].senseMarginPass);
+    assert(bestResults[0].senseMargin == bestResults[1].senseMargin);
+
+    std::vector<int> distanceFour = query;
+    distanceFour[0] = 2;
+    const auto closeResults = best.evaluate_array(
+            std::vector<std::vector<int>>{
+                    oneLargeDelta, distanceFour, twoSmallDeltas}, query);
+    assert(closeResults[2].hit);
+    assert(!closeResults[0].senseMarginPass);
+    assert(!closeResults[1].senseMarginPass);
+    assert(!closeResults[2].senseMarginPass);
+    assert(closeResults[0].senseMarginSlack < 0);
+    AssertThrows<std::runtime_error>(
+            [&] { best.evaluate_vector(query, query); }, "requires evaluate_array");
+    AssertThrows<std::invalid_argument>([&] {
+        best.evaluate_array(std::vector<std::vector<int>>{}, query);
+    }, "must not be empty");
+
+    EvaCAM_Match threshold(WriteMcamSearchVariant(temporary, "TH").string());
+    const auto accepted = threshold.evaluate_distance_threshold(
+            twoSmallDeltas, query, 2);
+    const auto rejected = threshold.evaluate_distance_threshold(
+            distanceFour, query, 2);
+    assert(accepted.hit);
+    assert(!rejected.hit);
+    assert(accepted.senseMargin == rejected.senseMargin);
+    assert(accepted.requiredSenseMargin == 0.07);
+    assert(threshold.evaluate_threshold(twoSmallDeltas, query, 2).hit);
+    const std::vector<int> interiorQuery(threshold.vector_dimensions(), 3);
+    const auto edgeBoundary = threshold.evaluate_distance_threshold(
+            query, query, 128);
+    const auto interiorBoundary = threshold.evaluate_distance_threshold(
+            interiorQuery, interiorQuery, 128);
+    assert(std::fabs(edgeBoundary.senseMargin - interiorBoundary.senseMargin)
+            > 1e-6);
+    const auto edgeStillHasBoundary = threshold.evaluate_distance_threshold(
+            query, query, 1024);
+    const auto interiorAcceptsEveryReachableVector =
+        threshold.evaluate_distance_threshold(
+                interiorQuery, interiorQuery, 1024);
+    assert(edgeStillHasBoundary.senseMarginApplicable);
+    assert(!interiorAcceptsEveryReachableVector.senseMarginApplicable);
+    assert(interiorAcceptsEveryReachableVector.senseMarginPass);
+    AssertThrows<std::runtime_error>(
+            [&] { threshold.evaluate_vector(query, query); },
+            "requires evaluate_distance_threshold");
+    AssertThrows<std::runtime_error>([&] {
+        threshold.evaluate_array(std::vector<std::vector<int>>{query}, query);
+    }, "requires explicit squared-Euclidean thresholds");
+    AssertThrows<std::invalid_argument>([&] {
+        threshold.evaluate_distance_threshold(query, query, -1);
+    }, "finite and non-negative");
+    AssertThrows<std::invalid_argument>([&] {
+        threshold.evaluate_distance_threshold(
+                query, query, std::numeric_limits<double>::quiet_NaN());
+    }, "finite and non-negative");
+    AssertThrows<std::invalid_argument>([&] {
+        threshold.evaluate_distance_threshold(query, query, 3137);
+    }, "out of range");
 
     EvaCAM_Match tcam(kTcamConfig);
     const std::vector<std::pair<double, double>> ranges(tcam.word_width(), {0.0, 1.0});
@@ -330,8 +457,8 @@ int main() {
     TestThresholdOverloadsAndValidationRules();
     TestBestArrayOverloadsAndValidationRules();
     TestMcamExactMatchAndValidationRules();
-    TestOversizedMcamPhysicalWordPadsUnusedCells();
-    TestUnimplementedCamPublicOverloads();
+    TestExplicitMcamVectorGeometry();
+    TestMcamBestAndThresholdSearches();
     TestMoveAndConstructionFailures();
     return 0;
 }

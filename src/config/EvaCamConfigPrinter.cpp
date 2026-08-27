@@ -110,11 +110,16 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
     else
         std::cout << input.capacity / 1024 / 1024 / 1024 << "GB" << std::endl;
 
-    std::cout << "Data Width : " << input.wordWidth << "Bits";
-    if (input.wordWidth % 8 == 0)
-        std::cout << " (" << input.wordWidth / 8 << "Bytes)" << std::endl;
-    else
-        std::cout << std::endl;
+    if (technology.cell->camType == MCAM) {
+        std::cout << "Vector Dimensions : " << config.wordGeometry.vectorDimensions << std::endl;
+        std::cout << "Vector Storage : " << config.wordGeometry.storageWidthBits << "Bits" << std::endl;
+    } else {
+        std::cout << "Data Width : " << input.wordWidth << "Bits";
+        if (input.wordWidth % 8 == 0)
+            std::cout << " (" << input.wordWidth / 8 << "Bytes)" << std::endl;
+        else
+            std::cout << std::endl;
+    }
     std::cout << "System Process Node: " << input.processNode << "nm" << std::endl;
     std::cout << "Device Roadmap: " << ToString(input.deviceRoadmap) << std::endl;
     std::cout << "Temperature: " << input.temperature << "K" << std::endl;
@@ -130,6 +135,10 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
               << ", " << ToString(peripherals.typeSenseAmp);
     if (peripherals.customSenseAmp)
         std::cout << " (custom)";
+    if (technology.cell && technology.cell->camType == MCAM) {
+        std::cout << ", sense margin "
+                  << (peripherals.strictSenseMargin ? "strict" : "diagnostic");
+    }
     std::cout << std::endl;
 
     std::cout << "Peripherals:" << std::endl;

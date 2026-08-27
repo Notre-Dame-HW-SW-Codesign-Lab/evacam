@@ -8,10 +8,11 @@
 
 namespace {
 
-TechnologyContext MakeTechnology(bool readMode) {
+TechnologyContext MakeTechnology(bool readMode, CAMType camType = TCAM) {
     TechnologyContext technology;
     technology.cell = std::make_shared<MemCell>();
     technology.cell->readMode = readMode;
+    technology.cell->camType = camType;
     return technology;
 }
 
@@ -45,6 +46,11 @@ void TestExplorationCsvPathUsesCamDimensions() {
     input.internalSensing = false;
     assert(OutputPathBuilder::ExplorationCsvPath(input, MakeTechnology(false))
             == "results/output_2048K_512_EX_CUR.csv");
+
+    input.wordWidth = 0;
+    input.vectorDimensions = 64;
+    assert(OutputPathBuilder::ExplorationCsvPath(input, MakeTechnology(false, MCAM))
+            == "results/output_2048K_64_EX_CUR.csv");
 }
 
 }  // namespace

@@ -31,8 +31,6 @@ These items can affect correctness, supported behavior, or confidence in reporte
 
 ### 1. Implement or explicitly reject incomplete match APIs
 
-- `src/app/EvaCAM_Match.cpp:270`: best-match MCAM vector evaluation is not implemented.
-- `src/app/EvaCAM_Match.cpp:289`: threshold MCAM vector evaluation is not implemented.
 - ACAM vector and array evaluation are not implemented.
 
 The current exceptions are intentional and covered by `tests/test_pybind_match.py`; completing a path requires updating those tests and `docs/python-api.md`.
@@ -177,6 +175,7 @@ These are user-visible limitations and should remain tracked even though the cod
 
 - DRAM, eDRAM, and MLC NAND models are rejected as under development.
 - H-tree and non-H-tree routing require internal sensing; bank-level external sensing is not modeled.
-- MCAM best-match and threshold vector evaluation is not implemented; exact integer-vector evaluation is supported.
+- MCAM exact, best-match, and threshold integer-vector evaluation is
+  experimental and limited to the shipped 2FeFET topology.
 - ACAM exact, best, and threshold match evaluation is not implemented.
 - `variation.lut_file` is accepted and propagated but not consumed.

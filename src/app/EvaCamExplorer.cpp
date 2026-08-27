@@ -114,7 +114,7 @@ void EvaCamExplorer::InitializeExploration() {
 
     modelCapacityCells_ = config_->wordGeometry.logicalCapacityBits;
     physicalColumnsPerWord_ = modelCapacityCells_
-        / config_->wordGeometry.logicalWordBits;
+        / config_->wordGeometry.storageWidthBits;
     if (config_->technology.cell->camType == MCAM) {
         modelCapacityCells_ = config_->wordGeometry.entryCount
             * config_->wordGeometry.physicalColumnsPerWord;

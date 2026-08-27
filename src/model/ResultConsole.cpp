@@ -43,13 +43,22 @@ void Result::print() {
     std::cout << " - Subarray Size    : " << bank->mat->subarray->ConfiguredRows()
               << " Rows x " << bank->mat->subarray->ConfiguredColumns()
               << " Columns" << std::endl;
-    std::cout << " - Logical Word     : " << config->wordGeometry.logicalWordBits
-              << " Bits" << std::endl;
+    if (config->technology.cell->camType == MCAM) {
+        std::cout << " - Vector Dimensions: " << config->wordGeometry.vectorDimensions
+                  << std::endl;
+        std::cout << " - Vector Storage   : " << config->wordGeometry.storageWidthBits
+                  << " Bits" << std::endl;
+    } else {
+        std::cout << " - Logical Word     : " << config->wordGeometry.storageWidthBits
+                  << " Bits" << std::endl;
+    }
     std::cout << " - Bits Per Cell    : " << config->wordGeometry.bitsPerCell << std::endl;
     std::cout << " - Physical Word    : " << config->wordGeometry.physicalColumnsPerWord
               << " Columns" << std::endl;
-    std::cout << " - Word Padding     : " << config->wordGeometry.paddingBits
-              << " Bits" << std::endl;
+    if (config->technology.cell->camType != MCAM) {
+        std::cout << " - Word Padding     : " << config->wordGeometry.paddingBits
+                  << " Bits" << std::endl;
+    }
     std::cout << " - Compared Per Step: " << bank->CAM_opt.ComparisonColumns
               << " Columns" << std::endl;
     std::cout << "Mux Level:" << std::endl;
@@ -229,6 +238,15 @@ void Result::print() {
     std::cout << " - Exact-Match Sense Margin = " << nominalSenseMargin * 1e3 << "mV" << std::endl;
     std::cout << " |--- Minimum Required Sense Margin = " << subarray.senseVoltage * 1e3
         << "mV" << std::endl;
+    std::cout << " |--- Sense Margin Slack = "
+        << (nominalSenseMargin - subarray.senseVoltage) * 1e3 << "mV" << std::endl;
+    std::cout << " |--- Sense Margin Requirement = "
+        << (nominalSenseMargin >= subarray.senseVoltage ? "PASS" : "FAIL");
+    if (config->technology.cell && config->technology.cell->camType == MCAM) {
+        std::cout << (config->peripherals.strictSenseMargin
+                ? " (enforced)" : " (diagnostic)");
+    }
+    std::cout << std::endl;
     // std::cout << "       |--- Row Decoder Latency = " << ToSecond(bank->mat->subarray->rowDecoder->readLatency) << std::endl;
     // std::cout << "       |--- Matchline Latency     = " << ToSecond(bank->mat->subarray->MatchlineDelay) << std::endl;
     // if (config->input.internalSensing)
@@ -290,11 +308,11 @@ void Result::print() {
         // std::cout << "       |--- Charge Latency      = " << ToSecond(bank->mat->subarray->chargeLatency) << std::endl;
     }
 
-    double readBandwidth = (double)config->wordGeometry.logicalWordBits /
+    double readBandwidth = (double)config->wordGeometry.storageWidthBits /
         (bank->mat->subarray->readLatency - bank->mat->subarray->rowDecoder->readLatency
          + bank->mat->subarray->precharger->readLatency) / 8;
     std::cout << " - Read Bandwidth  = " << ToBps(readBandwidth) << std::endl;
-    double writeBandwidth = (double)config->wordGeometry.logicalWordBits /
+    double writeBandwidth = (double)config->wordGeometry.storageWidthBits /
         (bank->mat->subarray->writeLatency) / 8;
     std::cout << " - Write Bandwidth = " << ToBps(writeBandwidth) << std::endl;
 

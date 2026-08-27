@@ -180,11 +180,18 @@ void AddCoreSummary(EvaCamDesignResultDto &dto, const Result &result) {
     dto.summary["timing.matchline_delay_s"] = sub.matchlineDelay;
     dto.summary["timing.sense_amp_latency_s"] = sub.senseAmpLatency;
     dto.summary["timing.reference_delay_s"] = sub.referDelay;
-    dto.summary["timing.exact_match_sense_margin_v"] =
+    const double exactMatchSenseMargin =
         sub.variationSummary.senseMargin.available
             ? sub.variationSummary.senseMargin.nominal
             : sub.senseMargin;
+    dto.summary["timing.exact_match_sense_margin_v"] = exactMatchSenseMargin;
     dto.summary["timing.minimum_required_sense_margin_v"] = sub.senseVoltage;
+    dto.summary["timing.sense_margin_slack_v"] =
+        exactMatchSenseMargin - sub.senseVoltage;
+    dto.summary["timing.sense_margin_pass"] =
+        exactMatchSenseMargin >= sub.senseVoltage ? 1.0 : 0.0;
+    dto.summary["timing.sense_margin_enforced"] =
+        result.config->peripherals.strictSenseMargin ? 1.0 : 0.0;
 
     dto.summary["energy.read_dynamic_j"] = bank.readDynamicEnergy;
     dto.summary["energy.write_dynamic_j"] = bank.writeDynamicEnergy;
@@ -195,11 +202,11 @@ void AddCoreSummary(EvaCamDesignResultDto &dto, const Result &result) {
 
     if (HasUnit(sub.rowDecoder) && HasUnit(sub.precharger)) {
         dto.summary["bandwidth.read_Bps"] = SafeRatio(
-                static_cast<double>(result.config->wordGeometry.logicalWordBits),
+                static_cast<double>(result.config->wordGeometry.storageWidthBits),
                 sub.readLatency - sub.rowDecoder->readLatency + sub.precharger->readLatency) / 8;
     }
     dto.summary["bandwidth.write_Bps"] = SafeRatio(
-            static_cast<double>(result.config->wordGeometry.logicalWordBits),
+            static_cast<double>(result.config->wordGeometry.storageWidthBits),
             sub.writeLatency) / 8;
 }
 
@@ -211,11 +218,18 @@ void AddGeometry(EvaCamDesignResultDto &dto, const Result &result) {
     const auto &word = result.config->wordGeometry;
     const int comparisonColumns = ComparisonColumns(bank);
     dto.geometry["capacity_bits"] = static_cast<double>(word.logicalCapacityBits);
-    dto.geometry["block_size_bits"] = static_cast<double>(word.logicalWordBits);
+    dto.geometry["block_size_bits"] = static_cast<double>(word.storageWidthBits);
     dto.geometry["logical_capacity_bits"] = static_cast<double>(word.logicalCapacityBits);
     dto.geometry["allocated_capacity_bits"] =
         static_cast<double>(word.allocatedCapacityBits);
-    dto.geometry["logical_word_width_bits"] = static_cast<double>(word.logicalWordBits);
+    dto.geometry["storage_width_bits"] = static_cast<double>(word.storageWidthBits);
+    if (result.config->technology.cell->camType == MCAM) {
+        dto.geometry["vector_dimensions"] = static_cast<double>(word.vectorDimensions);
+    } else {
+        dto.geometry["logical_word_width_bits"] =
+            static_cast<double>(word.storageWidthBits);
+        dto.geometry["word_width_bits"] = static_cast<double>(word.storageWidthBits);
+    }
     dto.geometry["entry_count"] = static_cast<double>(word.entryCount);
     dto.geometry["bits_per_cell"] = static_cast<double>(word.bitsPerCell);
     dto.geometry["physical_columns_per_word"] =
@@ -229,7 +243,6 @@ void AddGeometry(EvaCamDesignResultDto &dto, const Result &result) {
     dto.geometry["num_column_subarray"] = mat.numColumnSubarray;
     dto.geometry["subarray_rows"] = static_cast<double>(sub.ConfiguredRows());
     dto.geometry["subarray_columns"] = static_cast<double>(sub.ConfiguredColumns());
-    dto.geometry["word_width_bits"] = static_cast<double>(word.logicalWordBits);
     dto.geometry["num_active_mat_per_row"] = bank.numActiveMatPerRow;
     dto.geometry["num_active_mat_per_column"] = bank.numActiveMatPerColumn;
     dto.geometry["num_active_subarray_per_row"] = mat.numActiveSubarrayPerRow;

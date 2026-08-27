@@ -54,7 +54,12 @@ struct ValidationFixture {
                 MakeCellYaml(camType, rowPorts, columnPorts)).string();
         config->runtimeSizing.hasExplicitCapacity = true;
         config->input.capacity = 1024;
-        config->input.wordWidth = 64;
+        if (camType == "MCAM") {
+            config->input.wordWidth = 0;
+            config->input.vectorDimensions = 64;
+        } else {
+            config->input.wordWidth = 64;
+        }
         config->input.temperature = 300;
         config->input.processNode = 7;
     }
@@ -181,22 +186,35 @@ void TestInputRuleValidatorResolvesFixedDimensionsAndRejectsMismatch() {
     AssertThrows<std::runtime_error>([&] { mismatch.ValidateInput(); }, "does not match organization.subarray.dimensions");
 }
 
-void TestInputRuleValidatorResolvesMcamLogicalAndPhysicalGeometry() {
-    for (const auto &sample : std::vector<std::pair<int, int>>{
-            {1, 64}, {2, 32}, {3, 22}, {4, 16}}) {
+void TestInputRuleValidatorResolvesMcamVectorAndStorageGeometry() {
+    for (int bitsPerCell : {1, 2, 3, 4}) {
         auto config = TestModelBuilders::MakeEvaCamConfig();
-        config->input.capacity = 512;
-        config->input.wordWidth = 64;
-        config->ResolveWordGeometry(sample.first);
-        Require(config->wordGeometry.physicalColumnsPerWord == sample.second,
-                "MCAM columns must be ceil(logical bits / bits per cell)");
+        config->input.capacity = 2048;
+        config->input.wordWidth = 0;
+        config->input.vectorDimensions = 64;
+        config->ResolveWordGeometry(bitsPerCell, 0, true);
+        Require(config->wordGeometry.vectorDimensions == 64,
+                "MCAM must retain the configured vector dimensions");
+        Require(config->wordGeometry.storageWidthBits == 64 * bitsPerCell,
+                "MCAM storage width must derive from dimensions and state bits");
+        Require(config->wordGeometry.physicalColumnsPerWord == 64,
+                "each MCAM vector dimension must occupy one physical cell");
+        Require(config->wordGeometry.paddingBits == 0,
+                "canonical MCAM vectors must not add partial-symbol padding");
     }
 
-    for (const auto &sample : std::vector<std::tuple<int, int, int>>{
-            {2, 1, 64}, {4, 2, 32}, {8, 3, 22}, {16, 4, 16}}) {
+    auto mismatchedPhysicalWidth = TestModelBuilders::MakeEvaCamConfig();
+    mismatchedPhysicalWidth->input.capacity = 2048;
+    mismatchedPhysicalWidth->input.wordWidth = 0;
+    mismatchedPhysicalWidth->input.vectorDimensions = 64;
+    AssertThrows<std::runtime_error>([&] {
+        mismatchedPhysicalWidth->ResolveWordGeometry(3, 65, true);
+    }, "must equal memory.vector_dimensions");
+
+    for (const auto &sample : std::vector<std::pair<int, int>>{
+            {2, 1}, {4, 2}, {8, 3}, {16, 4}}) {
         const int numStates = std::get<0>(sample);
         const int expectedBitsPerCell = std::get<1>(sample);
-        const int expectedColumns = std::get<2>(sample);
         std::ostringstream mcam;
         mcam << "mcam:\n  num_resistance_state: " << numStates
              << "\n  resistance_state: [";
@@ -215,13 +233,12 @@ void TestInputRuleValidatorResolvesMcamLogicalAndPhysicalGeometry() {
         stateFixture.config->runtimeSizing.hasFixedSubarrayDimensions = true;
         stateFixture.config->runtimeSizing.hasExplicitCapacity = false;
         stateFixture.config->runtimeSizing.fixedSubarrayRows = 64;
-        stateFixture.config->runtimeSizing.fixedSubarrayColumns = expectedColumns;
-        stateFixture.config->input.wordWidth = 64;
+        stateFixture.config->runtimeSizing.fixedSubarrayColumns = 64;
         stateFixture.ValidateInput();
         Require(stateFixture.config->wordGeometry.bitsPerCell == expectedBitsPerCell,
                 "MCAM bits per cell must be log2(resistance states)");
-        Require(stateFixture.config->wordGeometry.physicalColumnsPerWord == expectedColumns,
-                "MCAM physical columns must follow the configured state count");
+        Require(stateFixture.config->wordGeometry.physicalColumnsPerWord == 64,
+                "MCAM physical columns must equal vector dimensions");
     }
 
     const std::string eightStateMcam =
@@ -232,38 +249,48 @@ void TestInputRuleValidatorResolvesMcamLogicalAndPhysicalGeometry() {
     fixture.config->runtimeSizing.hasFixedSubarrayDimensions = true;
     fixture.config->runtimeSizing.hasExplicitCapacity = false;
     fixture.config->runtimeSizing.fixedSubarrayRows = 64;
-    fixture.config->runtimeSizing.fixedSubarrayColumns = 22;
-    fixture.config->input.wordWidth = 64;
+    fixture.config->runtimeSizing.fixedSubarrayColumns = 64;
     fixture.ValidateInput();
 
     const ResolvedWordGeometry &geometry = fixture.config->wordGeometry;
-    Require(geometry.logicalCapacityBits == 4096, "MCAM logical capacity must use logical word bits");
-    Require(geometry.logicalWordBits == 64, "MCAM logical word width must remain 64 bits");
+    Require(geometry.logicalCapacityBits == 12288,
+            "MCAM capacity must include every vector element's storage bits");
+    Require(geometry.storageWidthBits == 192,
+            "64 eight-state MCAM dimensions must require 192 storage bits");
+    Require(geometry.vectorDimensions == 64,
+            "MCAM vector dimensions must remain independent of storage bits");
     Require(geometry.entryCount == 64, "MCAM fixed rows must resolve to 64 entries");
     Require(geometry.bitsPerCell == 3, "eight-state MCAM must encode three bits per cell");
-    Require(geometry.physicalColumnsPerWord == 22, "64 MCAM bits must occupy 22 cells");
-    Require(geometry.paddingBits == 2, "64 bits in 22 three-bit cells must have two padding bits");
+    Require(geometry.physicalColumnsPerWord == 64,
+            "64 MCAM dimensions must occupy 64 cells");
+    Require(geometry.paddingBits == 0,
+            "MCAM vector storage must not contain padding bits");
 
-    ValidationFixture oversized("FEFETRAM", "MCAM", eightStateMcam);
-    oversized.config->runtimeSizing.hasFixedSubarrayDimensions = true;
-    oversized.config->runtimeSizing.hasExplicitCapacity = false;
-    oversized.config->runtimeSizing.fixedSubarrayRows = 64;
-    oversized.config->runtimeSizing.fixedSubarrayColumns = 32;
-    oversized.config->input.wordWidth = 64;
-    oversized.ValidateInput();
-    Require(oversized.config->wordGeometry.physicalColumnsPerWord == 32,
-            "user-supplied MCAM columns above the minimum must be retained");
-    Require(oversized.config->wordGeometry.paddingBits == 32,
-            "surplus MCAM cell capacity must be reported as padding bits");
+    for (int columns : {63, 65}) {
+        ValidationFixture mismatch("FEFETRAM", "MCAM", eightStateMcam);
+        mismatch.config->runtimeSizing.hasFixedSubarrayDimensions = true;
+        mismatch.config->runtimeSizing.hasExplicitCapacity = false;
+        mismatch.config->runtimeSizing.fixedSubarrayRows = 64;
+        mismatch.config->runtimeSizing.fixedSubarrayColumns = columns;
+        AssertThrows<std::runtime_error>([&] { mismatch.ValidateInput(); },
+                "require exactly 64 physical columns");
+    }
 
-    ValidationFixture mismatch("FEFETRAM", "MCAM", eightStateMcam);
-    mismatch.config->runtimeSizing.hasFixedSubarrayDimensions = true;
-    mismatch.config->runtimeSizing.hasExplicitCapacity = false;
-    mismatch.config->runtimeSizing.fixedSubarrayRows = 64;
-    mismatch.config->runtimeSizing.fixedSubarrayColumns = 21;
-    mismatch.config->input.wordWidth = 64;
-    AssertThrows<std::runtime_error>([&] { mismatch.ValidateInput(); },
-            "provides 21 columns");
+    ValidationFixture wordWidth("FEFETRAM", "MCAM", eightStateMcam);
+    wordWidth.config->input.vectorDimensions = 0;
+    wordWidth.config->input.wordWidth = 64;
+    AssertThrows<std::runtime_error>([&] { wordWidth.ValidateInput(); },
+            "word_width is not defined for MCAM");
+
+    ValidationFixture missingDimensions("FEFETRAM", "MCAM", eightStateMcam);
+    missingDimensions.config->input.vectorDimensions = 0;
+    AssertThrows<std::runtime_error>([&] { missingDimensions.ValidateInput(); },
+            "memory.vector_dimensions");
+
+    ValidationFixture tcamWithDimensions;
+    tcamWithDimensions.config->input.vectorDimensions = 64;
+    AssertThrows<std::runtime_error>([&] { tcamWithDimensions.ValidateInput(); },
+            "only valid for MCAM");
 }
 
 void TestInputRuleValidatorRejectsPeripheralRules() {
@@ -409,6 +436,8 @@ void TestInputRuleValidatorInfersCamTypeFromCellName() {
             "  searchline_voltage: [0.2V, 0.8V]\n");
     inferredMcam.config->input.fileMemCell = inferredMcam.directory.WriteFile("mcam-cell.yaml",
             MakeCellYaml("TCAM").replace(MakeCellYaml("TCAM").find("cam_type: TCAM\n"), 15, "")).string();
+    inferredMcam.config->input.wordWidth = 0;
+    inferredMcam.config->input.vectorDimensions = 64;
     inferredMcam.ValidateInput();
 }
 
@@ -535,7 +564,8 @@ void TestInputRuleValidatorCoversRemainingSizingAndScalarRules() {
     AssertThrows<std::runtime_error>([&] { realCapacity.ValidateInput(); }, "must be >=");
     ValidationFixture incompatibleRealCapacity;
     incompatibleRealCapacity.config->runtimeSizing.realCapacity = 1025;
-    AssertThrows<std::runtime_error>([&] { incompatibleRealCapacity.ValidateInput(); }, "word_width");
+    AssertThrows<std::runtime_error>([&] { incompatibleRealCapacity.ValidateInput(); },
+            "whole number of configured vectors or words");
     ValidationFixture negativePage;
     negativePage.config->input.pageSize = -1;
     AssertThrows<std::runtime_error>([&] { negativePage.ValidateInput(); }, "flash.page_size");
@@ -585,7 +615,7 @@ int main() {
     TestInputRuleValidatorRejectsScalarDomainRules();
     TestInputRuleValidatorRejectsDerivedCapacityAndConstraintRules();
     TestInputRuleValidatorResolvesFixedDimensionsAndRejectsMismatch();
-    TestInputRuleValidatorResolvesMcamLogicalAndPhysicalGeometry();
+    TestInputRuleValidatorResolvesMcamVectorAndStorageGeometry();
     TestInputRuleValidatorRejectsPeripheralRules();
     TestInputRuleValidatorRejectsCamModelAndPortRules();
     TestInputRuleValidatorValidatesMcamStateBoundaries();

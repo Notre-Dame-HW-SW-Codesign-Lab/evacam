@@ -151,6 +151,19 @@ def convert_architecture(architecture_file: Path) -> tuple[Path, Path]:
         memory.pop("cell_file")
     if "real_capacity" in memory:
         memory["physical_capacity"] = memory.pop("real_capacity")
+    legacy_cell = architecture_file.with_name(
+        f"{base}_cell_config.yaml"
+    )
+    if legacy_cell.exists():
+        cell_root = load_yaml(legacy_cell)
+        if str(cell_root.get("cell", {}).get("cam_type", "")).upper() == "MCAM":
+            if "word_width" in memory:
+                legacy_width = str(memory.pop("word_width")).strip().lower()
+                for suffix in ("bits", "bit"):
+                    if legacy_width.endswith(suffix):
+                        legacy_width = legacy_width[: -len(suffix)].strip()
+                        break
+                memory["vector_dimensions"] = int(legacy_width)
 
     data: dict[str, Any] = {"schema": "architecture"}
     for key in ("design",):

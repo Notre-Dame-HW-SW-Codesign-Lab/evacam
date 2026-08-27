@@ -10,13 +10,14 @@ Single-objective runs write:
 geometry:
   logical_capacity_bits: 4096
   allocated_capacity_bits: 4096
-  logical_word_width_bits: 64
+  storage_width_bits: 192
+  vector_dimensions: 64
   entry_count: 64
   bits_per_cell: 3
-  physical_columns_per_word: 22
-  word_padding_bits: 2
-  physical_cell_count: 1408
-  comparison_columns_per_step: 22
+  physical_columns_per_word: 64
+  word_padding_bits: 0
+  physical_cell_count: 4096
+  comparison_columns_per_step: 64
   comparison_steps: 1
 summary:
   area:
@@ -48,11 +49,11 @@ breakdown:
     total_cell_area: ...
 ```
 
-For single-bit CAM, logical bits and physical columns are one-to-one. For
-MCAM, `bits_per_cell` is `log2(num_resistance_state)` and the inferred physical
-width is `ceil(logical_word_width_bits / bits_per_cell)`. Explicit MCAM
-dimensions may be wider and the surplus appears in `word_padding_bits`; a
-narrower supplied width is rejected before modeling.
+For single-bit CAM, `logical_word_width_bits`, `storage_width_bits`, and
+physical columns are one-to-one. For MCAM, `logical_word_width_bits` is omitted:
+`vector_dimensions` is the physical column count and `storage_width_bits` is
+`vector_dimensions * log2(num_resistance_state)`. MCAM has no partial-symbol
+padding.
 
 Exploration runs write one top-level map per objective, for example:
 
@@ -103,6 +104,11 @@ Sense-margin and variation keys:
   separation at the exact-match decision boundary and is always emitted
 - `summary.timing.minimum_required_sense_margin` is the configured
   `read.min_sense_voltage` acceptance threshold and is always emitted
+- `summary.timing.sense_margin_slack` is actual minus required margin
+- `summary.timing.sense_margin_pass` reports whether the modeled MCAM boundary
+  meets the requirement; it is diagnostic unless strict sensing is enabled
+- `summary.timing.sense_margin_enforced` records whether
+  `sensing.strict_sense_margin` was enabled
 - `mode` and `samples` describe the aggregation run
 - `sample_file` is emitted for Monte Carlo and corner runs and points to the per-sample CSV
 - `plot_file` is emitted for Monte Carlo runs when SVG histogram generation succeeds and is not disabled
@@ -160,10 +166,12 @@ using the objective name in the file stem.
 The exploration CSV is emitted for full exploration. Its name is:
 
 ```text
-<prefix>_<capacity_kib>K_<word_width>_<IN|EX>_<VOL|CUR>.csv
+<prefix>_<capacity_kib>K_<comparison_width>_<IN|EX>_<VOL|CUR>.csv
 ```
 
-`<prefix>` comes from `output.exploration_csv_prefix`. For a non-default YAML path, use CLI `--output`.
+`<comparison_width>` is `word_width` for single-bit CAM and
+`vector_dimensions` for MCAM. `<prefix>` comes from
+`output.exploration_csv_prefix`. For a non-default YAML path, use CLI `--output`.
 
 Each row ends with four candidate-audit fields: a versioned canonical candidate
 identity, row-driver optimization level, priority-encoder optimization level,

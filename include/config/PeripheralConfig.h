@@ -21,6 +21,9 @@ struct PeripheralConfig {
     std::string fileSenseAmp;
     bool noPrechargeInc = false;
     bool includeLeakage = false;
+    // MCAM sensing is diagnostic by default so data-dependent margins can be
+    // inspected even when they miss the configured hardware requirement.
+    bool strictSenseMargin = false;
     double scaledVoltage = 0;
     bool useUpdatedLib = false;
     double addCapOnML = 0;

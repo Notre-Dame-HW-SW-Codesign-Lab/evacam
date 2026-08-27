@@ -388,7 +388,7 @@ void TestMcamFixedSubarrayDimensionsAllowIndependentRows() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500kohm]\n"
         "  searchline_voltage: [0.2V, 0.8V]\n");
-    WriteConfig("  word_width: 256bits\n", kReadLatencyOptimization,
+    WriteConfig("  vector_dimensions: 256\n", kReadLatencyOptimization,
         "organization:\n"
         "  banks:\n"
         "    total: [1, 1]\n"
@@ -512,14 +512,14 @@ void TestAcamUnsupportedThrows() {
 
 void TestMcamRequiresFefetramThrows() {
     WriteMinimalCellFile("SRAM", "MCAM");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("only 2FeFET MCAM design has limited support"));
     WriteMinimalCellFile();
 }
 
 void TestMcamRequiresResistanceStatesThrows() {
     WriteMinimalCellFile("FEFETRAM", "MCAM");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam"));
     WriteMinimalCellFile();
 }
@@ -529,7 +529,7 @@ void TestMcamResistanceStateCountMismatchThrows() {
         "mcam:\n"
         "  num_resistance_state: 4\n"
         "  resistance_state: [1Mohm, 500Kohm]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("must contain exactly"));
     WriteMinimalCellFile();
 }
@@ -539,7 +539,7 @@ void TestMcamRequiresAtLeastTwoResistanceStatesThrows() {
         "mcam:\n"
         "  num_resistance_state: 1\n"
         "  resistance_state: [1Mohm]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.num_resistance_state must be a power of two between 2 and 64"));
     WriteMinimalCellFile();
 }
@@ -549,7 +549,7 @@ void TestMcamResistanceStatesMustBePositiveThrows() {
         "mcam:\n"
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 0ohm]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.resistance_state values must be positive"));
     WriteMinimalCellFile();
 }
@@ -560,7 +560,7 @@ void TestMcamMlPrechargeVoltageCountMismatchThrows() {
         "  num_resistance_state: 4\n"
         "  resistance_state: [1Mohm, 500Kohm, 250Kohm, 125Kohm]\n"
         "  ml_precharge_voltage: [1V, 900mV]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.ml_precharge_voltage must define every configured resistance state"));
     WriteMinimalCellFile();
 }
@@ -571,7 +571,7 @@ void TestMcamMlPrechargeVoltagesMustBeNonNegativeThrows() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
         "  ml_precharge_voltage: [1V, -1mV]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.ml_precharge_voltage values must be non-negative"));
     WriteMinimalCellFile();
 }
@@ -582,7 +582,7 @@ void TestMcamSearchlineVoltageCountMismatchThrows() {
         "  num_resistance_state: 4\n"
         "  resistance_state: [1Mohm, 500Kohm, 250Kohm, 125Kohm]\n"
         "  searchline_voltage: [1V, 900mV]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.searchline_voltage must define every configured resistance state"));
     WriteMinimalCellFile();
 }
@@ -593,7 +593,7 @@ void TestMcamSearchlineVoltagesMustBeNonNegativeThrows() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
         "  searchline_voltage: [1V, -1mV]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("mcam.searchline_voltage values must be non-negative"));
     WriteMinimalCellFile();
 }
@@ -605,7 +605,7 @@ void TestMcamCenterVoltageIsRejected() {
         "  resistance_state: [1Mohm, 500Kohm]\n"
         "  searchline_voltage: [100mV, 1V]\n"
         "  center_voltage: 550mV\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("center_voltage"));
     WriteMinimalCellFile();
 }
@@ -616,7 +616,7 @@ void TestMcamSearchlineVoltageMappingDerivesCenter() {
         "  num_resistance_state: 2\n"
         "  resistance_state: [1Mohm, 500Kohm]\n"
         "  searchline_voltage: [100mV, 1V]\n");
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(!LoadThrows());
     WriteMinimalCellFile();
 }
@@ -628,7 +628,7 @@ void TestMcamSearchlineVoltageMappingRequiresTwoSearchlines() {
         "  resistance_state: [1Mohm, 500Kohm]\n"
         "  searchline_voltage: [100mV, 1V]\n",
         RowPort(1, "dataline"));
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("both row ports to be gate-connected searchlines"));
     WriteMinimalCellFile();
 }
@@ -640,7 +640,7 @@ void TestMcamSearchlineVoltagesMustSatisfyAnalogInverse() {
         "  resistance_state: [1Mohm, 500Kohm, 250Kohm, 125Kohm]\n"
         "  searchline_voltage: [100mV, 400mV, 800mV, 1V]\n",
         RowPort(1));
-    WriteConfig("  capacity: 1KB\n  word_width: 64bits\n", kReadLatencyOptimization);
+    WriteConfig("  capacity: 1KB\n  vector_dimensions: 64\n", kReadLatencyOptimization);
     assert(LoadThrowsWithMessage("analog-inverse"));
     WriteMinimalCellFile();
 }

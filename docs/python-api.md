@@ -112,6 +112,9 @@ print(search.geometry["comparison_columns_per_step"])
 - `summary`: raw SI-valued top-level metrics keyed by dotted names.
   Sense diagnostics include `timing.exact_match_sense_margin_v` and
   `timing.minimum_required_sense_margin_v`, even when variation is disabled.
+  `timing.sense_margin_slack_v` is actual minus required, while
+  `timing.sense_margin_pass` and `timing.sense_margin_enforced` distinguish a
+  retained diagnostic failure from a strict rejection.
 - `breakdown`: raw SI-valued component breakdown metrics keyed by dotted names.
 - `geometry`: selected raw geometry and design settings.
 - `variation`: Monte Carlo summary and sample data when variation is enabled.
@@ -126,13 +129,15 @@ matcher = evacam_py.EvaCAMMatch(
 )
 ```
 
-## Word Width
+## Comparison Shape
 
-`word_width()` returns the logical word width in bits. MCAM also exposes
-`logical_word_width_bits()` as an explicit alias and `symbol_width()` for the
-selected physical vector length. An inferred eight-state 64-bit word has 22
-symbols (3 bits/cell and two padding bits); an explicit wider array reports its
-larger supplied symbol width.
+For BCAM and TCAM, `word_width()` returns the configured bit width.
+For MCAM, a word width is not defined: `vector_dimensions()` returns the
+number of vector elements, `bits_per_symbol()` returns the encoded bits per
+element, and `storage_width_bits()` returns their product. `symbol_width()` is
+a convenience method that returns the relevant input-vector length for either
+kind of CAM. Calling `word_width()` or `logical_word_width_bits()` for MCAM, or
+calling `vector_dimensions()` for a single-bit CAM, raises `RuntimeError`.
 
 ```python
 width = matcher.word_width()
@@ -149,6 +154,14 @@ Fields:
 - `search_dynamic_energy`: search dynamic energy in joules
 - `matchline_delay`: matchline delay in seconds
 - `sense_margin`: sense margin in volts
+- `required_sense_margin`: configured detectable-voltage requirement in volts
+- `sense_margin_slack`: `sense_margin - required_sense_margin`
+- `sense_margin_pass`: whether the decision meets the requirement
+- `sense_margin_applicable`: false when no comparison boundary exists, such as
+  an all-tied best-match array
+- `squared_euclidean_distance`: MCAM `sum((stored[i] - query[i])**2)`
+- `matchline_conductance`: MCAM row conductance in siemens
+- `matchline_voltage`: MCAM voltage at the sensing instant
 
 Example:
 
@@ -191,8 +204,7 @@ Current support:
 - TCAM `EX`: supported
 - TCAM `BE`: supported through array evaluation
 - TCAM `TH`: use explicit threshold evaluation with `max_mismatches`
-- MCAM `EX`: supported for integer vectors and arrays; symbols must be in `0..num_resistance_state-1`
-- MCAM `BE` and `TH`: not implemented
+- MCAM `EX`, `BE`, and `TH`: supported for integer vectors whose elements are in `0..num_resistance_state-1`
 - ACAM requires range/value inputs
 
 For an eight-state MCAM configuration, vector APIs use physical symbols:
@@ -213,17 +225,52 @@ rows = matcher.evaluate_array([stored, query], stored)
 
 `evaluate_symbols(stored, query)` is the explicit form of MCAM symbol-vector
 evaluation. `evaluate_bits(stored_bits, query_bits)` instead accepts exactly
-`logical_word_width_bits()` binary values, packs them MSB-first into symbols,
-and zero-pads the end of the final symbol:
+`storage_width_bits()` binary values and packs them MSB-first into symbols.
+There is no padding because storage width is exactly
+`vector_dimensions() * bits_per_symbol()`:
 
 ```python
-bits = [0] * matcher.logical_word_width_bits()
+bits = [0] * matcher.storage_width_bits()
 assert matcher.evaluate_bits(bits, bits).hit
 ```
 
-MCAM exact results include query-specific searchline energy and matchline
-delay. The semantic hit remains strict element-wise equality even when sampled
-state variation is enabled.
+`evaluate_distance(stored, query)` evaluates an MCAM vector and exposes its
+squared Euclidean distance alongside the physical matchline metrics. Euclidean
+ranking uses squared distance because the square root is monotonic; it does
+not use Hamming mismatch count. For example, one coordinate differing by 7
+has distance 49, whereas two coordinates differing by 1 have distance 2.
+
+For `search_function: BE`, call `evaluate_array(stored_rows, query)`. EvaCAM
+marks every row at the minimum modeled conductance as a best match. Every
+returned row carries the same data-dependent best/runner-up voltage gap in
+`sense_margin`. A sub-threshold gap remains available with
+`sense_margin_pass == False`; `hit` continues to identify the mathematical
+best row.
+
+For `search_function: TH`, call
+`evaluate_distance_threshold(stored, query, max_squared_distance)`. The
+threshold is inclusive and EvaCAM evaluates the worst accepted/rejected
+electrical boundary for that squared-distance threshold. The calculation uses
+only symbol deltas reachable from the supplied query, so the margin can change
+with the query even at the same threshold. The integer
+`evaluate_threshold(stored, query, threshold)` overload is also accepted and
+interprets its threshold as squared Euclidean distance for MCAM.
+
+MCAM sensing is diagnostic by default. Set `strict_sense_margin: true` in the
+sensing file to reject a design or decision below `read.min_sense_voltage`.
+To find the first detectable separation without changing that requirement,
+sweep concrete vectors and inspect the diagnostic:
+
+```python
+query = [0] * matcher.vector_dimensions()
+for delta in range(1, 8):
+    stored = query.copy()
+    stored[0] = delta
+    result = matcher.evaluate_distance(stored, query)
+    if result.sense_margin_pass:
+        print(result.squared_euclidean_distance, result.sense_margin)
+        break
+```
 
 ## Threshold TCAM Evaluation
 

@@ -20,6 +20,22 @@
 
 namespace {
 
+void SetSenseDiagnostics(
+        EvaCAMMatchResult &result,
+        double requiredMargin,
+        bool applicable = true) {
+    result.requiredSenseMargin = requiredMargin;
+    result.senseMarginApplicable = applicable;
+    if (!applicable) {
+        result.senseMarginSlack = 0;
+        result.senseMarginPass = true;
+        return;
+    }
+    result.senseMarginSlack = result.senseMargin - requiredMargin;
+    result.senseMarginPass = std::isfinite(result.senseMargin)
+        && result.senseMargin >= requiredMargin;
+}
+
 bool UsesSramStyleCamModel(MemCellType type) {
     return type == SRAM || type == FEFETRAM;
 }
@@ -948,14 +964,22 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             referDelay = matchlineDelay;
             senseMargin = MatchlineSenseMargin(
                     mcamStateTaus.front(), tau, referDelay);
-            if (!std::isfinite(senseMargin) || senseMargin <= 0
-                    || senseMargin < senseVoltage) {
+            if (!std::isfinite(senseMargin) || senseMargin <= 0) {
                 invalid = true;
                 logger.Verbose()
-                    << "[CAM_SubArray] MCAM exact-match boundary cannot be sensed: margin="
-                    << senseMargin << " V, required=" << senseVoltage << " V.";
+                    << "[CAM_SubArray] MCAM exact-match boundary has no finite positive margin.";
                 searchLatency = readLatency = writeLatency = 1e41;
                 return;
+            }
+            if (senseMargin < senseVoltage) {
+                logger.Verbose()
+                    << "[CAM_SubArray] MCAM exact-match boundary misses the sensing requirement: margin="
+                    << senseMargin << " V, required=" << senseVoltage << " V.";
+                if (peripherals.strictSenseMargin) {
+                    invalid = true;
+                    searchLatency = readLatency = writeLatency = 1e41;
+                    return;
+                }
             }
             CalculateSearchPathLatenciesAfterMatchline();
         }
@@ -1590,6 +1614,29 @@ double CAM_SubArray::McamVectorEffectiveResistance(
     return 1.0 / conductance;
 }
 
+double CAM_SubArray::McamSquaredEuclideanDistance(
+        const std::vector<int> &stored,
+        const std::vector<int> &query) const {
+    const auto &cell = *config->technology.cell;
+    if (stored.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)
+            || query.size() != stored.size()) {
+        throw std::invalid_argument(
+                "[CAM_SubArray] Error: MCAM vectors must match BitSerialWidth.");
+    }
+
+    double squaredDistance = 0;
+    for (size_t index = 0; index < stored.size(); index++) {
+        if (stored[index] < 0 || stored[index] >= cell.numResistanceState
+                || query[index] < 0 || query[index] >= cell.numResistanceState) {
+            throw std::invalid_argument(
+                    "[CAM_SubArray] Error: MCAM symbols must be between 0 and num_resistance_state - 1.");
+        }
+        const double delta = static_cast<double>(stored[index] - query[index]);
+        squaredDistance += delta * delta;
+    }
+    return squaredDistance;
+}
+
 double CAM_SubArray::McamAllMatchEffectiveResistance(int sampleIndex) const {
     double conductance = 0;
     for (int cellIndex = 0; cellIndex < CAM_opt.BitSerialWidth; cellIndex++) {
@@ -1705,6 +1752,19 @@ double CAM_SubArray::McamMatchlineDynamicEnergy(
         * numColumn / muxSenseAmp;
 }
 
+double CAM_SubArray::McamSensedVoltage(double matchlineConductance) const {
+    if (matchlineConductance <= 0 || !std::isfinite(matchlineConductance)) {
+        throw std::invalid_argument(
+                "[CAM_SubArray] Error: MCAM matchline conductance must be finite and positive.");
+    }
+    const double boundaryResistance = McamBoundaryMismatchEffectiveResistance();
+    const double boundaryTau = McamStateTau(boundaryResistance, matchlineWireRes);
+    double boundaryRamp = 0;
+    const double senseTime = McamStateDelay(boundaryTau, &boundaryRamp);
+    const double actualTau = McamStateTau(1.0 / matchlineConductance, matchlineWireRes);
+    return McamPrechargeVoltage(1) * std::exp(-senseTime / actualTau);
+}
+
 EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatchSample(
         const std::vector<int> &stored,
         const std::vector<int> &query,
@@ -1714,7 +1774,6 @@ EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatchSample(
         McamBoundaryMismatchEffectiveResistance(sampleIndex);
     const double actualResistance =
         McamVectorEffectiveResistance(stored, query, sampleIndex);
-    const double allMatchTau = McamStateTau(allMatchResistance, matchlineWireRes);
     const double boundaryTau = McamStateTau(boundaryResistance, matchlineWireRes);
     const double actualTau = McamStateTau(actualResistance, matchlineWireRes);
 
@@ -1723,10 +1782,17 @@ EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatchSample(
     double actualRamp = 0;
     const double actualDelay = McamStateDelay(actualTau, &actualRamp);
     const double precharge = McamPrechargeVoltage(1);
-    const double allMatchVoltage = precharge * std::exp(-boundaryDelay / allMatchTau);
-    const double actualVoltage = precharge * std::exp(-boundaryDelay / actualTau);
+    const double allMatchVoltage = McamSensedVoltage(1.0 / allMatchResistance);
+    const double boundaryVoltage = McamSensedVoltage(1.0 / boundaryResistance);
+    const double actualVoltage = McamSensedVoltage(1.0 / actualResistance);
     const double actualSenseMargin = allMatchVoltage - actualVoltage;
 
+    const double nominalAllMatchVoltage =
+        McamSensedVoltage(1.0 / McamAllMatchEffectiveResistance());
+    const double nominalBoundaryVoltage =
+        McamSensedVoltage(1.0 / McamBoundaryMismatchEffectiveResistance());
+    const double exactDecisionVoltage =
+        (nominalAllMatchVoltage + nominalBoundaryVoltage) / 2.0;
     const bool exact = stored == query;
     const double effectiveDelay = exact ? boundaryDelay : actualDelay;
     const double peripheralLatency = std::max(0.0, searchLatency - matchlineDelay);
@@ -1735,20 +1801,29 @@ EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatchSample(
                 - mcamMatchlineDynamicEnergy);
 
     EvaCAMMatchResult result{};
-    result.hit = exact;
+    result.hit = actualVoltage >= exactDecisionVoltage;
     result.matchlineDelay = effectiveDelay;
     result.searchLatency = peripheralLatency + effectiveDelay;
     result.searchDynamicEnergy = peripheralEnergy
         + CalculateMcamQuerySearchlineDriveEnergy(query)
         + McamMatchlineDynamicEnergy(actualResistance, boundaryDelay, precharge);
     result.senseMargin = exact
-        ? precharge * (std::exp(-boundaryDelay / allMatchTau)
-            - std::exp(-boundaryDelay / boundaryTau))
+        ? allMatchVoltage - boundaryVoltage
         : actualSenseMargin;
+    result.squaredEuclideanDistance = McamSquaredEuclideanDistance(stored, query);
+    result.matchlineConductance = 1.0 / actualResistance;
+    result.matchlineVoltage = actualVoltage;
+    SetSenseDiagnostics(result, senseVoltage);
     return result;
 }
 
 EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatch(
+        const std::vector<int> &stored,
+        const std::vector<int> &query) const {
+    return EvaluateMcamDistance(stored, query);
+}
+
+EvaCAMMatchResult CAM_SubArray::EvaluateMcamDistance(
         const std::vector<int> &stored,
         const std::vector<int> &query) const {
     if (!initialized) {
@@ -1774,19 +1849,28 @@ EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatch(
     const int sampleCount = config->variation.mode == "single_point"
         ? 1 : std::max(1, config->variation.samples);
     EvaCAMMatchResult mean{};
-    mean.hit = nominal.hit;
+    int hitCount = 0;
     for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
         const EvaCAMMatchResult sample =
             EvaluateMcamExactMatchSample(stored, query, sampleIndex);
+        hitCount += sample.hit ? 1 : 0;
         mean.searchLatency += sample.searchLatency;
         mean.searchDynamicEnergy += sample.searchDynamicEnergy;
         mean.matchlineDelay += sample.matchlineDelay;
         mean.senseMargin += sample.senseMargin;
+        mean.squaredEuclideanDistance += sample.squaredEuclideanDistance;
+        mean.matchlineConductance += sample.matchlineConductance;
+        mean.matchlineVoltage += sample.matchlineVoltage;
     }
+    mean.hit = hitCount * 2 >= sampleCount;
     mean.searchLatency /= sampleCount;
     mean.searchDynamicEnergy /= sampleCount;
     mean.matchlineDelay /= sampleCount;
     mean.senseMargin /= sampleCount;
+    mean.squaredEuclideanDistance /= sampleCount;
+    mean.matchlineConductance /= sampleCount;
+    mean.matchlineVoltage /= sampleCount;
+    SetSenseDiagnostics(mean, senseVoltage);
     return mean;
 }
 
@@ -2029,6 +2113,7 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
     result.searchDynamicEnergy = effectiveSearchEnergy;
     result.matchlineDelay = effectiveMatchlineDelay;
     result.senseMargin = effectiveSenseMargin;
+    SetSenseDiagnostics(result, senseVoltage);
     return result;
 }
 

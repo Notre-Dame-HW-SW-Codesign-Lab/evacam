@@ -59,6 +59,7 @@ void TestConstructionDefaults() {
     assert(config.input.temperature == 300);
     assert(config.input.capacity == 0);
     assert(config.input.wordWidth == 0);
+    assert(config.input.vectorDimensions == 0);
     assert(!config.useCactiAssumption);
     assert(!config.requestDeepExploration);
     assert(config.variationPlots);

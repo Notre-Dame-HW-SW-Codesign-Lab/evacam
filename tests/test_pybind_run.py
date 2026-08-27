@@ -107,6 +107,15 @@ def assert_run_result_matches_yaml(run_result, output_yaml_path):
     )
     assert_yaml_close(
         yaml_scalars,
+        "summary.timing.sense_margin_slack",
+        summary["timing.sense_margin_slack_v"],
+    )
+    assert (yaml_scalars["summary.timing.sense_margin_pass"] == "true") \
+        == bool(summary["timing.sense_margin_pass"])
+    assert (yaml_scalars["summary.timing.sense_margin_enforced"] == "true") \
+        == bool(summary["timing.sense_margin_enforced"])
+    assert_yaml_close(
+        yaml_scalars,
         "summary.timing.search_latency_breakdown.h_tree",
         breakdown["search_latency.h_tree_s"],
     )

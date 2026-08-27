@@ -320,13 +320,12 @@ This sense-margin check is one of the main validity gates in the current model.
 
 ### MCAM Matchline Delay
 
-For MCAM, `word_width` denotes logical bits while the array is sized in
-physical multi-bit symbols. The exact bits per cell is `log2` of the configured
-state count, and the physical column count is the ceiling of logical width
-divided by that value when dimensions are inferred. Explicit dimensions may
-provide more than this minimum, in which case the surplus cell capacity is
-modeled and reported as padding; smaller dimensions are rejected. Any
-remainder is zero-padded. EvaCAM sorts the configured `mcam.resistance_state` values from HRS
+For MCAM, `memory.vector_dimensions` is the unitless vector length and the
+physical column count. `word_width` is not defined. The exact bits per cell is
+`log2` of the configured state count, so encoded storage width is dimensions
+times bits/cell with no padding. Explicit subarray dimensions must provide
+exactly the configured number of vector columns. EvaCAM sorts the configured
+`mcam.resistance_state` values from HRS
 to LRS. The sorted HRS entry is distance `0`, representing equality. Nonzero
 absolute symbol distances select the progressively lower-resistance entries.
 For each candidate one-mismatch distance, that mismatch branch is placed in
@@ -342,17 +341,35 @@ That selected state drives:
 This makes the nominal MCAM latency path worst-case across configured nonzero
 MCAM distances. Matchline precharge uses the per-distance
 `mcam.ml_precharge_voltage` value when supplied and technology `Vdd` otherwise.
-`read.min_sense_voltage` remains the acceptance threshold; a provisional value
-of `0V` disables that rejection gate, while sense-amplifier latency still uses
-the positive modeled boundary margin rather than dividing by zero.
+`read.min_sense_voltage` is the required hardware detection margin. The shipped
+MCAM example uses `70mV`. By default this is diagnostic: EvaCAM still evaluates
+the requested vectors and reports the actual margin, required margin, signed
+slack, and pass/fail result. Set `sensing.strict_sense_margin: true` to make a
+missed MCAM margin invalidate the design point or reject the match operation.
 
-Exact MCAM vector evaluation is query-aware. Inputs are integers from `0` to
-`num_resistance_state - 1`; a hit requires element-wise equality across the
-whole word. Each cell contributes the conductance selected by
-`abs(stored_symbol - query_symbol)`, and the row resistance is the parallel
-reduction of those cell branches. This produces query-specific matchline delay,
-sense margin, and discharge energy. Best-match and threshold MCAM evaluation
-remain unimplemented.
+MCAM vector evaluation is query-aware. Inputs are integers from `0` to
+`num_resistance_state - 1`. The ideal metric is squared Euclidean distance,
+
+`D^2 = sum_i (stored_i - query_i)^2`,
+
+which preserves Euclidean ordering without a square root and is not a Hamming
+mismatch count. Each cell contributes conductance selected by its absolute
+coordinate delta, and row conductance is the sum of those branches. The
+configured resistance curve is therefore the electrical encoding of the
+squared-distance contribution. Results expose `D^2`, conductance, and sensed
+voltage as well as query-specific delay, margin, and energy.
+
+Exact search compares each row's sensed voltage with the nominal distance-zero
+versus distance-one boundary. Best-match search evaluates the actual array and
+reports the voltage gap between the best electrical class and the actual
+runner-up class; adding or removing a row can therefore change its margin.
+Threshold search accepts `D^2 <= maxSquaredDistance`; a query-dependent dynamic
+program finds the worst reachable electrical conductance on each side of the
+requested boundary. Because each query coordinate has different reachable
+symbol deltas near the ends of the state range, two queries with the same
+numeric threshold can have different margins. In diagnostic mode these paths
+still return their ideal Euclidean hit decisions when the electrical margin
+fails, with `senseMarginPass == false` identifying the detection shortfall.
 
 ### Total Search and Read Latency
 
@@ -391,7 +408,7 @@ This path is intentionally simpler than a full transient simulation. It gives a 
 
 ### Threshold Match Evaluation
 
-`EvaCAM_Match::evaluate_threshold()` adds an explicit TCAM threshold hit rule on top of the per-query binary match model. The caller supplies an inclusive `maxMismatches` value:
+For TCAM, `EvaCAM_Match::evaluate_threshold()` adds an explicit threshold hit rule on top of the per-query binary match model. The caller supplies an inclusive `maxMismatches` value:
 
 - `maxMismatches = 0` is exact-match behavior
 - `maxMismatches = 2` accepts `0`, `1`, and `2` mismatches
@@ -403,9 +420,21 @@ EvaCAM validates that the threshold can be separated by the modeled sense margin
 
 For `search_function: TH`, plain vector evaluation still requires an explicit threshold. Use `evaluate_threshold(..., maxMismatches)` rather than `evaluate_vector(...)` so the hit rule is unambiguous.
 
+For MCAM, use `evaluate_distance_threshold(..., maxSquaredDistance)`. Its
+inclusive limit is squared Euclidean distance and its sense check considers
+all coordinate-delta combinations on the accepted and rejected sides, rather
+than a Hamming mismatch-count boundary.
+
 ### Best Match Evaluation
 
-TCAM best match is an array-level operation. `EvaCAM_Match::evaluate_array()` evaluates either stored rows plus one query or a list of known mismatch counts. For `search_function: BE`, EvaCAM finds the minimum mismatch count across the supplied rows and marks every row with that count as a hit. All tied best rows are hits; no priority selector or multiple-match resolver is applied.
+Best match is an array-level operation. For TCAM,
+`EvaCAM_Match::evaluate_array()` evaluates either stored rows plus one query or
+a list of known mismatch counts, finds the minimum mismatch count, and marks
+every tied row as a hit. For MCAM it evaluates stored vectors against one query
+and selects the minimum modeled conductance, which represents minimum squared
+Euclidean distance through the configured resistance curve. All electrically
+tied best rows are hits; no priority selector or multiple-match resolver is
+applied.
 
 As with threshold evaluation, timing, energy, matchline delay, and sense-margin fields come from the modeled result for each row's actual mismatch count. Best-match evaluation changes only the returned `hit` field.
 
@@ -715,7 +744,10 @@ The strongest support today is for:
 ### Explicitly Limited or Unsupported Paths
 
 - ACAM is not supported.
-- MCAM has an experimental exact-match timing and energy path for the shipped 2FeFET topology, including integer vector/query evaluation, resistance-distance matchline behavior, query-specific searchline energy, and per-state sampled variation. Best-match and threshold MCAM APIs remain unsupported.
+- MCAM has experimental exact, best-match, and threshold paths for the shipped
+  2FeFET topology, including squared-Euclidean integer-vector evaluation,
+  resistance-distance matchline behavior, query-specific searchline energy,
+  sense-boundary checks, and per-state sampled variation.
 - External sense amplifiers are rejected for non-SRAM cells.
 - Some sense-amp modes exist in the type system but are not fully implemented.
 - Some topologies are rejected early because the current matchline model does not cover them.

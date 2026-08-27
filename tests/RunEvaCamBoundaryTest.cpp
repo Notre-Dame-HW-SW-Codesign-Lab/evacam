@@ -190,15 +190,15 @@ void TestExecutableSubarrayDimensionTestMode() {
     const std::filesystem::path configDirectory =
             std::filesystem::absolute("config/2FeFET_MCAM");
     const std::filesystem::path outputDirectory = directory.Path() / "results";
-    const std::filesystem::path zeroSenseSource = McamTestConfig::WriteZeroSenseVariant(
+    const std::filesystem::path mcamSource = McamTestConfig::WriteMcamConfigVariant(
             directory, configDirectory / "2FeFET_MCAM.config.yaml");
-    const std::filesystem::path zeroSenseConfig = directory.WriteFile(
-            "2FeFET_MCAM.config.yaml", ReadFile(zeroSenseSource));
+    const std::filesystem::path mcamConfig = directory.WriteFile(
+            "2FeFET_MCAM.config.yaml", ReadFile(mcamSource));
     std::ostringstream tester;
     tester << "schema: subarray_dimension_test\n"
            << "name: executable_boundary\n"
            << "base_config: "
-           << zeroSenseConfig.string() << "\n"
+           << mcamConfig.string() << "\n"
            << "rows: [8]\n"
            << "columns: [8]\n"
            << "threads_per_run: 1\n"

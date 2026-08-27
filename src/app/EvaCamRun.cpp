@@ -11,6 +11,7 @@
 #include "config/OutputFileLock.h"
 #include "config/IntValueDomain.h"
 #include "input/CliOptions.h"
+#include "MemCell.h"
 
 namespace {
 
@@ -37,23 +38,30 @@ void ApplySubarrayDimensions(
     }
 
     const int bitsPerCell = config->wordGeometry.bitsPerCell;
-    const long logicalWordBits = static_cast<long>(options.subarrayColumns)
-            * bitsPerCell;
+    const bool isMcam = config->technology.cell->camType == MCAM;
+    const long storageWidthBits = isMcam
+        ? static_cast<long>(options.subarrayColumns) * bitsPerCell
+        : options.subarrayColumns;
     const long long capacityBits = static_cast<long long>(options.subarrayRows)
-            * logicalWordBits;
+            * storageWidthBits;
     if (capacityBits % 8 != 0) {
         throw std::runtime_error("overridden subarray capacity must be byte-addressable");
     }
 
     config->input.capacity = capacityBits / 8;
-    config->input.wordWidth = logicalWordBits;
+    if (isMcam) {
+        config->input.vectorDimensions = options.subarrayColumns;
+        config->input.wordWidth = 0;
+    } else {
+        config->input.wordWidth = options.subarrayColumns;
+    }
     config->runtimeSizing.hasExplicitCapacity = true;
     config->runtimeSizing.capacityIsAuto = false;
     config->runtimeSizing.realCapacity = 0;
     config->runtimeSizing.hasFixedSubarrayDimensions = true;
     config->runtimeSizing.fixedSubarrayRows = options.subarrayRows;
     config->runtimeSizing.fixedSubarrayColumns = options.subarrayColumns;
-    config->ResolveWordGeometry(bitsPerCell);
+    config->ResolveWordGeometry(bitsPerCell, 0, isMcam);
     config->exploration.geometry.numRow = IntValueDomain::FixedSet(
             {options.subarrayRows});
     config->exploration.geometry.numColumn = IntValueDomain::FixedSet(

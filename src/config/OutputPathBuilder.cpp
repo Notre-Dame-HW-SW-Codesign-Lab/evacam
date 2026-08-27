@@ -67,8 +67,10 @@ std::string OutputPathBuilder::VariationHistogramsSvgPath(const std::string &sam
 std::string OutputPathBuilder::ExplorationCsvPath(const InputConfig &input,
         const TechnologyContext &technology) {
     std::stringstream temp;
+    const long comparisonWidth = technology.cell->camType == MCAM
+        ? input.vectorDimensions : input.wordWidth;
     temp << input.outputFilePrefix << "_" << input.capacity / 1024
-        << "K_" << input.wordWidth;
+        << "K_" << comparisonWidth;
 
     if (input.internalSensing) temp << "_IN";
     else                       temp << "_EX";

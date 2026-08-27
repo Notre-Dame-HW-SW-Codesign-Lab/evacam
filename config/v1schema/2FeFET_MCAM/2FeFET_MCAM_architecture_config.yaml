@@ -7,8 +7,8 @@ design:
   device_roadmap: HP
   temperature: 350K
 memory:
-  capacity: 512B
-  word_width: 64bits
+  capacity: 1536B
+  vector_dimensions: 64
 routing:
   type: H-tree
 peripherals:

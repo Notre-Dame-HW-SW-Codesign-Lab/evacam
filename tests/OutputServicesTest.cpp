@@ -55,6 +55,13 @@ void TestExtractorCompletePartialAndNoSolutions() {
             == valid->bank->mat->subarray->senseMargin);
     assert(design.summary.at("timing.minimum_required_sense_margin_v")
             == valid->bank->mat->subarray->senseVoltage);
+    assert(design.summary.at("timing.sense_margin_slack_v")
+            == valid->bank->mat->subarray->senseMargin
+                - valid->bank->mat->subarray->senseVoltage);
+    assert(design.summary.at("timing.sense_margin_pass")
+            == (valid->bank->mat->subarray->senseMargin
+                >= valid->bank->mat->subarray->senseVoltage ? 1.0 : 0.0));
+    assert(design.summary.at("timing.sense_margin_enforced") == 0.0);
     assert(design.geometry.at("capacity_bits") == valid->bank->capacity);
     assert(design.breakdown.count("search_latency.h_tree_s") == 1);
     assert(!design.variation.enabled);
@@ -82,6 +89,29 @@ void TestExtractorVariation() {
     assert(variation.referenceDelay.available);
     assert(!variation.sampleData.empty());
     assert(!variation.sampleData.front().cornerLabel.empty());
+}
+
+void TestMcamExtractorUsesVectorGeometryNames() {
+    std::shared_ptr<EvaCamConfig> config;
+    EvaCamExplorationResult exploration = RunConfig(
+            "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml", &config);
+    const auto result = exploration.bestResults.at(leakage_optimized);
+    const EvaCamRunResultDto dto = ExtractEvaCamRunResult(1, {result}, "", "");
+    const auto &geometry = dto.bestResults.at("LeakagePower").geometry;
+
+    assert(geometry.at("vector_dimensions") == 64);
+    assert(geometry.at("storage_width_bits") == 192);
+    assert(geometry.count("logical_word_width_bits") == 0);
+    assert(geometry.count("word_width_bits") == 0);
+
+    TestSupport::TemporaryDirectory directory("evacam-mcam-output");
+    const std::filesystem::path output = directory.Path() / "results.yaml";
+    EvaCamOutput::WriteYamlResults(*config, output.string(),
+            exploration.numSolution, exploration.bestResults);
+    const YAML::Node yaml = YAML::LoadFile(output.string());
+    assert(yaml["geometry"]["vector_dimensions"].as<int>() == 64);
+    assert(yaml["geometry"]["storage_width_bits"].as<int>() == 192);
+    assert(!yaml["geometry"]["logical_word_width_bits"]);
 }
 
 void TestConfigPrinterAndConsoleSummary() {
@@ -217,6 +247,7 @@ void TestVariationSampleDetection() {
 int main() {
     TestExtractorCompletePartialAndNoSolutions();
     TestExtractorVariation();
+    TestMcamExtractorUsesVectorGeometryNames();
     TestConfigPrinterAndConsoleSummary();
     TestYamlAndVariationSampleWrites();
     TestHistogramCommandQuotingAndFailureInjection();

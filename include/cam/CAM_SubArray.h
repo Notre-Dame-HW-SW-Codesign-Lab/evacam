@@ -130,6 +130,10 @@ class CAM_SubArray: public FunctionUnit {
         EvaCAMMatchResult EvaluateMcamExactMatch(
                 const std::vector<int> &stored,
                 const std::vector<int> &query) const;
+        EvaCAMMatchResult EvaluateMcamDistance(
+                const std::vector<int> &stored,
+                const std::vector<int> &query) const;
+        double McamSensedVoltage(double matchlineConductance) const;
         CAMResistanceSample BuildNominalResistanceSample() const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         CAMResistanceSample BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const;
@@ -153,6 +157,8 @@ class CAM_SubArray: public FunctionUnit {
                 int cellIndex = 0) const;
         double McamVectorEffectiveResistance(const std::vector<int> &stored,
                 const std::vector<int> &query, int sampleIndex = -1) const;
+        double McamSquaredEuclideanDistance(const std::vector<int> &stored,
+                const std::vector<int> &query) const;
         double McamAllMatchEffectiveResistance(int sampleIndex = -1) const;
         double McamBoundaryMismatchEffectiveResistance(int sampleIndex = -1) const;
         double McamPrechargeVoltage(int distance) const;

@@ -91,13 +91,22 @@ void ReadMemorySection(const YAML::Node &root, EvaCamConfig &config) {
     } else {
         config.input.capacity = 0;
     }
-    config.input.wordWidth = YamlHelpers::checked_integer<long>(
-            YamlHelpers::read_quantity_required(
-                    memory, "word_width", YamlHelpers::BitUnits(), 1.0,
-                    "memory.word_width"),
-            "memory.word_width in bits");
-    config.exploration.cam.bitSerialWidth =
-        IntValueDomain::PowersOfTwo((int)config.input.wordWidth, (int)config.input.wordWidth);
+    const YAML::Node wordWidth = YamlHelpers::child_optional(memory, "word_width");
+    config.input.wordWidth = wordWidth
+        ? YamlHelpers::checked_integer<long>(
+                YamlHelpers::parse_quantity_node(
+                        wordWidth, YamlHelpers::BitUnits(), 1.0,
+                        "memory.word_width"),
+                "memory.word_width in bits")
+        : 0;
+    config.input.vectorDimensions = YamlHelpers::read_optional<long>(
+            memory, "vector_dimensions", 0);
+    const long comparisonWidth = config.input.vectorDimensions > 0
+        ? config.input.vectorDimensions : config.input.wordWidth;
+    if (comparisonWidth > 0) {
+        config.exploration.cam.bitSerialWidth =
+            IntValueDomain::PowersOfTwo((int)comparisonWidth, (int)comparisonWidth);
+    }
 }
 
 void ReadRoutingSection(const YAML::Node &root, EvaCamConfig &config) {
@@ -120,8 +129,12 @@ void ReadPeripheralSection(const YAML::Node &root, EvaCamConfig &config) {
     config.peripherals.withOutputAcc = YamlHelpers::read_required<bool>(outputNode, "accumulator");
 
     if (!config.peripherals.withOutputAcc) {
-        config.exploration.cam.bitSerialWidth =
-            IntValueDomain::PowersOfTwo((int)config.input.wordWidth, (int)config.input.wordWidth);
+        const long comparisonWidth = config.input.vectorDimensions > 0
+            ? config.input.vectorDimensions : config.input.wordWidth;
+        if (comparisonWidth > 0) {
+            config.exploration.cam.bitSerialWidth =
+                IntValueDomain::PowersOfTwo((int)comparisonWidth, (int)comparisonWidth);
+        }
     }
 }
 
@@ -130,6 +143,8 @@ void ReadSensingSection(const YAML::Node &root, EvaCamConfig &config) {
     config.input.internalSensing = YamlHelpers::read_required<bool>(sensing, "internal");
     config.peripherals.customSenseAmp = YamlHelpers::read_required<bool>(sensing, "custom_sense_amp");
     config.peripherals.typeSenseAmp = YamlHelpers::read_enum_required<TypeOfSenseAmp>(sensing, "sensing_mode");
+    config.peripherals.strictSenseMargin = YamlHelpers::read_optional<bool>(
+            sensing, "strict_sense_margin", false);
 }
 
 void ReadOptimizationSection(const YAML::Node &root, EvaCamConfig &config) {

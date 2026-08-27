@@ -68,12 +68,13 @@ output:
 Specify exactly one of `config_pattern` or `base_config`. Both are resolved
 relative to the tester config. A pattern must contain both placeholders and
 uses existing per-size configs. A base config is loaded for every run and the
-compiled tester overrides dimensions, capacity, logical word width, and
-comparison-column width; it does not generate run configs. EvaCAM runs the Cartesian
+compiled tester overrides dimensions, capacity, storage width, vector
+dimensions where applicable, and comparison-column width; it does not generate
+run configs. EvaCAM runs the Cartesian
 product in row-major order and
 verifies that each result reports the requested physical subarray dimensions,
-logical word width, and comparison-column width. For MCAM, columns are
-physical multi-bit symbols, so logical word width is columns times bits/cell.
+storage width, and comparison-column width. For MCAM, each column is one vector
+dimension and storage width is dimensions times bits/cell.
 Dimension values must be unique integers from `8` through `512`.
 
 `--threads` controls concurrent configuration runs. `threads_per_run` is a
@@ -87,8 +88,8 @@ fixed configs whose
 architecture files should use explicit single-bank, single-mat organization,
 `organization.subarray.dimensions` matching the filename expansion, and
 `organization.comparison_columns_per_step` matching the physical column count.
-`memory.word_width` is always logical bits and may be smaller than the encoded
-capacity of those columns, but it must not exceed it.
+For single-bit CAM, `memory.word_width` equals the column count. For MCAM,
+`memory.vector_dimensions` equals the column count exactly.
 Base-config mode preserves its technology, cell, topology, peripherals,
 sensing, routing, and optimization target while replacing only the matrix
 sizing fields for each run.
@@ -141,7 +142,8 @@ Representative fields:
 - `design.temperature`: temperature with units, for example `350K`
 - `memory.capacity`: capacity with units, for example `512B`; optional or exact scalar `auto` only when fixed `organization.subarray.dimensions` derives capacity
 - `memory.physical_capacity`: implemented capacity for irregular word widths
-- `memory.word_width`: width with units, for example `64bits`
+- `memory.word_width`: BCAM/TCAM width with units, for example `64bits`; invalid for MCAM
+- `memory.vector_dimensions`: positive, unitless MCAM vector length; invalid for non-MCAM
 - `organization.banks.total` and `organization.banks.active`: bank organization
 - `organization.mats.total` and `organization.mats.active`: mat organization
 - `organization.subarray.dimensions`: optional fixed physical subarray `[rows, columns]`; requires explicit bank and mat organization and is not supported with DSE/deep exploration
@@ -216,20 +218,20 @@ the indices `0` and `1`. The `mcam` section must define
 and MCAM match inputs are integer symbols from `0` through
 `num_resistance_state - 1`.
 
-CAM rows are stored words and columns are physical symbols or bits within each
-word. For MCAM, `mcam.num_resistance_state` determines exact bits/cell
-(`log2(states)`), and physical columns are
-`ceil(memory.word_width / bits_per_cell)`. Unused bits in the final symbol are
-zero padding. Thus an eight-state, 64-bit word uses 22 physical columns and two
-padding bits when dimensions are inferred. Explicit subarray dimensions may
-provide more than this minimum; the surplus is retained and reported as
-padding capacity. Fewer columns are rejected with the supplied and required
-widths. Complete-word search sets `organization.comparison_columns_per_step`
-to the selected physical column count.
+CAM rows are stored words or vectors, and columns are physical bits or vector
+elements. For MCAM, `memory.vector_dimensions` is the vector length and equals
+the required physical column count. `mcam.num_resistance_state` determines
+`bits_per_cell = log2(states)`, so encoded storage per vector is
+`vector_dimensions * bits_per_cell`. There is no partial-symbol padding and a
+fixed subarray must supply exactly the configured number of vector columns.
+Complete-vector search sets `organization.comparison_columns_per_step` to that
+column count.
 
-EvaCAM sorts the resistance table internally from HRS to LRS. Distance `0`
-therefore represents the all-match HRS path, while increasing absolute symbol
-distance selects progressively lower resistance paths. Optional
+EvaCAM sorts the resistance table internally from HRS to LRS. Per-coordinate
+distance `0` therefore represents the all-match HRS path, while increasing
+absolute symbol distance selects progressively lower resistance paths. Row
+distance is squared Euclidean distance, `sum((stored[i] - query[i])^2)`, rather
+than Hamming mismatch count. Optional
 `state_variation` and `ml_precharge_voltage` collections must also contain one
 entry per state when present. Without `ml_precharge_voltage`, MCAM reads use
 the technology `Vdd` as the matchline precharge voltage.
@@ -244,6 +246,15 @@ The shipped eight-state resistance and searchline-voltage values are
 provisional infrastructure inputs, not a calibrated device model. The voltage
 table and complementary mapping are based on the illustrative 3-bit inputs in Kazemi et al.,
 [Scientific Reports 12, 19201 (2022)](https://www.nature.com/articles/s41598-022-23116-w).
+
+`read.min_sense_voltage` is the assumed minimum voltage difference the hardware
+can detect; the shipped MCAM example uses `70mV`. MCAM treats this as a
+diagnostic requirement by default. Match results expose the actual margin,
+required margin, signed slack, and pass/fail status while preserving the ideal
+squared-Euclidean hit decision. Add `strict_sense_margin: true` to the sensing
+file when an unsatisfied boundary must reject the design or operation. Best
+match uses the actual best/runner-up rows, and threshold reachability depends
+on the query, so the diagnostic is deliberately data dependent.
 
 If the memory-device config contains a `variation` section, EvaCAM uses its
 built-in resistance variation model. Omit the section for nominal-only runs.

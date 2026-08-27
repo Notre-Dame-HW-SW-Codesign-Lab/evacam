@@ -92,6 +92,13 @@ void TestSingleResultStructureAssumptionsAndBreakdowns() {
     Require(root["summary"]["timing"]["minimum_required_sense_margin"].as<std::string>()
                 == "0.046V",
             "minimum required sense margin is emitted without variation");
+    Require(root["summary"]["timing"]["sense_margin_slack"].as<std::string>()
+                == "0.078V",
+            "sense margin slack is emitted without variation");
+    Require(root["summary"]["timing"]["sense_margin_pass"].as<bool>(),
+            "sense margin pass status is emitted");
+    Require(!root["summary"]["timing"]["sense_margin_enforced"].as<bool>(),
+            "diagnostic sense-margin mode is emitted");
     AssertScalar(root["summary"]["timing"]["search_latency_breakdown"], "non_h_tree");
     AssertScalar(root["summary"]["power"], "search_dynamic_energy");
     AssertScalar(root["summary"]["power"]["search_dynamic_energy_breakdown"], "non_h_tree");

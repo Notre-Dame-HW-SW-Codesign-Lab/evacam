@@ -39,6 +39,8 @@ struct RunOutcome {
     double searchLatency = 0;
     double exactMatchSenseMargin = 0;
     double minimumRequiredSenseMargin = 0;
+    double senseMarginSlack = 0;
+    bool senseMarginPass = false;
     double totalArea = 0;
     std::string message;
 };
@@ -190,7 +192,7 @@ RunOutcome RunOne(
         outcome.comparisonColumns = static_cast<int>(std::llround(
                 RequiredMetric(design.geometry, "comparison_columns_per_step")));
         outcome.wordWidth = static_cast<int>(std::llround(
-                RequiredMetric(design.geometry, "logical_word_width_bits")));
+                RequiredMetric(design.geometry, "storage_width_bits")));
         outcome.bitsPerCell = static_cast<int>(std::llround(
                 RequiredMetric(design.geometry, "bits_per_cell")));
         if (outcome.comparisonColumns != spec.columns) {
@@ -202,7 +204,7 @@ RunOutcome RunOne(
         const int availableWordBits = spec.columns * outcome.bitsPerCell;
         if (outcome.wordWidth > availableWordBits) {
             throw std::runtime_error(
-                    "result reported logical word width "
+                    "result reported storage width "
                     + std::to_string(outcome.wordWidth)
                     + ", which exceeds the " + std::to_string(availableWordBits)
                     + " bits available from " + std::to_string(spec.columns)
@@ -215,6 +217,10 @@ RunOutcome RunOne(
                 design.summary, "timing.exact_match_sense_margin_v");
         outcome.minimumRequiredSenseMargin = RequiredMetric(
                 design.summary, "timing.minimum_required_sense_margin_v");
+        outcome.senseMarginSlack = RequiredMetric(
+                design.summary, "timing.sense_margin_slack_v");
+        outcome.senseMarginPass = RequiredMetric(
+                design.summary, "timing.sense_margin_pass") != 0;
         outcome.totalArea = RequiredMetric(design.summary, "area.total.area_m2");
         outcome.status = "complete";
     } catch (const std::exception &error) {
@@ -269,10 +275,11 @@ void WriteSummaryCsv(
                 + temporary.string());
     }
 
-    output << "rows,columns,comparison_columns_per_step,logical_word_width_bits,"
+    output << "rows,columns,comparison_columns_per_step,storage_width_bits,"
               "status,num_solutions,bits_per_cell,elapsed_seconds,config,result,"
               "search_latency_s,exact_match_sense_margin_v,"
-              "minimum_required_sense_margin_v,total_area_m2,message\n";
+              "minimum_required_sense_margin_v,sense_margin_slack_v,"
+              "sense_margin_pass,total_area_m2,message\n";
     for (std::size_t index = 0; index < specs.size(); index++) {
         const SubarrayDimensionRunSpec &spec = specs[index];
         const RunOutcome &outcome = outcomes[index];
@@ -290,9 +297,11 @@ void WriteSummaryCsv(
             output << FormatDouble(outcome.searchLatency) << ','
                    << FormatDouble(outcome.exactMatchSenseMargin) << ','
                    << FormatDouble(outcome.minimumRequiredSenseMargin) << ','
+                   << FormatDouble(outcome.senseMarginSlack) << ','
+                   << (outcome.senseMarginPass ? "true" : "false") << ','
                    << FormatDouble(outcome.totalArea) << ',';
         } else {
-            output << ",,,,";
+            output << ",,,,,,";
         }
         output << CsvEscape(outcome.message) << '\n';
     }

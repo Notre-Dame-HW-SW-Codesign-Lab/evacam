@@ -1,3 +1,6 @@
 schema: sensing
 internal: true
 sense_amplifier: ../lib/sense_amp/nvsim_vol.sense_amp.yaml
+# Preserve sub-threshold designs and report their margin deficit. Set true to
+# reject an MCAM design or vector decision that cannot meet the requirement.
+strict_sense_margin: false

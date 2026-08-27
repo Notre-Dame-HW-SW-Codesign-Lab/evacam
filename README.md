@@ -121,9 +121,10 @@ The tester prints the complete matrix before starting. In this mode,
 `threads_per_run` in the tester YAML controls the exploration workers inside
 each run. Every dimension still runs independently and receives its own
 results YAML. The tester also writes `summary.csv` containing dimensions,
-verified word and bit-serial widths, status, paths, latency, sense margins, and
-area in raw SI units. For the shipped MCAM spread, both widths equal the column
-count.
+verified storage and bit-serial widths, status, paths, latency, sense margins,
+and area in raw SI units. For the shipped eight-state MCAM spread, the
+bit-serial width equals the column count and storage width is three times the
+column count.
 
 The tester config uses `schema: subarray_dimension_test`, exactly one of a
 placeholder-based `config_pattern` or a single `base_config`, non-empty `rows`

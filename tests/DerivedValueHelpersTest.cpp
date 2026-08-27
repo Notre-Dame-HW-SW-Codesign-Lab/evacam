@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 #include <vector>
 
 namespace {
@@ -36,7 +37,7 @@ void TestEffectiveCapacityBitsConvertsBytesAndPreservesLargeValues() {
             == (static_cast<long long>(std::numeric_limits<int>::max()) + 1) * 8);
 }
 
-void TestEffectiveBlockSizeBitsReturnsLogicalWordWidth() {
+void TestEffectiveBlockSizeBitsIsNonMcamOnly() {
     const InputConfig exactInput = MakeInputConfig(1024, 64, read_latency_optimized);
     assert(DerivedValueHelpers::EffectiveBlockSizeBits(exactInput) == 64);
 
@@ -45,6 +46,16 @@ void TestEffectiveBlockSizeBitsReturnsLogicalWordWidth() {
 
     const InputConfig emptyInput = MakeInputConfig(0, 64, read_latency_optimized);
     assert(DerivedValueHelpers::EffectiveBlockSizeBits(emptyInput) == 64);
+
+    InputConfig vectorInput = MakeInputConfig(1024, 0, read_latency_optimized);
+    vectorInput.vectorDimensions = 64;
+    bool threw = false;
+    try {
+        (void)DerivedValueHelpers::EffectiveBlockSizeBits(vectorInput);
+    } catch (const std::logic_error &) {
+        threw = true;
+    }
+    assert(threw);
 }
 
 void TestIsFullExplorationRecognizesDseTargetOnly() {
@@ -92,7 +103,7 @@ void TestHasFixedOuterGeometryRequiresExactlyOneValueForEveryOuterDimension() {
 
 int main() {
     TestEffectiveCapacityBitsConvertsBytesAndPreservesLargeValues();
-    TestEffectiveBlockSizeBitsReturnsLogicalWordWidth();
+    TestEffectiveBlockSizeBitsIsNonMcamOnly();
     TestIsFullExplorationRecognizesDseTargetOnly();
     TestShouldWriteExplorationCsvMatchesDseTarget();
     TestHasFixedOuterGeometryRequiresExactlyOneValueForEveryOuterDimension();

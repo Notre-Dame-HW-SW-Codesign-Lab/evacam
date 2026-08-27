@@ -209,6 +209,7 @@ namespace {
         y.begin_map("modeling_options");
         y.line("exclude_precharge_latency", bool_name(config.peripherals.noPrechargeInc));
         y.line("include_leakage", bool_name(config.peripherals.includeLeakage));
+        y.line("strict_sense_margin", bool_name(config.peripherals.strictSenseMargin));
         y.line("scaled_voltage", fmt_voltage(config.peripherals.scaledVoltage));
         y.end_map();
         y.line("limitations_reference", "docs/limitations.md");
@@ -372,7 +373,12 @@ namespace {
         y.begin_map("geometry");
         y.line("logical_capacity_bits", std::to_string(word.logicalCapacityBits));
         y.line("allocated_capacity_bits", std::to_string(word.allocatedCapacityBits));
-        y.line("logical_word_width_bits", std::to_string(word.logicalWordBits));
+        y.line("storage_width_bits", std::to_string(word.storageWidthBits));
+        if (result.config->technology.cell->camType == MCAM) {
+            y.line("vector_dimensions", std::to_string(word.vectorDimensions));
+        } else {
+            y.line("logical_word_width_bits", std::to_string(word.storageWidthBits));
+        }
         y.line("entry_count", std::to_string(word.entryCount));
         y.line("bits_per_cell", std::to_string(word.bitsPerCell));
         y.line("physical_columns_per_word",
@@ -440,6 +446,12 @@ namespace {
             : subarray.senseMargin;
         y.line("exact_match_sense_margin", fmt_voltage(nominalSenseMargin));
         y.line("minimum_required_sense_margin", fmt_voltage(subarray.senseVoltage));
+        y.line("sense_margin_slack", fmt_voltage(
+                nominalSenseMargin - subarray.senseVoltage));
+        y.line("sense_margin_pass",
+                nominalSenseMargin >= subarray.senseVoltage ? "true" : "false");
+        y.line("sense_margin_enforced",
+                input->peripherals.strictSenseMargin ? "true" : "false");
 
         if (input->technology.cell->memCellType == PCRAM || input->technology.cell->memCellType == FBRAM ||
                 input->technology.cell->memCellType == FEFETRAM ||
@@ -480,11 +492,11 @@ namespace {
             y.end_map();
         }
 
-        double read_bandwidth = (double)input->wordGeometry.logicalWordBits /
+        double read_bandwidth = (double)input->wordGeometry.storageWidthBits /
             (bank->mat->subarray->readLatency - bank->mat->subarray->rowDecoder->readLatency +
              bank->mat->subarray->precharger->readLatency) / 8;
         y.line("read_bandwidth", fmt_bps(read_bandwidth));
-        double write_bandwidth = (double)input->wordGeometry.logicalWordBits
+        double write_bandwidth = (double)input->wordGeometry.storageWidthBits
             / (bank->mat->subarray->writeLatency) / 8;
         y.line("write_bandwidth", fmt_bps(write_bandwidth));
         if (bank->mat->subarray->variationSummary.enabled) {

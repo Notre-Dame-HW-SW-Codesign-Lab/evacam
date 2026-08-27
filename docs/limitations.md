@@ -29,17 +29,24 @@ Known unsupported or incomplete modes:
 
 ## MCAM
 
-- MCAM `word_width` is the logical bit width. Each physical cell contributes
-  `log2(num_resistance_state)` bits, so the modeled column count is the ceiling
-  of logical bits divided by bits/cell; a final symbol may contain zero padding.
-  For example, an eight-state 64-bit word needs at least 22 physical columns.
-  Explicitly supplying more columns is supported and reported as padding;
-  supplying fewer is rejected.
+- MCAM uses unitless `memory.vector_dimensions`; `memory.word_width` is rejected
+  because bit-word width has no MCAM meaning. Each vector dimension occupies
+  one multi-level cell, and encoded storage is dimensions multiplied by
+  `log2(num_resistance_state)`.
 - MCAM is limited to the shipped two-FeFET topology: `FEFETRAM`, no access device, two gate-connected searchlines, and two drain-connected matchlines.
-- Exact integer-vector and array evaluation is supported for symbols in `0..num_resistance_state-1`.
-- Best-match and threshold MCAM evaluation are not implemented.
+- Exact, best-match, and threshold integer-vector evaluation is supported for
+  symbols in `0..num_resistance_state-1`. Distance is squared Euclidean, not
+  Hamming; the physical result also depends on the configured resistance curve
+  and sense margin.
 - The shipped resistance states and eight-state searchline voltages are provisional infrastructure examples, not calibrated device-correlation data.
-- A configured `read.min_sense_voltage` greater than zero rejects a nominal exact-match boundary below that margin. The shipped 2FeFET MCAM fixture uses the canonical `70mV` threshold.
+- The shipped MCAM fixture assumes a `70mV` minimum detectable voltage. MCAM
+  reports actual margin, required margin, signed slack, and pass/fail without
+  rejecting the result by default; `sensing.strict_sense_margin: true` makes
+  the same requirement mandatory.
+- Best-match margin depends on the actual best and runner-up vectors. Threshold
+  margin is query dependent because state-range endpoints change which symbol
+  deltas are reachable. The reported ideal hit still uses squared Euclidean
+  distance and is distinct from electrical detectability.
 
 ## Geometry And Sizing Rules
 
@@ -49,7 +56,7 @@ Known unsupported or incomplete modes:
 - `organization.subarray.dimensions` is rejected with `optimization.target: Exploration` or `optimization.deep_exploration: true`
 - `memory.capacity` may be omitted or set to exact scalar `auto` only when `organization.subarray.dimensions` is supplied
 - Non-power-of-two `memory.word_width` requires `memory.physical_capacity` for
-  single-bit CAM; MCAM resolves capacity from its multi-bit cell geometry
+  single-bit CAM; MCAM resolves storage from vector dimensions and cell states
 - `memory.physical_capacity` must be at least `memory.capacity`
 - `memory.physical_capacity` must be compatible with the selected organization geometry
 - With `organization.subarray.dimensions`, `memory.physical_capacity` must exactly match the derived capacity if supplied

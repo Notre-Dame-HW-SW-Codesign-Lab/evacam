@@ -38,6 +38,9 @@ For non-exploration runs:
 - If no valid solution is found, it prints `No valid solutions.` followed by
   the configured minimum required sense margin. The no-solution YAML preserves
   the same requirement under `summary.timing.minimum_required_sense_margin`.
+- MCAM summaries also print the signed sense-margin slack and `PASS` or `FAIL`.
+  A diagnostic `FAIL` can accompany a valid result; it becomes a rejection only
+  when `sensing.strict_sense_margin: true`.
 
 For full-exploration runs:
 
@@ -59,8 +62,9 @@ Representative sections include:
 
 - `assumptions`: model identifier, design/routing choices, technology node and
   roadmap, modeling options, and a limitations-reference path
-- `geometry`: logical capacity and word width, entry count, bits per cell,
-  physical columns per word, padding, physical cell count, and comparison width
+- `geometry`: capacity, storage width, non-MCAM logical word width or MCAM
+  vector dimensions, entry count, bits per cell, physical columns, padding,
+  physical cell count, and comparison width
 - `summary`
 - `breakdown`
 
@@ -69,7 +73,8 @@ Representative metrics include:
 - total area
 - read and write latency
 - search latency
-- nominal exact-match sense margin and the configured minimum required margin
+- nominal exact-match sense margin, required margin, signed slack, pass/fail,
+  and whether the requirement was enforced
 - dynamic energy
 - leakage
 
@@ -82,11 +87,11 @@ the configured summary CSV with one row per requested dimension pair.
 Summary columns are:
 
 - requested `rows` and `columns`, plus the reported comparison-column width,
-  logical word width, and bits per cell
+  storage width, and bits per cell
 - completion `status`, solution count, and elapsed seconds
 - input config and output result paths
-- search latency, exact-match sense margin, minimum required sense margin, and
-  total area in raw SI units
+- search latency, exact-match sense margin, minimum required sense margin,
+  sense-margin slack and pass/fail, and total area in raw SI units
 - a diagnostic message for failed runs
 
 The tester continues after an individual failure, records it in the summary,
@@ -106,7 +111,7 @@ Current behavior:
 The generated name follows this pattern:
 
 ```text
-<prefix>_<capacity_kib>K_<word_width>_<IN|EX>_<VOL|CUR>.csv
+<prefix>_<capacity_kib>K_<comparison_width>_<IN|EX>_<VOL|CUR>.csv
 ```
 
 Example shape:

@@ -119,6 +119,24 @@ class ConfigMigrationScriptTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Conflicting match transistor widths"):
                 self.migrate.propagate_match_transistor(cell, architecture)
 
+    def test_mcam_word_width_migrates_to_unitless_vector_dimensions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            architecture = root / "mcam_architecture_config.yaml"
+            cell = root / "mcam_cell_config.yaml"
+            architecture.write_text(yaml.safe_dump({
+                "memory": {"capacity": "1536B", "word_width": "64bits"},
+            }), encoding="utf-8")
+            cell.write_text(yaml.safe_dump({
+                "cell": {"cam_type": "MCAM"},
+            }), encoding="utf-8")
+
+            output, _ = self.migrate.convert_architecture(architecture)
+            memory = yaml.safe_load(output.read_text(encoding="utf-8"))["memory"]
+
+            self.assertNotIn("word_width", memory)
+            self.assertEqual(64, memory["vector_dimensions"])
+
     def test_main_converts_discovered_files_and_writes_report(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

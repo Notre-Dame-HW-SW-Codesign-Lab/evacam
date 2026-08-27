@@ -61,7 +61,7 @@ void ValidateArchitectureConfigKeys(const YAML::Node &root) {
             {"target", "search_function", "system_process_node", "device_roadmap", "temperature"},
             "design");
     reject_unknown_keys(YamlHelpers::child_optional(root, "memory"),
-            {"capacity", "physical_capacity", "word_width"}, "memory");
+            {"capacity", "physical_capacity", "word_width", "vector_dimensions"}, "memory");
     reject_unknown_keys(YamlHelpers::child_optional(root, "routing"), {"type"}, "routing");
 
     const YAML::Node peripherals = YamlHelpers::child_optional(root, "peripherals");
@@ -135,7 +135,7 @@ YAML::Node ResolveSensingNode(const std::string &architectureFile, const YAML::N
     }
     reject_unknown_keys(resolved,
             {"schema", "name", "internal", "custom_sense_amp", "sensing_mode",
-             "sense_amplifier", "worst_case_sense_margin"},
+             "sense_amplifier", "worst_case_sense_margin", "strict_sense_margin"},
             "sensing");
     if (HasKey(resolved, "amplifier_type")) {
         throw std::runtime_error(

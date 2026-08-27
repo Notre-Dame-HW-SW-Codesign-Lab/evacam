@@ -24,6 +24,10 @@ void AssertSameMetrics(const EvaCAMMatchResult &lhs, const EvaCAMMatchResult &rh
     AssertNear(lhs.searchDynamicEnergy, rhs.searchDynamicEnergy);
     AssertNear(lhs.matchlineDelay, rhs.matchlineDelay);
     AssertNear(lhs.senseMargin, rhs.senseMargin);
+    AssertNear(lhs.requiredSenseMargin, rhs.requiredSenseMargin);
+    AssertNear(lhs.senseMarginSlack, rhs.senseMarginSlack);
+    assert(lhs.senseMarginPass == rhs.senseMarginPass);
+    assert(lhs.senseMarginApplicable == rhs.senseMarginApplicable);
 }
 
 void AssertSameResult(const EvaCAMMatchResult &lhs, const EvaCAMMatchResult &rhs) {

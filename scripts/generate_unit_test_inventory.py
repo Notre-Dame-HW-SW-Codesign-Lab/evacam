@@ -995,9 +995,15 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             "test-cam-subarray-variation")
     map_indirect("src/cam/CAM_SubArray.cpp",
             ["McamStateTau", "McamStateDelays", "CalculateSearchPathLatenciesAfterMatchline",
-             "MatchlineAllMatchTau", "MatchlineTau"],
+             "MatchlineAllMatchTau", "MatchlineTau", "McamSquaredEuclideanDistance",
+             "SetSenseDiagnostics"],
             "tests/CamSubArrayMatchTest.cpp", "TestMcamAndSearchlineHelpers",
             "test-cam-subarray-match")
+
+    map_indirect("src/config/EvaCamConfig.cpp", ["ResolveWordGeometry"],
+            "tests/ConfigValidatorsTest.cpp",
+            "TestInputRuleValidatorResolvesMcamVectorAndStorageGeometry",
+            "test-config-validators")
 
     map_indirect("src/model/Bank.cpp",
             ["SumRowDrivers", "SumColumnMuxes", "PrintSubarrayAreaBreakdown",
@@ -1184,9 +1190,20 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
     map_indirect("src/app/EvaCAM_Match.cpp", ["evaluate_vector", "evaluate_array",
             "EvaluateBestVector", "EvaluateThresholdVector", "ValidateAnalogVector",
             "ValidateAcamRangeVector"],
-            "tests/EvaCAMMatchFocusedTest.cpp", "TestUnimplementedCamPublicOverloads",
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestMcamBestAndThresholdSearches",
             "test-evacam-match-focused")
-    map_indirect("src/app/EvaCAM_Match.cpp", ["ValidateMcamVector"],
+    map_indirect("src/app/EvaCAM_Match.cpp",
+            ["EvaluateBestMcamArray", "evaluate_distance_threshold",
+             "ValidateMcamThreshold", "McamThresholdVoltageMargin",
+             "McamMaximumSquaredDistance", "SetMcamSenseDiagnostics",
+             "EnforceMcamSenseMargin"],
+            "tests/EvaCAMMatchFocusedTest.cpp", "TestMcamBestAndThresholdSearches",
+            "test-evacam-match-focused")
+    map_indirect("src/app/EvaCAM_Match.cpp",
+            ["ValidateMcamVector", "evaluate_distance", "evaluate_symbols",
+             "evaluate_bits", "PackMcamBits", "word_width",
+             "logical_word_width_bits", "storage_width_bits",
+             "vector_dimensions", "bits_per_symbol", "symbol_width"],
             "tests/EvaCAMMatchFocusedTest.cpp", "TestMcamExactMatchAndValidationRules",
             "test-evacam-match-focused")
 

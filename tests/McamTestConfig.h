@@ -25,7 +25,7 @@ inline void ReplaceAll(std::string &text, const std::string &from, const std::st
     }
 }
 
-inline std::filesystem::path WriteZeroSenseVariant(
+inline std::filesystem::path WriteMcamConfigVariant(
         TestSupport::TemporaryDirectory &temporary,
         const std::filesystem::path &sourceConfig) {
     const auto directory = sourceConfig.parent_path();
@@ -37,12 +37,10 @@ inline std::filesystem::path WriteZeroSenseVariant(
             "sensing: " + std::filesystem::absolute(directory / "2FeFET_MCAM.sensing.yaml").string());
     const auto architecturePath = temporary.WriteFile("mcam.architecture.yaml", architecture);
 
-    std::string device = Read(directory / "2FeFET_MCAM.memory_device.yaml");
-    ReplaceAll(device, "min_sense_voltage: 70mV", "min_sense_voltage: 0V");
-    const auto devicePath = temporary.WriteFile("mcam.memory_device.yaml", device);
     std::string cell = Read(directory / "2FeFET_MCAM.cell.yaml");
     ReplaceAll(cell, "memory_device: ./2FeFET_MCAM.memory_device.yaml",
-            "memory_device: " + devicePath.string());
+            "memory_device: " + std::filesystem::absolute(
+                    directory / "2FeFET_MCAM.memory_device.yaml").string());
     const auto cellPath = temporary.WriteFile("mcam.cell.yaml", cell);
 
     ReplaceAll(tool, "architecture: " + architectureName,

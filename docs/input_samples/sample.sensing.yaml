@@ -4,6 +4,7 @@ schema: sensing
 internal: true
 sensing_mode: nvsim_vol # nvsim_vol | nvsim_cur | self_clock | dual_the | discharge
 worst_case_sense_margin: 25mV # units: V | mV
+strict_sense_margin: false # optional; MCAM diagnostic by default
 
 # Path is resolved relative to this sensing file.
 sense_amplifier: ./sample.sense_amp.yaml

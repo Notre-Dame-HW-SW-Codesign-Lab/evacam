@@ -1,6 +1,8 @@
 #include "EvaCAM_Match.h"
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 
@@ -62,10 +64,42 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(
         const std::vector<int> &query,
         int maxMismatches) const {
     EnsureInitialized();
+    if (config->technology.cell->camType == MCAM) {
+        return evaluate_distance_threshold(
+                stored, query, static_cast<double>(maxMismatches));
+    }
     ValidateTcamStoredVector(stored, "stored");
     ValidateBinaryVector(query, "query");
 
     return evaluate_threshold(CountTcamMismatches(stored, query), maxMismatches);
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_distance_threshold(
+        const std::vector<int> &stored,
+        const std::vector<int> &query,
+        double maxSquaredDistance) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: squared-Euclidean threshold evaluation is only valid for MCAM.");
+    }
+    ValidateMcamVector(stored, "stored");
+    ValidateMcamVector(query, "query");
+    ValidateMcamThreshold(maxSquaredDistance);
+
+    EvaCAMMatchResult result = evaluate_distance(stored, query);
+    result.hit = result.squaredEuclideanDistance <= maxSquaredDistance;
+    const double maximumDistance = McamMaximumSquaredDistance(query);
+    if (maxSquaredDistance >= maximumDistance) {
+        SetMcamSenseDiagnostics(result, 0, false);
+    } else {
+        SetMcamSenseDiagnostics(
+                result,
+                McamThresholdVoltageMargin(query, maxSquaredDistance));
+        EnforceMcamSenseMargin(result,
+                "[EvaCAM_Match] Error: squared-Euclidean MCAM threshold cannot be distinguished by the configured sense margin.");
+    }
+    return result;
 }
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(int mismatches, int maxMismatches) const {
@@ -143,6 +177,17 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
         throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM array evaluation requires evaluate_threshold(..., maxMismatches).");
     }
 
+    if (config->technology.cell->camType == MCAM
+            && config->input.searchFunction == BE) {
+        return EvaluateBestMcamArray(storedRows, query);
+    }
+
+    if (config->technology.cell->camType == MCAM
+            && config->input.searchFunction == TH) {
+        throw std::runtime_error(
+                "[EvaCAM_Match] Error: threshold MCAM array evaluation requires explicit squared-Euclidean thresholds.");
+    }
+
     std::vector<EvaCAMMatchResult> results;
     results.reserve(storedRows.size());
     for (const auto &stored : storedRows) {
@@ -164,20 +209,58 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
 }
 
 size_t EvaCAM_Match::word_width() const {
-    return logical_word_width_bits();
+    if (config->technology.cell->camType == MCAM) {
+        throw std::logic_error(
+                "[EvaCAM_Match] Error: word_width is not defined for MCAM; use vector_dimensions().");
+    }
+    return storage_width_bits();
 }
 
 size_t EvaCAM_Match::logical_word_width_bits() const {
-    return static_cast<size_t>(config->wordGeometry.logicalWordBits > 0
-            ? config->wordGeometry.logicalWordBits : config->input.wordWidth);
+    if (config->technology.cell->camType == MCAM) {
+        throw std::logic_error(
+                "[EvaCAM_Match] Error: logical_word_width_bits is not defined for MCAM; use storage_width_bits().");
+    }
+    return storage_width_bits();
+}
+
+size_t EvaCAM_Match::storage_width_bits() const {
+    return static_cast<size_t>(config->wordGeometry.storageWidthBits > 0
+            ? config->wordGeometry.storageWidthBits : config->input.wordWidth);
+}
+
+size_t EvaCAM_Match::vector_dimensions() const {
+    if (config->technology.cell->camType != MCAM) {
+        throw std::logic_error(
+                "[EvaCAM_Match] Error: vector_dimensions is only defined for MCAM; use word_width().");
+    }
+    return static_cast<size_t>(config->wordGeometry.vectorDimensions > 0
+            ? config->wordGeometry.vectorDimensions
+            : config->wordGeometry.physicalColumnsPerWord);
+}
+
+size_t EvaCAM_Match::bits_per_symbol() const {
+    return static_cast<size_t>(std::max(1, config->wordGeometry.bitsPerCell));
 }
 
 size_t EvaCAM_Match::symbol_width() const {
     if (config->technology.cell->camType != MCAM) {
         return word_width();
     }
-    return static_cast<size_t>(config->wordGeometry.physicalColumnsPerWord > 0
-            ? config->wordGeometry.physicalColumnsPerWord : config->input.wordWidth);
+    return vector_dimensions();
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_distance(
+        const std::vector<int> &stored,
+        const std::vector<int> &query) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: squared-Euclidean distance evaluation is only valid for MCAM.");
+    }
+    ValidateMcamVector(stored, "stored");
+    ValidateMcamVector(query, "query");
+    return bank->mat->subarray->EvaluateMcamDistance(stored, query);
 }
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_symbols(
@@ -195,8 +278,8 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_bits(
 }
 
 void EvaCAM_Match::InitializeConfiguredBank() {
-    // Banks model physical cells.  Logical MCAM bits are expanded into symbols
-    // before reaching the array (one symbol occupies one multi-level cell).
+    // Banks model physical cells. Encoded MCAM bits are packed into symbols
+    // before reaching the array; one vector dimension occupies one cell.
     long long capacity = config->wordGeometry.entryCount
             * config->wordGeometry.physicalColumnsPerWord;
     long blockSize = config->wordGeometry.physicalColumnsPerWord;
@@ -240,7 +323,8 @@ void EvaCAM_Match::InitializeConfiguredBank() {
             config->technology.cell->camType, config->input.searchFunction, config,
             localWire, globalWire, camOpt);
 
-    if (bank->invalid) {
+    if (bank->invalid || !bank->mat || !bank->mat->subarray
+            || bank->mat->subarray->invalid) {
         throw std::runtime_error("[EvaCAM_Match] Error: configured bank is invalid for matching.");
     }
 
@@ -277,9 +361,7 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateExactVector(
         case TCAM:
             return EvaluateExactTcamVector(stored, query);
         case MCAM:
-            ValidateMcamVector(stored, "stored");
-            ValidateMcamVector(query, "query");
-            return bank->mat->subarray->EvaluateMcamExactMatch(stored, query);
+            return evaluate_distance(stored, query);
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value vector input.");
     }
@@ -298,7 +380,8 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateBestVector(
         case MCAM:
             ValidateMcamVector(stored, "stored");
             ValidateMcamVector(query, "query");
-            throw std::runtime_error("[EvaCAM_Match] Error: best MCAM vector evaluation is not implemented.");
+            throw std::runtime_error(
+                    "[EvaCAM_Match] Error: best MCAM vector evaluation requires evaluate_array(rows, query).");
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value vector input.");
     }
@@ -317,7 +400,8 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdVector(
         case MCAM:
             ValidateMcamVector(stored, "stored");
             ValidateMcamVector(query, "query");
-            throw std::runtime_error("[EvaCAM_Match] Error: threshold MCAM vector evaluation is not implemented.");
+            throw std::runtime_error(
+                    "[EvaCAM_Match] Error: threshold MCAM vector evaluation requires evaluate_distance_threshold(..., maxSquaredDistance).");
         case ACAM:
             throw std::invalid_argument("[EvaCAM_Match] Error: ACAM requires range/value vector input.");
     }
@@ -347,6 +431,59 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::EvaluateBestTcamArray(
         EvaCAMMatchResult result = LookupMismatchResult(mismatches);
         result.hit = (mismatches == bestMismatches);
         results.push_back(result);
+    }
+    return results;
+}
+
+std::vector<EvaCAMMatchResult> EvaCAM_Match::EvaluateBestMcamArray(
+        const std::vector<std::vector<int>> &storedRows,
+        const std::vector<int> &query) const {
+    if (storedRows.empty()) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: MCAM stored-row array must not be empty.");
+    }
+    ValidateMcamVector(query, "query");
+
+    std::vector<EvaCAMMatchResult> results;
+    results.reserve(storedRows.size());
+    for (const auto &stored : storedRows) {
+        results.push_back(evaluate_distance(stored, query));
+    }
+
+    const auto bestIterator = std::min_element(
+            results.begin(), results.end(),
+            [](const EvaCAMMatchResult &left, const EvaCAMMatchResult &right) {
+                return left.matchlineConductance < right.matchlineConductance;
+            });
+    const double bestConductance = bestIterator->matchlineConductance;
+    const double equalityTolerance = std::max(
+            1e-18, std::abs(bestConductance) * 1e-12);
+    double nextConductance = std::numeric_limits<double>::infinity();
+    double bestVoltage = -std::numeric_limits<double>::infinity();
+    double nextVoltage = 0;
+
+    for (const EvaCAMMatchResult &result : results) {
+        if (std::abs(result.matchlineConductance - bestConductance)
+                <= equalityTolerance) {
+            bestVoltage = std::max(bestVoltage, result.matchlineVoltage);
+        } else if (result.matchlineConductance < nextConductance) {
+            nextConductance = result.matchlineConductance;
+            nextVoltage = result.matchlineVoltage;
+        }
+    }
+
+    for (EvaCAMMatchResult &result : results) {
+        result.hit = std::abs(result.matchlineConductance - bestConductance)
+            <= equalityTolerance;
+        if (std::isfinite(nextConductance)) {
+            SetMcamSenseDiagnostics(result, bestVoltage - nextVoltage);
+        } else {
+            SetMcamSenseDiagnostics(result, 0, false);
+        }
+    }
+    if (std::isfinite(nextConductance)) {
+        EnforceMcamSenseMargin(results.front(),
+                "[EvaCAM_Match] Error: best MCAM vector and runner-up cannot be distinguished by the configured sense margin.");
     }
     return results;
 }
@@ -448,6 +585,129 @@ void EvaCAM_Match::ValidateThresholdSenseMargin(int maxMismatches) const {
     }
 }
 
+void EvaCAM_Match::ValidateMcamThreshold(double maxSquaredDistance) const {
+    if (!std::isfinite(maxSquaredDistance) || maxSquaredDistance < 0) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: maxSquaredDistance must be finite and non-negative.");
+    }
+    const double maxSymbolDistance =
+        static_cast<double>(config->technology.cell->numResistanceState - 1);
+    const double maximumDistance = static_cast<double>(vector_dimensions())
+        * maxSymbolDistance * maxSymbolDistance;
+    if (maxSquaredDistance > maximumDistance) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: maxSquaredDistance is out of range.");
+    }
+}
+
+double EvaCAM_Match::McamThresholdVoltageMargin(
+        const std::vector<int> &query,
+        double maxSquaredDistance) const {
+    const auto &cell = *config->technology.cell;
+    std::vector<double> orderedResistances(
+            cell.ResistanceState,
+            cell.ResistanceState + cell.numResistanceState);
+    std::sort(orderedResistances.begin(), orderedResistances.end(), std::greater<double>());
+
+    const size_t dimensions = vector_dimensions();
+    const size_t maxDelta = static_cast<size_t>(cell.numResistanceState - 1);
+    const size_t maximumDistance = dimensions * maxDelta * maxDelta;
+    const double infinity = std::numeric_limits<double>::infinity();
+    std::vector<double> minimum(maximumDistance + 1, infinity);
+    std::vector<double> maximum(maximumDistance + 1, -infinity);
+    minimum[0] = 0;
+    maximum[0] = 0;
+
+    size_t reachableMaximum = 0;
+    for (size_t dimension = 0; dimension < dimensions; dimension++) {
+        std::vector<double> nextMinimum(maximumDistance + 1, infinity);
+        std::vector<double> nextMaximum(maximumDistance + 1, -infinity);
+        for (size_t distance = 0; distance <= reachableMaximum; distance++) {
+            if (!std::isfinite(minimum[distance])) {
+                continue;
+            }
+            const size_t queryState = static_cast<size_t>(query[dimension]);
+            const size_t queryMaxDelta = std::max(
+                    queryState, maxDelta - queryState);
+            for (size_t delta = 0; delta <= queryMaxDelta; delta++) {
+                const size_t nextDistance = distance + delta * delta;
+                const double conductance = 1.0 / orderedResistances[delta];
+                nextMinimum[nextDistance] = std::min(
+                        nextMinimum[nextDistance], minimum[distance] + conductance);
+                nextMaximum[nextDistance] = std::max(
+                        nextMaximum[nextDistance], maximum[distance] + conductance);
+            }
+        }
+        reachableMaximum += maxDelta * maxDelta;
+        minimum.swap(nextMinimum);
+        maximum.swap(nextMaximum);
+    }
+
+    double maximumAcceptedConductance = -infinity;
+    double minimumRejectedConductance = infinity;
+    for (size_t distance = 0; distance <= maximumDistance; distance++) {
+        if (!std::isfinite(minimum[distance])) {
+            continue;
+        }
+        if (static_cast<double>(distance) <= maxSquaredDistance) {
+            maximumAcceptedConductance = std::max(
+                    maximumAcceptedConductance, maximum[distance]);
+        } else {
+            minimumRejectedConductance = std::min(
+                    minimumRejectedConductance, minimum[distance]);
+        }
+    }
+    if (!std::isfinite(maximumAcceptedConductance)
+            || !std::isfinite(minimumRejectedConductance)) {
+        return infinity;
+    }
+
+    const double acceptedVoltage = bank->mat->subarray->McamSensedVoltage(
+            maximumAcceptedConductance);
+    const double rejectedVoltage = bank->mat->subarray->McamSensedVoltage(
+            minimumRejectedConductance);
+    return acceptedVoltage - rejectedVoltage;
+}
+
+double EvaCAM_Match::McamMaximumSquaredDistance(
+        const std::vector<int> &query) const {
+    const int maximumState = config->technology.cell->numResistanceState - 1;
+    double maximumDistance = 0;
+    for (int queryState : query) {
+        const double maximumDelta = static_cast<double>(
+                std::max(queryState, maximumState - queryState));
+        maximumDistance += maximumDelta * maximumDelta;
+    }
+    return maximumDistance;
+}
+
+void EvaCAM_Match::SetMcamSenseDiagnostics(
+        EvaCAMMatchResult &result,
+        double margin,
+        bool applicable) const {
+    result.senseMargin = margin;
+    result.requiredSenseMargin = bank->mat->subarray->senseVoltage;
+    result.senseMarginApplicable = applicable;
+    if (!applicable) {
+        result.senseMarginSlack = 0;
+        result.senseMarginPass = true;
+        return;
+    }
+    result.senseMarginSlack = margin - result.requiredSenseMargin;
+    result.senseMarginPass = std::isfinite(margin)
+        && margin >= result.requiredSenseMargin;
+}
+
+void EvaCAM_Match::EnforceMcamSenseMargin(
+        const EvaCAMMatchResult &result,
+        const char *message) const {
+    if (config->peripherals.strictSenseMargin
+            && result.senseMarginApplicable
+            && !result.senseMarginPass) {
+        throw std::runtime_error(message);
+    }
+}
+
 void EvaCAM_Match::ValidateBinaryVector(const std::vector<int> &value, const char *name) const {
     ValidateVectorLength(value.size(), name);
 
@@ -464,7 +724,7 @@ void EvaCAM_Match::ValidateMcamVector(
         const char *name) const {
     if (value.size() != symbol_width()) {
         throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
-                + " MCAM symbol vector length does not match physical columns per word.");
+                + " MCAM vector length does not match memory.vector_dimensions.");
     }
     const int numStates = config->technology.cell->numResistanceState;
     for (int symbol : value) {
@@ -478,13 +738,14 @@ void EvaCAM_Match::ValidateMcamVector(
 
 std::vector<int> EvaCAM_Match::PackMcamBits(
         const std::vector<int> &bits, const char *name) const {
-    if (bits.size() != logical_word_width_bits()) {
+    if (bits.size() != storage_width_bits()) {
         throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
-                + " logical bit vector length does not match configured word width.");
+                + " encoded bit vector length does not match MCAM storage width.");
     }
     const int bitsPerCell = std::max(1, config->wordGeometry.bitsPerCell);
     std::vector<int> symbols(symbol_width(), 0);
-    // Bits are packed MSB-first within each symbol; the final symbol is zero padded.
+    // Bits are packed MSB-first within each symbol. MCAM storage geometry is
+    // exactly vector_dimensions * bits_per_symbol, so padding is impossible.
     for (size_t bitIndex = 0; bitIndex < bits.size(); ++bitIndex) {
         if (bits[bitIndex] != 0 && bits[bitIndex] != 1) {
             throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
@@ -492,13 +753,6 @@ std::vector<int> EvaCAM_Match::PackMcamBits(
         }
         const size_t symbolIndex = bitIndex / bitsPerCell;
         symbols[symbolIndex] = (symbols[symbolIndex] << 1) | bits[bitIndex];
-    }
-    const size_t usedSymbols =
-        (bits.size() + static_cast<size_t>(bitsPerCell) - 1) / bitsPerCell;
-    const int finalSymbolPadding = static_cast<int>(
-            usedSymbols * static_cast<size_t>(bitsPerCell) - bits.size());
-    if (finalSymbolPadding > 0 && usedSymbols > 0) {
-        symbols[usedSymbols - 1] <<= finalSymbolPadding;
     }
     return symbols;
 }

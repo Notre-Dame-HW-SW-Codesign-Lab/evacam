@@ -349,6 +349,8 @@ void TestMcamAndSearchlineHelpers() {
 
     const EvaCAMMatchResult exact = subarray.EvaluateMcamExactMatch(stored, stored);
     const EvaCAMMatchResult miss = subarray.EvaluateMcamExactMatch(stored, oneMismatch);
+    const EvaCAMMatchResult distance = subarray.EvaluateMcamDistance(
+            stored, oneMismatch);
     const EvaCAMMatchResult directSample =
             CamSubArrayTestAccessor::EvaluateMcamExactMatchSample(
                     subarray, stored, oneMismatch);
@@ -357,6 +359,22 @@ void TestMcamAndSearchlineHelpers() {
     assert(exact.hit);
     assert(!miss.hit);
     assert(!strongerMiss.hit);
+    assert(exact.squaredEuclideanDistance == 0);
+    assert(miss.squaredEuclideanDistance == 1);
+    assert(strongerMiss.squaredEuclideanDistance == 2);
+    AssertNear(distance.squaredEuclideanDistance,
+            miss.squaredEuclideanDistance);
+    Require(exact.matchlineConductance < miss.matchlineConductance,
+            "MCAM conductance must increase with distance");
+    Require(miss.matchlineConductance < strongerMiss.matchlineConductance,
+            "MCAM conductance must sum per-dimension distance currents");
+    Require(exact.matchlineVoltage > miss.matchlineVoltage,
+            "MCAM sensed voltage must decrease with distance current");
+    AssertNear(subarray.McamSensedVoltage(exact.matchlineConductance),
+            exact.matchlineVoltage);
+    AssertThrows<std::invalid_argument>([&] {
+        subarray.McamSensedVoltage(0);
+    }, "finite and positive");
     AssertFinitePositive(exact.searchLatency, "MCAM exact search latency");
     AssertFinitePositive(exact.searchDynamicEnergy, "MCAM exact search energy");
     AssertFinitePositive(exact.senseMargin, "MCAM exact sense margin");

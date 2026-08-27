@@ -1,6 +1,6 @@
 schema: config
 name: 2FeFET_MCAM_as_TCAM
-architecture: 2FeFET_MCAM.architecture.yaml
+architecture: 2FeFET_MCAM_as_TCAM.architecture.yaml
 cell: 2FeFET_MCAM_as_TCAM.cell.yaml
 technology: ../lib/technology/cmos.legacy.yaml
 optimization:

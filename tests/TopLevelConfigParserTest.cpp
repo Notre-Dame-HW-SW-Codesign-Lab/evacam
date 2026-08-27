@@ -267,7 +267,9 @@ void TestSplitConfigParsesAndMapsMovedFields() {
         "  max_nmos_size: 12F\n"
         "  max_driver_current: 2uA\n",
         "", "1KB");
-    WriteSensingFile("worst_case_sense_margin: 30mV\n");
+    WriteSensingFile(
+            "worst_case_sense_margin: 30mV\n"
+            "strict_sense_margin: true\n");
     WriteRunConfig("ReadLatency",
         "design_constraints:\n"
         "  enabled: true\n"
@@ -291,6 +293,7 @@ void TestSplitConfigParsesAndMapsMovedFields() {
     assert(config.input.maxNmosSize == 12);
     assert(config.input.maxDriverCurrent == 2e-6);
     assert(config.peripherals.matchlineSenseMargin == 30e-3);
+    assert(config.peripherals.strictSenseMargin);
     assert(config.peripherals.typeInputEnc == encoding_two_bit);
     assert(config.constraints.enabled);
     assert(config.constraints.area == 0.5);

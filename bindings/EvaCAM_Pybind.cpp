@@ -16,7 +16,20 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("search_latency", &EvaCAMMatchResult::searchLatency)
         .def_readonly("search_dynamic_energy", &EvaCAMMatchResult::searchDynamicEnergy)
         .def_readonly("matchline_delay", &EvaCAMMatchResult::matchlineDelay)
-        .def_readonly("sense_margin", &EvaCAMMatchResult::senseMargin);
+        .def_readonly("sense_margin", &EvaCAMMatchResult::senseMargin)
+        .def_readonly("required_sense_margin",
+                &EvaCAMMatchResult::requiredSenseMargin)
+        .def_readonly("sense_margin_slack",
+                &EvaCAMMatchResult::senseMarginSlack)
+        .def_readonly("sense_margin_pass",
+                &EvaCAMMatchResult::senseMarginPass)
+        .def_readonly("sense_margin_applicable",
+                &EvaCAMMatchResult::senseMarginApplicable)
+        .def_readonly("squared_euclidean_distance",
+                &EvaCAMMatchResult::squaredEuclideanDistance)
+        .def_readonly("matchline_conductance",
+                &EvaCAMMatchResult::matchlineConductance)
+        .def_readonly("matchline_voltage", &EvaCAMMatchResult::matchlineVoltage);
 
     py::class_<EvaCAM_Match>(module, "EvaCAMMatch")
         .def(py::init<const std::string &>(), py::arg("config_path"))
@@ -41,6 +54,10 @@ PYBIND11_MODULE(evacam_py, module) {
                 py::overload_cast<int, int>(
                         &EvaCAM_Match::evaluate_threshold, py::const_),
                 py::arg("mismatches"), py::arg("max_mismatches"))
+        .def("evaluate_distance_threshold",
+                &EvaCAM_Match::evaluate_distance_threshold,
+                py::arg("stored"), py::arg("query"),
+                py::arg("max_squared_distance"))
         .def("evaluate_array",
                 py::overload_cast<const std::vector<int>&>(
                         &EvaCAM_Match::evaluate_array, py::const_),
@@ -59,10 +76,15 @@ PYBIND11_MODULE(evacam_py, module) {
                 py::arg("stored_rows"), py::arg("query"))
         .def("evaluate_symbols", &EvaCAM_Match::evaluate_symbols,
                 py::arg("stored"), py::arg("query"))
+        .def("evaluate_distance", &EvaCAM_Match::evaluate_distance,
+                py::arg("stored"), py::arg("query"))
         .def("evaluate_bits", &EvaCAM_Match::evaluate_bits,
                 py::arg("stored_bits"), py::arg("query_bits"))
         .def("word_width", &EvaCAM_Match::word_width)
         .def("logical_word_width_bits", &EvaCAM_Match::logical_word_width_bits)
+        .def("storage_width_bits", &EvaCAM_Match::storage_width_bits)
+        .def("vector_dimensions", &EvaCAM_Match::vector_dimensions)
+        .def("bits_per_symbol", &EvaCAM_Match::bits_per_symbol)
         .def("symbol_width", &EvaCAM_Match::symbol_width);
 
     py::class_<EvaCamMetricStatsDto>(module, "EvaCAMMetricStats")

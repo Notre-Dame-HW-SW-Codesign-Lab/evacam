@@ -9,6 +9,7 @@ read:
   voltage: 1V
   current: 5.62uA
   power: 5.62uW
+  # Realistic minimum detectable voltage assumed for the sense amplifier.
   min_sense_voltage: 70mV
 write:
   set:
