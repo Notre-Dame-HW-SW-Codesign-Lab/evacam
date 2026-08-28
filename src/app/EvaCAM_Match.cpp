@@ -196,6 +196,71 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
     return results;
 }
 
+std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_knn(
+        const std::vector<std::vector<int>> &storedRows,
+        const std::vector<int> &query,
+        size_t k) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: k-nearest-neighbor evaluation is only valid for MCAM.");
+    }
+    if (storedRows.empty()) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: MCAM stored-row array must not be empty.");
+    }
+    if (k == 0 || k > storedRows.size()) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: k must be between 1 and the number of stored rows.");
+    }
+    ValidateMcamVector(query, "query");
+
+    std::vector<EvaCAMMatchResult> results;
+    results.reserve(storedRows.size());
+    std::vector<double> conductances;
+    conductances.reserve(storedRows.size());
+    for (const auto &stored : storedRows) {
+        EvaCAMMatchResult result = evaluate_distance(stored, query);
+        conductances.push_back(result.matchlineConductance);
+        results.push_back(result);
+    }
+
+    std::nth_element(conductances.begin(), conductances.begin() + (k - 1),
+            conductances.end());
+    const double cutoffConductance = conductances[k - 1];
+    const double equalityTolerance = std::max(
+            1e-18, std::abs(cutoffConductance) * 1e-12);
+    double selectedBoundaryVoltage = std::numeric_limits<double>::infinity();
+    double rejectedBoundaryVoltage = -std::numeric_limits<double>::infinity();
+
+    for (EvaCAMMatchResult &result : results) {
+        result.hit = result.matchlineConductance
+            <= cutoffConductance + equalityTolerance;
+        if (result.hit) {
+            selectedBoundaryVoltage = std::min(
+                    selectedBoundaryVoltage, result.matchlineVoltage);
+        } else {
+            rejectedBoundaryVoltage = std::max(
+                    rejectedBoundaryVoltage, result.matchlineVoltage);
+        }
+    }
+
+    const bool hasRejectedRows = std::isfinite(rejectedBoundaryVoltage);
+    for (EvaCAMMatchResult &result : results) {
+        if (hasRejectedRows) {
+            SetMcamSenseDiagnostics(
+                    result, selectedBoundaryVoltage - rejectedBoundaryVoltage);
+        } else {
+            SetMcamSenseDiagnostics(result, 0, false);
+        }
+    }
+    if (hasRejectedRows) {
+        EnforceMcamSenseMargin(results.front(),
+                "[EvaCAM_Match] Error: kth MCAM vector and next neighbor cannot be distinguished by the configured sense margin.");
+    }
+    return results;
+}
+
 std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
         const std::vector<std::vector<std::pair<double, double>>> &,
         const std::vector<double> &) const {
@@ -438,54 +503,7 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::EvaluateBestTcamArray(
 std::vector<EvaCAMMatchResult> EvaCAM_Match::EvaluateBestMcamArray(
         const std::vector<std::vector<int>> &storedRows,
         const std::vector<int> &query) const {
-    if (storedRows.empty()) {
-        throw std::invalid_argument(
-                "[EvaCAM_Match] Error: MCAM stored-row array must not be empty.");
-    }
-    ValidateMcamVector(query, "query");
-
-    std::vector<EvaCAMMatchResult> results;
-    results.reserve(storedRows.size());
-    for (const auto &stored : storedRows) {
-        results.push_back(evaluate_distance(stored, query));
-    }
-
-    const auto bestIterator = std::min_element(
-            results.begin(), results.end(),
-            [](const EvaCAMMatchResult &left, const EvaCAMMatchResult &right) {
-                return left.matchlineConductance < right.matchlineConductance;
-            });
-    const double bestConductance = bestIterator->matchlineConductance;
-    const double equalityTolerance = std::max(
-            1e-18, std::abs(bestConductance) * 1e-12);
-    double nextConductance = std::numeric_limits<double>::infinity();
-    double bestVoltage = -std::numeric_limits<double>::infinity();
-    double nextVoltage = 0;
-
-    for (const EvaCAMMatchResult &result : results) {
-        if (std::abs(result.matchlineConductance - bestConductance)
-                <= equalityTolerance) {
-            bestVoltage = std::max(bestVoltage, result.matchlineVoltage);
-        } else if (result.matchlineConductance < nextConductance) {
-            nextConductance = result.matchlineConductance;
-            nextVoltage = result.matchlineVoltage;
-        }
-    }
-
-    for (EvaCAMMatchResult &result : results) {
-        result.hit = std::abs(result.matchlineConductance - bestConductance)
-            <= equalityTolerance;
-        if (std::isfinite(nextConductance)) {
-            SetMcamSenseDiagnostics(result, bestVoltage - nextVoltage);
-        } else {
-            SetMcamSenseDiagnostics(result, 0, false);
-        }
-    }
-    if (std::isfinite(nextConductance)) {
-        EnforceMcamSenseMargin(results.front(),
-                "[EvaCAM_Match] Error: best MCAM vector and runner-up cannot be distinguished by the configured sense margin.");
-    }
-    return results;
+    return evaluate_knn(storedRows, query, 1);
 }
 
 EvaCAMMatchResult EvaCAM_Match::LookupMismatchResult(int mismatches) const {

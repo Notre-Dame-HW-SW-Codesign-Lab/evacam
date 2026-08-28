@@ -41,6 +41,10 @@ class EvaCAM_Match {
         std::vector<EvaCAMMatchResult> evaluate_array(
                 const std::vector<std::vector<int>> &storedRows,
                 const std::vector<int> &query) const;
+        std::vector<EvaCAMMatchResult> evaluate_knn(
+                const std::vector<std::vector<int>> &storedRows,
+                const std::vector<int> &query,
+                size_t k) const;
         std::vector<EvaCAMMatchResult> evaluate_array(
                 const std::vector<std::vector<std::pair<double, double>>> &storedRows,
                 const std::vector<double> &query) const;

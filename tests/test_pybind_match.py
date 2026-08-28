@@ -512,6 +512,89 @@ def test_pybind_match_module(config_path):
         assert close_best[2].hit
         assert all(not result.sense_margin_pass for result in close_best)
         assert all(result.sense_margin_slack < 0 for result in close_best)
+
+        knn_rows = [
+            mcam_be_far,
+            mcam_be_near,
+            mcam_be_stored,
+            mcam_be_medium,
+        ]
+        one_neighbor = mcam_be_matcher.evaluate_knn(
+            knn_rows, mcam_be_stored, k=1
+        )
+        best_from_array = mcam_be_matcher.evaluate_array(
+            knn_rows, mcam_be_stored
+        )
+        assert len(one_neighbor) == len(knn_rows)
+        for knn_result, best_result in zip(one_neighbor, best_from_array):
+            assert_same_metrics(knn_result, best_result)
+            assert knn_result.hit == best_result.hit
+
+        two_neighbors = mcam_be_matcher.evaluate_knn(
+            knn_rows, mcam_be_stored, k=2
+        )
+        assert [result.hit for result in two_neighbors] == [False, True, True, False]
+        assert [result.squared_euclidean_distance for result in two_neighbors] == [
+            49,
+            2,
+            0,
+            4,
+        ]
+        assert all(result.sense_margin_applicable for result in two_neighbors)
+        assert all(
+            math.isclose(result.sense_margin, two_neighbors[0].sense_margin)
+            for result in two_neighbors
+        )
+
+        tied_neighbors = mcam_be_matcher.evaluate_knn(
+            [
+                mcam_be_medium,
+                mcam_be_near,
+                mcam_be_stored,
+                list(mcam_be_near),
+                mcam_be_far,
+            ],
+            mcam_be_stored,
+            k=2,
+        )
+        assert [result.hit for result in tied_neighbors] == [
+            False,
+            True,
+            True,
+            True,
+            False,
+        ]
+
+        every_neighbor = mcam_be_matcher.evaluate_knn(
+            knn_rows, mcam_be_stored, k=len(knn_rows)
+        )
+        assert all(result.hit for result in every_neighbor)
+        assert all(not result.sense_margin_applicable for result in every_neighbor)
+        assert all(result.sense_margin_pass for result in every_neighbor)
+        assert_raises_message(
+            ValueError,
+            "k must be between 1",
+            lambda: mcam_be_matcher.evaluate_knn(
+                knn_rows, mcam_be_stored, k=0
+            ),
+        )
+        assert_raises_message(
+            ValueError,
+            "k must be between 1",
+            lambda: mcam_be_matcher.evaluate_knn(
+                knn_rows, mcam_be_stored, k=len(knn_rows) + 1
+            ),
+        )
+        assert_raises_message(
+            ValueError,
+            "must not be empty",
+            lambda: mcam_be_matcher.evaluate_knn([], mcam_be_stored, k=1),
+        )
+        assert_raises_message(
+            ValueError,
+            "only valid for MCAM",
+            lambda: matcher.evaluate_knn([stored], stored, k=1),
+        )
         assert_raises_message(
             RuntimeError,
             "requires evaluate_array",

@@ -68,6 +68,8 @@ PYBIND11_MODULE(evacam_py, module) {
                         const std::vector<int>&>(
                         &EvaCAM_Match::evaluate_array, py::const_),
                 py::arg("stored_rows"), py::arg("query"))
+        .def("evaluate_knn", &EvaCAM_Match::evaluate_knn,
+                py::arg("stored_rows"), py::arg("query"), py::arg("k"))
         .def("evaluate_array",
                 py::overload_cast<
                         const std::vector<std::vector<std::pair<double, double>>>&,

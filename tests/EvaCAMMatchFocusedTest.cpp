@@ -71,7 +71,8 @@ std::filesystem::path WriteSearchVariant(
 std::filesystem::path WriteMcamSearchVariant(
         TestSupport::TemporaryDirectory &temporary,
         const std::string &searchFunction,
-        bool strictSenseMargin = false) {
+        bool strictSenseMargin = false,
+        const std::string &minimumSenseVoltage = "") {
     const std::filesystem::path source(kMcamConfig);
     const std::filesystem::path sourceDirectory = source.parent_path();
     std::string architecture = ReadFile(sourceDirectory / "2FeFET_MCAM.architecture.yaml");
@@ -93,10 +94,18 @@ std::filesystem::path WriteMcamSearchVariant(
     }
     ReplaceAll(architecture, "sensing: ./2FeFET_MCAM.sensing.yaml",
             "sensing: " + sensingPath.string());
+    std::filesystem::path memoryDevicePath = std::filesystem::absolute(
+            sourceDirectory / "2FeFET_MCAM.memory_device.yaml");
+    if (!minimumSenseVoltage.empty()) {
+        std::string memoryDevice = ReadFile(memoryDevicePath);
+        ReplaceAll(memoryDevice, "min_sense_voltage: 70mV",
+                "min_sense_voltage: " + minimumSenseVoltage);
+        memoryDevicePath = temporary.WriteFile(
+                "mcam.memory_device.yaml", memoryDevice);
+    }
     std::string cell = ReadFile(sourceDirectory / "2FeFET_MCAM.cell.yaml");
     ReplaceAll(cell, "memory_device: ./2FeFET_MCAM.memory_device.yaml",
-            "memory_device: " + std::filesystem::absolute(
-                    sourceDirectory / "2FeFET_MCAM.memory_device.yaml").string());
+            "memory_device: " + memoryDevicePath.string());
     const auto cellPath = temporary.WriteFile("mcam.cell.yaml", cell);
     const std::filesystem::path architecturePath = temporary.WriteFile(
             "mcam-" + variant + searchFunction + ".architecture.yaml", architecture);
@@ -431,6 +440,102 @@ void TestMcamBestAndThresholdSearches() {
     }, "only valid for ACAM");
 }
 
+void TestMcamKnnEvaluation() {
+    TestSupport::TemporaryDirectory temporary("evacam-match-knn");
+    EvaCAM_Match matcher(WriteMcamSearchVariant(temporary, "BE").string());
+    const std::vector<int> query(matcher.vector_dimensions(), 0);
+    std::vector<int> near = query;
+    near[0] = 1;
+    near[1] = 1;
+    std::vector<int> medium = query;
+    medium[0] = 2;
+    std::vector<int> far = query;
+    far[0] = 7;
+    const std::vector<std::vector<int>> rows = {far, near, query, medium};
+
+    const auto best = matcher.evaluate_array(rows, query);
+    const auto oneNeighbor = matcher.evaluate_knn(rows, query, 1);
+    assert(oneNeighbor.size() == rows.size());
+    for (size_t index = 0; index < rows.size(); index++) {
+        assert(oneNeighbor[index].hit == best[index].hit);
+        assert(oneNeighbor[index].senseMargin == best[index].senseMargin);
+    }
+
+    const auto twoNeighbors = matcher.evaluate_knn(rows, query, 2);
+    assert(!twoNeighbors[0].hit);
+    assert(twoNeighbors[1].hit);
+    assert(twoNeighbors[2].hit);
+    assert(!twoNeighbors[3].hit);
+    assert(twoNeighbors[2].squaredEuclideanDistance == 0);
+    assert(twoNeighbors[1].squaredEuclideanDistance == 2);
+    assert(twoNeighbors[3].squaredEuclideanDistance == 4);
+    assert(twoNeighbors[0].squaredEuclideanDistance == 49);
+    assert(twoNeighbors[0].senseMarginApplicable);
+    for (const EvaCAMMatchResult &result : twoNeighbors) {
+        assert(result.senseMargin == twoNeighbors[0].senseMargin);
+        assert(result.senseMarginPass == twoNeighbors[0].senseMarginPass);
+    }
+
+    EvaCAM_Match exactConfigured(kMcamConfig);
+    const auto explicitKnn = exactConfigured.evaluate_knn(rows, query, 2);
+    for (size_t index = 0; index < rows.size(); index++) {
+        assert(explicitKnn[index].hit == twoNeighbors[index].hit);
+    }
+
+    const std::vector<std::vector<int>> tiedRows = {
+        medium, near, query, near, far};
+    const auto boundaryTie = matcher.evaluate_knn(tiedRows, query, 2);
+    assert(!boundaryTie[0].hit);
+    assert(boundaryTie[1].hit);
+    assert(boundaryTie[2].hit);
+    assert(boundaryTie[3].hit);
+    assert(!boundaryTie[4].hit);
+
+    const auto everyRow = matcher.evaluate_knn(rows, query, rows.size());
+    for (const EvaCAMMatchResult &result : everyRow) {
+        assert(result.hit);
+        assert(!result.senseMarginApplicable);
+        assert(result.senseMarginPass);
+    }
+
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_knn(rows, query, 0); },
+            "k must be between 1");
+    AssertThrows<std::invalid_argument>(
+            [&] { matcher.evaluate_knn(rows, query, rows.size() + 1); },
+            "k must be between 1");
+    AssertThrows<std::invalid_argument>([&] {
+        matcher.evaluate_knn(std::vector<std::vector<int>>{}, query, 1);
+    }, "must not be empty");
+    AssertThrows<std::invalid_argument>([&] {
+        matcher.evaluate_knn(std::vector<std::vector<int>>{query, {}}, query, 1);
+    }, "memory.vector_dimensions");
+
+    EvaCAM_Match strict(WriteMcamSearchVariant(
+            temporary, "BE", true, "1mV").string());
+    std::vector<int> selectedBoundary = query;
+    std::vector<int> rejectedBoundary = query;
+    for (size_t index = 0; index < 62; index++) {
+        selectedBoundary[index] = 4;
+    }
+    for (size_t index = 0; index < 23; index++) {
+        rejectedBoundary[index] = 7;
+    }
+    AssertThrows<std::runtime_error>([&] {
+        strict.evaluate_knn(
+                std::vector<std::vector<int>>{
+                        selectedBoundary, rejectedBoundary},
+                query, 1);
+    }, "kth MCAM vector and next neighbor");
+
+    EvaCAM_Match tcam(kTcamConfig);
+    const std::vector<int> tcamQuery(tcam.word_width(), 0);
+    AssertThrows<std::invalid_argument>([&] {
+        tcam.evaluate_knn(
+                std::vector<std::vector<int>>{tcamQuery}, tcamQuery, 1);
+    }, "only valid for MCAM");
+}
+
 void TestMoveAndConstructionFailures() {
     EvaCAM_Match original(kTcamConfig);
     EvaCAM_Match moved(std::move(original));
@@ -459,6 +564,7 @@ int main() {
     TestMcamExactMatchAndValidationRules();
     TestExplicitMcamVectorGeometry();
     TestMcamBestAndThresholdSearches();
+    TestMcamKnnEvaluation();
     TestMoveAndConstructionFailures();
     return 0;
 }

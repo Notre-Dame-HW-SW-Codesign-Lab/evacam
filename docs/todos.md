@@ -175,7 +175,8 @@ These are user-visible limitations and should remain tracked even though the cod
 
 - DRAM, eDRAM, and MLC NAND models are rejected as under development.
 - H-tree and non-H-tree routing require internal sensing; bank-level external sensing is not modeled.
-- MCAM exact, best-match, and threshold integer-vector evaluation is
-  experimental and limited to the shipped 2FeFET topology.
+- MCAM exact, best-match, k-nearest-neighbor, and threshold integer-vector
+  evaluation is experimental and limited to the shipped 2FeFET topology. The
+  k-nearest-neighbor API does not model top-k selection hardware.
 - ACAM exact, best, and threshold match evaluation is not implemented.
 - `variation.lut_file` is accepted and propagated but not consumed.

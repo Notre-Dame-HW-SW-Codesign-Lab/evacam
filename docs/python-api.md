@@ -205,6 +205,7 @@ Current support:
 - TCAM `BE`: supported through array evaluation
 - TCAM `TH`: use explicit threshold evaluation with `max_mismatches`
 - MCAM `EX`, `BE`, and `TH`: supported for integer vectors whose elements are in `0..num_resistance_state-1`
+- MCAM k-nearest-neighbor: supported through explicit `evaluate_knn()` array evaluation
 - ACAM requires range/value inputs
 
 For an eight-state MCAM configuration, vector APIs use physical symbols:
@@ -246,6 +247,33 @@ returned row carries the same data-dependent best/runner-up voltage gap in
 `sense_margin`. A sub-threshold gap remains available with
 `sense_margin_pass == False`; `hit` continues to identify the mathematical
 best row.
+
+Use `evaluate_knn(stored_rows, query, k)` for an explicit MCAM k-nearest-
+neighbor operation. It returns one result per stored row in input order and
+sets `hit=True` on every row through the kth-lowest modeled conductance:
+
+```python
+results = matcher.evaluate_knn(stored_rows, query, k=3)
+neighbors = [
+    (index, result)
+    for index, result in enumerate(results)
+    if result.hit
+]
+```
+
+`k` must be between `1` and the number of stored rows. Rows electrically tied
+at the kth boundary are all hits, so the returned hit count can exceed `k`.
+Every result reports the voltage gap between the worst selected row and the
+closest rejected row. When all rows are selected or tied at the boundary,
+`sense_margin_applicable` is false because there is no rejected class.
+`evaluate_knn()` is an explicit MCAM-only operation and does not require a
+particular configured `search_function`; `k=1` uses the same selection path as
+MCAM `BE` array evaluation.
+
+The method evaluates per-row MCAM timing and energy, but it does not add
+latency, energy, or area for a hardware top-k sorter, priority resolver, or tie
+breaker. Results preserve input order; EvaCAM does not impose an arbitrary
+order within an electrical tie.
 
 For `search_function: TH`, call
 `evaluate_distance_threshold(stored, query, max_squared_distance)`. The

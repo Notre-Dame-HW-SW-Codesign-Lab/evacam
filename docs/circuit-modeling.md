@@ -442,6 +442,27 @@ EvaCAM validates best-match detectability with the modeled sense margin. If the 
 
 Plain scalar vector evaluation is not supported for `search_function: BE` because a single row cannot establish which row is best.
 
+### MCAM K-Nearest-Neighbor Evaluation
+
+`EvaCAM_Match::evaluate_knn(storedRows, query, k)` generalizes the MCAM
+best-match operation. EvaCAM evaluates every stored row, locates the kth-lowest
+modeled matchline conductance, and marks all rows through that conductance as
+hits. The result vector remains in stored-row input order. Conductance is the
+hardware-facing ranking score; squared Euclidean distance remains available in
+each result as an ideal vector-distance observable.
+
+Rows electrically tied at the kth boundary are all selected. This can produce
+more than `k` hits because EvaCAM does not model a priority resolver or
+arbitrary tie breaker. The shared k-NN sense margin is the voltage separation
+between the worst selected boundary row and the closest rejected row. If no
+rejected class remains, the margin is marked not applicable. With strict MCAM
+sensing enabled, an applicable k/k+1 boundary below the required margin rejects
+the operation.
+
+The k-NN API models the MCAM row evaluations and annotates their selection. It
+does not include the latency, energy, or area of a top-k sorting or selection
+network. The `k=1` path is shared with MCAM `BE` array evaluation.
+
 ### Approximate Search Modes
 
 For BE and TH search modes, the code sweeps mismatch counts and compares adjacent mismatch-delay cases. If the delay separation is greater than the configured matchline sensing margin, the mismatch count is considered distinguishable. The results are stored in lookup-like arrays for approximate-search latency estimation.

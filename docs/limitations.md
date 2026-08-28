@@ -34,10 +34,10 @@ Known unsupported or incomplete modes:
   one multi-level cell, and encoded storage is dimensions multiplied by
   `log2(num_resistance_state)`.
 - MCAM is limited to the shipped two-FeFET topology: `FEFETRAM`, no access device, two gate-connected searchlines, and two drain-connected matchlines.
-- Exact, best-match, and threshold integer-vector evaluation is supported for
-  symbols in `0..num_resistance_state-1`. Distance is squared Euclidean, not
-  Hamming; the physical result also depends on the configured resistance curve
-  and sense margin.
+- Exact, best-match, k-nearest-neighbor, and threshold integer-vector
+  evaluation is supported for symbols in `0..num_resistance_state-1`. Distance
+  is squared Euclidean, not Hamming; the physical result also depends on the
+  configured resistance curve and sense margin.
 - The shipped resistance states and eight-state searchline voltages are provisional infrastructure examples, not calibrated device-correlation data.
 - The shipped MCAM fixture assumes a `70mV` minimum detectable voltage. MCAM
   reports actual margin, required margin, signed slack, and pass/fail without
@@ -47,6 +47,9 @@ Known unsupported or incomplete modes:
   margin is query dependent because state-range endpoints change which symbol
   deltas are reachable. The reported ideal hit still uses squared Euclidean
   distance and is distinct from electrical detectability.
+- MCAM k-nearest-neighbor evaluation ranks modeled row conductances, includes
+  every electrical tie at the kth boundary, and reports the k/k+1 voltage gap.
+  It does not model a hardware top-k sorter, priority resolver, or tie breaker.
 
 ## Geometry And Sizing Rules
 

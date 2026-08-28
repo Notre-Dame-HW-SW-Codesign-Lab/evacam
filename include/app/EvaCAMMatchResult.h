@@ -6,8 +6,9 @@ struct EvaCAMMatchResult {
     double searchLatency = 0;
     double searchDynamicEnergy = 0;
     double matchlineDelay = 0;
-    // The margin used for this decision. For MCAM best-match arrays this is
-    // the actual best/runner-up voltage gap, not an ideal distance proxy.
+    // The margin used for this decision. For MCAM best-match and k-NN arrays
+    // this is the actual selected/rejected voltage gap, not an ideal distance
+    // proxy.
     double senseMargin = 0;
     double requiredSenseMargin = 0;
     double senseMarginSlack = 0;
