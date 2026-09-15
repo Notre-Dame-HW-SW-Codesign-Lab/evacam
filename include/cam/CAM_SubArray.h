@@ -23,6 +23,7 @@
 #include "MemCell.h"
 #include "EvaCamConfig.h"
 #include "EvaCAMMatchResult.h"
+#include "EvaCAMMcamAnalysis.h"
 #include "model/VariationSampler.h"
 #include <random>
 #include <vector>
@@ -133,7 +134,16 @@ class CAM_SubArray: public FunctionUnit {
         EvaCAMMatchResult EvaluateMcamDistance(
                 const std::vector<int> &stored,
                 const std::vector<int> &query) const;
+        std::vector<EvaCAMMatchResult> EvaluateMcamDistanceSamples(
+                const std::vector<int> &stored, const std::vector<int> &query) const;
+        EvaCAMMatchResult EvaluateMcamNominalDistance(
+                const std::vector<int> &stored, const std::vector<int> &query) const;
+        EvaCAMMatchResult EvaluateMcamZeroQueryComposition(
+                const std::vector<int> &deltaCounts, double resistanceSigmaOffset) const;
+        std::vector<EvaCAMDistanceVoltageBounds> McamDistanceVoltageBounds(
+                const std::vector<int> &query, bool includeVariation = true) const;
         double McamSensedVoltage(double matchlineConductance) const;
+        double McamSensingTime() const;
         CAMResistanceSample BuildNominalResistanceSample() const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         CAMResistanceSample BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const;

@@ -44,6 +44,8 @@ jobs:
           - test-cam-line
           - test-cam-subarray-topology
           - test-cam-subarray-match
+          - test-mcam-pair-response
+          - test-mcam-distance-statistics
           - test-cam-subarray-variation
           - test-mat-bank
           - test-result-model
@@ -86,6 +88,7 @@ jobs:
           - test-generation-scripts
           - test-sweep-analysis-scripts
           - test-plotting-scripts
+          - test-mcam-voltage-plot
           - test-inventory-generator
           - test-pybind-match
           - test-pybind-run

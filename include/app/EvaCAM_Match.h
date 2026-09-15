@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "EvaCAMMatchResult.h"
+#include "EvaCAMMcamAnalysis.h"
 #include "Wire.h"
 
 class Bank;
@@ -58,6 +59,18 @@ class EvaCAM_Match {
         size_t vector_dimensions() const;
         size_t bits_per_symbol() const;
         size_t symbol_width() const;
+        std::vector<EvaCAMMatchResult> evaluate_distance_samples(
+                const std::vector<int> &stored, const std::vector<int> &query) const;
+        // Convert externally sampled row conductances at the model's common
+        // nominal sensing instant. Does not resample device variation.
+        std::vector<double> sense_mcam_conductances(
+                const std::vector<double> &conductances) const;
+        std::vector<EvaCAMDistanceVoltageBounds> distance_voltage_bounds(
+                const std::vector<int> &query, bool includeVariation = true) const;
+        std::vector<EvaCAMMcamCompositionResult> evaluate_zero_query_compositions() const;
+        EvaCAMMatchResult evaluate_zero_query_composition(
+                const std::vector<int> &deltaCounts,
+                double resistanceSigmaOffset = 0) const;
         EvaCAMMatchResult evaluate_distance(const std::vector<int> &stored,
                 const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate_symbols(const std::vector<int> &stored,

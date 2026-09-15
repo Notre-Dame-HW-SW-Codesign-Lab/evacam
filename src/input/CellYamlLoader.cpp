@@ -9,6 +9,7 @@
 #include <string>
 
 #include "MemCell.h"
+#include "McamPairResponse.h"
 #include "input/MemoryDeviceYamlLoader.h"
 #include "input/PhysicalDomainValidators.h"
 #include "input/YamlNodeHelpers.h"
@@ -600,6 +601,28 @@ void ReadMcamSection(MemCell& cell, const YAML::Node& root) {
             }
         } else {
             throw std::runtime_error("mcam.resistance_state must be sequence or map");
+        }
+    }
+
+    auto pairResistance = YamlHelpers::child_optional(mcam, "pair_resistance");
+    if (pairResistance) {
+        if (!pairResistance.IsSequence()) {
+            throw std::invalid_argument("mcam.pair_resistance must be a square sequence of numeric ohms.");
+        }
+        cell.mcamPairResistance.clear();
+        for (const auto &row : pairResistance) {
+            if (!row.IsSequence()) {
+                throw std::invalid_argument("mcam.pair_resistance rows must be sequences of numeric ohms.");
+            }
+            std::vector<double> values;
+            for (const auto &entry : row) {
+                values.push_back(entry.as<double>());
+            }
+            cell.mcamPairResistance.push_back(std::move(values));
+        }
+        ValidateMcamPairResistance(cell.mcamPairResistance);
+        if (cell.mcamPairResistance.size() != static_cast<size_t>(cell.numResistanceState)) {
+            throw std::invalid_argument("mcam.pair_resistance size must equal num_resistance_state.");
         }
     }
 

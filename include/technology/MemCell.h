@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #include "typedef.h"
 #include "constant.h"
@@ -63,7 +64,8 @@ class MemCell {
         double camWidthMatchTran;		/* The gate width of CMOS access transistor, Unit: F */
         CAMType camType; /* Ternary CAM, Multi-bit CAM, or Analog CAM */
         bool isNVMdischarge;
-        int numResistanceState; // # of state of multi-bit CAM
+        int numResistanceState;
+        std::vector<std::vector<double>> mcamPairResistance; // # of state of multi-bit CAM
                                 // double ResistanceValues[64]; // corresponding resistance values
         double ResistanceState[64];
         double mlPrechargeVoltage[64]; // Optional MCAM matchline precharge voltage per state

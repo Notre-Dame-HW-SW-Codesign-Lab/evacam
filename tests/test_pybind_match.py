@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import gc
+import itertools
 import math
 import pathlib
 import sys
@@ -137,6 +138,168 @@ def write_high_sense_threshold_config(source_config, sense_voltage, tmp_dir, sea
         tmp_dir,
         cell_override=cell_path,
     )
+
+
+def test_mcam_distance_analysis(evacam_py, repo_root):
+    source = repo_root / "config/2FeFET_MCAM/2FeFET_MCAM.config.yaml"
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = write_config_with_search_function(source, "EX", tmp_dir)
+        tool = yaml.safe_load(path.read_text())
+        architecture_path = pathlib.Path(tool["architecture"])
+        architecture = yaml.safe_load(architecture_path.read_text())
+        architecture["memory"]["vector_dimensions"] = 8
+        architecture["memory"].pop("capacity", None)
+        architecture["organization"]["comparison_columns_per_step"] = 8
+        architecture["organization"]["subarray"] = {"dimensions": [8, 8]}
+        architecture_path.write_text(yaml.safe_dump(architecture))
+        cell = yaml.safe_load(pathlib.Path(tool["cell"]).read_text())
+        device_source = source.parent / cell["memory_device"]
+        device = yaml.safe_load(device_source.read_text())
+        device_path = pathlib.Path(tmp_dir) / "analysis.memory_device.yaml"
+        cell["memory_device"] = str(device_path)
+        cell_path = pathlib.Path(tmp_dir) / "analysis.cell.yaml"
+        cell_path.write_text(yaml.safe_dump(cell))
+        tool["cell"] = str(cell_path)
+        path.write_text(yaml.safe_dump(tool))
+
+        def matcher(variation=None):
+            if variation is None:
+                device.pop("variation", None)
+            else:
+                device["variation"] = variation
+            device["mcam"]["state_variation"] = [
+                variation["memory_device_resistance_on_stdev"] if variation else "0%"
+            ] * device["mcam"]["num_resistance_state"]
+            device_path.write_text(yaml.safe_dump(device))
+            return evacam_py.EvaCAMMatch(str(path))
+
+        query = [1, 2] + [0] * 6
+        stored = [7, 0] + [0] * 6
+        nominal = matcher()
+        samples = nominal.evaluate_distance_samples(stored, query)
+        assert len(samples) == 1
+        assert_close(samples[0], nominal.evaluate_distance(stored, query))
+        bounds = nominal.distance_voltage_bounds(query, include_variation=False)
+        by_distance = {bound.squared_euclidean_distance: bound for bound in bounds}
+        all_compositions = nominal.evaluate_zero_query_compositions()
+        assert len(all_compositions) == 6435
+        assert sum(point.coordinate_permutations for point in all_compositions) == 8 ** 8
+        assert all(len(point.delta_counts) == 8 and sum(point.delta_counts) == 8
+                   for point in all_compositions)
+        assert all(math.isclose(point.result.squared_euclidean_distance,
+                                sum(count * delta * delta
+                                    for delta, count in enumerate(point.delta_counts)))
+                   for point in all_compositions)
+        # Enumerate every 8D vector at distance <= 4, including the competing
+        # compositions of four unit deltas versus one delta of two.
+        def nearby_rows(prefix=(), remaining=4):
+            if len(prefix) == len(query):
+                yield list(prefix)
+                return
+            for symbol in range(8):
+                cost = (symbol - query[len(prefix)]) ** 2
+                if cost <= remaining:
+                    yield from nearby_rows(prefix + (symbol,), remaining - cost)
+
+        compositions = {}
+        for row in nearby_rows():
+            result = nominal.evaluate_distance(row, query)
+            compositions.setdefault(result.squared_euclidean_distance, []).append(result)
+        assert list(by_distance) == sorted(by_distance)
+        assert [distance for distance in by_distance if distance <= 4] == sorted(compositions)
+        reachable = {0}
+        for query_symbol in query:
+            reachable = {distance + (symbol - query_symbol) ** 2
+                         for distance in reachable for symbol in range(8)}
+        assert set(by_distance) == reachable
+        for distance, results in compositions.items():
+            bound = by_distance[distance]
+            assert isinstance(bound, evacam_py.EvaCAMDistanceVoltageBounds)
+            assert sum(bound.minimum_conductance_delta_counts) == len(query)
+            assert sum(bound.maximum_conductance_delta_counts) == len(query)
+            for field, values in (
+                ("conductance", [r.matchline_conductance for r in results]),
+                ("voltage", [r.matchline_voltage for r in results]),
+            ):
+                assert math.isclose(getattr(bound, "minimum_" + field), min(values), rel_tol=1e-12)
+                assert math.isclose(getattr(bound, "maximum_" + field), max(values), rel_tol=1e-12)
+
+        settings = {
+            "mode": "monte_carlo", "samples": 8, "seed": 33333,
+            "memory_device_resistance_on_stdev": "5%",
+            "memory_device_resistance_off_stdev": "5%",
+        }
+        for granularity in ("cell", "effective"):
+            settings["monte_carlo_granularity"] = granularity
+            varied = matcher(dict(settings))
+            samples = varied.evaluate_distance_samples(stored, query)
+            assert len(samples) == settings["samples"]
+            assert len({sample.matchline_voltage for sample in samples}) > 1
+            repeated = varied.evaluate_distance_samples(stored, query)
+            reconstructed = matcher(dict(settings)).evaluate_distance_samples(stored, query)
+            for sample, repeat, fresh in zip(samples, repeated, reconstructed):
+                assert_close(sample, repeat)
+                assert_close(sample, fresh)
+            mean = varied.evaluate_distance(stored, query)
+            for field in ("matchline_voltage", "matchline_conductance",
+                          "matchline_delay", "search_latency", "search_dynamic_energy"):
+                assert math.isclose(getattr(mean, field),
+                                    sum(getattr(sample, field) for sample in samples) / len(samples),
+                                    rel_tol=1e-12)
+            support = {b.squared_euclidean_distance: b
+                       for b in varied.distance_voltage_bounds(query)}
+            for bound in support.values():
+                low = varied.evaluate_zero_query_composition(
+                    bound.minimum_conductance_delta_counts, 3)
+                high = varied.evaluate_zero_query_composition(
+                    bound.maximum_conductance_delta_counts, -3)
+                assert math.isclose(low.matchline_conductance,
+                                    bound.minimum_conductance, rel_tol=1e-12)
+                assert math.isclose(high.matchline_conductance,
+                                    bound.maximum_conductance, rel_tol=1e-12)
+                assert math.isclose(low.matchline_voltage,
+                                    bound.maximum_voltage, rel_tol=1e-12)
+                assert math.isclose(high.matchline_voltage,
+                                    bound.minimum_voltage, rel_tol=1e-12)
+                assert math.isclose(high.search_latency,
+                                    bound.minimum_search_latency, rel_tol=1e-12)
+                assert math.isclose(low.search_latency,
+                                    bound.maximum_search_latency, rel_tol=1e-12)
+            for row in itertools.product(range(8), repeat=2):
+                for sample in varied.evaluate_distance_samples(list(row) + query[2:], query):
+                    bound = support[sample.squared_euclidean_distance]
+                    assert bound.minimum_conductance * (1 - 1e-12) <= sample.matchline_conductance
+                    assert sample.matchline_conductance <= bound.maximum_conductance * (1 + 1e-12)
+                    assert bound.minimum_voltage - 1e-12 <= sample.matchline_voltage
+                    assert sample.matchline_voltage <= bound.maximum_voltage + 1e-12
+                    assert bound.minimum_search_latency * (1 - 1e-12) <= sample.search_latency
+                    assert sample.search_latency <= bound.maximum_search_latency * (1 + 1e-12)
+            nominal_bounds = varied.distance_voltage_bounds(query, include_variation=False)
+            for actual, expected in zip(nominal_bounds, bounds):
+                assert math.isclose(actual.minimum_voltage, expected.minimum_voltage, rel_tol=1e-12)
+                assert math.isclose(actual.maximum_voltage, expected.maximum_voltage, rel_tol=1e-12)
+                assert math.isclose(actual.minimum_search_latency, expected.minimum_search_latency, rel_tol=1e-12)
+                assert math.isclose(actual.maximum_search_latency, expected.maximum_search_latency, rel_tol=1e-12)
+
+        settings["memory_device_resistance_on_stdev"] = "0%"
+        settings["memory_device_resistance_off_stdev"] = "0%"
+        zero = matcher(dict(settings))
+        zero_samples = zero.evaluate_distance_samples(stored, query)
+        assert len(zero_samples) == settings["samples"]
+        for sample in zero_samples:
+            assert_close(sample, nominal.evaluate_distance(stored, query))
+        settings["mode"] = "single_point"
+        assert len(matcher(dict(settings)).evaluate_distance_samples(stored, query)) == 1
+        settings["mode"] = "corner"
+        settings["memory_device_resistance_on_max_var"] = "5%"
+        # MCAM corner mode is rejected either during construction or evaluation.
+        assert_raises(ValueError, lambda: matcher(dict(settings)).evaluate_distance_samples(stored, query))
+        assert_raises(ValueError, lambda: matcher(dict(settings)).distance_voltage_bounds(query))
+
+    tcam = evacam_py.EvaCAMMatch(str(repo_root / "config/2FeFET_TCAM/2FeFET_TCAM.config.yaml"))
+    tcam_row = [0] * tcam.word_width()
+    assert_raises(ValueError, lambda: tcam.evaluate_distance_samples(tcam_row, tcam_row))
+    assert_raises(ValueError, lambda: tcam.distance_voltage_bounds(tcam_row))
 
 
 def test_pybind_match_module(config_path):
@@ -647,6 +810,7 @@ def test_pybind_match_module(config_path):
             lambda: mcam_th_matcher.evaluate_vector(mcam_th_stored, mcam_th_stored),
         )
 
+    test_mcam_distance_analysis(evacam_py, repo_root)
     print("Pybind match test passed")
 
 

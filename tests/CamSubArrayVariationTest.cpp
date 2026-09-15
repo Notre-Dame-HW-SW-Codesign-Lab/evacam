@@ -11,8 +11,11 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
+#include <functional>
 #include <iostream>
 #include <memory>
+#include <map>
 #include <numeric>
 #include <vector>
 
@@ -266,6 +269,227 @@ void TestMcamExactMatchStateVariationIsDeterministic() {
             || !Near(first.senseMargin, differentSeed.senseMargin));
 }
 
+void TestMcamSamplesAndBounds() {
+    Fixture fixture = MakeMcamFixture();
+    auto &subarray = *fixture.subarray;
+    auto &cell = *fixture.config->technology.cell;
+    // Tiny geometry permits exhaustive stored/query enumeration without
+    // reconstructing electrical fixtures; sensing remains fixed and nominal.
+    subarray.CAM_opt.BitSerialWidth = 2;
+    fixture.config->variation.enabled = false;
+    for (int q0 = 0; q0 < cell.numResistanceState; ++q0) {
+        for (int q1 = 0; q1 < cell.numResistanceState; ++q1) {
+            const std::vector<int> query{q0, q1};
+            const auto bounds = subarray.McamDistanceVoltageBounds(query);
+            std::map<double, std::pair<double, double>> exhaustive;
+            std::map<double, std::pair<double, double>> exhaustiveLatency;
+            for (int a = 0; a < cell.numResistanceState; ++a) {
+                for (int b = 0; b < cell.numResistanceState; ++b) {
+                    const auto samples = subarray.EvaluateMcamDistanceSamples({a, b}, query);
+                    assert(samples.size() == 1);
+                    const auto &sample = samples.front();
+                    auto entry = exhaustive.emplace(sample.squaredEuclideanDistance,
+                            std::make_pair(sample.matchlineConductance, sample.matchlineConductance));
+                    entry.first->second.first = std::min(entry.first->second.first, sample.matchlineConductance);
+                    entry.first->second.second = std::max(entry.first->second.second, sample.matchlineConductance);
+                    auto timing = exhaustiveLatency.emplace(sample.squaredEuclideanDistance,
+                            std::make_pair(sample.searchLatency, sample.searchLatency));
+                    timing.first->second.first = std::min(timing.first->second.first, sample.searchLatency);
+                    timing.first->second.second = std::max(timing.first->second.second, sample.searchLatency);
+                }
+            }
+            assert(bounds.size() == exhaustive.size());
+            size_t index = 0;
+            for (const auto &entry : exhaustive) {
+                const auto &bound = bounds[index++];
+                assert(bound.squaredEuclideanDistance == entry.first);
+                assert(Near(bound.minimumConductance, entry.second.first));
+                assert(Near(bound.maximumConductance, entry.second.second));
+                assert(Near(bound.minimumVoltage, subarray.McamSensedVoltage(entry.second.second)));
+                assert(Near(bound.maximumVoltage, subarray.McamSensedVoltage(entry.second.first)));
+                assert(Near(bound.minimumSearchLatency, exhaustiveLatency.at(entry.first).first));
+                assert(Near(bound.maximumSearchLatency, exhaustiveLatency.at(entry.first).second));
+                assert(bound.minimumConductanceDeltaCounts.size()
+                        == static_cast<size_t>(cell.numResistanceState));
+                assert(bound.maximumConductanceDeltaCounts.size()
+                        == static_cast<size_t>(cell.numResistanceState));
+                for (const auto &counts : {bound.minimumConductanceDeltaCounts,
+                                          bound.maximumConductanceDeltaCounts}) {
+                    assert(std::accumulate(counts.begin(), counts.end(), 0) == 2);
+                    int witnessDistance = 0;
+                    for (size_t delta = 0; delta < counts.size(); ++delta) {
+                        witnessDistance += counts[delta] * static_cast<int>(delta * delta);
+                    }
+                    assert(witnessDistance == entry.first);
+                }
+            }
+        }
+    }
+    ConfigureMonteCarlo(fixture, 11);
+    cell.hasMcamStateVariations = true;
+    for (int state = 0; state < cell.numResistanceState; ++state) {
+        cell.resStateVariation[state] = 0.4; // Exercises the positive resistance floor.
+    }
+    const std::vector<int> query{1, 2};
+    for (const std::string granularity : {"cell", "effective"}) {
+        fixture.config->variation.monteCarloGranularity = granularity;
+        const auto bounds = subarray.McamDistanceVoltageBounds(query);
+        // The recovered compositions independently reproduce both resistance
+        // endpoints, including the exact-match boundary timing convention.
+        for (const auto &bound : bounds) {
+            const auto low = subarray.EvaluateMcamZeroQueryComposition(
+                    bound.minimumConductanceDeltaCounts, 3);
+            const auto high = subarray.EvaluateMcamZeroQueryComposition(
+                    bound.maximumConductanceDeltaCounts, -3);
+            assert(Near(low.squaredEuclideanDistance, bound.squaredEuclideanDistance));
+            assert(Near(high.squaredEuclideanDistance, bound.squaredEuclideanDistance));
+            assert(Near(low.matchlineConductance, bound.minimumConductance));
+            assert(Near(high.matchlineConductance, bound.maximumConductance));
+            assert(Near(low.matchlineVoltage, bound.maximumVoltage));
+            assert(Near(high.matchlineVoltage, bound.minimumVoltage));
+            assert(Near(high.searchLatency, bound.minimumSearchLatency));
+            assert(Near(low.searchLatency, bound.maximumSearchLatency));
+        }
+        for (int a = 0; a < cell.numResistanceState; ++a) {
+            for (int b = 0; b < cell.numResistanceState; ++b) {
+                const auto samples = subarray.EvaluateMcamDistanceSamples({a, b}, query);
+                const auto repeated = subarray.EvaluateMcamDistanceSamples({a, b}, query);
+                assert(samples.size() == 11);
+                double voltage = 0, conductance = 0, latency = 0, energy = 0;
+                for (size_t index = 0; index < samples.size(); ++index) {
+                    const auto &sample = samples[index];
+                    assert(sample.matchlineVoltage == repeated[index].matchlineVoltage);
+                    const auto bound = std::find_if(bounds.begin(), bounds.end(), [&](const auto &value) {
+                        return value.squaredEuclideanDistance == sample.squaredEuclideanDistance;
+                    });
+                    assert(bound != bounds.end());
+                    assert(sample.matchlineConductance >= bound->minimumConductance);
+                    assert(sample.matchlineConductance <= bound->maximumConductance);
+                    assert(sample.matchlineVoltage >= bound->minimumVoltage);
+                    assert(sample.matchlineVoltage <= bound->maximumVoltage);
+                    assert(sample.searchLatency >= bound->minimumSearchLatency);
+                    assert(sample.searchLatency <= bound->maximumSearchLatency);
+                    voltage += sample.matchlineVoltage;
+                    conductance += sample.matchlineConductance;
+                    latency += sample.searchLatency;
+                    energy += sample.searchDynamicEnergy;
+                }
+                const auto mean = subarray.EvaluateMcamDistance({a, b}, query);
+                assert(mean.matchlineVoltage == voltage / samples.size());
+                assert(mean.matchlineConductance == conductance / samples.size());
+                assert(mean.searchLatency == latency / samples.size());
+                assert(mean.searchDynamicEnergy == energy / samples.size());
+            }
+        }
+    }
+    for (int state = 0; state < cell.numResistanceState; ++state) {
+        cell.resStateVariation[state] = 0;
+    }
+    const auto zero = subarray.EvaluateMcamDistanceSamples(query, query);
+    assert(zero.size() == 11);
+    for (const auto &sample : zero) {
+        assert(sample.matchlineVoltage == zero.front().matchlineVoltage);
+    }
+    fixture.config->variation.mode = "single_point";
+    assert(subarray.EvaluateMcamDistanceSamples(query, query).size() == 1);
+    fixture.config->variation.mode = "corner";
+    TestSupport::AssertThrows<std::invalid_argument>([&] {
+        subarray.EvaluateMcamDistanceSamples(query, query);
+    }, "does not support");
+    TestSupport::AssertThrows<std::invalid_argument>([&] {
+        subarray.McamDistanceVoltageBounds(query);
+    }, "does not support");
+    fixture.config->variation.enabled = false;
+    TestSupport::AssertThrows<std::invalid_argument>([&] {
+        subarray.EvaluateMcamZeroQueryComposition(
+                std::vector<int>(cell.numResistanceState, std::numeric_limits<int>::max()), 0);
+    }, "delta counts");
+    TestSupport::AssertThrows<std::invalid_argument>([&] {
+        subarray.McamDistanceVoltageBounds({-1, 0});
+    }, "symbols");
+    TestSupport::AssertThrows<std::invalid_argument>([&] {
+        subarray.EvaluateMcamDistanceSamples({}, query);
+    }, "BitSerialWidth");
+}
+
+void TestMcamRawStateSamplingOracleAndCacheInvalidation() {
+    Fixture fixture = MakeMcamFixture();
+    Fixture alternate = MakeMcamFixture();
+    auto &subarray = *fixture.subarray;
+    auto &cell = *fixture.config->technology.cell;
+    assert(cell.numResistanceState == 8);
+    subarray.CAM_opt.BitSerialWidth = 16;
+    ConfigureMonteCarlo(fixture, 9);
+    cell.hasMcamStateVariations = true;
+
+    std::vector<double> descending(cell.ResistanceState,
+            cell.ResistanceState + cell.numResistanceState);
+    std::sort(descending.begin(), descending.end(), std::greater<double>());
+    const int rawToDistance[] = {3, 0, 6, 1, 7, 2, 5, 4};
+    const int distanceToRaw[] = {1, 3, 5, 0, 7, 6, 2, 4};
+    for (int raw = 0; raw < 8; ++raw) {
+        cell.ResistanceState[raw] = descending[rawToDistance[raw]];
+        cell.resStateVariation[raw] = 0.04 + 0.035 * raw;
+    }
+    const std::vector<int> query(16, 0);
+    std::vector<int> stored(16);
+    for (int index = 0; index < 16; ++index) {
+        stored[index] = index % 8;
+    }
+    // Independently reproduce the original seed contract, retaining unsigned
+    // 32-bit overflow and the raw-state stream offset. The mapping is fixed
+    // by nominal resistance even when sampled resistances cross one another.
+    const auto verify = [&]() {
+        const auto &variation = fixture.config->variation;
+        const auto samples = subarray.EvaluateMcamDistanceSamples(stored, query);
+        assert(samples.size() == static_cast<size_t>(variation.samples));
+        for (size_t sampleIndex = 0; sampleIndex < samples.size(); ++sampleIndex) {
+            double expected = 0;
+            for (size_t index = 0; index < stored.size(); ++index) {
+                const int raw = distanceToRaw[stored[index]];
+                uint32_t seed = variation.seed;
+                seed ^= static_cast<uint32_t>(sampleIndex) + 0x9e3779b9u
+                    + (seed << 6) + (seed >> 2);
+                seed ^= static_cast<uint32_t>(100 + raw) + 0x85ebca6bu
+                    + (seed << 6) + (seed >> 2);
+                const uint32_t coordinate = variation.monteCarloGranularity == "cell"
+                    ? static_cast<uint32_t>(index) : 0;
+                seed ^= coordinate + 0xc2b2ae35u + (seed << 6) + (seed >> 2);
+                VariationSampler sampler(seed);
+                expected += 1.0 / sampler.SampleResistance(
+                        cell.ResistanceState[raw], cell.resStateVariation[raw]);
+            }
+            // Match the existing effective-resistance round trip exactly.
+            assert(samples[sampleIndex].matchlineConductance == 1.0 / (1.0 / expected));
+        }
+        return samples;
+    };
+    for (const std::string granularity : {"cell", "effective"}) {
+        fixture.config->variation.monteCarloGranularity = granularity;
+        const auto original = verify();
+        verify(); // Cached reads must match fresh draws.
+        ++fixture.config->variation.seed;
+        const auto changedSeed = verify();
+        assert(original.front().matchlineConductance != changedSeed.front().matchlineConductance);
+        cell.resStateVariation[3] += 0.12;
+        const auto changedDeviation = verify();
+        assert(changedSeed.front().matchlineConductance != changedDeviation.front().matchlineConductance);
+        cell.ResistanceState[3] *= 1.01; // Preserve nominal ordering, change distribution.
+        verify();
+
+        // Evict this thread's cache with a different subarray/distribution,
+        // then return to the first distribution and compare every sample.
+        ConfigureMonteCarlo(alternate, 3);
+        alternate.config->technology.cell->hasMcamStateVariations = true;
+        for (int raw = 0; raw < 8; ++raw) {
+            alternate.config->technology.cell->resStateVariation[raw] = 0.02;
+        }
+        const std::vector<int> alternateQuery(alternate.subarray->CAM_opt.BitSerialWidth, 0);
+        alternate.subarray->EvaluateMcamDistanceSamples(alternateQuery, alternateQuery);
+        verify();
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -274,6 +498,8 @@ int main() {
     TestTimingSummaryHandlesDisabledSinglePointAndMonteCarlo();
     TestPowerSummaryAndCellReadEnergy();
     TestMcamExactMatchStateVariationIsDeterministic();
+    TestMcamSamplesAndBounds();
+    TestMcamRawStateSamplingOracleAndCacheInvalidation();
     std::cout << "CAM_SubArray variation tests passed\n";
     return 0;
 }

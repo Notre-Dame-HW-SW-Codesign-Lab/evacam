@@ -138,6 +138,7 @@ Python bindings are available for full simulator runs and match evaluation throu
 More detail:
 
 - [Python API](docs/python-api.md)
+- [MCAM state-variation voltage plots](docs/mcam-state-variation.md)
 
 ## Input Files
 

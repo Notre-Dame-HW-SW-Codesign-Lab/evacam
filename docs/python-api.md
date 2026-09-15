@@ -241,6 +241,82 @@ ranking uses squared distance because the square root is monotonic; it does
 not use Hamming mismatch count. For example, one coordinate differing by 7
 has distance 49, whereas two coordinates differing by 1 have distance 2.
 
+`evaluate_distance_samples(stored, query)` returns a list of
+`EvaCAMMatchResult` objects in sample-index order. With Monte Carlo variation,
+the list contains the configured number of samples; disabled variation or
+`single_point` mode returns one result. The configured seed makes repeated
+calls reproducible. `evaluate_distance()` retains its existing averaged
+physical metrics; use the samples when plotting a distribution instead of
+plotting that mean repeatedly.
+
+`distance_voltage_bounds(query, include_variation=True)` returns one
+`EvaCAMDistanceVoltageBounds` per reachable squared distance, sorted by distance.
+It considers every stored-symbol composition for the supplied query. Each
+object exposes these read-only attributes:
+
+| Attribute | Meaning |
+| --- | --- |
+| `squared_euclidean_distance` | Reachable sum of squared symbol differences |
+| `minimum_conductance`, `maximum_conductance` | Total matchline conductance limits, in siemens |
+| `minimum_voltage`, `maximum_voltage` | Matchline voltage limits, in volts |
+| `minimum_search_latency`, `maximum_search_latency` | Search latency limits including nominal peripherals, in seconds; exact matches use one-unit-mismatch boundary timing |
+| `minimum_conductance_delta_counts`, `maximum_conductance_delta_counts` | One composition attaining each conductance limit; element `d` counts coordinates whose symbol delta is `d` |
+
+```python
+query = [0] * matcher.vector_dimensions()
+stored = query.copy()
+stored[0] = 3
+samples = matcher.evaluate_distance_samples(stored, query)
+points = [(r.squared_euclidean_distance, r.matchline_voltage) for r in samples]
+bounds = matcher.distance_voltage_bounds(query)
+nominal_bounds = matcher.distance_voltage_bounds(query, include_variation=False)
+```
+
+The default bounds include the configured resistance sampler's support
+(nominal resistance plus or minus three standard deviations, with its positive
+resistance floor). They are support limits, not confidence intervals or
+observed sample minima and maxima. Voltages use the nominal sensing instant,
+the same reference used by the sampled voltage results. Cell and effective
+sampling have the same outer support limits but different correlations.
+Setting `include_variation=False` retains all stored-symbol compositions and
+uses nominal resistances; these bounds can have nonzero width even with zero
+variation. Only reachable distances are returned, which matters particularly
+for nonzero queries. Both analysis methods require MCAM and reject unsupported
+corner variation.
+
+For an all-zero query, `evaluate_zero_query_compositions()` exhaustively
+evaluates every distinct nominal delta-count composition. It is available for
+up to 16 vector dimensions; larger dimensions are rejected because the number
+of compositions grows too quickly. Each returned
+`EvaCAMMcamCompositionResult` has:
+
+| Attribute | Meaning |
+| --- | --- |
+| `delta_counts` | Counts for symbol deltas 0 through `num_resistance_state - 1`; the values sum to the vector dimensions |
+| `coordinate_permutations` | Number of concrete vectors represented by the count composition |
+| `result` | Nominal `EvaCAMMatchResult` for the composition |
+
+There are 6,435 distinct compositions for an eight-dimensional, eight-state
+MCAM and 245,157 for 16 dimensions. Coordinate permutations have the same
+nominal result, so callers can render one point whose size or color represents
+`coordinate_permutations`. The returned results include mixed compositions,
+such as one delta-2 coordinate and one delta-1 coordinate at squared distance
+5, as well as uniform-delta compositions.
+
+The voltage direction is opposite the conductance direction:
+`minimum_voltage` corresponds to `maximum_conductance_delta_counts`, and
+`maximum_voltage` corresponds to `minimum_conductance_delta_counts`. The same
+witness compositions identify the evaluated endpoints of the theoretical
+output bounds over the configured resistance support.
+
+`evaluate_zero_query_composition(delta_counts, resistance_sigma_offset=0)`
+evaluates one of these count vectors at a common resistance offset from -3 to
++3 standard deviations. This is useful for evaluating the bound witnesses at
+the theoretical support corners. It uses the configured per-state variation
+and rejects unsupported variation modes. Its result populates squared distance,
+matchline conductance, matchline voltage, matchline delay, and search latency;
+hit, energy, and sense diagnostics retain their default values.
+
 For `search_function: BE`, call `evaluate_array(stored_rows, query)`. EvaCAM
 marks every row at the minimum modeled conductance as a best match. Every
 returned row carries the same data-dependent best/runner-up voltage gap in

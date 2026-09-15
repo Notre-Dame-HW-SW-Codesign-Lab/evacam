@@ -165,7 +165,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory subarray-dimension-test test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-subarray-dimension-tester test-evacam-explorer test-pareto-pruner test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory subarray-dimension-test test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-subarray-dimension-tester test-evacam-explorer test-pareto-pruner test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-mcam-voltage-plot test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
 
 SUBARRAY_DIMENSION_TEST_CONFIG ?= config/2FeFET_MCAM/2FeFET_MCAM.subarray_dimension_test.yaml
 SUBARRAY_DIMENSION_TEST_JOBS ?= 4
@@ -183,9 +183,9 @@ check-unit-test-inventory:
 
 PYTHON_SCRIPT_TEST_TARGETS=test-python-package-data test-config-migration-scripts \
 		test-config-sync-script test-generation-scripts test-sweep-analysis-scripts \
-		test-plotting-scripts test-inventory-generator
+		test-plotting-scripts test-mcam-voltage-plot test-inventory-generator
 
-UNIT_TEST_TARGETS=test-test-support test-derived-values test-config-normalizer test-config-sections \
+UNIT_TEST_TARGETS=test-mcam-pair-response test-test-support test-derived-values test-config-normalizer test-config-sections \
 		test-output-file-lock \
 		test-evacam-config test-config-validators test-technology-variation-config \
 		test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches \
@@ -569,6 +569,9 @@ test-sweep-analysis-scripts:
 test-plotting-scripts:
 	MPLBACKEND=Agg python3 -m unittest tests/test_plotting_scripts.py
 
+test-mcam-voltage-plot:
+	MPLBACKEND=Agg python3 -m unittest tests/test_mcam_voltage_plot.py
+
 test-inventory-generator:
 	python3 -m unittest tests/test_unit_test_inventory_generator.py
 
@@ -689,3 +692,13 @@ test-all-valgrind: $(BIN)
 
 # the following takes 15 mins to pass valgrind, runs much faster without valgrind turned on
 #valgrind $(VALGRIND_FLAGS) ./EvaCAM config/2FeFET_TCAM_DSE/2FeFET_TCAM_DSE.config.yaml > /dev/null
+
+.PHONY: test-mcam-pair-response
+test-mcam-pair-response: $(OBJECTS_NO_MAIN) tests/McamPairResponseTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/McamPairResponseTest.d -MT $(TEST_BIN_DIR)/McamPairResponseTest -o $(TEST_BIN_DIR)/McamPairResponseTest tests/McamPairResponseTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/McamPairResponseTest
+
+.PHONY: test-mcam-distance-statistics
+test-mcam-distance-statistics: $(PYBIND_MODULE)
+	MPLCONFIGDIR=/tmp/evacam-matplotlib python3 tests/test_mcam_distance_statistics.py

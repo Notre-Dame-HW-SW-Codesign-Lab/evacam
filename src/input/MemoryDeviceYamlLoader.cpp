@@ -114,7 +114,7 @@ void validate_memory_device_keys(const YAML::Node& root) {
              "memory_device_resistance_off_max_var"},
             "memory_device.variation");
     reject_unknown_keys(child_optional(root, "mcam"),
-            {"num_resistance_state", "resistance_state", "state_variation",
+            {"num_resistance_state", "resistance_state", "pair_resistance", "state_variation",
              "ml_precharge_voltage", "searchline_voltage"},
             "memory_device.mcam");
 }

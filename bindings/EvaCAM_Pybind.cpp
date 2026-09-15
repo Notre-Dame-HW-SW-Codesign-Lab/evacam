@@ -3,6 +3,7 @@
 
 #include "EvaCAM_Match.h"
 #include "EvaCAMMatchResult.h"
+#include "EvaCAMMcamAnalysis.h"
 #include "EvaCamRun.h"
 #include "EvaCamRunResult.h"
 
@@ -30,6 +31,32 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("matchline_conductance",
                 &EvaCAMMatchResult::matchlineConductance)
         .def_readonly("matchline_voltage", &EvaCAMMatchResult::matchlineVoltage);
+
+    py::class_<EvaCAMDistanceVoltageBounds>(module, "EvaCAMDistanceVoltageBounds")
+        .def_readonly("squared_euclidean_distance",
+                &EvaCAMDistanceVoltageBounds::squaredEuclideanDistance)
+        .def_readonly("minimum_conductance",
+                &EvaCAMDistanceVoltageBounds::minimumConductance)
+        .def_readonly("maximum_conductance",
+                &EvaCAMDistanceVoltageBounds::maximumConductance)
+        .def_readonly("minimum_voltage", &EvaCAMDistanceVoltageBounds::minimumVoltage)
+        .def_readonly("maximum_voltage", &EvaCAMDistanceVoltageBounds::maximumVoltage)
+        .def_readonly("minimum_search_latency", &EvaCAMDistanceVoltageBounds::minimumSearchLatency)
+        .def_readonly("maximum_search_latency", &EvaCAMDistanceVoltageBounds::maximumSearchLatency)
+        .def_readonly("minimum_conductance_delta_counts",
+                &EvaCAMDistanceVoltageBounds::minimumConductanceDeltaCounts)
+        .def_readonly("maximum_conductance_delta_counts",
+                &EvaCAMDistanceVoltageBounds::maximumConductanceDeltaCounts)
+        .def_readonly("minimum_conductance_stored", &EvaCAMDistanceVoltageBounds::minimumConductanceStored)
+        .def_readonly("minimum_conductance_query", &EvaCAMDistanceVoltageBounds::minimumConductanceQuery)
+        .def_readonly("maximum_conductance_stored", &EvaCAMDistanceVoltageBounds::maximumConductanceStored)
+        .def_readonly("maximum_conductance_query", &EvaCAMDistanceVoltageBounds::maximumConductanceQuery)
+        .def_readonly("sensing_time", &EvaCAMDistanceVoltageBounds::sensingTime);
+
+    py::class_<EvaCAMMcamCompositionResult>(module, "EvaCAMMcamCompositionResult")
+        .def_readonly("delta_counts", &EvaCAMMcamCompositionResult::deltaCounts)
+        .def_readonly("coordinate_permutations", &EvaCAMMcamCompositionResult::coordinatePermutations)
+        .def_readonly("result", &EvaCAMMcamCompositionResult::result);
 
     py::class_<EvaCAM_Match>(module, "EvaCAMMatch")
         .def(py::init<const std::string &>(), py::arg("config_path"))
@@ -80,6 +107,17 @@ PYBIND11_MODULE(evacam_py, module) {
                 py::arg("stored"), py::arg("query"))
         .def("evaluate_distance", &EvaCAM_Match::evaluate_distance,
                 py::arg("stored"), py::arg("query"))
+        .def("evaluate_distance_samples", &EvaCAM_Match::evaluate_distance_samples,
+                py::arg("stored"), py::arg("query"))
+        .def("sense_mcam_conductances", &EvaCAM_Match::sense_mcam_conductances,
+                py::arg("conductances"))
+        .def("distance_voltage_bounds", &EvaCAM_Match::distance_voltage_bounds,
+                py::arg("query"), py::arg("include_variation") = true)
+        .def("evaluate_zero_query_compositions",
+                &EvaCAM_Match::evaluate_zero_query_compositions)
+        .def("evaluate_zero_query_composition",
+                &EvaCAM_Match::evaluate_zero_query_composition,
+                py::arg("delta_counts"), py::arg("resistance_sigma_offset") = 0)
         .def("evaluate_bits", &EvaCAM_Match::evaluate_bits,
                 py::arg("stored_bits"), py::arg("query_bits"))
         .def("word_width", &EvaCAM_Match::word_width)

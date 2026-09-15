@@ -1,0 +1,52 @@
+schema: memory_device
+name: 2FeFET-MCAM
+type: FEFETRAM
+resistance:
+  'on': 22900ohm
+  'off': 1600Mohm
+read:
+  mode: voltage
+  voltage: 1V
+  current: 5.62uA
+  power: 5.62uW
+  # Realistic minimum detectable voltage assumed for the sense amplifier.
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ
+mcam:
+  num_resistance_state: 8
+  # Provisional device data; replace with calibrated values when available.
+  resistance_state:
+  - 1.616Mohm
+  - 854.7kohm
+  - 283.3kohm
+  - 108.3kohm
+  - 52.91kohm
+  - 33kohm
+  - 24.39kohm
+  - 20.04kohm
+  # Provisional 3-bit search inputs from Kazemi et al., Scientific Reports
+  # 12, 19201 (2022), Supplementary Fig. 1. The production model is driven by
+  # these configured values and does not claim numerical correlation yet.
+  # EvaCAM sorts the table and applies V[s] and V[N - 1 - s] to the paired
+  # FeFET gates. Each reversed pair sums to 1.1V, so the derived center is 550mV.
+  searchline_voltage: [25mV, 175mV, 325mV, 475mV, 625mV, 775mV, 925mV, 1075mV]
+  # Illustrative independent per-state resistance standard deviations.
+  state_variation: [5%, 5%, 5%, 5%, 5%, 5%, 5%, 5%]
+
+variation:
+  mode: monte_carlo
+  samples: 1000
+  seed: 9876
+  monte_carlo_granularity: cell

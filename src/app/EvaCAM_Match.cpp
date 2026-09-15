@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <mutex>
+#include <numeric>
 #include <stdexcept>
 
 #include "Bank.h"
@@ -328,6 +329,99 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_distance(
     return bank->mat->subarray->EvaluateMcamDistance(stored, query);
 }
 
+std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_distance_samples(
+        const std::vector<int> &stored, const std::vector<int> &query) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: distance samples are only valid for MCAM.");
+    }
+    ValidateMcamVector(stored, "stored");
+    ValidateMcamVector(query, "query");
+    return bank->mat->subarray->EvaluateMcamDistanceSamples(stored, query);
+}
+
+std::vector<double> EvaCAM_Match::sense_mcam_conductances(
+        const std::vector<double> &conductances) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: conductance sensing is only valid for MCAM.");
+    }
+    std::vector<double> voltages;
+    voltages.reserve(conductances.size());
+    for (double conductance : conductances) {
+        voltages.push_back(bank->mat->subarray->McamSensedVoltage(conductance));
+    }
+    return voltages;
+}
+
+std::vector<EvaCAMDistanceVoltageBounds> EvaCAM_Match::distance_voltage_bounds(
+        const std::vector<int> &query, bool includeVariation) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument("[EvaCAM_Match] Error: distance voltage bounds are only valid for MCAM.");
+    }
+    if (!query.empty() || config->technology.cell->mcamPairResistance.empty()) {
+        ValidateMcamVector(query, "query");
+    }
+    return bank->mat->subarray->McamDistanceVoltageBounds(query, includeVariation);
+}
+
+std::vector<EvaCAMMcamCompositionResult> EvaCAM_Match::evaluate_zero_query_compositions() const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: distance compositions are only valid for MCAM.");
+    }
+    const size_t dimensions = vector_dimensions();
+    if (dimensions > 16) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: exhaustive distance compositions are limited to 16 dimensions.");
+    }
+    const size_t stateCount = static_cast<size_t>(config->technology.cell->numResistanceState);
+    std::vector<EvaCAMMcamCompositionResult> compositions;
+    std::vector<int> counts(stateCount, 0);
+    std::vector<int> query(dimensions, 0);
+    std::vector<int> stored;
+    stored.reserve(dimensions);
+
+    const auto enumerate = [&](const auto &self, size_t state, size_t remaining) -> void {
+        if (state + 1 != stateCount) {
+            for (size_t count = 0; count <= remaining; ++count) {
+                counts[state] = static_cast<int>(count);
+                self(self, state + 1, remaining - count);
+            }
+            return;
+        }
+        counts[state] = static_cast<int>(remaining);
+        stored.clear();
+        std::uint64_t permutations = 1;
+        size_t placed = 0;
+        for (size_t delta = 0; delta < stateCount; ++delta) {
+            stored.insert(stored.end(), counts[delta], static_cast<int>(delta));
+            for (int index = 1; index <= counts[delta]; ++index) {
+                permutations = permutations * (placed + static_cast<size_t>(index))
+                    / static_cast<size_t>(index);
+            }
+            placed += static_cast<size_t>(counts[delta]);
+        }
+        compositions.push_back({counts, permutations,
+                bank->mat->subarray->EvaluateMcamNominalDistance(stored, query)});
+    };
+    enumerate(enumerate, 0, dimensions);
+    return compositions;
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_zero_query_composition(
+        const std::vector<int> &deltaCounts, double resistanceSigmaOffset) const {
+    EnsureInitialized();
+    if (config->technology.cell->camType != MCAM) {
+        throw std::invalid_argument(
+                "[EvaCAM_Match] Error: distance compositions are only valid for MCAM.");
+    }
+    return bank->mat->subarray->EvaluateMcamZeroQueryComposition(
+            deltaCounts, resistanceSigmaOffset);
+}
+
 EvaCAMMatchResult EvaCAM_Match::evaluate_symbols(
         const std::vector<int> &stored, const std::vector<int> &query) const {
     return evaluate_vector(stored, query);
@@ -621,6 +715,19 @@ void EvaCAM_Match::ValidateMcamThreshold(double maxSquaredDistance) const {
 double EvaCAM_Match::McamThresholdVoltageMargin(
         const std::vector<int> &query,
         double maxSquaredDistance) const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        const auto bounds = bank->mat->subarray->McamDistanceVoltageBounds(query, false);
+        double lowestAccepted = std::numeric_limits<double>::infinity();
+        double highestRejected = -std::numeric_limits<double>::infinity();
+        for (const auto &bound : bounds) {
+            if (bound.squaredEuclideanDistance <= maxSquaredDistance) {
+                lowestAccepted = std::min(lowestAccepted, bound.minimumVoltage);
+            } else {
+                highestRejected = std::max(highestRejected, bound.maximumVoltage);
+            }
+        }
+        return lowestAccepted - highestRejected;
+    }
     const auto &cell = *config->technology.cell;
     std::vector<double> orderedResistances(
             cell.ResistanceState,

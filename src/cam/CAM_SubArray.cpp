@@ -3,6 +3,7 @@
  */
 
 #include "CAM_SubArray.h"
+#include "McamPairResponse.h"
 #include "formula.h"
 #include "constant.h"
 #include "CAM_Line.h"
@@ -14,6 +15,7 @@
 #include <iomanip>
 #include <string>
 #include <map>
+#include <numeric>
 #include <random>
 #include <sstream>
 #include <stdexcept>
@@ -957,6 +959,11 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                     oneMismatchState = state;
                 }
             }
+            const bool pairMode = !config->technology.cell->mcamPairResistance.empty();
+            if (pairMode) {
+                // Use the slowest nominal EXACT match, not a mismatch reference.
+                oneMismatchState = 0;
+            }
             voltagePrecharge = McamPrechargeVoltage(static_cast<int>(oneMismatchState));
             resTotalCell = effectiveMcamResistances[oneMismatchState];
             tau = mcamStateTaus[oneMismatchState];
@@ -964,7 +971,25 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             referDelay = matchlineDelay;
             senseMargin = MatchlineSenseMargin(
                     mcamStateTaus.front(), tau, referDelay);
-            if (!std::isfinite(senseMargin) || senseMargin <= 0) {
+            if (pairMode) {
+                const auto &pairs = config->technology.cell->mcamPairResistance;
+                double maximumDiagonalG = 0;
+                double minimumAnyG = std::numeric_limits<double>::infinity();
+                double minimumMismatchG = std::numeric_limits<double>::infinity();
+                for (size_t stored = 0; stored < pairs.size(); ++stored) {
+                    maximumDiagonalG = std::max(maximumDiagonalG, 1.0 / pairs[stored][stored]);
+                    for (size_t query = 0; query < pairs.size(); ++query) {
+                        const double g = 1.0 / pairs[stored][query];
+                        minimumAnyG = std::min(minimumAnyG, g);
+                        if (stored != query) {
+                            minimumMismatchG = std::min(minimumMismatchG, g);
+                        }
+                    }
+                }
+                senseMargin = McamSensedVoltage(CAM_opt.BitSerialWidth * maximumDiagonalG)
+                    - McamSensedVoltage((CAM_opt.BitSerialWidth - 1) * minimumAnyG + minimumMismatchG);
+            }
+            if (!std::isfinite(senseMargin) || (!pairMode && senseMargin <= 0)) {
                 invalid = true;
                 logger.Verbose()
                     << "[CAM_SubArray] MCAM exact-match boundary has no finite positive margin.";
@@ -1542,6 +1567,21 @@ double CAM_SubArray::CalculateMcamQuerySearchlineDriveEnergy(
 }
 
 std::vector<double> CAM_SubArray::EffectiveMcamStateResistances() const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        const auto &cell = *config->technology.cell;
+        ValidateMcamPairResistance(cell.mcamPairResistance);
+        if (config->variation.enabled) {
+            throw std::invalid_argument("MCAM pair_resistance currently requires variation to be disabled.");
+        }
+        if (cell.hasMcamPrechargeVoltages) {
+            for (int state = 1; state < cell.numResistanceState; ++state) {
+                if (cell.mlPrechargeVoltage[state] != cell.mlPrechargeVoltage[0]) {
+                    throw std::invalid_argument("MCAM pair_resistance requires a common matchline precharge voltage.");
+                }
+            }
+        }
+        return {McamAllMatchEffectiveResistance(), McamBoundaryMismatchEffectiveResistance()};
+    }
     const auto &cell = *config->technology.cell;
     if (cell.numResistanceState <= 0) {
         throw std::runtime_error("[CAM_SubArray] Error: MCAM resistance states are not initialized.");
@@ -1566,30 +1606,80 @@ double CAM_SubArray::McamDistanceResistance(
     if (distance < 0 || distance >= cell.numResistanceState) {
         throw std::invalid_argument("[CAM_SubArray] Error: MCAM symbol distance is out of range.");
     }
-    const std::vector<int> order = McamResistanceOrder();
-    const int rawState = order[distance];
+    // Keep one bounded cache per thread, so const evaluations of the same
+    // matcher remain independent across threads. The full sampling key also
+    // permits safe reuse across subarrays with identical state distributions.
+    struct StateSampleCache {
+        std::vector<double> key;
+        std::vector<int> order;
+        std::vector<double> resistance;
+    };
+    static thread_local StateSampleCache cache;
+    auto &mcamSampleCacheKey = cache.key;
+    auto &mcamSampleResistanceOrder = cache.order;
+    auto &mcamSampleResistanceCache = cache.resistance;
+    const auto &variation = config->variation;
+    const int sampleCount = variation.mode == "single_point" ? 1 : std::max(1, variation.samples);
+    const int cellCount = variation.monteCarloGranularity == "cell" ? CAM_opt.BitSerialWidth : 1;
+    bool cacheMatches = mcamSampleCacheKey.size() == static_cast<size_t>(5 + 2 * cell.numResistanceState)
+        && mcamSampleCacheKey[0] == variation.seed
+        && mcamSampleCacheKey[1] == sampleCount && mcamSampleCacheKey[2] == cellCount
+        && mcamSampleCacheKey[3] == variation.enabled
+        && mcamSampleCacheKey[4] == cell.hasMcamStateVariations;
+    for (int state = 0; cacheMatches && state < cell.numResistanceState; ++state) {
+        cacheMatches = mcamSampleCacheKey[5 + 2 * state] == cell.ResistanceState[state]
+            && mcamSampleCacheKey[6 + 2 * state] == cell.resStateVariation[state];
+    }
+    if (!cacheMatches) {
+        mcamSampleCacheKey = {static_cast<double>(variation.seed),
+            static_cast<double>(sampleCount), static_cast<double>(cellCount),
+            static_cast<double>(variation.enabled), static_cast<double>(cell.hasMcamStateVariations)};
+        for (int state = 0; state < cell.numResistanceState; ++state) {
+            mcamSampleCacheKey.push_back(cell.ResistanceState[state]);
+            mcamSampleCacheKey.push_back(cell.resStateVariation[state]);
+        }
+        mcamSampleResistanceOrder = McamResistanceOrder();
+        mcamSampleResistanceCache.clear();
+    }
+    const int rawState = mcamSampleResistanceOrder[distance];
     const double nominal = cell.ResistanceState[rawState];
-    if (sampleIndex < 0 || !cell.hasMcamStateVariations
-            || !config->variation.enabled
-            || (config->variation.mode != "single_point"
-                && config->variation.mode != "monte_carlo")) {
+    if (sampleIndex < 0 || !cell.hasMcamStateVariations || !variation.enabled
+            || (variation.mode != "single_point" && variation.mode != "monte_carlo")) {
         return nominal;
     }
-
-    const int sampleCellIndex = config->variation.monteCarloGranularity == "cell"
-        ? cellIndex : 0;
-    VariationSampler sampler(MixVariationSeed(
-            config->variation.seed,
-            static_cast<uint32_t>(sampleIndex),
-            static_cast<uint32_t>(100 + rawState),
-            static_cast<uint32_t>(sampleCellIndex)));
-    return sampler.SampleResistance(nominal, cell.resStateVariation[rawState]);
+    const int sampleCellIndex = variation.monteCarloGranularity == "cell" ? cellIndex : 0;
+    if (mcamSampleResistanceCache.empty()) {
+        mcamSampleResistanceCache.resize(static_cast<size_t>(sampleCount)
+                * cellCount * cell.numResistanceState, 0);
+    }
+    const size_t cacheIndex = (static_cast<size_t>(sampleIndex) * cellCount
+            + sampleCellIndex) * cell.numResistanceState + rawState;
+    double &cached = mcamSampleResistanceCache.at(cacheIndex);
+    if (cached == 0) {
+        VariationSampler sampler(MixVariationSeed(variation.seed,
+                static_cast<uint32_t>(sampleIndex), static_cast<uint32_t>(100 + rawState),
+                static_cast<uint32_t>(sampleCellIndex)));
+        cached = sampler.SampleResistance(nominal, cell.resStateVariation[rawState]);
+    }
+    return cached;
 }
 
 double CAM_SubArray::McamVectorEffectiveResistance(
         const std::vector<int> &stored,
         const std::vector<int> &query,
         int sampleIndex) const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        McamSquaredEuclideanDistance(stored, query);
+        if (sampleIndex >= 0 && config->variation.enabled) {
+            throw std::invalid_argument("MCAM pair_resistance does not support variation sampling yet.");
+        }
+        const auto &pairs = config->technology.cell->mcamPairResistance;
+        double conductance = 0;
+        for (size_t coordinate = 0; coordinate < stored.size(); ++coordinate) {
+            conductance += 1.0 / pairs.at(stored[coordinate]).at(query[coordinate]);
+        }
+        return 1.0 / conductance;
+    }
     const auto &cell = *config->technology.cell;
     if (stored.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)
             || query.size() != stored.size()) {
@@ -1638,6 +1728,14 @@ double CAM_SubArray::McamSquaredEuclideanDistance(
 }
 
 double CAM_SubArray::McamAllMatchEffectiveResistance(int sampleIndex) const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        const auto &pairs = config->technology.cell->mcamPairResistance;
+        double slowestResistance = 0;
+        for (size_t state = 0; state < pairs.size(); ++state) {
+            slowestResistance = std::max(slowestResistance, pairs[state][state]);
+        }
+        return slowestResistance / CAM_opt.BitSerialWidth;
+    }
     double conductance = 0;
     for (int cellIndex = 0; cellIndex < CAM_opt.BitSerialWidth; cellIndex++) {
         conductance += 1.0 / McamDistanceResistance(0, sampleIndex, cellIndex);
@@ -1646,6 +1744,19 @@ double CAM_SubArray::McamAllMatchEffectiveResistance(int sampleIndex) const {
 }
 
 double CAM_SubArray::McamBoundaryMismatchEffectiveResistance(int sampleIndex) const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        const auto &pairs = config->technology.cell->mcamPairResistance;
+        double minimumDiagonalG = std::numeric_limits<double>::infinity();
+        double minimumAdjacentG = std::numeric_limits<double>::infinity();
+        for (size_t state = 0; state < pairs.size(); ++state) {
+            minimumDiagonalG = std::min(minimumDiagonalG, 1.0 / pairs[state][state]);
+            if (state + 1 < pairs.size()) {
+                minimumAdjacentG = std::min({minimumAdjacentG,
+                        1.0 / pairs[state][state + 1], 1.0 / pairs[state + 1][state]});
+            }
+        }
+        return 1.0 / ((CAM_opt.BitSerialWidth - 1) * minimumDiagonalG + minimumAdjacentG);
+    }
     if (config->technology.cell->numResistanceState < 2) {
         throw std::runtime_error("[CAM_SubArray] Error: MCAM requires at least two resistance states.");
     }
@@ -1657,6 +1768,10 @@ double CAM_SubArray::McamBoundaryMismatchEffectiveResistance(int sampleIndex) co
 }
 
 double CAM_SubArray::McamPrechargeVoltage(int distance) const {
+    if (!config->technology.cell->mcamPairResistance.empty()
+            && config->technology.cell->hasMcamPrechargeVoltages) {
+        return config->technology.cell->mlPrechargeVoltage[0];
+    }
     const auto &cell = *config->technology.cell;
     if (!cell.hasMcamPrechargeVoltages) {
         return config->technology.tech->vdd();
@@ -1669,6 +1784,12 @@ double CAM_SubArray::McamPrechargeVoltage(int distance) const {
 }
 
 std::vector<double> CAM_SubArray::OrderedMcamSearchlineVoltages() const {
+    if (!config->technology.cell->mcamPairResistance.empty()
+            && config->technology.cell->hasMcamSearchlineVoltages) {
+        const auto &cell = *config->technology.cell;
+        return std::vector<double>(cell.searchlineVoltage,
+                cell.searchlineVoltage + cell.numResistanceState);
+    }
     const auto &cell = *config->technology.cell;
     if (!cell.hasMcamSearchlineVoltages) {
         throw std::runtime_error(
@@ -1752,15 +1873,19 @@ double CAM_SubArray::McamMatchlineDynamicEnergy(
         * numColumn / muxSenseAmp;
 }
 
+double CAM_SubArray::McamSensingTime() const {
+    const double referenceResistance = config->technology.cell->mcamPairResistance.empty()
+        ? McamBoundaryMismatchEffectiveResistance() : McamAllMatchEffectiveResistance();
+    double ramp = 0;
+    return McamStateDelay(McamStateTau(referenceResistance, matchlineWireRes), &ramp);
+}
+
 double CAM_SubArray::McamSensedVoltage(double matchlineConductance) const {
     if (matchlineConductance <= 0 || !std::isfinite(matchlineConductance)) {
         throw std::invalid_argument(
                 "[CAM_SubArray] Error: MCAM matchline conductance must be finite and positive.");
     }
-    const double boundaryResistance = McamBoundaryMismatchEffectiveResistance();
-    const double boundaryTau = McamStateTau(boundaryResistance, matchlineWireRes);
-    double boundaryRamp = 0;
-    const double senseTime = McamStateDelay(boundaryTau, &boundaryRamp);
+    const double senseTime = McamSensingTime();
     const double actualTau = McamStateTau(1.0 / matchlineConductance, matchlineWireRes);
     return McamPrechargeVoltage(1) * std::exp(-senseTime / actualTau);
 }
@@ -1769,6 +1894,29 @@ EvaCAMMatchResult CAM_SubArray::EvaluateMcamExactMatchSample(
         const std::vector<int> &stored,
         const std::vector<int> &query,
         int sampleIndex) const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        const double resistance = McamVectorEffectiveResistance(stored, query, sampleIndex);
+        double ramp = 0;
+        const double delay = McamStateDelay(McamStateTau(resistance, matchlineWireRes), &ramp);
+        const double peripheralLatency = std::max(0.0, searchLatency - matchlineDelay);
+        const double peripheralEnergy = std::max(0.0,
+                searchDynamicEnergy - searchlineDriveDynamicEnergy - mcamMatchlineDynamicEnergy);
+        EvaCAMMatchResult result{};
+        // Equality is the requested logical decision. The signed electrical
+        // margin explicitly records when no global threshold can implement it.
+        result.hit = stored == query;
+        result.squaredEuclideanDistance = McamSquaredEuclideanDistance(stored, query);
+        result.matchlineConductance = 1.0 / resistance;
+        result.matchlineVoltage = McamSensedVoltage(result.matchlineConductance);
+        result.matchlineDelay = delay;
+        result.searchLatency = peripheralLatency + delay;
+        result.searchDynamicEnergy = peripheralEnergy
+            + CalculateMcamQuerySearchlineDriveEnergy(query)
+            + McamMatchlineDynamicEnergy(resistance, McamSensingTime(), McamPrechargeVoltage(0));
+        result.senseMargin = senseMargin;
+        SetSenseDiagnostics(result, senseVoltage);
+        return result;
+    }
     const double allMatchResistance = McamAllMatchEffectiveResistance(sampleIndex);
     const double boundaryResistance =
         McamBoundaryMismatchEffectiveResistance(sampleIndex);
@@ -1874,6 +2022,222 @@ EvaCAMMatchResult CAM_SubArray::EvaluateMcamDistance(
     return mean;
 }
 
+std::vector<EvaCAMMatchResult> CAM_SubArray::EvaluateMcamDistanceSamples(
+        const std::vector<int> &stored, const std::vector<int> &query) const {
+    if (!initialized || invalid || config->technology.cell->camType != MCAM) {
+        throw std::runtime_error("[CAM_SubArray] Error: require a valid initialized MCAM subarray.");
+    }
+    const auto &variation = config->variation;
+    if (variation.enabled && variation.mode != "single_point"
+            && variation.mode != "monte_carlo") {
+        throw std::invalid_argument("[CAM_SubArray] Error: MCAM analysis does not support this variation mode.");
+    }
+    // Validate even when only the nominal sample is requested.
+    McamSquaredEuclideanDistance(stored, query);
+    if (!variation.enabled) {
+        return {EvaluateMcamExactMatchSample(stored, query, -1)};
+    }
+    const int count = variation.mode == "single_point" ? 1 : std::max(1, variation.samples);
+    std::vector<EvaCAMMatchResult> samples;
+    samples.reserve(count);
+    for (int index = 0; index < count; ++index) {
+        samples.push_back(EvaluateMcamExactMatchSample(stored, query, index));
+    }
+    return samples;
+}
+
+EvaCAMMatchResult CAM_SubArray::EvaluateMcamNominalDistance(
+        const std::vector<int> &stored, const std::vector<int> &query) const {
+    if (!initialized || invalid || config->technology.cell->camType != MCAM) {
+        throw std::runtime_error("[CAM_SubArray] Error: require a valid initialized MCAM subarray.");
+    }
+    McamSquaredEuclideanDistance(stored, query);
+    return EvaluateMcamExactMatchSample(stored, query, -1);
+}
+
+EvaCAMMatchResult CAM_SubArray::EvaluateMcamZeroQueryComposition(
+        const std::vector<int> &deltaCounts, double resistanceSigmaOffset) const {
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        if (deltaCounts.size() != config->technology.cell->mcamPairResistance.size()
+                || resistanceSigmaOffset != 0) {
+            throw std::invalid_argument("MCAM pair compositions require one count per state and zero sigma offset.");
+        }
+        long long count = 0;
+        for (int value : deltaCounts) {
+            if (value < 0) {
+                throw std::invalid_argument("MCAM composition counts must be nonnegative.");
+            }
+            count += value;
+        }
+        if (count != CAM_opt.BitSerialWidth) {
+            throw std::invalid_argument("MCAM composition counts must sum to the vector dimensions.");
+        }
+        std::vector<int> stored;
+        for (size_t state = 0; state < deltaCounts.size(); ++state) {
+            stored.insert(stored.end(), deltaCounts[state], static_cast<int>(state));
+        }
+        return EvaluateMcamNominalDistance(stored, std::vector<int>(stored.size(), 0));
+    }
+    if (!initialized || invalid || config->technology.cell->camType != MCAM) {
+        throw std::runtime_error("[CAM_SubArray] Error: require a valid initialized MCAM subarray.");
+    }
+    const auto &cell = *config->technology.cell;
+    if (deltaCounts.size() != static_cast<size_t>(cell.numResistanceState)
+            || std::any_of(deltaCounts.begin(), deltaCounts.end(),
+                    [](int count) { return count < 0; })
+            || std::accumulate(deltaCounts.begin(), deltaCounts.end(), 0LL)
+                    != static_cast<long long>(CAM_opt.BitSerialWidth)) {
+        throw std::invalid_argument(
+                "[CAM_SubArray] Error: delta counts must be non-negative and sum to vector dimensions.");
+    }
+    if (!std::isfinite(resistanceSigmaOffset)
+            || resistanceSigmaOffset < -3 || resistanceSigmaOffset > 3) {
+        throw std::invalid_argument(
+                "[CAM_SubArray] Error: resistance sigma offset must be finite and within [-3, 3].");
+    }
+    if (config->variation.enabled && config->variation.mode != "single_point"
+            && config->variation.mode != "monte_carlo") {
+        throw std::invalid_argument(
+                "[CAM_SubArray] Error: MCAM analysis does not support this variation mode.");
+    }
+    const auto order = McamResistanceOrder();
+    std::vector<double> conductance(cell.numResistanceState);
+    for (int delta = 0; delta < cell.numResistanceState; ++delta) {
+        const int rawState = order[delta];
+        const double nominal = cell.ResistanceState[rawState];
+        const double sigma = config->variation.enabled && cell.hasMcamStateVariations
+            ? nominal * cell.resStateVariation[rawState] : 0;
+        const double resistance = std::max(nominal * 1e-12,
+                nominal + resistanceSigmaOffset * sigma);
+        conductance[delta] = 1.0 / resistance;
+    }
+    double totalConductance = 0;
+    double distance = 0;
+    for (int delta = 0; delta < cell.numResistanceState; ++delta) {
+        totalConductance += deltaCounts[delta] * conductance[delta];
+        distance += deltaCounts[delta] * delta * delta;
+    }
+    double timingConductance = totalConductance;
+    if (distance == 0) {
+        timingConductance = conductance[1]
+            + (CAM_opt.BitSerialWidth - 1) * conductance[0];
+    }
+    double ramp = 0;
+    const double delay = McamStateDelay(
+            McamStateTau(1.0 / timingConductance, matchlineWireRes), &ramp);
+    const double peripheralLatency = std::max(0.0, searchLatency - matchlineDelay);
+    EvaCAMMatchResult result{};
+    result.squaredEuclideanDistance = distance;
+    result.matchlineConductance = totalConductance;
+    result.matchlineVoltage = McamSensedVoltage(totalConductance);
+    result.matchlineDelay = delay;
+    result.searchLatency = peripheralLatency + delay;
+    return result;
+}
+
+std::vector<EvaCAMDistanceVoltageBounds> CAM_SubArray::McamDistanceVoltageBounds(
+        const std::vector<int> &query, bool includeVariation) const {
+    if (!initialized || invalid || config->technology.cell->camType != MCAM) {
+        throw std::runtime_error("[CAM_SubArray] Error: require a valid initialized MCAM subarray.");
+    }
+    if (!config->technology.cell->mcamPairResistance.empty()) {
+        auto bounds = McamPairConductanceBounds(config->technology.cell->mcamPairResistance,
+                CAM_opt.BitSerialWidth, query);
+        const double peripheralLatency = std::max(0.0, searchLatency - matchlineDelay);
+        for (auto &bound : bounds) {
+            bound.minimumVoltage = McamSensedVoltage(bound.maximumConductance);
+            bound.maximumVoltage = McamSensedVoltage(bound.minimumConductance);
+            double ramp = 0;
+            bound.minimumSearchLatency = peripheralLatency + McamStateDelay(
+                    McamStateTau(1.0 / bound.maximumConductance, matchlineWireRes), &ramp);
+            bound.maximumSearchLatency = peripheralLatency + McamStateDelay(
+                    McamStateTau(1.0 / bound.minimumConductance, matchlineWireRes), &ramp);
+            bound.sensingTime = McamSensingTime();
+        }
+        return bounds;
+    }
+    McamSquaredEuclideanDistance(query, query);
+    const auto &variation = config->variation;
+    if (variation.enabled && variation.mode != "single_point"
+            && variation.mode != "monte_carlo") {
+        throw std::invalid_argument("[CAM_SubArray] Error: MCAM analysis does not support this variation mode.");
+    }
+    const auto &cell = *config->technology.cell;
+    const auto order = McamResistanceOrder();
+    std::vector<double> minimum(cell.numResistanceState), maximum(cell.numResistanceState);
+    for (int delta = 0; delta < cell.numResistanceState; ++delta) {
+        const int rawState = order[delta];
+        const double nominal = cell.ResistanceState[rawState];
+        const double sigma = includeVariation && variation.enabled && cell.hasMcamStateVariations
+            ? nominal * cell.resStateVariation[rawState] : 0;
+        // These are exactly VariationSampler's admissible resistance endpoints.
+        minimum[delta] = 1.0 / (nominal + 3.0 * sigma);
+        maximum[delta] = 1.0 / std::max(nominal * 1e-12, nominal - 3.0 * sigma);
+    }
+    // At each reachable integer distance retain the extremal conductance sums.
+    // Shared effective-state variation has the same extrema: all coefficients
+    // are positive, so every state can simultaneously attain its endpoint.
+    struct BoundState {
+        double minimum = 0;
+        double maximum = 0;
+        std::vector<int> minimumCounts;
+        std::vector<int> maximumCounts;
+    };
+    BoundState initial;
+    initial.minimumCounts.assign(cell.numResistanceState, 0);
+    initial.maximumCounts.assign(cell.numResistanceState, 0);
+    std::map<size_t, BoundState> bounds{{0, initial}};
+    for (int symbol : query) {
+        std::map<size_t, BoundState> next;
+        const int maxDelta = std::max(symbol, cell.numResistanceState - 1 - symbol);
+        for (const auto &entry : bounds) {
+            for (int delta = 0; delta <= maxDelta; ++delta) {
+                const size_t distance = entry.first + static_cast<size_t>(delta) * delta;
+                const double low = entry.second.minimum + minimum[delta];
+                const double high = entry.second.maximum + maximum[delta];
+                auto lowCounts = entry.second.minimumCounts;
+                auto highCounts = entry.second.maximumCounts;
+                lowCounts[delta]++;
+                highCounts[delta]++;
+                const auto inserted = next.emplace(distance,
+                        BoundState{low, high, lowCounts, highCounts});
+                if (!inserted.second) {
+                    if (low < inserted.first->second.minimum) {
+                        inserted.first->second.minimum = low;
+                        inserted.first->second.minimumCounts = std::move(lowCounts);
+                    }
+                    if (high > inserted.first->second.maximum) {
+                        inserted.first->second.maximum = high;
+                        inserted.first->second.maximumCounts = std::move(highCounts);
+                    }
+                }
+            }
+        }
+        bounds.swap(next);
+    }
+    std::vector<EvaCAMDistanceVoltageBounds> result;
+    result.reserve(bounds.size());
+    const double peripheralLatency = std::max(0.0, searchLatency - matchlineDelay);
+    for (const auto &entry : bounds) {
+        // Exact matches use the one-unit-mismatch boundary delay, rather than
+        // the all-match discharge delay, just as EvaluateMcamExactMatchSample.
+        const double minimumTimingConductance = entry.first == 0
+            ? minimum[1] + (query.size() - 1) * minimum[0] : entry.second.minimum;
+        const double maximumTimingConductance = entry.first == 0
+            ? maximum[1] + (query.size() - 1) * maximum[0] : entry.second.maximum;
+        double ramp = 0;
+        const double minimumLatency = peripheralLatency + McamStateDelay(
+                McamStateTau(1.0 / maximumTimingConductance, matchlineWireRes), &ramp);
+        const double maximumLatency = peripheralLatency + McamStateDelay(
+                McamStateTau(1.0 / minimumTimingConductance, matchlineWireRes), &ramp);
+        result.push_back({static_cast<double>(entry.first), entry.second.minimum,
+                entry.second.maximum, McamSensedVoltage(entry.second.maximum),
+                McamSensedVoltage(entry.second.minimum), minimumLatency, maximumLatency,
+                entry.second.minimumCounts, entry.second.maximumCounts});
+    }
+    return result;
+}
+
 void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
     const auto &cell = *config->technology.cell;
 
@@ -1882,7 +2246,16 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
     }
     if (internalSenseAmp) {
         if (cell.camType == MCAM) {
-            senseAmp->CalculateLatency(senseMargin);
+            if (!cell.mcamPairResistance.empty() && senseMargin <= 0
+                    && !config->peripherals.strictSenseMargin) {
+                // A signed overlap is not a valid amplifier input voltage.
+                // Keep the failed separation diagnostic, but use the configured
+                // amplifier budget for exploratory nominal path timing. This is
+                // not a claim that the overlapping responses can be resolved.
+                senseAmp->CalculateLatency();
+            } else {
+                senseAmp->CalculateLatency(senseMargin);
+            }
         } else {
             senseAmp->CalculateLatency();
         }

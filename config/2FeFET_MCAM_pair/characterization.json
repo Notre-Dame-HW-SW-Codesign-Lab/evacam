@@ -1,0 +1,14 @@
+{
+  "source": "https://www.nature.com/articles/s41598-022-23116-w",
+  "figure": "1d",
+  "extracted_current_csv": "../../results/mcam_pair_characterization/fig1d_pair_currents.csv",
+  "assumed_measurement_bias_v": 1.1,
+  "bias_confirmed": false,
+  "pair_order": "[stored_symbol][query_symbol]",
+  "effective_resistance_formula": "1.1 / current_a",
+  "extrapolated_query_symbols": [
+    0
+  ],
+  "model": "nominal constant effective resistance for complete dual cell",
+  "statistical_uncertainty_model": null
+}
