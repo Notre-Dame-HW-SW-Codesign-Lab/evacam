@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot nominal MCAM composition and bounded state-variation voltage and latency ranges."""
+"""Plot MCAM distance statistics; --mode support-bounds selects historical extrema plots."""
 
 import argparse
 from collections import defaultdict
@@ -456,6 +456,12 @@ def generate_run(config, directory, *, samples=None, seed=None, granularity=None
 
 
 def main(argv=None):
+    mode_parser = argparse.ArgumentParser(add_help=False)
+    mode_parser.add_argument("--mode", choices=("statistics", "support-bounds"), default="statistics")
+    mode, remaining = mode_parser.parse_known_args(argv)
+    if mode.mode == "statistics":
+        from plot_mcam_distance_statistics import main as statistics_main
+        return statistics_main(remaining)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config-root", type=Path, default=REPO_ROOT / "config/2FeFET_MCAM_variation")
     parser.add_argument("--output-dir", type=Path,
@@ -470,7 +476,7 @@ def main(argv=None):
                         help="Target compositions for Monte Carlo; mandatory distance/witness coverage may exceed it (default: 1600)")
     parser.add_argument("--metric", choices=("voltage", "latency", "both"), default="both",
                         help="Figures to render (default: both); raw data always includes both metrics")
-    args = parser.parse_args(argv)
+    args = parser.parse_args(remaining)
     if args.samples is not None and args.samples < 2:
         parser.error("--samples must be at least 2 for Monte Carlo")
     if args.seed is not None and not 0 <= args.seed <= 2**32 - 1:

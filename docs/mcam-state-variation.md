@@ -1,5 +1,8 @@
 # MCAM voltage and latency plots with state variation
 
+The default voltage workflow now uses [statistical bands and unbinned points](mcam-distance-statistics.md).
+Use `--mode support-bounds` to reproduce the historical plots described below.
+
 Generate matchline voltage and search latency versus squared Euclidean distance
 for every distinct nominal composition in the 8- and 16-dimensional cases. The
 plots also show a smooth outer envelope through the exact output endpoints of
@@ -7,7 +10,7 @@ the configured ±3σ resistance support:
 
 ```sh
 make -j4 test-pybind-match
-python3 scripts/plot_mcam_voltage.py
+python3 scripts/plot_mcam_voltage.py --mode support-bounds
 ```
 
 The copied inputs are in `config/2FeFET_MCAM_variation/`. The plotting command
@@ -52,8 +55,8 @@ sampled subset; these mandatory rows can exceed the 2,000-composition target.
 To run one size or compare correlated effective-state variation:
 
 ```sh
-python3 scripts/plot_mcam_voltage.py --sizes 8 --levels 5
-python3 scripts/plot_mcam_voltage.py --sizes 16 --levels 5 --granularity effective --output-dir results/mcam_state_variation_effective
+python3 scripts/plot_mcam_voltage.py --mode support-bounds --sizes 8 --levels 5
+python3 scripts/plot_mcam_voltage.py --mode support-bounds --sizes 16 --levels 5 --granularity effective --output-dir results/mcam_state_variation_effective
 ```
 
 `--samples` and `--seed` override the copied inputs for a run. The script saves

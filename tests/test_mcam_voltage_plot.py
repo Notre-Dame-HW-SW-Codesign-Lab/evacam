@@ -352,7 +352,7 @@ class VoltagePlotTest(unittest.TestCase):
             for args in (['--samples', '1'], ['--samples', '-1'], ['--seed', '-1'],
                          ['--seed', str(2**32)], ['--sample-compositions', '0'], ['--sizes', '32']):
                 with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:
-                    plot.main(args)
+                    plot.main(['--mode', 'support-bounds', *args])
                 self.assertEqual(error.exception.code, 2)
             generate.assert_not_called()
 

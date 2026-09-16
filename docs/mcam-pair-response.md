@@ -1,5 +1,9 @@
 # Provisional dual-FeFET pair response
 
+The default plotting workflow uses the distance-based resistance model with
+[statistical bands and all nominal points](mcam-distance-statistics.md).
+Pair response is an explicit opt-in through the pair configuration and script below.
+
 MCAM supports an optional `mcam.pair_resistance` square matrix in the memory
 device YAML. Entries are **numeric ohms**, indexed `[stored_symbol][query_symbol]`,
 and describe the complete dual-FeFET cell, not either individual transistor.
