@@ -1,0 +1,10 @@
+schema: cell
+name: NAND_TCAM_synthetic
+cam_type: TCAM
+topology: nand_string
+memory_device: NAND_TCAM.memory_device.yaml
+layout:
+  cell_process_node: 45nm
+  # Planar footprint of one physical flash transistor, not one TCAM bit.
+  area: 4F^2
+  aspect_ratio: 1.0

@@ -79,6 +79,33 @@ and the cell file's inline `access_device` mapping, include:
 
 The current repository-level input guide is in [input-files.md](input-files.md). That file explains where fields live; this document explains how they affect the circuit equations.
 
+## NAND String Model
+
+`topology: nand_string` selects a NAND backend through the subarray facade and
+a NAND-specific bank aggregator. The `SLCNAND` backend,
+[NandCamModel](../src/model/NandCamModel.cpp), uses a
+position-sensitive series RC ladder and a single-exponential bitline waveform.
+Matches discharge faster than mismatches; available sense margin is the
+smaller distance from the reference to either conservative class bound, after
+offset allowance. It does not reuse the ordinary parallel matchline formula.
+
+The model has explicit NAND peripheral costs, physical page-program and
+block-erase costs, and separate logical/physical geometry. Its parameters and
+planar area approximation are uncalibrated. Detailed equations, initial
+conditions, energy accounting, and omissions are documented in
+[NAND TCAM](nand-tcam.md).
+
+The separate `NAND3D` backend uses explicit vertical stack, string-grid,
+staircase, isolation, and peripheral-placement geometry. Its adaptive linear
+nodal solver models finite precharge, query evaluation, and recovery with
+internal state carried between phases. It reports sampled sensing margins
+and numerical diagnostics rather than one-pole time constants. Its terminal
+conductance is a DC linear-network result, not a nonlinear transistor model.
+The first SLC implementation and synthetic device parameters are described
+in [3D NAND TCAM](nand-3d-tcam.md); numerical verification does not establish
+physical calibration. The remaining circuit sections describe the ordinary
+CAM path unless a NAND distinction is stated explicitly.
+
 ## Bank Routing Models
 
 EvaCAM supports two bank-to-mat routing topologies. `H-tree` recursively splits

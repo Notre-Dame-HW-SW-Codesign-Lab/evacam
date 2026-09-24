@@ -1,0 +1,39 @@
+schema: evacam_literature_reference
+paper:
+  title: An ultra-high-density and energy-efficient content addressable memory design based on 3D-NAND flash
+  authors: Yang et al.
+  year: 2023
+  doi: 10.1007/s11432-021-3502-4
+  publisher_url: https://link.springer.com/article/10.1007/s11432-021-3502-4
+  publisher_figure_url: https://scx1.b-cdn.net/csz/news/800a/2023/an-ultra-high-density.jpg
+  publisher_summary_url: https://techxplore.com/news/2023-05-ultra-high-density-energy-efficient-content-memory-based.html
+  accessed_on: '2026-09-24'
+access:
+  full_text_available: false
+  available_material: Publisher abstract and Science China Press summary/structure figure
+  numerical_reproduction_status: blocked_missing_characterization
+observations:
+  search_energy_fj_per_bit: 0.196
+  search_energy_evidence: Publisher abstract; HSPICE simulation result
+  layer_count: 16
+  layer_count_evidence: Publisher summary associates 16-layer array with headline energy
+  density_ratio_to_sram: 157
+  density_ratio_evidence: Publisher abstract; cell density, not full-macro area
+  paired_wordlines_along_strings: true
+  topology_evidence: Publisher structure figure labels WL1/WL1-prime through WLm/WLm-prime and one stored word along a string
+# Unknown is intentional: these cannot be derived by fitting one energy number.
+required_for_numerical_reproduction:
+  strings_searched: null
+  logical_key_width_and_reserved_cells: null
+  precise_energy_bit_denominator: null
+  threshold_states_and_device_current_curves: null
+  read_pass_select_and_precharge_biases: null
+  cell_and_interconnect_parasitics: null
+  precharge_evaluate_reset_schedule: null
+  sense_reference_offset_and_required_margin: null
+  included_peripheral_and_supply_costs: null
+  pattern_activity_and_mux_schedule: null
+  transient_waveforms_or_tabulated_sweep_points: null
+area_validation:
+  comparable: false
+  reason: EvaCAM currently uses a planar transistor footprint and supplied peripheral areas, not the paper's 3D footprint.

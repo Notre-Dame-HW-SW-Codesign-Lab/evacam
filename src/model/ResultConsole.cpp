@@ -1,9 +1,72 @@
 #include <iostream>
 
 #include "Result.h"
+#include "EvaCamResultExtractor.h"
 #include "UnitFormatter.h"
 
 namespace {
+
+void PrintNandResult(const Result &result) {
+    const auto dto = ExtractEvaCamDesignResult(result);
+    const auto &summary = dto.summary;
+    const auto &geometry = dto.geometry;
+    const bool is3d = dto.metadata.at("array_layout") == "vertical_3d";
+    std::cout << (is3d ? "\n3D NAND TCAM: complementary pairs with a validity pair\n"
+                      : "\nNAND TCAM: complementary pairs with a validity pair\n")
+        << "Model: " << dto.metadata.at("model_backend") << " ("
+        << dto.metadata.at("calibration_status") << ")\n"
+        << "Source: " << dto.metadata.at("model_source") << '\n'
+        << "Geometry: " << geometry.at("entry_count") << " logical entries x "
+        << geometry.at("logical_word_width_bits") << " key bits; "
+        << geometry.at("physical_cell_count") << " physical flash cells\n"
+        << "Blocks: " << geometry.at("block_count") << " total, "
+        << geometry.at("parallel_blocks") << " parallel, "
+        << geometry.at("block_rounds") << " block rounds\n"
+        << "Per block: " << geometry.at("strings_per_block") << " strings x "
+        << geometry.at("data_wordlines_per_string") << " data wordlines; "
+        << geometry.at("sense_rounds_per_block") << " sense rounds\n"
+        << "Physical page: " << geometry.at("physical_page_bits")
+        << " bits; erase block: " << geometry.at("physical_block_bits") << " bits\n"
+        << "Area: " << ToSquareMeter(summary.at("area.total.area_m2")) << '\n'
+        << "Whole-query search latency: " << ToSecond(summary.at("timing.search_latency_s")) << '\n'
+        << "Whole-query search dynamic energy: " << ToJoule(summary.at("energy.search_dynamic_j")) << '\n'
+        << "Local block search latency: " << ToSecond(summary.at("timing.subarray_search_latency_s")) << '\n'
+        << "Local block search dynamic energy: " << ToJoule(summary.at("energy.subarray_search_dynamic_j")) << '\n'
+        << "Program one physical page (including addressed route): "
+        << ToSecond(summary.at("timing.bank_program_page_latency_s")) << ", "
+        << ToJoule(summary.at("energy.bank_program_page_dynamic_j")) << '\n'
+        << "Erase one physical block (including addressed route): "
+        << ToSecond(summary.at("timing.bank_erase_block_latency_s")) << ", "
+        << ToJoule(summary.at("energy.bank_erase_block_dynamic_j")) << '\n'
+        << "Leakage: " << ToWatt(summary.at("power.leakage_w")) << '\n'
+        << "Sensing: a match discharges the bitline; decision time "
+        << ToSecond(summary.at("timing.decision_time_s")) << '\n'
+        << (is3d ? "Sampled-match / reference / sampled-mismatch voltage: "
+                 : "Slowest-match / reference / fastest-mismatch voltage: ")
+        << summary.at("timing.match_voltage_v") << " / "
+        << summary.at("timing.reference_voltage_v") << " / "
+        << summary.at("timing.mismatch_voltage_v") << " V\n"
+        << "Available per-class sense margin: "
+        << summary.at("timing.exact_match_sense_margin_v") << " V; required: "
+        << summary.at("timing.minimum_required_sense_margin_v") << " V ("
+        << (summary.at("timing.sense_margin_pass") ? "PASS" : "FAIL") << ")\n"
+        << "Conventional memory read metrics: unavailable\n";
+    if (is3d) {
+        std::cout << "Layout: vertical 3D; " << geometry.at("storage_layers") << " storage layers, "
+            << ToMeter(geometry.at("vertical_stack_height_m")) << " stack height\n"
+            << "String grid: " << geometry.at("string_rows") << " x "
+            << geometry.at("string_columns") << '\n'
+            << "Transient solver: " << dto.metadata.at("transient_solver") << '\n'
+            << "Sense checks: " << dto.metadata.at("sensing_bound") << '\n'
+            << "Device calibration: " << dto.metadata.at("calibration_status") << '\n';
+        const auto minimumPrecharge = summary.find("diagnostics.precharge_min_voltage_v");
+        const auto maximumPrecharge = summary.find("diagnostics.precharge_max_voltage_v");
+        if (minimumPrecharge != summary.end() && maximumPrecharge != summary.end()) {
+            std::cout << "Precharge node voltage range: " << minimumPrecharge->second << " to "
+                << maximumPrecharge->second << " V\n";
+        }
+    }
+}
 
 double LocalSearchLatency(const Result &result) {
     const auto &bank = result.bank;
@@ -27,6 +90,10 @@ double LocalSearchLatency(const Result &result) {
 }  // namespace
 
 void Result::print() {
+    if (bank->mat->subarray->nandModel) {
+        PrintNandResult(*this);
+        return;
+    }
     // std::cout << "Bank Area: " << bank->area * 1e12 << std::endl;
     // std::cout << "Bank Search Latency: " << bank->searchLatency * 1e9 << std::endl;
     // std::cout << "Bank Search Dynamic Energy: " << bank->searchDynamicEnergy * 1e12 << std::endl;

@@ -11,6 +11,8 @@
 
 #include "EvaCamConfig.h"
 #include "SenseAmp.h"
+#include "MemCell.h"
+#include "input/PhysicalDomainValidators.h"
 #include "input/CustomSenseAmpYamlLoader.h"
 #include "input/MemoryDeviceYamlLoader.h"
 #include "input/SenseAmpYamlLoader.h"
@@ -751,6 +753,19 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
                 "[Input] Error: dram is not supported and must not be specified.");
     }
     const MemCellType memCellType = LoadMemCellTypeForValidation(root, config.input.fileMemCell);
+    const bool nandString = YamlHelpers::read_optional<std::string>(
+            root, "topology", "parallel") == "nand_string";
+    if (nandString) {
+        if ((memCellType != SLCNAND && memCellType != NAND3D)
+                || LoadCamTypeForValidation(root, config.input.fileMemCell) != TCAM) {
+            throw std::runtime_error(
+                    "[Input] Error: cell.topology nand_string requires SLCNAND or NAND3D TCAM.");
+        }
+        if (!config.input.internalSensing) {
+            throw std::runtime_error("[Input] Error: NAND TCAM requires internal sensing.");
+        }
+        return;
+    }
     ValidateCamPortPresence(root);
     ValidateCamColumnTopology(root);
     ValidateCamModelSupport(config, root, memCellType);
@@ -768,14 +783,138 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
     }
 }
 
+void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cellRoot) {
+    const MemCellType type = LoadMemCellTypeForValidation(cellRoot, config.input.fileMemCell);
+    const bool isNand3d = type == NAND3D;
+    Nand3dMemoryDevice nand3d;
+    if (isNand3d) {
+        // Parse the same typed device contract used by the runtime loader, so
+        // geometry validation cannot accept a different stack interpretation.
+        MemCell cell;
+        cell.memCellType = NAND3D;
+        cell.nandString = true;
+        cell.camType = TCAM;
+        cell.accessType = none_access;
+        cell.processNode = 1;
+        YamlHelpers::ReadNand3dSection(cell,
+                LoadMemoryDeviceForValidation(cellRoot, config.input.fileMemCell));
+        PhysicalDomainValidators::ValidateMemCell(cell);
+        nand3d = cell.nand3d;
+    }
+    if (!config.runtimeSizing.hasFixedSubarrayDimensions) {
+        throw std::runtime_error(
+                "[Input] Error: NAND TCAM requires explicit organization.subarray.dimensions.");
+    }
+    if (config.input.pageSize <= 0 || config.input.flashBlockSize <= 0
+            || config.input.flashBlockSize % config.input.pageSize != 0) {
+        throw std::runtime_error(
+                "[Input] Error: NAND flash requires positive page_size and block_size, with whole pages per block.");
+    }
+    const long rows = config.runtimeSizing.fixedSubarrayRows;
+    const long columns = config.runtimeSizing.fixedSubarrayColumns;
+    const long wordlines = isNand3d ? nand3d.storageLayers
+            : config.input.flashBlockSize / config.input.pageSize;
+    const long sensingColumns = isNand3d ? nand3d.stringColumns : rows;
+    if (isNand3d) {
+        const long long strings = CheckedMultiply(nand3d.stringRows, nand3d.stringColumns,
+                "NAND3D strings per block");
+        const long long blockBits = CheckedMultiply(strings, nand3d.storageLayers,
+                "NAND3D physical block bits");
+        if (rows != strings || config.input.pageSize != nand3d.stringColumns
+                || config.input.flashBlockSize != blockBits) {
+            throw std::runtime_error("[Input] Error: NAND3D subarray rows must equal string_rows * string_columns; flash.page_size must equal string_columns bits and block_size must equal strings * storage_layers bits.");
+        }
+    } else if (rows != config.input.pageSize || rows < 8 || rows > 1048576) {
+        throw std::runtime_error(
+                "[Input] Error: NAND subarray rows must equal flash.page_size in bits (8..1048576 strings).");
+    }
+    if (columns != config.input.wordWidth || columns <= 0
+            || wordlines > 4096 || wordlines < 2
+            || columns > (wordlines - 2) / 2) {
+        throw std::runtime_error(
+                "[Input] Error: NAND subarray columns must equal memory.word_width and fit complementary pairs plus a validity pair within at most 4096 wordlines.");
+    }
+    const auto &geometry = config.exploration.geometry;
+    for (const auto *domain : {&geometry.numRowMat, &geometry.numColumnMat,
+            &geometry.numRowSubarray, &geometry.numColumnSubarray,
+            &geometry.numActiveMatPerRow, &geometry.numActiveMatPerColumn,
+            &geometry.numActiveSubarrayPerRow, &geometry.numActiveSubarrayPerColumn}) {
+        // Check bounds before materializing the domain: the bank also caps
+        // total blocks, and oversized powers-of-two bounds can overflow the
+        // generic domain enumerator before geometry validation runs.
+        if (domain->Min() <= 0 || domain->Max() > 65536 || domain->Min() != domain->Max()) {
+            throw std::runtime_error(
+                    "[Input] Error: NAND TCAM requires fixed positive bank/mat totals and active counts of at most 65536.");
+        }
+    }
+    for (const auto &partition : {
+            std::pair<int, int>{geometry.numColumnMat.Min(), geometry.numActiveMatPerRow.Min()},
+            {geometry.numRowMat.Min(), geometry.numActiveMatPerColumn.Min()},
+            {geometry.numColumnSubarray.Min(), geometry.numActiveSubarrayPerRow.Min()},
+            {geometry.numRowSubarray.Min(), geometry.numActiveSubarrayPerColumn.Min()}}) {
+        if (partition.second > partition.first || partition.first % partition.second != 0) {
+            throw std::runtime_error(
+                    "[Input] Error: NAND active bank/mat counts must divide their totals.");
+        }
+    }
+    const long long blocks = CheckedMultiply(
+            CheckedTotalProduct(geometry.numRowMat, geometry.numColumnMat, "NAND mats"),
+            CheckedTotalProduct(geometry.numRowSubarray, geometry.numColumnSubarray, "NAND blocks per mat"),
+            "NAND total block count");
+    if (blocks > 65536) {
+        throw std::runtime_error("[Input] Error: NAND TCAM supports at most 65536 physical blocks.");
+    }
+    const long long logicalBits = CheckedMultiply(
+            CheckedMultiply(blocks, rows, "NAND entry count"), columns, "NAND logical capacity");
+    CheckedMultiply(blocks, config.input.flashBlockSize, "NAND physical capacity");
+    const long long logicalBytes = logicalBits / 8;
+    if (logicalBits % 8 != 0 || (config.runtimeSizing.hasExplicitCapacity
+            && !config.runtimeSizing.capacityIsAuto && config.input.capacity != logicalBytes)) {
+        throw std::runtime_error(
+                "[Input] Error: memory.capacity must equal NAND logical key capacity (all blocks, independent of active counts).");
+    }
+    if (config.runtimeSizing.realCapacity != 0 && config.runtimeSizing.realCapacity != logicalBytes) {
+        throw std::runtime_error(
+                "[Input] Error: NAND memory.physical_capacity is a legacy logical allocation override; omit it and use flash geometry for physical cells.");
+    }
+    config.input.capacity = logicalBytes;
+    config.ResolveWordGeometry(1, columns, false);
+    if (geometry.muxSenseAmp.Min() <= 0 || geometry.muxSenseAmp.Max() > sensingColumns) {
+        throw std::runtime_error("[Input] Error: NAND sense amplifier mux must divide the selected page string count.");
+    }
+    for (int mux : geometry.muxSenseAmp.Values()) {
+        if (mux <= 0 || sensingColumns % mux != 0) {
+            throw std::runtime_error("[Input] Error: NAND sense amplifier mux must divide the selected page string count.");
+        }
+    }
+    for (const auto* domain : {&geometry.muxOutputLev1, &geometry.muxOutputLev2}) {
+        if (domain->Min() != 1 || domain->Max() != 1) {
+            throw std::runtime_error("[Input] Error: NAND CAM requires output_level1 and output_level2 mux values of 1.");
+        }
+    }
+    if (config.runtimeSizing.hasExplicitComparisonColumns
+            && (config.exploration.cam.bitSerialWidth.Min() != columns
+                    || config.exploration.cam.bitSerialWidth.Max() != columns)) {
+        throw std::runtime_error("[Input] Error: NAND comparison_columns_per_step must equal the complete key width; segmented search is not supported.");
+    }
+}
+
 }  // namespace
 
 void InputRuleValidator::Validate(EvaCamConfig &config) {
     const YAML::Node cellRoot = LoadCellFileForValidation(config.input.fileMemCell);
     const bool isMcam =
         LoadCamTypeForValidation(cellRoot, config.input.fileMemCell) == MCAM;
+    const bool isNand = YamlHelpers::read_optional<std::string>(
+            cellRoot, "topology", "parallel") == "nand_string";
     ValidateScalarDomains(config, isMcam);
     ValidateMemCellSupport(config);
+    if (isNand) {
+        ValidateAndResolveNandGeometry(config, cellRoot);
+        ResolveComparisonColumns(config);
+        ValidatePeripheralSupport(config);
+        return; // NAND device/capability validation follows in the typed loader.
+    }
     const int bitsPerCell = LoadBitsPerCellForValidation(config);
     config.ResolveWordGeometry(bitsPerCell, 0, isMcam);
     ValidateAndResolveExplicitSubarrayDimensions(config, isMcam);

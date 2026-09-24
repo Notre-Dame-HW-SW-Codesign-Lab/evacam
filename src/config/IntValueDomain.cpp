@@ -1,6 +1,7 @@
 #include "config/IntValueDomain.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <stdexcept>
 
 namespace {
@@ -48,7 +49,9 @@ std::vector<int> IntValueDomain::Values() const {
             std::vector<int> values;
             for (int value = min_; value <= max_; value *= 2) {
                 values.push_back(value);
-                if (value == 0) {
+                // Stop before multiplication can exceed either the upper
+                // domain bound or the representable range of int.
+                if (value > max_ / 2) {
                     break;
                 }
             }
@@ -56,9 +59,14 @@ std::vector<int> IntValueDomain::Values() const {
         }
         case ValueDomainKind::Sequential: {
             std::vector<int> values;
-            values.reserve(max_ - min_ + 1);
-            for (int value = min_; value <= max_; ++value) {
+            const auto count = static_cast<std::uint64_t>(
+                    static_cast<std::int64_t>(max_) - min_) + 1;
+            values.reserve(count);
+            for (int value = min_; ; ++value) {
                 values.push_back(value);
+                if (value == max_) {
+                    break;
+                }
             }
             return values;
         }

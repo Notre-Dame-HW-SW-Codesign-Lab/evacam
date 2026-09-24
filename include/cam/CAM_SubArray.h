@@ -25,6 +25,7 @@
 #include "EvaCAMMatchResult.h"
 #include "EvaCAMMcamAnalysis.h"
 #include "model/VariationSampler.h"
+#include "model/NandCamModel.h"
 #include <random>
 #include <vector>
 
@@ -159,6 +160,7 @@ class CAM_SubArray: public FunctionUnit {
 
     private:
         friend struct CamSubArrayTestAccessor;
+        void ApplyNandMetrics();
         int CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const;
         double EffectiveMatchlineCellResistance(int mismatches, double cellResOn, double cellResOff) const;
         double EffectiveMcamStateResistance(double stateResistance, double baseStateResistance) const;
@@ -199,6 +201,9 @@ class CAM_SubArray: public FunctionUnit {
 
     public:
         /* Properties */
+        // NAND has a distinct series-string engine; ordinary CAM peripheral
+        // pointers are not populated for this topology.
+        std::unique_ptr<NandCamBackend> nandModel;
         std::unique_ptr<CAM_DataBuffer> inputBuf;
         std::unique_ptr<CAM_DataBuffer> outputBuf;
         std::unique_ptr<CAM_LevelShifter> inputLS;

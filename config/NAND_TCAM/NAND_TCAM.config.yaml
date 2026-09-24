@@ -1,0 +1,10 @@
+schema: config
+name: NAND_TCAM_synthetic
+architecture: NAND_TCAM.architecture.yaml
+cell: NAND_TCAM.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: SearchLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

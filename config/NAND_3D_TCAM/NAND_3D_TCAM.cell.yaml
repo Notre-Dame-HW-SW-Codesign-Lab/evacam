@@ -1,0 +1,8 @@
+schema: cell
+name: NAND_3D_TCAM_synthetic
+cam_type: TCAM
+topology: nand_string
+memory_device: NAND_3D_TCAM.memory_device.yaml
+layout:
+  cell_process_node: 45nm
+  # NAND3D physical dimensions are specified in the memory-device layout.

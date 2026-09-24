@@ -115,7 +115,7 @@ void EvaCamExplorer::InitializeExploration() {
     modelCapacityCells_ = config_->wordGeometry.logicalCapacityBits;
     physicalColumnsPerWord_ = modelCapacityCells_
         / config_->wordGeometry.storageWidthBits;
-    if (config_->technology.cell->camType == MCAM) {
+    if (config_->technology.cell->camType == MCAM || config_->technology.cell->nandString) {
         modelCapacityCells_ = config_->wordGeometry.entryCount
             * config_->wordGeometry.physicalColumnsPerWord;
         physicalColumnsPerWord_ = config_->wordGeometry.physicalColumnsPerWord;
@@ -462,7 +462,8 @@ void EvaCamExplorer::EvaluateGeometry(int numRowMat, int numColumnMat, int numRo
                                                     for (int priorityOptLevel : priorityOptimizationLevels)
                                                         for (int bitSerialWidth : bitSerialWidthValues) {
                                                         accounting.rawCandidates++;
-                                                        if (!config_->exploration.IsValidPartitioning(physicalColumnsPerWord_,
+                                                        if (!config_->technology.cell->nandString
+                                                                && !config_->exploration.IsValidPartitioning(physicalColumnsPerWord_,
                                                                     numActiveMatPerRow,
                                                                     numActiveMatPerColumn,
                                                                     numActiveSubarrayPerRow,
@@ -771,6 +772,11 @@ void EvaCamExplorer::UpdateBestResult(const std::shared_ptr<Result> &bestResult,
     }
 
     const std::size_t target = static_cast<std::size_t>(bestResult->optimizationTarget);
+    if (config_->technology.cell->nandString
+            && (target == read_latency_optimized || target == read_energy_optimized
+                || target == read_edp_optimized)) {
+        return; // An unavailable page-read metric must never win an objective.
+    }
     const double candidateValue = CandidateMetrics::FromBank(*candidate->bank)
         .objectiveValues[target];
     bool shouldUpdate = !bestResult->bank->initialized;

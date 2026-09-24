@@ -25,6 +25,10 @@ class EvaCAM_Match {
 
         bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate_vector(const std::vector<int> &stored, const std::vector<int> &query) const;
+        // Explicit validity for a programmed NAND entry; an erased pair alone
+        // is not an occupancy marker. Both vectors support -1 as don't-care.
+        EvaCAMMatchResult evaluate_nand(const std::vector<int> &stored,
+                const std::vector<int> &query, bool valid = true) const;
         EvaCAMMatchResult evaluate_mismatches(int mismatches) const;
         EvaCAMMatchResult evaluate_threshold(
                 const std::vector<int> &stored,

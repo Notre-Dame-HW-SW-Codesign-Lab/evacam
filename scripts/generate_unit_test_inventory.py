@@ -561,6 +561,8 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "plot_variation_histograms": {"test_plotting_scripts"},
         "plot_variation_qq": {"test_plotting_scripts"},
         "poster_figures": {"test_plotting_scripts"},
+        "nand_rc_reference": {"test_nand_rc_reference", "test_nand_validation"},
+        "validate_nand_literature": {"test_nand_validation"},
         "test_variation_normality": {"test_plotting_scripts"},
         "EvaCAM_Pybind": {"test_pybind_match", "test_pybind_run"},
         "TechnologyLoader": {"TechnologyYamlLoader", "TechnologyAndVariationConfig"},
@@ -576,6 +578,23 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "InputRuleValidator": {"ConfigValidators", "InputValidation"},
         "OutputFileLock": {"OutputFileLock"},
     }
+    for production_stem, test_stem in [
+        ("NandCamBank", "NandIntegration"), ("Bank", "NandIntegration"),
+        ("EvaCAM_Match", "NandIntegration"), ("CAM_SubArray", "NandIntegration"),
+        ("InputRuleValidator", "NandConfig"), ("MemoryDeviceYamlLoader", "NandConfig"),
+        ("PhysicalDomainValidators", "NandConfig"), ("EvaCamResultExtractor", "NandResults"),
+        ("CellYamlLoader", "Nand3dConfig"), ("MemoryDeviceYamlLoader", "Nand3dConfig"),
+        ("PhysicalDomainValidators", "Nand3dConfig"), ("InputRuleValidator", "Nand3dConfig"),
+        ("EvaCamConfigValidator", "Nand3dConfig"), ("TechnologyLoader", "Nand3dConfig"),
+        ("YamlNodeHelpers", "Nand3dConfig"),
+        ("NandCamFactory", "Nand3dIntegration"),
+        ("EvaCamResultExtractor", "Nand3dResults"), ("ResultsYaml", "Nand3dResults"),
+        ("ResultConsole", "Nand3dResults"), ("EvaCamConfigPrinter", "Nand3dResults"),
+        ("EvaCamOutput", "Nand3dResults"), ("MemCell", "Nand3dResults"),
+        ("ResultsYaml", "NandResults"), ("ResultConsole", "NandResults"),
+    ]:
+        focused_test_stems.setdefault(production_stem, {production_stem}).add(test_stem)
+
     indirect_test_cases = {
         ("src/config/ConfigNormalizer.cpp", "SameDomain"): [
             ("tests/ConfigNormalizerTest.cpp", "TestDeepExplorationExpandsOnlyDefaultDomains", "test-config-normalizer"),
@@ -603,6 +622,126 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         mapping = (test_file, test_case, target)
         for name in names:
             indirect_test_cases.setdefault((file, name), []).append(mapping)
+
+    map_indirect("src/model/NandRcLadder.cpp", ["Require", "ValidateBoundary", "Solve"],
+            "tests/NandRcLadderTest.cpp", "TestValidationAndStepLimit", "test-nand-rc-ladder")
+    map_indirect("src/model/NandRcLadder.cpp", ["BackwardEuler", "RichardsonStep", "Solve"],
+            "tests/NandRcLadderTest.cpp", "TestSingleRcAndChargingEnergy", "test-nand-rc-ladder")
+    map_indirect("src/model/NandRcLadder.cpp", ["Solve"],
+            "tests/NandRcLadderTest.cpp", "TestStiff512WordlineCounterexample", "test-nand-rc-ladder")
+    map_indirect("src/model/NandRcLadder.cpp", ["RequireFiniteArithmetic", "ValidateStep", "Solve"],
+            "tests/NandRcLadderTest.cpp", "TestNonfiniteDerivedArithmeticIsRejected", "test-nand-rc-ladder")
+    map_indirect("src/factories/NandCamFactory.cpp", ["CreateNandCamBackend"],
+            "tests/Nand3dIntegrationTest.cpp", "TestDistinctBackendFactory", "test-nand3d-integration")
+    map_indirect("src/model/Nand3dCamModel.cpp",
+            ["Require", "Positive", "Nonnegative", "Peripheral", "Operation", "Initialize", "Metrics"],
+            "tests/Nand3dCamModelTest.cpp", "TestValidationAndLifecycle", "test-nand3d-model")
+    map_indirect("src/model/Nand3dCamModel.cpp", ["Sum", "Initialize", "Metrics"],
+            "tests/Nand3dCamModelTest.cpp", "TestGeometryAndPlacement", "test-nand3d-model")
+    map_indirect("src/model/Nand3dCamModel.cpp", ["Encode", "Evaluate"],
+            "tests/Nand3dCamModelTest.cpp", "TestTernaryTruthAndSampledMargin", "test-nand3d-model")
+    map_indirect("src/model/Nand3dCamModel.cpp", ["Simulate", "QueryGateEnergy", "QueryDriverEnergy", "Evaluate"],
+            "tests/Nand3dCamModelTest.cpp", "TestIndependentLumpedPhaseLimitAndEnergy", "test-nand3d-model")
+    map_indirect("src/model/Nand3dCamModel.cpp", ["Simulate", "QueryGateEnergy", "QueryDriverEnergy"],
+            "tests/Nand3dCamModelTest.cpp", "TestMuxGroupsAndOperations", "test-nand3d-model")
+    for file, names in [
+        ("src/app/EvaCamResultExtractor.cpp", ["ExtractEvaCamDesignResult"]),
+        ("src/output/ResultsYaml.cpp", ["write_assumptions", "WriteResultsYaml", "WriteResultsYamlNoSolutions"]),
+        ("src/model/ResultConsole.cpp", ["PrintNandResult", "print"]),
+        ("src/config/EvaCamConfigPrinter.cpp", ["Print"]),
+        ("src/app/EvaCamOutput.cpp", ["PrintNoSolutions", "PrintConsoleSummary"]),
+        ("src/technology/MemCell.cpp", ["PrintCell"]),
+    ]:
+        map_indirect(file, names, "tests/Nand3dResultsTest.cpp",
+                "TestNand3dResultContract", "test-nand3d-results")
+
+    map_indirect("scripts/nand_rc_reference.py", ["_positive_vector", "__init__", "_initial"],
+            "tests/test_nand_rc_reference.py", "test_invalid_networks_and_arguments", "test-nand-rc-reference")
+    map_indirect("scripts/nand_rc_reference.py", ["__init__", "first_moments", "_initial", "voltages"],
+            "tests/test_nand_rc_reference.py", "test_independent_dense_matrix_exponential_and_nonuniform_initial_state",
+            "test-nand-rc-reference")
+    map_indirect("scripts/nand_rc_reference.py", ["charging_voltages"],
+            "tests/test_nand_rc_reference.py", "test_floating_source_precharge_boundary_and_capacitor_energy",
+            "test-nand-rc-reference")
+    map_indirect("scripts/validate_nand_literature.py", ["compare_pattern"],
+            "tests/test_nand_validation.py", "test_full_ladder_exposes_512_wordline_false_margin_pass",
+            "test-nand-validation")
+    map_indirect("scripts/validate_nand_literature.py", ["write_csv", "draw_curves", "run_validation"],
+            "tests/test_nand_validation.py", "test_end_to_end_audit_writes_evidence_and_preserves_unvalidated_status",
+            "test-nand-validation")
+    map_indirect("scripts/validate_nand_literature.py", ["main"],
+            "tests/test_nand_validation.py", "test_require_paper_validation_returns_two_without_converting_diagnostic_to_success",
+            "test-nand-validation")
+
+    map_indirect("src/model/NandCamModel.cpp",
+            ["Require", "RequireNonnegative", "RequirePositive", "ValidatePeripheral",
+             "ValidateOperation", "Initialize", "Metrics"],
+            "tests/NandCamModelTest.cpp", "TestValidationAndLifecycle", "test-nand-model")
+    map_indirect("src/model/NandCamModel.cpp",
+            ["Sum", "Initialize", "Metrics", "QueryGateEnergy", "QueryDriverEnergy"],
+            "tests/NandCamModelTest.cpp", "TestGeometryScheduleAndEnergyLedger", "test-nand-model")
+    map_indirect("src/model/NandCamModel.cpp", ["StringResistance", "StringTimeConstant"],
+            "tests/NandCamModelTest.cpp", "TestIndependentRcReferenceAndPositions", "test-nand-model")
+    map_indirect("src/model/NandCamModel.cpp", ["EncodeResistances", "Evaluate"],
+            "tests/NandCamModelTest.cpp", "TestTruthTableAndBounds", "test-nand-model")
+    map_indirect("src/model/NandCamBank.cpp",
+            ["ValidPartition", "Initialize", "BuildRoutes", "CalculateArea", "CalculateRC",
+             "CalculateLatencyAndPower"], "tests/NandIntegrationTest.cpp",
+            "TestWholeBankSchedulingAndAddressedOperations", "test-nand-integration")
+    for file in ["src/model/Bank.cpp", "src/app/EvaCAM_Match.cpp"]:
+        map_indirect(file, ["evaluate_nand"], "tests/NandIntegrationTest.cpp",
+                "TestMatchingAndUnsupportedApis", "test-nand-integration")
+    map_indirect("src/cam/CAM_SubArray.cpp", ["ApplyNandMetrics"],
+            "tests/NandIntegrationTest.cpp", "TestWholeBankSchedulingAndAddressedOperations",
+            "test-nand-integration")
+    map_indirect("src/config/InputRuleValidator.cpp", ["ValidateAndResolveNandGeometry"],
+            "tests/NandConfigTest.cpp", "TestNandGeometryRejectsUnsupportedAndOversizedOrganization",
+            "test-nand-config")
+    map_indirect("src/input/MemoryDeviceYamlLoader.cpp", ["ReadNandSection"],
+            "tests/NandConfigTest.cpp", "TestNandSchemaRejectsUnknownMissingAndConflictingFields",
+            "test-nand-config")
+    map_indirect("src/input/PhysicalDomainValidators.cpp", ["ValidateNand"],
+            "tests/NandConfigTest.cpp", "TestNandDomainsRejectNonfiniteOverflowAndInvalidPhysics",
+            "test-nand-config")
+    # NAND3D configuration uses the ordinary cell/memory-device loaders, with
+    # separate stack geometry and shared strict electrical parsing.
+    map_indirect("src/input/MemoryDeviceYamlLoader.cpp",
+            ["ReadNandElectrical", "SetNandOperationAliases", "ReadNand3dSection", "ReadMemoryDeviceFromYaml"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dTypedYamlAndUnits", "test-nand3d-config")
+    map_indirect("src/input/MemoryDeviceYamlLoader.cpp",
+            ["ReadNandElectrical", "RejectNonNandSections", "ReadNand3dSection", "validate_memory_device_keys"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dStrictSchemaAndTypeIsolation", "test-nand3d-config")
+    map_indirect("src/input/MemoryDeviceYamlLoader.cpp",
+            ["ReadNandElectrical", "RejectNonNandSections", "SetNandOperationAliases"],
+            "tests/NandConfigTest.cpp", "TestNandSchemaRejectsUnknownMissingAndConflictingFields",
+            "test-nand-config")
+    map_indirect("src/input/CellYamlLoader.cpp",
+            ["ReadV2CellSection", "ReadMemoryDeviceReference", "ReadMemCellFromYaml"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dTypedYamlAndUnits", "test-nand3d-config")
+    map_indirect("src/input/CellYamlLoader.cpp", ["ReadV2CellSection", "ValidateV2CellKeys"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dStrictSchemaAndTypeIsolation", "test-nand3d-config")
+    map_indirect("src/input/PhysicalDomainValidators.cpp", ["ValidateNandTopology", "ValidateNand3d"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dStrictSchemaAndTypeIsolation", "test-nand3d-config")
+    map_indirect("src/input/PhysicalDomainValidators.cpp",
+            ["ValidateNandElectrical", "ValidateNand3d", "ValidateMemCell"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dRejectsInvalidDomainsAndOverflow", "test-nand3d-config")
+    map_indirect("src/input/PhysicalDomainValidators.cpp", ["ValidateNandTopology", "ValidateNandElectrical"],
+            "tests/NandConfigTest.cpp", "TestNandDomainsRejectNonfiniteOverflowAndInvalidPhysics",
+            "test-nand-config")
+    map_indirect("src/config/InputRuleValidator.cpp",
+            ["ValidateMemCellSupport", "ValidateAndResolveNandGeometry", "Validate"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dCanonicalGeometryAndCapabilities", "test-nand3d-config")
+    map_indirect("src/config/EvaCamConfigValidator.cpp", ["Validate"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dCanonicalGeometryAndCapabilities", "test-nand3d-config")
+    map_indirect("src/config/TechnologyLoader.cpp", ["LoadCell"],
+            "tests/Nand3dConfigTest.cpp", "TestNand3dCanonicalGeometryAndCapabilities", "test-nand3d-config")
+    map_indirect("src/app/EvaCamResultExtractor.cpp", ["ExtractEvaCamDesignResult"],
+            "tests/NandResultsTest.cpp", "TestNandOutputContract", "test-nand-results")
+    map_indirect("src/output/ResultsYaml.cpp",
+            ["quoted_string", "write_metric_tree", "write_si_metrics", "write_nand_results"],
+            "tests/NandResultsTest.cpp", "TestNandOutputContract", "test-nand-results")
+    map_indirect("src/model/ResultConsole.cpp", ["PrintNandResult"],
+            "tests/NandResultsTest.cpp", "TestNandOutputContract", "test-nand-results")
 
     map_indirect("src/config/OutputFileLock.cpp",
             ["OutputFileLock", "~OutputFileLock", "Release"], "tests/OutputFileLockTest.cpp",

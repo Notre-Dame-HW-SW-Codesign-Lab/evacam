@@ -62,7 +62,7 @@ void validate_memory_device_keys(const YAML::Node& root) {
     reject_unknown_keys(root,
             {"schema", "name", "type", "cell", "resistance", "capacitance",
              "device", "read", "write", "match", "sram", "flash", "variation",
-             "mcam", "dram"},
+             "mcam", "dram", "nand", "nand3d"},
             "memory_device");
 
     reject_unknown_keys(child_optional(root, "cell"),
@@ -119,6 +119,170 @@ void validate_memory_device_keys(const YAML::Node& root) {
             "memory_device.mcam");
 }
 
+namespace {
+
+NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& prefix) {
+    NandDeviceSpec spec;
+    spec.model = read_required<std::string>(node, "model");
+    spec.calibrationStatus = read_required<std::string>(node, "calibration_status");
+    spec.source = read_required<std::string>(node, "source");
+    spec.supplyEfficiency = read_optional<double>(node, "supply_efficiency", 1.0);
+
+    auto readGroup = [&](const char* name, const std::vector<UnitSpec>& units,
+            std::initializer_list<std::pair<const char*, double*>> fields) {
+        const YAML::Node group = child_required(node, name);
+        if (!group.IsMap()) {
+            throw std::runtime_error(prefix + "." + name + " must be a mapping");
+        }
+        for (const auto& entry : group) {
+            const std::string key = entry.first.as<std::string>();
+            if (std::none_of(fields.begin(), fields.end(), [&](const auto& field) {
+                    return key == field.first;
+                })) {
+                throw std::runtime_error("unknown key " + prefix + "." + std::string(name) + "." + key);
+            }
+        }
+        for (const auto& field : fields) {
+            const std::string path = prefix + "." + std::string(name) + "." + field.first;
+            *field.second = read_quantity_required(group, field.first, units, 1.0, path.c_str());
+        }
+    };
+    readGroup("resistance", ResistanceUnits(), {{"read_on", &spec.resistanceReadOn},
+            {"pass", &spec.resistancePass}, {"off", &spec.resistanceOff},
+            {"select", &spec.resistanceSelect}});
+    readGroup("capacitance", CapacitanceUnits(), {{"gate", &spec.capacitanceGate},
+            {"internal", &spec.capacitanceInternal}, {"bitline", &spec.capacitanceBitline},
+            {"source", &spec.capacitanceSource}, {"select", &spec.capacitanceSelect}});
+    readGroup("threshold", VoltageUnits(), {{"low", &spec.thresholdLow}, {"high", &spec.thresholdHigh}});
+    readGroup("bias", VoltageUnits(), {{"read", &spec.voltageRead},
+            {"pass", &spec.voltagePass}, {"precharge", &spec.voltagePrecharge}});
+    const YAML::Node sensing = child_required(node, "sensing");
+    reject_unknown_keys(sensing, {"decision_time", "min_margin", "reference_voltage", "offset"},
+            (prefix + ".sensing").c_str());
+    spec.decisionTime = read_quantity_required(sensing, "decision_time", TimeUnits(), 1.0,
+            (prefix + ".sensing.decision_time").c_str());
+    spec.minSenseMargin = read_quantity_required(sensing, "min_margin", VoltageUnits(), 1.0,
+            (prefix + ".sensing.min_margin").c_str());
+    if (child_optional(sensing, "reference_voltage")) {
+        spec.referenceVoltage = read_quantity_required(sensing, "reference_voltage", VoltageUnits(), 1.0,
+                (prefix + ".sensing.reference_voltage").c_str());
+    }
+    if (child_optional(sensing, "offset")) {
+        spec.senseOffset = read_quantity_required(sensing, "offset", VoltageUnits(), 1.0,
+                (prefix + ".sensing.offset").c_str());
+    }
+    const std::vector<UnitSpec> areaUnits = {{"m^2", 1.0}, {"cm^2", 1e-4},
+            {"mm^2", 1e-6}, {"um^2", 1e-12}, {"nm^2", 1e-18}};
+    for (auto field : {std::pair<const char*, NandPeripheralSpec*>{"wordline_driver", &spec.wordlineDriver},
+            {"sense", &spec.sense}, {"page_buffer", &spec.pageBuffer}}) {
+        const YAML::Node group = child_required(node, field.first);
+        const std::string path = prefix + "." + std::string(field.first);
+        reject_unknown_keys(group, {"area", "latency", "energy", "leakage"}, path);
+        field.second->area = read_quantity_required(group, "area", areaUnits, 1.0, (path + ".area").c_str());
+        field.second->latency = read_quantity_required(group, "latency", TimeUnits(), 1.0, (path + ".latency").c_str());
+        field.second->energy = read_quantity_required(group, "energy", EnergyUnits(), 1.0, (path + ".energy").c_str());
+        field.second->leakage = read_quantity_required(group, "leakage", PowerUnits(), 1.0, (path + ".leakage").c_str());
+    }
+    for (auto field : {std::pair<const char*, NandOperationSpec*>{"query", &spec.query},
+            {"setup", &spec.setup}, {"precharge", &spec.precharge}, {"recovery", &spec.recovery},
+            {"program_page", &spec.programPage}, {"erase_block", &spec.eraseBlock}}) {
+        const YAML::Node group = child_required(node, field.first);
+        const std::string path = prefix + "." + std::string(field.first);
+        reject_unknown_keys(group, {"latency", "energy"}, path);
+        field.second->latency = read_quantity_required(group, "latency", TimeUnits(), 1.0, (path + ".latency").c_str());
+        field.second->energy = read_quantity_required(group, "energy", EnergyUnits(), 1.0, (path + ".energy").c_str());
+    }
+    spec.configured = true;
+    return spec;
+}
+
+void RejectNonNandSections(const YAML::Node& root, const char* section) {
+    for (const char* key : {"cell", "resistance", "capacitance", "device", "read",
+            "write", "match", "sram", "flash", "variation", "mcam", "dram"}) {
+        if (child_optional(root, key)) {
+            throw std::runtime_error(std::string("memory_device.") + key
+                    + " is not supported with " + section + "; provide parameters in memory_device." + section);
+        }
+    }
+}
+
+void SetNandOperationAliases(MemCell& cell, const NandDeviceSpec& spec) {
+    cell.flashProgramTime = spec.programPage.latency;
+    cell.flashEraseTime = spec.eraseBlock.latency;
+    cell.flashPassVoltage = spec.voltagePass;
+}
+
+}  // namespace
+
+void ReadNandSection(MemCell& cell, const YAML::Node& root) {
+    const YAML::Node node = child_optional(root, "nand");
+    if (!node) return;
+    if (cell.memCellType != SLCNAND) {
+        throw std::runtime_error("memory_device.nand requires type: SLCNAND");
+    }
+    if (child_optional(root, "nand3d")) {
+        throw std::runtime_error("memory_device.nand and nand3d cannot be combined");
+    }
+    RejectNonNandSections(root, "nand");
+    reject_unknown_keys(node, {"model", "calibration_status", "source", "resistance",
+            "capacitance", "threshold", "bias", "sensing", "wordline_driver",
+            "sense", "page_buffer", "query", "setup", "precharge", "recovery",
+            "program_page", "erase_block", "supply_efficiency"}, "memory_device.nand");
+    cell.nand = ReadNandElectrical(node, "memory_device.nand");
+    SetNandOperationAliases(cell, cell.nand);
+}
+
+void ReadNand3dSection(MemCell& cell, const YAML::Node& root) {
+    const YAML::Node node = child_optional(root, "nand3d");
+    if (!node) return;
+    if (cell.memCellType != NAND3D) {
+        throw std::runtime_error("memory_device.nand3d requires type: NAND3D");
+    }
+    if (child_optional(root, "nand")) {
+        throw std::runtime_error("memory_device.nand and nand3d cannot be combined");
+    }
+    RejectNonNandSections(root, "nand3d");
+    reject_unknown_keys(node, {"model", "calibration_status", "source", "resistance",
+            "capacitance", "threshold", "bias", "sensing", "wordline_driver",
+            "sense", "page_buffer", "query", "setup", "precharge", "recovery",
+            "program_page", "erase_block", "supply_efficiency", "storage_mode",
+            "stack", "layout", "solver", "precharge_driver_resistance"}, "memory_device.nand3d");
+    Nand3dMemoryDevice spec;
+    spec.storageMode = read_required<std::string>(node, "storage_mode");
+    spec.electrical = ReadNandElectrical(node, "memory_device.nand3d");
+    const YAML::Node stack = child_required(node, "stack");
+    reject_unknown_keys(stack, {"storage_layers", "dummy_layers"}, "memory_device.nand3d.stack");
+    spec.storageLayers = read_required<int>(stack, "storage_layers");
+    spec.dummyLayers = read_required<int>(stack, "dummy_layers");
+    const YAML::Node layout = child_required(node, "layout");
+    reject_unknown_keys(layout, {"string_rows", "string_columns", "hole_pitch_x", "hole_pitch_y",
+            "layer_pitch", "staircase_step_width", "staircase_contact_length", "isolation_width",
+            "peripheral_placement"}, "memory_device.nand3d.layout");
+    spec.stringRows = read_required<int>(layout, "string_rows");
+    spec.stringColumns = read_required<int>(layout, "string_columns");
+    spec.peripheralPlacement = read_required<std::string>(layout, "peripheral_placement");
+    for (const auto& field : {std::pair<const char*, double*>{"hole_pitch_x", &spec.holePitchX},
+            {"hole_pitch_y", &spec.holePitchY}, {"layer_pitch", &spec.layerPitch},
+            {"staircase_step_width", &spec.staircaseStepWidth},
+            {"staircase_contact_length", &spec.staircaseContactLength},
+            {"isolation_width", &spec.isolationWidth}}) {
+        *field.second = read_quantity_required(layout, field.first, LengthUnits(), 1.0,
+                ("memory_device.nand3d.layout." + std::string(field.first)).c_str());
+    }
+    const YAML::Node solver = child_required(node, "solver");
+    reject_unknown_keys(solver, {"max_step", "tolerance", "max_steps"}, "memory_device.nand3d.solver");
+    spec.solverMaxStep = read_quantity_required(solver, "max_step", TimeUnits(), 1.0,
+            "memory_device.nand3d.solver.max_step");
+    spec.solverTolerance = read_quantity_required(solver, "tolerance", VoltageUnits(), 1.0,
+            "memory_device.nand3d.solver.tolerance");
+    spec.solverMaxSteps = read_required<int>(solver, "max_steps");
+    spec.prechargeDriverResistance = read_quantity_required(node, "precharge_driver_resistance",
+            ResistanceUnits(), 1.0, "memory_device.nand3d.precharge_driver_resistance");
+    spec.configured = true;
+    cell.nand3d = spec;
+    SetNandOperationAliases(cell, cell.nand3d.electrical);
+}
+
 void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile) {
     const YAML::Node root = YAML::LoadFile(inputFile);
     validate_memory_device_keys(root);
@@ -144,6 +308,8 @@ void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile) {
     ReadResistanceSection(cell, root);
     ReadReadSection(cell, root);
     ReadWriteSection(cell, root);
+    ReadNandSection(cell, root);
+    ReadNand3dSection(cell, root);
     PhysicalDomainValidators::ValidateMemCell(cell);
 }
 }  // namespace YamlHelpers

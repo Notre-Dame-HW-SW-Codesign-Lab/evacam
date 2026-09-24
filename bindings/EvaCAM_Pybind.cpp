@@ -60,6 +60,8 @@ PYBIND11_MODULE(evacam_py, module) {
 
     py::class_<EvaCAM_Match>(module, "EvaCAMMatch")
         .def(py::init<const std::string &>(), py::arg("config_path"))
+        .def("evaluate_nand", &EvaCAM_Match::evaluate_nand,
+                py::arg("stored"), py::arg("query"), py::arg("valid") = true)
         .def("evaluate_vector",
                 py::overload_cast<const std::vector<int>&, const std::vector<int>&>(
                         &EvaCAM_Match::evaluate_vector, py::const_),
@@ -167,6 +169,7 @@ PYBIND11_MODULE(evacam_py, module) {
         .def_readonly("summary", &EvaCamDesignResultDto::summary)
         .def_readonly("breakdown", &EvaCamDesignResultDto::breakdown)
         .def_readonly("geometry", &EvaCamDesignResultDto::geometry)
+        .def_readonly("metadata", &EvaCamDesignResultDto::metadata)
         .def_readonly("variation", &EvaCamDesignResultDto::variation);
 
     py::class_<EvaCamRunResultDto>(module, "EvaCAMRunResult")

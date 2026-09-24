@@ -32,6 +32,8 @@ class Bank: public FunctionUnit {
         void PrintProperty();
         bool match(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult evaluate(const std::vector<int> &stored, const std::vector<int> &query) const;
+        EvaCAMMatchResult evaluate_nand(const std::vector<int> &stored,
+                const std::vector<int> &query, bool valid = true) const;
         virtual void Initialize(int _numRowMat, int _numColumnMat, long long _capacity,
                 long _blockSize, int _numActiveMatPerRow,
                 int _numActiveMatPerColumn, int _muxSenseAmp, bool _internalSenseAmp, int _muxOutputLev1, 

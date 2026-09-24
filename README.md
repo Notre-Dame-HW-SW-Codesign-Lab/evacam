@@ -67,6 +67,16 @@ For example:
 - `results/2FeFET_TCAM_results.yaml`
 - `results/2FeFET_TCAM_run.log`
 
+An analytical NAND-string TCAM example is available at
+`config/NAND_TCAM/NAND_TCAM.config.yaml`. It supports exact/wildcard search
+with synthetic electrical parameters; see [NAND TCAM](docs/nand-tcam.md) for
+configuration, operation scopes, and model limitations.
+
+A vertical SLC `NAND3D` example is available at
+`config/NAND_3D_TCAM/NAND_3D_TCAM.config.yaml`. It adds explicit 3D geometry
+and finite-precharge linear RC transients using synthetic device parameters;
+see [3D NAND TCAM](docs/nand-3d-tcam.md) for its supported scope.
+
 ## CLI
 
 Usage:

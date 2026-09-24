@@ -165,7 +165,7 @@ $(PYBIND_OBJ_DIR)/bindings/%.o: bindings/%.cpp
 $(PYBIND_MODULE): $(PYBIND_BINDING_OBJECT) $(PYBIND_OBJECTS)
 	$(CC) $(PYBIND_CPP_FLAGS) -shared -o $@ $^ $(LD_LIBS)
 
-.PHONY: sync-python-package-data unit-test-inventory check-unit-test-inventory subarray-dimension-test test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-subarray-dimension-tester test-evacam-explorer test-pareto-pruner test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-mcam-voltage-plot test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
+.PHONY: test-nand-config test-nand-model test-nand-results test-nand-integration test-pybind-nand sync-python-package-data unit-test-inventory check-unit-test-inventory subarray-dimension-test test-unit test-regression test-test-support test-derived-values test-config-normalizer test-config-sections test-output-file-lock test-evacam-config test-config-validators test-technology-variation-config test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches test-sense-amp-loader-branches test-technology-yaml-branches test-technology test-mem-cell test-formula-coverage test-wire-factory test-function-unit test-decoder-components test-driver-mux-components test-charging-sensing-components test-cam-encoder-components test-cam-input-peripheral-components test-cam-mmr-sense-components test-cam-line test-cam-subarray-topology test-cam-subarray-match test-cam-subarray-variation test-mat-bank test-result-model test-bank-without-htree-factory test-bank-with-htree-coverage test-unit-formatter test-results-serialization test-output-services test-app-services test-subarray-dimension-tester test-evacam-explorer test-pareto-pruner test-deep-exploration-threading test-thread-sanitizer test-thread-helgrind test-evacam-match-focused test-run-evacam-boundary test-run-evacam-concurrency test-yaml test-top-level-parser test-cell-loader test-cli-options test-custom-sa-loader test-technology-loader test-new-input-names test-generated-v2-configs test-input-validation test-output-path-builder test-exploration test-variation test-montecarlo test-corner test-wire test-formula test-match test-mat-decoder test-htree-routing test-exhaustive-search test-python-package-data test-config-migration-scripts test-config-sync-script test-generation-scripts test-sweep-analysis-scripts test-plotting-scripts test-mcam-voltage-plot test-inventory-generator test-pybind-match test-pybind-run uml uml-slide open-uml
 
 SUBARRAY_DIMENSION_TEST_CONFIG ?= config/2FeFET_MCAM/2FeFET_MCAM.subarray_dimension_test.yaml
 SUBARRAY_DIMENSION_TEST_JOBS ?= 4
@@ -181,11 +181,11 @@ unit-test-inventory:
 check-unit-test-inventory:
 	python3 scripts/generate_unit_test_inventory.py --check
 
-PYTHON_SCRIPT_TEST_TARGETS=test-python-package-data test-config-migration-scripts \
+PYTHON_SCRIPT_TEST_TARGETS=test-nand3d-numerics test-nand-rc-reference test-nand-validation test-python-package-data test-config-migration-scripts \
 		test-config-sync-script test-generation-scripts test-sweep-analysis-scripts \
 		test-plotting-scripts test-mcam-voltage-plot test-inventory-generator
 
-UNIT_TEST_TARGETS=test-mcam-pair-response test-test-support test-derived-values test-config-normalizer test-config-sections \
+UNIT_TEST_TARGETS=test-nand3d-config test-nand3d-model test-nand-rc-ladder test-nand3d-results test-nand3d-integration test-nand-config test-nand-model test-nand-results test-nand-integration test-mcam-pair-response test-test-support test-derived-values test-config-normalizer test-config-sections \
 		test-output-file-lock \
 		test-evacam-config test-config-validators test-technology-variation-config \
 		test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches \
@@ -208,7 +208,7 @@ UNIT_TEST_TARGETS=test-mcam-pair-response test-test-support test-derived-values 
 
 test-unit: $(UNIT_TEST_TARGETS)
 
-test-regression: test-generated-v2-configs test-montecarlo test-corner test-match \
+test-regression: test-pybind-nand3d test-pybind-nand test-generated-v2-configs test-montecarlo test-corner test-match \
 		test-mat-decoder test-htree-routing test-exhaustive-search test-pybind-match \
 		test-pybind-run
 
@@ -706,3 +706,82 @@ test-mcam-distance-statistics: $(PYBIND_MODULE)
 .PHONY: test-cam-extrema
 test-cam-extrema: $(PYBIND_MODULE)
 	MPLCONFIGDIR=/tmp/evacam-matplotlib python3 tests/test_cam_extrema.py
+
+test-nand-config: $(OBJECTS_NO_MAIN) tests/NandConfigTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandConfigTest.d -MT $(TEST_BIN_DIR)/NandConfigTest -o $(TEST_BIN_DIR)/NandConfigTest tests/NandConfigTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandConfigTest
+
+test-nand-model: $(OBJECTS_NO_MAIN) tests/NandCamModelTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandCamModelTest.d -MT $(TEST_BIN_DIR)/NandCamModelTest -o $(TEST_BIN_DIR)/NandCamModelTest tests/NandCamModelTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandCamModelTest
+
+test-nand-results: $(OBJECTS_NO_MAIN) tests/NandResultsTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandResultsTest.d -MT $(TEST_BIN_DIR)/NandResultsTest -o $(TEST_BIN_DIR)/NandResultsTest tests/NandResultsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandResultsTest
+
+test-nand-integration: $(OBJECTS_NO_MAIN) tests/NandIntegrationTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandIntegrationTest.d -MT $(TEST_BIN_DIR)/NandIntegrationTest -o $(TEST_BIN_DIR)/NandIntegrationTest tests/NandIntegrationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandIntegrationTest
+
+test-pybind-nand: $(PYBIND_MODULE)
+	python3 tests/test_pybind_nand.py
+
+.PHONY: nand-validation-probe validate-nand-literature test-nand-rc-reference test-nand-validation
+nand-validation-probe: $(TEST_BIN_DIR)/NandValidationProbe
+
+$(TEST_BIN_DIR)/NandValidationProbe: $(OBJECTS_NO_MAIN) tests/NandValidationProbe.cpp
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandValidationProbe.d -MT $@ -o $@ tests/NandValidationProbe.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+
+validate-nand-literature: $(BIN) nand-validation-probe
+	OPENBLAS_NUM_THREADS=1 python3 scripts/validate_nand_literature.py
+
+test-nand-rc-reference:
+	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_rc_reference.py
+
+test-nand-validation: $(BIN) nand-validation-probe
+	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_validation.py
+
+.PHONY: test-nand3d-config test-nand3d-model test-nand-rc-ladder test-nand3d-results test-nand3d-integration test-pybind-nand3d
+
+test-nand3d-config: $(OBJECTS_NO_MAIN) tests/Nand3dConfigTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/Nand3dConfigTest.d -MT $(TEST_BIN_DIR)/Nand3dConfigTest -o $(TEST_BIN_DIR)/Nand3dConfigTest tests/Nand3dConfigTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/Nand3dConfigTest
+
+test-nand3d-model: $(OBJECTS_NO_MAIN) tests/Nand3dCamModelTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/Nand3dCamModelTest.d -MT $(TEST_BIN_DIR)/Nand3dCamModelTest -o $(TEST_BIN_DIR)/Nand3dCamModelTest tests/Nand3dCamModelTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/Nand3dCamModelTest
+
+test-nand-rc-ladder: $(OBJECTS_NO_MAIN) tests/NandRcLadderTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandRcLadderTest.d -MT $(TEST_BIN_DIR)/NandRcLadderTest -o $(TEST_BIN_DIR)/NandRcLadderTest tests/NandRcLadderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandRcLadderTest
+
+test-nand3d-results: $(OBJECTS_NO_MAIN) tests/Nand3dResultsTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/Nand3dResultsTest.d -MT $(TEST_BIN_DIR)/Nand3dResultsTest -o $(TEST_BIN_DIR)/Nand3dResultsTest tests/Nand3dResultsTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/Nand3dResultsTest
+
+test-nand3d-integration: $(OBJECTS_NO_MAIN) tests/Nand3dIntegrationTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/Nand3dIntegrationTest.d -MT $(TEST_BIN_DIR)/Nand3dIntegrationTest -o $(TEST_BIN_DIR)/Nand3dIntegrationTest tests/Nand3dIntegrationTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/Nand3dIntegrationTest
+
+test-pybind-nand3d: $(PYBIND_MODULE)
+	python3 tests/test_pybind_nand3d.py
+
+.PHONY: test-nand3d-numerics nand-rc-ladder-probe
+nand-rc-ladder-probe: $(TEST_BIN_DIR)/NandRcLadderProbe
+
+$(TEST_BIN_DIR)/NandRcLadderProbe: $(OBJ_DIR)/model/NandRcLadder.o tests/NandRcLadderProbe.cpp
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandRcLadderProbe.d -MT $@ -o $@ tests/NandRcLadderProbe.cpp $(OBJ_DIR)/model/NandRcLadder.o $(LD_LIBS)
+
+test-nand3d-numerics: nand-rc-ladder-probe nand-validation-probe
+	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand3d_numerics.py

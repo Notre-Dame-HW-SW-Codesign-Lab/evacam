@@ -11,6 +11,7 @@
 #include "CAM_SubArray.h"
 #include "EvaCamConfig.h"
 #include "Mat.h"
+#include "NandCamModel.h"
 
 namespace {
 
@@ -464,6 +465,157 @@ EvaCamDesignResultDto ExtractDesignResult(const Result &result) {
 
 }  // namespace
 
+EvaCamDesignResultDto ExtractEvaCamDesignResult(const Result &result) {
+    const auto &bank = *result.bank;
+    const auto &mat = *bank.mat;
+    const auto &sub = *mat.subarray;
+    if (!sub.nandModel) {
+        return ExtractDesignResult(result);
+    }
+
+    const auto &metrics = sub.nandModel->Metrics();
+    const double blocks = static_cast<double>(bank.numRowMat) * bank.numColumnMat
+        * bank.numRowSubarray * bank.numColumnSubarray;
+    const double activeBlocks = static_cast<double>(bank.numActiveMatPerRow)
+        * bank.numActiveMatPerColumn * bank.numActiveSubarrayPerRow
+        * bank.numActiveSubarrayPerColumn;
+    const double blockRounds = SafeRatio(blocks, activeBlocks);
+    const double localSearchLatency = metrics.searchLatency * blockRounds;
+    const double localSearchEnergy = metrics.searchEnergy * blocks;
+    const std::string route = result.config->input.routingMode == h_tree
+        ? "h_tree" : "non_h_tree";
+
+    EvaCamDesignResultDto dto;
+    dto.optimizationTarget = OptimizationTargetName(result.optimizationTarget);
+    dto.metadata = {
+        {"model_identifier", "evacam-nand-tcam-v1"},
+        {"topology", "nand_string"},
+        {"encoding", "complementary_pair_with_validity_pair"},
+        {"model_backend", metrics.modelBackend},
+        {"calibration_status", metrics.calibrationStatus},
+        {"model_source", metrics.modelSource},
+        {"sense_polarity", "match_discharges_bitline"},
+        {"sense_margin_definition", "min(reference-match,mismatch-reference)-offset"},
+        {"array_layout", "planar_approximation"},
+        {"search_scope", "all_allocated_blocks"},
+        {"search_output", "one_match_bit_per_entry"},
+        {"program_scope", "one_physical_page"},
+        {"erase_scope", "one_physical_block"},
+        {"write_metric_alias", "program_page_including_addressed_route"},
+        {"read_metrics", "unavailable"},
+        {"routing", route}
+    };
+    for (const auto &item : metrics.metadata) {
+        dto.metadata[item.first] = item.second;
+    }
+
+    dto.summary = {
+        {"area.total.width_m", bank.width},
+        {"area.total.height_m", bank.height},
+        {"area.total.area_m2", bank.area},
+        {"area.mat.width_m", mat.width},
+        {"area.mat.height_m", mat.height},
+        {"area.mat.area_m2", mat.area},
+        {"area.subarray.width_m", sub.width},
+        {"area.subarray.height_m", sub.height},
+        {"area.subarray.area_m2", sub.area},
+        {"timing.search_latency_s", bank.searchLatency},
+        {"timing.subarray_search_latency_s", metrics.searchLatency},
+        {"timing.write_latency_s", bank.writeLatency},
+        {"timing.program_page_latency_s", metrics.programPageLatency},
+        {"timing.erase_block_latency_s", metrics.eraseBlockLatency},
+        {"timing.bank_program_page_latency_s", bank.setLatency},
+        {"timing.bank_erase_block_latency_s", bank.resetLatency},
+        {"timing.decision_time_s", metrics.decisionTime},
+        {"timing.match_voltage_v", metrics.matchVoltage},
+        {"timing.mismatch_voltage_v", metrics.mismatchVoltage},
+        {"timing.reference_voltage_v", metrics.referenceVoltage},
+        {"timing.exact_match_sense_margin_v", metrics.senseMargin},
+        {"timing.minimum_required_sense_margin_v", metrics.requiredSenseMargin},
+        {"timing.sense_margin_slack_v", metrics.senseMargin - metrics.requiredSenseMargin},
+        {"timing.sense_margin_pass", metrics.senseMarginPass ? 1.0 : 0.0},
+        {"timing.sense_margin_enforced", 1.0},
+        {"energy.search_dynamic_j", bank.searchDynamicEnergy},
+        {"energy.subarray_search_dynamic_j", metrics.searchEnergy},
+        {"energy.write_dynamic_j", bank.writeDynamicEnergy},
+        {"energy.program_page_dynamic_j", metrics.programPageEnergy},
+        {"energy.erase_block_dynamic_j", metrics.eraseBlockEnergy},
+        {"energy.bank_program_page_dynamic_j", bank.setDynamicEnergy},
+        {"energy.bank_erase_block_dynamic_j", bank.resetDynamicEnergy},
+        {"power.leakage_w", bank.leakage}
+    };
+    if (metrics.modelBackend == "analytical_rc") {
+        dto.summary["timing.slowest_match_time_constant_s"] = metrics.slowestMatchTimeConstant;
+        dto.summary["timing.fastest_mismatch_time_constant_s"] = metrics.fastestMismatchTimeConstant;
+    }
+    for (const auto &item : metrics.diagnosticMetrics) {
+        dto.summary["diagnostics." + item.first] = item.second;
+    }
+    const auto &word = result.config->wordGeometry;
+    dto.geometry = {
+        {"capacity_bits", static_cast<double>(word.logicalCapacityBits)},
+        {"logical_capacity_bits", static_cast<double>(word.logicalCapacityBits)},
+        {"allocated_capacity_bits", metrics.entries * metrics.keyWidth * blocks},
+        {"logical_word_width_bits", static_cast<double>(metrics.keyWidth)},
+        {"storage_width_bits", static_cast<double>(metrics.keyWidth)},
+        {"bits_per_cell", 1},
+        {"entry_count", static_cast<double>(word.entryCount)},
+        {"allocated_entry_count", metrics.entries * blocks},
+        {"physical_cell_count", metrics.physicalCells * blocks},
+        {"physical_columns_per_word", static_cast<double>(metrics.dataWordlines)},
+        {"physical_cells_per_symbol", 2},
+        {"key_wordlines", 2.0 * metrics.keyWidth},
+        {"validity_wordlines", 2},
+        {"select_devices_per_string", 2},
+        {"padding_wordlines", static_cast<double>(metrics.paddingWordlines)},
+        {"data_wordlines_per_string", static_cast<double>(metrics.dataWordlines)},
+        {"strings_per_block", static_cast<double>(metrics.entries)},
+        {"physical_page_bits", static_cast<double>(metrics.physicalPageBits)},
+        {"physical_block_bits", static_cast<double>(metrics.physicalBlockBits)},
+        {"sense_amplifiers_per_block", static_cast<double>(metrics.senseAmplifiers)},
+        {"sense_rounds_per_block", static_cast<double>(metrics.searchRounds)},
+        {"block_count", blocks},
+        {"parallel_blocks", activeBlocks},
+        {"block_rounds", blockRounds},
+        {"num_row_mat", static_cast<double>(bank.numRowMat)},
+        {"num_column_mat", static_cast<double>(bank.numColumnMat)},
+        {"num_row_subarray", static_cast<double>(bank.numRowSubarray)},
+        {"num_column_subarray", static_cast<double>(bank.numColumnSubarray)},
+        {"num_active_mat_per_row", static_cast<double>(bank.numActiveMatPerRow)},
+        {"num_active_mat_per_column", static_cast<double>(bank.numActiveMatPerColumn)},
+        {"num_active_subarray_per_row", static_cast<double>(bank.numActiveSubarrayPerRow)},
+        {"num_active_subarray_per_column", static_cast<double>(bank.numActiveSubarrayPerColumn)},
+        {"subarray_rows", static_cast<double>(sub.ConfiguredRows())},
+        {"subarray_columns", static_cast<double>(sub.ConfiguredColumns())},
+        {"mux_sense_amp", static_cast<double>(bank.muxSenseAmp)}
+    };
+    for (const auto &item : metrics.geometryMetrics) {
+        dto.geometry[item.first] = item.second;
+    }
+    dto.breakdown["search_latency.local_all_rounds_s"] = localSearchLatency;
+    dto.breakdown["search_latency." + route + "_s"] = bank.searchLatency - localSearchLatency;
+    dto.breakdown["search_dynamic_energy.local_all_blocks_j"] = localSearchEnergy;
+    dto.breakdown["search_dynamic_energy." + route + "_j"] = bank.searchDynamicEnergy - localSearchEnergy;
+    dto.breakdown["program_page_latency.addressed_route_s"] = bank.setLatency - metrics.programPageLatency;
+    dto.breakdown["erase_block_latency.addressed_route_s"] = bank.resetLatency - metrics.eraseBlockLatency;
+    dto.breakdown["program_page_dynamic_energy.addressed_route_j"] = bank.setDynamicEnergy - metrics.programPageEnergy;
+    dto.breakdown["erase_block_dynamic_energy.addressed_route_j"] = bank.resetDynamicEnergy - metrics.eraseBlockEnergy;
+    dto.breakdown["bank_area.blocks_m2"] = metrics.area * blocks;
+    dto.breakdown["bank_area.routing_m2"] = bank.area - metrics.area * blocks;
+    dto.breakdown["leakage.local_all_blocks_w"] = metrics.leakage * blocks;
+    dto.breakdown["leakage." + route + "_w"] = bank.leakage - metrics.leakage * blocks;
+    for (const auto &part : metrics.searchEnergyBreakdown) {
+        dto.breakdown["block_search_dynamic_energy." + part.first + "_j"] = part.second;
+    }
+    for (const auto &part : metrics.latencyBreakdown) {
+        dto.breakdown["block_search_latency." + part.first + "_s"] = part.second;
+    }
+    for (const auto &part : metrics.areaBreakdown) {
+        dto.breakdown["block_area." + part.first + "_m2"] = part.second;
+    }
+    return dto;
+}
+
 EvaCamRunResultDto ExtractEvaCamRunResult(
         long long numSolutions,
         const std::vector<std::shared_ptr<Result>> &bestResults,
@@ -484,7 +636,7 @@ EvaCamRunResultDto ExtractEvaCamRunResult(
             continue;
         }
 
-        EvaCamDesignResultDto designResult = ExtractDesignResult(*result);
+        EvaCamDesignResultDto designResult = ExtractEvaCamDesignResult(*result);
         dto.bestResults[designResult.optimizationTarget] = designResult;
     }
 

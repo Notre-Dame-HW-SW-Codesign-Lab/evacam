@@ -8,6 +8,8 @@
 
 class Result;
 
+EvaCamDesignResultDto ExtractEvaCamDesignResult(const Result &result);
+
 EvaCamRunResultDto ExtractEvaCamRunResult(
         long long numSolutions,
         const std::vector<std::shared_ptr<Result>> &bestResults,

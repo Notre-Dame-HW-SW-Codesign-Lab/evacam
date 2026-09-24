@@ -2,6 +2,31 @@
 
 EvaCAM always writes a YAML results file. Exploration runs may also write a CSV.
 
+NAND-string TCAM has an explicit result contract described in
+[NAND TCAM](nand-tcam.md#results-and-provenance). Its YAML uses numeric SI
+fields such as `summary.timing.search_latency_s`, with the same names as the
+Python DTO after expanding dotted keys into nested maps. `metadata` records
+encoding, source, calibration status, sensing polarity, and operation scopes.
+`program_page_*` and `erase_block_*` are local one-page/one-block costs;
+`bank_program_page_*` and `bank_erase_block_*` include the addressed route.
+Search totals cover every allocated block and all necessary rounds.
+Conventional read fields are absent, and NAND does not use the legacy
+read-oriented exploration CSV. The existing output shape below applies to the
+ordinary CAM path.
+
+`NAND3D` uses the same SI output contract with
+`metadata.model_identifier: evacam-nand3d-tcam-v1` and
+`metadata.array_layout: vertical_3d`. Backend-specific 3D counts, lengths,
+and areas extend `geometry`; finite-precharge and solver values are grouped
+under `summary.diagnostics`. The transient backend omits single-exponential
+time constants. Its metadata identifies the sampled-pattern sensing scope,
+numerical solver, and supplied device provenance separately. See
+[3D NAND results](nand-3d-tcam.md#results-and-api).
+The added stack/layout quantities describe one block; allocated capacities
+and `physical_cell_count` cover the bank. Initial-precharge diagnostics describe
+one representative string, while full-query totals include every scheduled
+group, mux round, block, and route.
+
 ## YAML Shapes
 
 Single-objective runs write:

@@ -27,6 +27,7 @@ const char *ToString(MemCellType type) {
         case memristor: return "Memristor";
         case FBRAM: return "FBRAM";
         case SLCNAND: return "SLC NAND";
+        case NAND3D: return "3D NAND";
         case MLCNAND: return "MLC NAND";
         case FEFETRAM: return "FEFET RAM";
         default: return "Unknown";
@@ -127,6 +128,44 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
     std::cout << "Cell File  : " << input.fileMemCell << std::endl;
 
     std::cout << "Search Function: " << ToString(input.searchFunction) << std::endl;
+
+    if (technology.cell->nandString) {
+        const bool is3d = technology.cell->memCellType == NAND3D;
+        const auto &nand = is3d ? technology.cell->nand3d.electrical : technology.cell->nand;
+        std::cout << "Topology: NAND strings with complementary key pairs and a validity pair" << std::endl;
+        std::cout << "Model: " << nand.model << " (" << nand.calibrationStatus << ")" << std::endl;
+        std::cout << "Source: " << nand.source << std::endl;
+        if (is3d) {
+            const auto &geometry = technology.cell->nand3d;
+            std::cout << "Array Layout: vertical 3D, " << geometry.storageLayers
+                      << " storage layers and " << geometry.dummyLayers << " dummy layers" << std::endl;
+            std::cout << "String Grid: " << geometry.stringRows << " x " << geometry.stringColumns << std::endl;
+            std::cout << "Electrical Model: finite-precharge linear RC transient; supplied device parameters" << std::endl;
+        }
+        std::cout << "Physical Page: " << input.pageSize << " bits; Physical Erase Block: "
+                  << input.flashBlockSize << " bits" << std::endl;
+        std::cout << "Fixed Subarray: " << config.runtimeSizing.fixedSubarrayRows
+                  << " strings x " << config.runtimeSizing.fixedSubarrayColumns
+                  << " logical key bits" << std::endl;
+        std::cout << "Routing Mode: " << (input.routingMode == h_tree ? "H-tree" : "Non-H-tree") << std::endl;
+        std::cout << "Sensing: internal, match discharges bitline, reference margin enforced" << std::endl;
+        std::cout << "Peripherals: supplied NAND query, drivers, sensing, and page-buffer costs" << std::endl;
+        std::cout << "Program / Erase Scope: one physical page / one physical block" << std::endl;
+        std::cout << "Optimization: ";
+        switch (input.optimizationTarget) {
+            case search_latency_optimized: std::cout << "search latency"; break;
+            case search_energy_optimized: std::cout << "search energy"; break;
+            case search_edp_optimized: std::cout << "search energy-delay product"; break;
+            case write_latency_optimized: std::cout << "one-page program latency"; break;
+            case write_energy_optimized: std::cout << "one-page program energy"; break;
+            case write_edp_optimized: std::cout << "one-page program energy-delay product"; break;
+            case area_optimized: std::cout << "area"; break;
+            case leakage_optimized: std::cout << "leakage power"; break;
+            default: std::cout << "unsupported NAND objective"; break;
+        }
+        std::cout << std::endl;
+        return;
+    }
 
     std::cout << "Write Scheme: " << ToString(input.writeScheme) << std::endl;
 

@@ -1,0 +1,44 @@
+schema: memory_device
+name: NAND_TCAM_synthetic
+type: SLCNAND
+nand:
+  model: analytical_rc
+  calibration_status: synthetic
+  source: "Synthetic illustrative RC and peripheral values; not measured NAND characterization."
+  # Pass resistance is shared by both threshold states in this backend.
+  resistance:
+    read_on: 10kohm
+    pass: 5kohm
+    off: 1Gohm
+    select: 1kohm
+  capacitance:
+    gate: 0.1fF
+    internal: 0.05fF
+    bitline: 20fF
+    source: 1fF
+    select: 0.1fF
+  threshold: {low: -1V, high: 2V}
+  bias: {read: 0.5V, pass: 5V, precharge: 0.8V}
+  supply_efficiency: 0.8
+  sensing:
+    decision_time: 50ns
+    # Required distance of each class from reference, after offset allowance.
+    min_margin: 0.1V
+    reference_voltage: 0V  # Automatic worst-case midpoint.
+    offset: 0.01V
+  # Supply-side overheads exclude the separately modeled C*V^2 charging costs.
+  # Driver area/leakage is per physical wordline; driver energy is per voltage
+  # update event. Sense hardware is per channel; page buffer is per physical
+  # string. Sense/page-buffer energy is per sampled string.
+  wordline_driver: {area: 2um^2, latency: 2ns, energy: 2fJ, leakage: 1nW}
+  sense: {area: 1um^2, latency: 2ns, energy: 5fJ, leakage: 1nW}
+  page_buffer: {area: 1um^2, latency: 1ns, energy: 2fJ, leakage: 1nW}
+  # Shared per-block costs; precharge repeats for each sense-multiplexing round.
+  query: {latency: 2ns, energy: 5fJ}
+  setup: {latency: 5ns, energy: 10fJ}
+  precharge: {latency: 5ns, energy: 5fJ}
+  recovery: {latency: 5ns, energy: 10fJ}
+  # Complete supplied-operation costs, including high-voltage generation and
+  # verify loops, for this page/block geometry. No read/modify/write inferred.
+  program_page: {latency: 200us, energy: 2nJ}
+  erase_block: {latency: 2ms, energy: 20nJ}

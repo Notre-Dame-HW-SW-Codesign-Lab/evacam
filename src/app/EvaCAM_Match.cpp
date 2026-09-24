@@ -14,6 +14,7 @@
 #include "EvaCamConfig.h"
 #include "Wire.h"
 #include "config/EvaCamConfigValidator.h"
+#include "factories/BankFactory.h"
 #include "input/YamlNodeHelpers.h"
 
 EvaCAM_Match::EvaCAM_Match(const std::string &configPath) {
@@ -56,8 +57,17 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_vector(const std::vector<int> &stored, 
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_mismatches(int mismatches) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        throw std::invalid_argument("[NAND TCAM] Matching requires stored/query vectors, not a mismatch count.");
+    }
     ValidateMismatchCount(mismatches);
     return LookupMismatchResult(mismatches);
+}
+
+EvaCAMMatchResult EvaCAM_Match::evaluate_nand(const std::vector<int> &stored,
+        const std::vector<int> &query, bool valid) const {
+    EnsureInitialized();
+    return bank->evaluate_nand(stored, query, valid);
 }
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(
@@ -65,6 +75,9 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(
         const std::vector<int> &query,
         int maxMismatches) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        throw std::invalid_argument("[NAND TCAM] Threshold matching is unsupported; use exact vector matching.");
+    }
     if (config->technology.cell->camType == MCAM) {
         return evaluate_distance_threshold(
                 stored, query, static_cast<double>(maxMismatches));
@@ -105,6 +118,9 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_distance_threshold(
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_threshold(int mismatches, int maxMismatches) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        throw std::invalid_argument("[NAND TCAM] Threshold matching is unsupported; use exact vector matching.");
+    }
     ValidateTcamMismatchCount(mismatches);
     ValidateMaxMismatches(maxMismatches);
     ValidateThresholdSenseMargin(maxMismatches);
@@ -128,6 +144,9 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_vector(
 
 std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(const std::vector<int> &mismatchCounts) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        throw std::invalid_argument("[NAND TCAM] Array matching requires stored/query vectors.");
+    }
 
     if (config->technology.cell->camType != TCAM) {
         ValidateTcamMismatchCounts(mismatchCounts);
@@ -473,11 +492,7 @@ void EvaCAM_Match::InitializeConfiguredBank() {
     camOpt.ComparisonColumns = bitSerialWidth;
     camOpt.BitSerialWidth = bitSerialWidth;
 
-    if (config->input.routingMode == h_tree) {
-        bank = std::make_shared<BankWithHtree>();
-    } else {
-        bank = std::make_shared<BankWithoutHtree>();
-    }
+    bank = BankFactory::CreateBank(*config);
 
     bank->Initialize(numRowMat, numColumnMat, capacity, blockSize,
             numActiveMatPerRow, numActiveMatPerColumn, muxSenseAmp,
@@ -501,6 +516,7 @@ void EvaCAM_Match::BuildMismatchLut() {
     }
 
     mismatchResults.clear();
+    if (config->technology.cell->nandString) return;
     if (config->technology.cell->camType != TCAM) {
         return;
     }
@@ -576,6 +592,9 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdVector(
 EvaCAMMatchResult EvaCAM_Match::EvaluateExactTcamVector(
         const std::vector<int> &stored,
         const std::vector<int> &query) const {
+    if (config->technology.cell->nandString) {
+        return evaluate_nand(stored, query);
+    }
     ValidateTcamStoredVector(stored, "stored");
     ValidateBinaryVector(query, "query");
 

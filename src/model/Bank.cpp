@@ -179,11 +179,36 @@ EvaCAMMatchResult Bank::evaluate(const std::vector<int> &stored, const std::vect
         throw std::runtime_error("[Bank] Error: bank is not initialized for matching.");
     }
 
+    if (mat->subarray->nandModel) return evaluate_nand(stored, query);
     return mat->subarray->EvaluateBinaryMatch(stored, query);
+}
+
+EvaCAMMatchResult Bank::evaluate_nand(const std::vector<int> &stored,
+        const std::vector<int> &query, bool valid) const {
+    if (!initialized || invalid || !mat || !mat->subarray || !mat->subarray->nandModel) {
+        throw std::invalid_argument("[NAND bank] NAND matching requires a valid initialized NAND bank.");
+    }
+    const auto &model = *mat->subarray->nandModel;
+    auto result = model.Evaluate(stored, query, valid);
+    const double blocks = static_cast<double>(numRowMat) * numColumnMat
+        * numRowSubarray * numColumnSubarray;
+    const double routeEnergy = searchDynamicEnergy - blocks * model.Metrics().searchEnergy;
+    result.searchDynamicEnergy = blocks * result.searchDynamicEnergy + routeEnergy;
+    result.searchLatency = searchLatency;
+    return result;
 }
 
 void Bank::printbreakdown() {
     const CAM_SubArray &subarray = *mat->subarray;
+    if (subarray.nandModel) {
+        for (const auto &entry : subarray.nandModel->Metrics().areaBreakdown) {
+            std::cout << entry.first << ": " << ToSquareMeter(entry.second) << std::endl;
+        }
+        for (const auto &entry : subarray.nandModel->Metrics().searchEnergyBreakdown) {
+            std::cout << entry.first << ": " << ToJoule(entry.second) << std::endl;
+        }
+        return;
+    }
 
     PrintSubarrayAreaBreakdown(*this, subarray);
     PrintSearchLatencyBreakdown(*this, subarray);

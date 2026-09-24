@@ -42,6 +42,7 @@ struct EvaCamVariationDto {
 
 struct EvaCamDesignResultDto {
     std::string optimizationTarget;
+    std::unordered_map<std::string, std::string> metadata;
     std::unordered_map<std::string, double> summary;
     std::unordered_map<std::string, double> breakdown;
     std::unordered_map<std::string, double> geometry;

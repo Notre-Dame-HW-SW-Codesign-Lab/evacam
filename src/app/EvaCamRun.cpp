@@ -32,6 +32,10 @@ void ApplySubarrayDimensions(
     if (options.subarrayRows == 0 && options.subarrayColumns == 0) {
         return;
     }
+    if (config->technology.cell->nandString) {
+        throw std::invalid_argument(
+                "NAND dimensions cannot be overridden independently of flash geometry; update the architecture YAML.");
+    }
     if (options.subarrayRows <= 0 || options.subarrayColumns <= 0) {
         throw std::runtime_error(
                 "subarray row and column overrides must both be positive");

@@ -117,6 +117,10 @@ void Result::compareAndUpdate(std::shared_ptr<Result> newResult) {
 }
 
 void Result::printToCsvFile(std::ostream &outputFile) {
+    if (bank->mat->subarray->nandModel) {
+        throw std::runtime_error("NAND TCAM does not support the legacy exploration "
+                "CSV schema; use YAML or structured results");
+    }
     outputFile << bank->numRowMat << "," << bank->numColumnMat << "," << bank->numActiveMatPerColumn << "," << bank->numActiveMatPerRow << ",";
     outputFile << bank->numRowSubarray << "," << bank->numColumnSubarray << "," << bank->numActiveSubarrayPerColumn << "," << bank->numActiveSubarrayPerRow << ",";
     outputFile << bank->mat->subarray->ConfiguredRows() << ","

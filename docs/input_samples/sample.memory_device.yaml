@@ -2,7 +2,7 @@
 schema: memory_device
 
 name: sample_memory_device
-type: SRAM # SRAM | DRAM | eDRAM | MRAM | PCRAM | memristor | FBRAM | SLCNAND | MLCNAND | FEFETRAM
+type: SRAM # SRAM | DRAM | eDRAM | MRAM | PCRAM | memristor | FBRAM | SLCNAND | MLCNAND | FEFETRAM | NAND3D
 
 resistance:
   'on': 2kohm # units: ohm | kohm | Mohm | Gohm

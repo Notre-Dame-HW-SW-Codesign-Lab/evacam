@@ -93,6 +93,20 @@ jobs:
           - test-inventory-generator
           - test-pybind-match
           - test-pybind-run
+          - test-nand-config
+          - test-nand-model
+          - test-nand-results
+          - test-nand-integration
+          - test-pybind-nand
+          - test-nand-rc-reference
+          - test-nand-validation
+          - test-nand3d-config
+          - test-nand3d-model
+          - test-nand-rc-ladder
+          - test-nand3d-results
+          - test-nand3d-integration
+          - test-pybind-nand3d
+          - test-nand3d-numerics
 
     steps:
       - name: Checkout

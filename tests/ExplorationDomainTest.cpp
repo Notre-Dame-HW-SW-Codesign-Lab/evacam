@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -24,6 +25,15 @@ void TestIntValueDomain() {
     assert(!powers.IsFixed());
 
     AssertEqual(IntValueDomain::PowersOfTwo(3, 12).Values(), {3, 6, 12});
+    const int maximum = std::numeric_limits<int>::max();
+    const int minimum = std::numeric_limits<int>::min();
+    AssertEqual(IntValueDomain::PowersOfTwo(maximum, maximum).Values(), {maximum});
+    AssertEqual(IntValueDomain::PowersOfTwo(maximum / 2, maximum).Values(),
+            {maximum / 2, maximum - 1});
+    AssertEqual(IntValueDomain::Sequential(maximum - 1, maximum).Values(),
+            {maximum - 1, maximum});
+    AssertEqual(IntValueDomain::Sequential(minimum, minimum + 1).Values(),
+            {minimum, minimum + 1});
     const IntValueDomain sequential = IntValueDomain::Sequential(1, 3);
     AssertEqual(sequential.Values(), {1, 2, 3});
     assert(sequential.Kind() == ValueDomainKind::Sequential);

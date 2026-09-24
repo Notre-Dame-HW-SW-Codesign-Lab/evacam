@@ -1,5 +1,6 @@
 #include "input/PhysicalDomainValidators.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <stdexcept>
@@ -26,18 +27,161 @@ void ValidateCurrentArray(const std::array<double, 101>& values, const char* wha
     }
 }
 
+void ValidateNandTopology(const MemCell& cell) {
+    if (cell.camType != TCAM) {
+        throw std::runtime_error("NAND string topology requires cam_type: TCAM");
+    }
+    if (cell.camNumRow != 0 || cell.camNumCol != 0 || cell.accessType != none_access) {
+        throw std::runtime_error("NAND string topology does not use generic CAM ports or access devices");
+    }
+    if (cell.withVariation || cell.hasVariationSeed || cell.hasVariationSamples
+            || cell.variationMode != "nominal" || !cell.variationLutFile.empty()) {
+        throw std::runtime_error("NAND string variation is not supported");
+    }
+}
+
+void ValidateNandElectrical(const NandDeviceSpec& spec, const std::string& prefix, const char* model) {
+    if (spec.model != model) {
+        throw std::runtime_error(prefix + ".model must be " + model);
+    }
+    if (spec.calibrationStatus != "synthetic" && spec.calibrationStatus != "uncalibrated"
+            && spec.calibrationStatus != "calibrated") {
+        throw std::runtime_error(prefix + ".calibration_status must be synthetic, uncalibrated, or calibrated");
+    }
+    if (spec.source.find_first_not_of(" \t\r\n") == std::string::npos) {
+        throw std::runtime_error(prefix + ".source must describe the parameter provenance");
+    }
+    for (const auto& field : {
+            std::pair<double, const char*>{spec.resistanceReadOn, "resistance.read_on"},
+            {spec.resistancePass, "resistance.pass"}, {spec.resistanceOff, "resistance.off"},
+            {spec.resistanceSelect, "resistance.select"}, {spec.capacitanceGate, "capacitance.gate"},
+            {spec.capacitanceBitline, "capacitance.bitline"}, {spec.voltagePrecharge, "bias.precharge"},
+            {spec.decisionTime, "sensing.decision_time"}, {spec.minSenseMargin, "sensing.min_margin"},
+            {spec.precharge.latency, "precharge.latency"},
+            {spec.programPage.latency, "program_page.latency"},
+            {spec.programPage.energy, "program_page.energy"},
+            {spec.eraseBlock.latency, "erase_block.latency"},
+            {spec.eraseBlock.energy, "erase_block.energy"}, {spec.supplyEfficiency, "supply_efficiency"}}) {
+        YamlHelpers::require_positive(field.first, prefix + "." + std::string(field.second));
+    }
+    for (const auto& field : {
+            std::pair<double, const char*>{spec.capacitanceInternal, "capacitance.internal"},
+            {spec.capacitanceSource, "capacitance.source"}, {spec.capacitanceSelect, "capacitance.select"},
+            {spec.voltageRead, "bias.read"}, {spec.voltagePass, "bias.pass"},
+            {spec.referenceVoltage, "sensing.reference_voltage"}, {spec.senseOffset, "sensing.offset"}}) {
+        YamlHelpers::require_non_negative(field.first, prefix + "." + std::string(field.second));
+    }
+    YamlHelpers::require_finite(spec.thresholdLow, prefix + ".threshold.low");
+    YamlHelpers::require_finite(spec.thresholdHigh, prefix + ".threshold.high");
+    if (!(spec.thresholdLow < spec.voltageRead && spec.voltageRead < spec.thresholdHigh
+            && spec.thresholdHigh < spec.voltagePass)) {
+        throw std::runtime_error("NAND threshold/bias ordering requires low < read < high < pass");
+    }
+    if (!(spec.resistancePass <= spec.resistanceReadOn && spec.resistanceReadOn < spec.resistanceOff)) {
+        throw std::runtime_error("NAND resistance ordering requires pass <= read_on < off");
+    }
+    if (spec.supplyEfficiency > 1) {
+        throw std::runtime_error(prefix + ".supply_efficiency must be in (0, 1]");
+    }
+    if (spec.referenceVoltage >= spec.voltagePrecharge
+            || spec.minSenseMargin >= spec.voltagePrecharge / 2
+            || spec.senseOffset >= spec.voltagePrecharge / 2) {
+        throw std::runtime_error("NAND sensing reference/margin/offset must fit the precharge voltage range");
+    }
+    for (const auto& field : {
+            std::pair<const NandPeripheralSpec*, const char*>{&spec.wordlineDriver, "wordline_driver"},
+            {&spec.sense, "sense"}, {&spec.pageBuffer, "page_buffer"}}) {
+        const std::string fieldPath = prefix + "." + std::string(field.second);
+        YamlHelpers::require_positive(field.first->area, fieldPath + ".area");
+        YamlHelpers::require_non_negative(field.first->latency, fieldPath + ".latency");
+        YamlHelpers::require_non_negative(field.first->energy, fieldPath + ".energy");
+        YamlHelpers::require_non_negative(field.first->leakage, fieldPath + ".leakage");
+    }
+    for (const auto& field : {
+            std::pair<const NandOperationSpec*, const char*>{&spec.query, "query"},
+            {&spec.setup, "setup"}, {&spec.precharge, "precharge"}, {&spec.recovery, "recovery"}}) {
+        const std::string fieldPath = prefix + "." + std::string(field.second);
+        YamlHelpers::require_non_negative(field.first->latency, fieldPath + ".latency");
+        YamlHelpers::require_non_negative(field.first->energy, fieldPath + ".energy");
+    }
+}
+
+void ValidateNand(const MemCell& cell) {
+    if (cell.memCellType != SLCNAND || !cell.nandString || !cell.nand.configured || cell.nand3d.configured) {
+        throw std::runtime_error("NAND CAM requires type: SLCNAND, cell.topology: nand_string, and memory_device.nand");
+    }
+    ValidateNandTopology(cell);
+    ValidateNandElectrical(cell.nand, "memory_device.nand", "analytical_rc");
+}
+
+void ValidateNand3d(const MemCell& cell) {
+    const auto& spec = cell.nand3d;
+    if (cell.memCellType != NAND3D || !cell.nandString || !spec.configured
+            || !spec.electrical.configured || cell.nand.configured) {
+        throw std::runtime_error("NAND3D CAM requires type: NAND3D, cell.topology: nand_string, and memory_device.nand3d only");
+    }
+    ValidateNandTopology(cell);
+    ValidateNandElectrical(spec.electrical, "memory_device.nand3d", "transient_rc");
+    if (spec.storageMode != "SLC") {
+        throw std::runtime_error("memory_device.nand3d.storage_mode must be SLC");
+    }
+    if (spec.storageLayers < 4 || spec.storageLayers > 4096 || spec.dummyLayers < 0
+            || spec.dummyLayers > 4096 - spec.storageLayers) {
+        throw std::runtime_error("NAND3D stack requires at least 4 storage layers, nonnegative dummy layers, and at most 4096 total layers");
+    }
+    if (spec.stringRows <= 0 || spec.stringColumns < 8 || spec.stringColumns % 8 != 0
+            || spec.stringRows > 1048576 / spec.stringColumns) {
+        throw std::runtime_error("NAND3D layout requires positive string_rows, byte-aligned string_columns >= 8, and at most 1048576 strings");
+    }
+    if (spec.peripheralPlacement != "beside" && spec.peripheralPlacement != "under_array") {
+        throw std::runtime_error("memory_device.nand3d.layout.peripheral_placement must be beside or under_array");
+    }
+    for (const auto& field : {std::pair<double, const char*>{spec.holePitchX, "layout.hole_pitch_x"},
+            {spec.holePitchY, "layout.hole_pitch_y"}, {spec.layerPitch, "layout.layer_pitch"},
+            {spec.staircaseStepWidth, "layout.staircase_step_width"},
+            {spec.staircaseContactLength, "layout.staircase_contact_length"},
+            {spec.prechargeDriverResistance, "precharge_driver_resistance"},
+            {spec.solverMaxStep, "solver.max_step"}, {spec.solverTolerance, "solver.tolerance"},
+            {spec.electrical.capacitanceInternal, "capacitance.internal"},
+            {spec.electrical.capacitanceSource, "capacitance.source"}}) {
+        YamlHelpers::require_positive(field.first, "memory_device.nand3d." + std::string(field.second));
+    }
+    YamlHelpers::require_non_negative(spec.isolationWidth, "memory_device.nand3d.layout.isolation_width");
+    if (spec.solverTolerance > 1e-3 || spec.solverMaxSteps < 100) {
+        throw std::runtime_error("NAND3D solver requires tolerance <= 1mV and max_steps >= 100");
+    }
+    const double stringWidth = spec.stringColumns * spec.holePitchX;
+    const double stringHeight = spec.stringRows * spec.holePitchY;
+    const double stackHeight = (spec.storageLayers + spec.dummyLayers + 2.0) * spec.layerPitch;
+    const double staircaseWidth = (spec.storageLayers + spec.dummyLayers + 2.0) * spec.staircaseStepWidth;
+    const double width = stringWidth + staircaseWidth + 2 * spec.isolationWidth;
+    const double height = std::max(stringHeight, spec.staircaseContactLength) + 2 * spec.isolationWidth;
+    for (double dimension : {width, height, stackHeight, width * height}) {
+        YamlHelpers::require_positive(dimension, "NAND3D derived layout dimension/area");
+    }
+}
+
 }  // namespace
 
 namespace PhysicalDomainValidators {
 
 void ValidateMemCell(const MemCell& cell) {
     YamlHelpers::require_positive(cell.processNode, "cell.layout.cell_process_node");
+    if (cell.memCellType == NAND3D || cell.nand3d.configured) {
+        ValidateNand3d(cell);
+        return;
+    }
     YamlHelpers::require_positive(cell.area, "cell.layout.area");
     YamlHelpers::require_positive(cell.aspectRatio, "cell.layout.aspect_ratio");
     YamlHelpers::require_positive(
             cell.heightInFeatureSize, "cell.layout derived height");
     YamlHelpers::require_positive(
             cell.widthInFeatureSize, "cell.layout derived width");
+
+    if (cell.nandString || cell.nand.configured || cell.memCellType == SLCNAND) {
+        ValidateNand(cell);
+        return;
+    }
 
     if (cell.memCellType != SRAM) {
         YamlHelpers::require_positive(cell.resistanceOn, "memory_device.resistance.on");

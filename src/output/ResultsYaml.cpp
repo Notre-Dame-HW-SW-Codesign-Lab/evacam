@@ -3,11 +3,15 @@
 #include <cmath>
 #include <functional>
 #include <iomanip>
+#include <map>
 #include <string>
 #include <unordered_map>
 
+#include <yaml-cpp/yaml.h>
+
 #include "UnitFormatter.h"
 #include "EvaCamConfig.h"
+#include "EvaCamResultExtractor.h"
 
 namespace {
 
@@ -197,9 +201,18 @@ namespace {
         return value ? "true" : "false";
     }
 
+    std::string quoted_string(const std::string &text) {
+        YAML::Emitter value;
+        value << YAML::DoubleQuoted << text;
+        return value.c_str();
+    }
+
     void write_assumptions(YamlWriter& y, const EvaCamConfig &config) {
+        const bool nand3d = config.technology.cell && config.technology.cell->memCellType == NAND3D;
         y.begin_map("assumptions");
-        y.line("model_identifier", "evacam-cam-v1");
+        y.line("model_identifier", nand3d ? "evacam-nand3d-tcam-v1" : config.technology.cell
+                && config.technology.cell->memCellType == SLCNAND
+                ? "evacam-nand-tcam-v1" : "evacam-cam-v1");
         y.line("design_target", "CAM");
         y.line("routing", config.input.routingMode == h_tree ? "h_tree" : "non_h_tree");
         y.begin_map("technology");
@@ -209,11 +222,73 @@ namespace {
         y.begin_map("modeling_options");
         y.line("exclude_precharge_latency", bool_name(config.peripherals.noPrechargeInc));
         y.line("include_leakage", bool_name(config.peripherals.includeLeakage));
-        y.line("strict_sense_margin", bool_name(config.peripherals.strictSenseMargin));
+        y.line("strict_sense_margin", bool_name(nand3d || config.peripherals.strictSenseMargin));
         y.line("scaled_voltage", fmt_voltage(config.peripherals.scaledVoltage));
         y.end_map();
+        if (config.technology.cell && config.technology.cell->nandString) {
+            const auto &nand = nand3d ? config.technology.cell->nand3d.electrical
+                : config.technology.cell->nand;
+            y.begin_map("nand");
+            y.line("model_backend", quoted_string(nand.model));
+            y.line("calibration_status", quoted_string(nand.calibrationStatus));
+            y.line("model_source", quoted_string(nand.source));
+            y.line("read_metrics", "unavailable");
+            y.end_map();
+        }
         y.line("limitations_reference", "docs/limitations.md");
         y.end_map();
+    }
+
+    // The NAND result uses SI-valued names from the shared structured result.
+    // Keeping one source avoids different accounting in YAML and Python.
+    struct MetricTree {
+        std::map<std::string, MetricTree> children;
+        double value = 0;
+    };
+
+    void write_metric_tree(YamlWriter &y, const MetricTree &tree) {
+        for (const auto &item : tree.children) {
+            if (item.second.children.empty()) {
+                std::ostringstream value;
+                value << std::setprecision(17) << item.second.value;
+                y.line(item.first, value.str());
+            } else {
+                y.begin_map(item.first);
+                write_metric_tree(y, item.second);
+                y.end_map();
+            }
+        }
+    }
+
+    void write_si_metrics(YamlWriter &y, const std::string &name,
+            const std::unordered_map<std::string, double> &metrics) {
+        MetricTree tree;
+        for (const auto &metric : metrics) {
+            MetricTree *node = &tree;
+            std::size_t begin = 0;
+            std::size_t end;
+            while ((end = metric.first.find('.', begin)) != std::string::npos) {
+                node = &node->children[metric.first.substr(begin, end - begin)];
+                begin = end + 1;
+            }
+            node->children[metric.first.substr(begin)].value = metric.second;
+        }
+        y.begin_map(name);
+        write_metric_tree(y, tree);
+        y.end_map();
+    }
+
+    void write_nand_results(YamlWriter &y, const Result &result) {
+        const EvaCamDesignResultDto dto = ExtractEvaCamDesignResult(result);
+        y.begin_map("metadata");
+        const std::map<std::string, std::string> metadata(dto.metadata.begin(), dto.metadata.end());
+        for (const auto &item : metadata) {
+            y.line(item.first, quoted_string(item.second));
+        }
+        y.end_map();
+        write_si_metrics(y, "geometry", dto.geometry);
+        write_si_metrics(y, "summary", dto.summary);
+        write_si_metrics(y, "breakdown", dto.breakdown);
     }
 
     void write_metric_stats(
@@ -618,6 +693,10 @@ namespace {
     void write_results_body(YamlWriter& y, const Result& result,
             const std::string &variationSamplesFile = "",
             const std::string &variationPlotFile = "") {
+        if (result.bank->mat->subarray->nandModel) {
+            write_nand_results(y, result);
+            return;
+        }
         write_geometry(y, result);
         write_summary(y, result, variationSamplesFile, variationPlotFile);
         write_breakdown(y, result);
@@ -657,8 +736,12 @@ void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<R
             variationPlotFile = plotFile->second;
         }
         y.begin_map(optimization_target_name(res->optimizationTarget));
-        write_summary(y, *res, variationSamplesFile, variationPlotFile);
-        write_breakdown(y, *res);
+        if (res->bank->mat->subarray->nandModel) {
+            write_nand_results(y, *res);
+        } else {
+            write_summary(y, *res, variationSamplesFile, variationPlotFile);
+            write_breakdown(y, *res);
+        }
         y.end_map();
     }
 }
@@ -666,6 +749,16 @@ void WriteResultsYamlMulti(std::ostream& os, const std::vector<std::shared_ptr<R
 void WriteResultsYamlNoSolutions(std::ostream& os, const EvaCamConfig &config) {
     YamlWriter y(os);
     write_assumptions(y, config);
+    if (config.technology.cell && config.technology.cell->nandString) {
+        const auto &cell = *config.technology.cell;
+        const auto &nand = cell.memCellType == NAND3D ? cell.nand3d.electrical : cell.nand;
+        write_si_metrics(y, "summary", {
+            {"timing.minimum_required_sense_margin_v", nand.minSenseMargin},
+            {"timing.sense_margin_enforced", 1.0}
+        });
+        y.line("status", "no_valid_solutions");
+        return;
+    }
     y.begin_map("summary");
     y.begin_map("timing");
     const double minimumSenseMargin = config.technology.cell

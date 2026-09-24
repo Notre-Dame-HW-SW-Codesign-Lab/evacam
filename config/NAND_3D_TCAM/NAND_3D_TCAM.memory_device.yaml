@@ -1,0 +1,61 @@
+schema: memory_device
+name: NAND_3D_TCAM_synthetic
+type: NAND3D
+nand3d:
+  storage_mode: SLC
+  model: transient_rc
+  calibration_status: synthetic
+  source: "Synthetic illustrative RC and peripheral values; not measured NAND characterization."
+  stack: {storage_layers: 68, dummy_layers: 2}
+  layout:
+    string_rows: 4
+    string_columns: 16
+    hole_pitch_x: 100nm
+    hole_pitch_y: 100nm
+    layer_pitch: 50nm
+    staircase_step_width: 100nm
+    staircase_contact_length: 500nm
+    isolation_width: 200nm
+    peripheral_placement: beside
+  precharge_driver_resistance: 1kohm
+  solver: {max_step: 0.5ns, tolerance: 1uV, max_steps: 100000}
+  # Pass resistance is shared by both threshold states in this backend.
+  resistance:
+    read_on: 10kohm
+    pass: 5kohm
+    off: 1Gohm
+    select: 1kohm
+  capacitance:
+    gate: 0.1fF
+    internal: 0.05fF
+    bitline: 20fF
+    source: 1fF
+    select: 0.1fF
+  threshold: {low: -1V, high: 2V}
+  bias: {read: 0.5V, pass: 5V, precharge: 0.8V}
+  supply_efficiency: 0.8
+  sensing:
+    decision_time: 50ns
+    # Required distance of each class from reference, after offset allowance.
+    min_margin: 0.1V
+    reference_voltage: 0V  # Automatic sampled-pattern midpoint.
+    offset: 0.01V
+  # Supply-side overheads exclude the modeled gate C*V^2 charging and finite
+  # precharge-driver energy integrated from transient source charge.
+  # Driver area/leakage is per storage/dummy wordline and select-group line;
+  # driver energy is per voltage update. Sense hardware is per mux channel.
+  # Page-buffer hardware is per string column, reused across selection groups.
+  # Sense/page-buffer energy is per sampled string.
+  wordline_driver: {area: 2um^2, latency: 2ns, energy: 2fJ, leakage: 1nW}
+  sense: {area: 1um^2, latency: 2ns, energy: 5fJ, leakage: 1nW}
+  page_buffer: {area: 1um^2, latency: 1ns, energy: 2fJ, leakage: 1nW}
+  # Shared per-block query/setup costs; precharge and recovery repeat for each
+  # selection-group and sense-multiplexing round.
+  query: {latency: 2ns, energy: 5fJ}
+  setup: {latency: 5ns, energy: 10fJ}
+  precharge: {latency: 50ns, energy: 5fJ}
+  recovery: {latency: 50ns, energy: 10fJ}
+  # Complete supplied-operation costs, including high-voltage generation and
+  # verify loops, for this page/block geometry. No read/modify/write inferred.
+  program_page: {latency: 200us, energy: 2nJ}
+  erase_block: {latency: 2ms, energy: 20nJ}

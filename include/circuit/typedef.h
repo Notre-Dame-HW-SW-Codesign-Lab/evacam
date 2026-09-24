@@ -11,7 +11,8 @@ enum MemCellType {
     FBRAM,
     SLCNAND,
     MLCNAND,
-    FEFETRAM
+    FEFETRAM,
+    NAND3D
 };
 
 enum CellAccessType {

@@ -115,8 +115,10 @@ std::shared_ptr<MemCell> LoadCell(const InputConfig &input, const std::shared_pt
         cell->camWidthMatchTran = input.camWidthMatchTran;
     }
     PhysicalDomainValidators::ValidateMemCell(*cell);
-    cell->CalculateWriteEnergy();
-    if (cell->memCellType != SRAM) {
+    if (!cell->nandString) {
+        cell->CalculateWriteEnergy();
+    }
+    if (cell->memCellType != SRAM && !cell->nandString) {
         YamlHelpers::require_non_negative(
                 cell->setEnergy, "derived memory_device.write.set.energy");
         YamlHelpers::require_non_negative(

@@ -20,6 +20,22 @@
 
 namespace {
 
+void PrintNoSolutions(const EvaCamConfig &config) {
+    std::cout << "No valid solutions." << std::endl;
+    const auto &cell = config.technology.cell;
+    const double minimumSenseMargin = !cell ? 0.0
+        : cell->memCellType == NAND3D ? cell->nand3d.electrical.minSenseMargin
+        : cell->nandString ? cell->nand.minSenseMargin : cell->minSenseVoltage;
+    std::cout << "Minimum Required Sense Margin: " << minimumSenseMargin * 1e3
+              << " mV" << std::endl;
+    if (cell && cell->nandString) {
+        const auto &nand = cell->memCellType == NAND3D ? cell->nand3d.electrical : cell->nand;
+        std::cout << "NAND model: " << nand.model << " ("
+                  << nand.calibrationStatus << ")" << std::endl
+                  << "Source: " << nand.source << std::endl;
+    }
+}
+
 void PrintVariationMetric(const char *name, double scale, const char *unit, const CAMMetricStats &stats) {
     if (!stats.available) {
         return;
@@ -192,12 +208,7 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
                 }
             }
         } else {
-            std::cout << "No valid solutions." << std::endl;
-            const double minimumSenseMargin = config.technology.cell
-                ? config.technology.cell->minSenseVoltage : 0.0;
-            std::cout << "Minimum Required Sense Margin: "
-                      << minimumSenseMargin * 1e3
-                      << " mV" << std::endl;
+            PrintNoSolutions(config);
         }
 
         std::cout << std::endl << "Finished!" << std::endl;
@@ -205,12 +216,7 @@ void EvaCamOutput::PrintConsoleSummary(const EvaCamConfig &config,
     }
 
     if (numSolution <= 0) {
-        std::cout << "No valid solutions." << std::endl;
-        const double minimumSenseMargin = config.technology.cell
-            ? config.technology.cell->minSenseVoltage : 0.0;
-        std::cout << "Minimum Required Sense Margin: "
-                  << minimumSenseMargin * 1e3
-                  << " mV" << std::endl;
+        PrintNoSolutions(config);
         std::cout << std::endl << "Finished!" << std::endl;
         return;
     }

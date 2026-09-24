@@ -228,20 +228,54 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
         throw std::runtime_error("cell uses top-level name/cam_type/layout, not cell:");
     }
 
+    cell.nandString = false;
+    cell.nand = NandDeviceSpec{};
+    cell.nand3d = Nand3dMemoryDevice{};
+    if (YamlHelpers::child_optional(root, "topology")) {
+        const std::string topology = YamlHelpers::read_required<std::string>(root, "topology");
+        if (topology != "nand_string") {
+            throw std::runtime_error("Unsupported cell.topology: " + topology);
+        }
+        cell.nandString = true;
+        for (const char* key : {"ports", "access_device"}) {
+            if (YamlHelpers::child_optional(root, key)) {
+                throw std::runtime_error(std::string("cell.") + key
+                        + " is not supported with topology: nand_string");
+            }
+        }
+        cell.camNumRow = 0;
+        cell.camNumCol = 0;
+    }
     const YAML::Node layout = YamlHelpers::child_required(root, "layout");
     cell.processNode = YamlHelpers::checked_integer<int>(
             YamlHelpers::read_quantity_required(
                     layout, "cell_process_node", YamlHelpers::LengthUnits(), 1e-9,
                     "cell.layout.cell_process_node") / 1e-9,
             "cell.layout.cell_process_node in nanometers");
-    cell.area = YamlHelpers::read_quantity_required(layout, "area",
-            YamlHelpers::FeatureAreaUnits(), 1.0, "cell.layout.area");
-    cell.aspectRatio = YamlHelpers::read_required<double>(layout, "aspect_ratio");
+    // NAND3D obtains its physical footprint from the memory-device stack and
+    // layout. Only the peripheral technology node belongs in the cell layout.
+    const YAML::Node reference = YamlHelpers::child_optional(root, "memory_device");
+    bool isNand3d = false;
+    if (reference && reference.IsScalar()) {
+        const YAML::Node device = YAML::LoadFile(resolve_reference(inputFile, reference.as<std::string>()));
+        isNand3d = YamlHelpers::read_enum_required<MemCellType>(device, "type", false) == NAND3D;
+    }
     YamlHelpers::require_positive(cell.processNode, "cell.layout.cell_process_node");
-    YamlHelpers::require_positive(cell.area, "cell.layout.area");
-    YamlHelpers::require_positive(cell.aspectRatio, "cell.layout.aspect_ratio");
-    cell.heightInFeatureSize = sqrt(cell.area * cell.aspectRatio);
-    cell.widthInFeatureSize = sqrt(cell.area / cell.aspectRatio);
+    if (isNand3d) {
+        if (YamlHelpers::child_optional(layout, "area") || YamlHelpers::child_optional(layout, "aspect_ratio")) {
+            throw std::runtime_error("NAND3D cell.layout does not accept planar area/aspect_ratio; configure memory_device.nand3d.layout");
+        }
+        cell.area = cell.aspectRatio = cell.heightInFeatureSize = cell.widthInFeatureSize = 0;
+    } else {
+        cell.area = YamlHelpers::read_quantity_required(layout, "area",
+                YamlHelpers::FeatureAreaUnits(), 1.0, "cell.layout.area");
+        cell.aspectRatio = YamlHelpers::read_required<double>(layout, "aspect_ratio");
+        YamlHelpers::require_positive(cell.processNode, "cell.layout.cell_process_node");
+        YamlHelpers::require_positive(cell.area, "cell.layout.area");
+        YamlHelpers::require_positive(cell.aspectRatio, "cell.layout.aspect_ratio");
+        cell.heightInFeatureSize = sqrt(cell.area * cell.aspectRatio);
+        cell.widthInFeatureSize = sqrt(cell.area / cell.aspectRatio);
+    }
 
     std::string cellName;
     if (YamlHelpers::child_optional(root, "name")) {
@@ -265,7 +299,7 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
 void ValidateV2CellKeys(const YAML::Node& root) {
     YamlHelpers::reject_unknown_keys(root,
             {"schema", "name", "cam_type", "memory_device", "access_device", "layout",
-             "ports"},
+             "ports", "topology"},
             "cell");
     YamlHelpers::reject_unknown_keys(YamlHelpers::child_optional(root, "access_device"),
             {"type", "cmos_width", "voltage_drop", "leakage_current"},
@@ -721,6 +755,8 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     ReadFlashSection(cell, deviceRoot);
     ReadVariationSection(cell, deviceRoot);
     ReadMcamSection(cell, deviceRoot);
+    YamlHelpers::ReadNandSection(cell, deviceRoot);
+    YamlHelpers::ReadNand3dSection(cell, deviceRoot);
 }
 
 }  // namespace

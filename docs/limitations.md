@@ -19,13 +19,61 @@ This file summarizes current runtime restrictions enforced by the code.
 
 ## Memory Technologies
 
-Accepted cell types include `SRAM`, `MRAM`, `PCRAM`, `ReRAM`, `FBRAM`, `SLCNAND`, and `FEFETRAM`.
+Accepted cell types include `SRAM`, `MRAM`, `PCRAM`, `ReRAM`, `FBRAM`, `SLCNAND`, `NAND3D`, and `FEFETRAM`.
 
 Known unsupported or incomplete modes:
 
 - `DRAM` is under development
 - `eDRAM` is under development
 - `MLCNAND` is under development
+
+## NAND String TCAM
+
+- `SLCNAND` requires `cam_type: TCAM`, `topology: nand_string`, and an explicit
+  `nand` device model. Exact search (`EX`), stored wildcards, and query masks
+  are supported by a series-string analytical RC approximation.
+- The canonical `config/NAND_TCAM/` values are synthetic, with no measured or
+  SPICE correlation. Planar area and a first-moment transient approximation
+  must not be presented as validated commercial or 3D NAND predictions.
+- The [independent RC audit](validation/nand-yang-2023.md) finds that a
+  512-wordline matching string can pass the approximation's 100 mV margin
+  requirement while providing only 75 mV in the full linear RC calculation.
+  The supplied precharge time is also assumed sufficient, not verified.
+- Fixed `[strings, logical key bits]` subarray dimensions describe one erase
+  block. Physical pages contain one bit per string. Keys must fit in one
+  string after complementary encoding and a validity pair.
+- NAND uses explicit query, wordline-driver, sense, page-buffer, and operation
+  costs. Generic CAM peripheral toggles, external sensing, generic matchline
+  overrides, and variation are rejected.
+- Search/area/leakage objectives are supported; write objectives mean one
+  physical page program. Conventional read, full/deep exploration, design
+  constraints, and legacy exploration CSV are unsupported.
+- The generic subarray dimension tester and independent dimension overrides
+  are unsupported for NAND; change fixed NAND architecture configurations
+  together with their physical page/block geometry.
+- No multilevel, approximate/top-k, segmented-word, conventional storage-read,
+  retention/disturb/endurance, ECC, or SSD-controller model is provided.
+- See [NAND TCAM](nand-tcam.md) for geometry, sensing margins, operation units,
+  provenance, and the supported example.
+
+## 3D NAND String TCAM
+
+- `NAND3D` is a separate SLC-mode backend with explicit vertical stack and
+  lateral layout geometry. Its finite-precharge linear RC transient replaces
+  the planar model's one-pole voltage approximation.
+- The supplied 3D example is synthetic and uncalibrated. Numerical convergence
+  checks verify the configured linear circuit equations; they do not validate
+  flash device physics, fabricated area, or measurements from a paper.
+- Sense margins and energy envelopes use the reported sampled patterns, not
+  exhaustive guarantees over every stored and query vector. The model enforces
+  its sampled sense-margin requirement and checks the recovery reset condition.
+- A physical page contains one bit per string in one select group. Groups are
+  searched sequentially; each logical entry occupies a complete vertical string.
+- Only explicit SLC resistance states and linear capacitances are modeled. No
+  nonlinear transistor I–V, charge trapping, process variation, coupling noise,
+  high-voltage programming waveform, retention, or endurance model is included.
+- The operation and runtime restrictions listed for NAND string TCAM above also
+  apply. See [3D NAND TCAM](nand-3d-tcam.md) for the supported contract.
 
 ## MCAM
 

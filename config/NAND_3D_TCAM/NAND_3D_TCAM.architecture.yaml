@@ -1,0 +1,37 @@
+schema: architecture
+name: NAND_3D_TCAM_synthetic
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 45nm
+  device_roadmap: HP
+  temperature: 300K
+memory:
+  # 64 logical entries of 32 bits. Physical flash includes complementary
+  # encoding, a validity pair, and two padding wordlines per string.
+  capacity: 256B
+  word_width: 32bits
+routing:
+  type: H-tree
+peripherals:
+  input: {buffer: false, encoder: false, custom_encoder: false}
+  output: {buffer: false, priority_encoder: false, accumulator: false}
+  write_driver: false
+sensing:
+  internal: true
+  custom_sense_amp: false
+  sensing_mode: discharge
+wires:
+  local: {type: LocalConservative, repeater: RepeatedNone, low_swing: false}
+  global: {type: GlobalAggressive, repeater: RepeatedNone, low_swing: false}
+organization:
+  banks: {total: [1, 1], active: [1, 1]}
+  mats: {total: [1, 1], active: [1, 1]}
+  mux: {sense_amp: 1, output_level1: 1, output_level2: 1}
+  subarray:
+    # [physical strings, logical key bits]; one erase block per subarray.
+    dimensions: [64, 32]
+flash:
+  # These legacy schema quantities use bytes. Runtime stores the counts in bits.
+  page_size: 2B       # One selected group of 16 strings / physical page
+  block_size: 544B    # 4 groups * 16 strings * 68 storage layers

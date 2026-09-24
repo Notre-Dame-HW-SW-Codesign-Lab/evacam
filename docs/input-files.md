@@ -28,6 +28,22 @@ technology: ../lib/technology/cmos.updated.yaml
 
 All references are resolved relative to the file that contains them.
 
+The NAND-string example is `config/NAND_TCAM/NAND_TCAM.config.yaml`. Its cell
+file selects `topology: nand_string` and has no generic CAM port or access-device
+mapping. Its `SLCNAND` memory-device file contains all explicit electrical and
+peripheral costs under `nand`; an inline architecture sensing block selects
+`discharge` without a generic sense-amplifier reference. Fixed subarray
+dimensions mean `[physical strings, logical key bits]`, while `flash.page_size`
+and `flash.block_size` describe physical storage. See [NAND TCAM](nand-tcam.md)
+and [the NAND schema](schema.md#nand-string-tcam) before changing its geometry.
+
+The vertical NAND example is
+`config/NAND_3D_TCAM/NAND_3D_TCAM.config.yaml`. Its ordinary
+`*.memory_device.yaml` selects `type: NAND3D` and places stack, lateral layout,
+electrical, precharge-driver, and solver settings under `nand3d`. One physical
+page spans one select group rather than every string in the block. See
+[3D NAND TCAM](nand-3d-tcam.md) for the exact capacity and grouping rules.
+
 ## Subarray Dimension Tester Config
 
 Run a tester config with the compiled mode:

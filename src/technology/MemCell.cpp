@@ -231,6 +231,35 @@ double MemCell::CalculateReadPower() { /* TODO consider charge pumped read volta
 
 void MemCell::PrintCell()
 {
+    if (nandString) {
+        const NandDeviceSpec& spec = memCellType == NAND3D ? nand3d.electrical : nand;
+        std::cout << "Memory Cell: " << (memCellType == NAND3D
+                ? "3D NAND String TCAM" : "Single-Level NAND String TCAM") << std::endl;
+        if (memCellType == NAND3D) {
+            std::cout << "3D Stack: " << nand3d.storageLayers << " storage + "
+                      << nand3d.dummyLayers << " dummy layers" << std::endl;
+            std::cout << "String Layout: " << nand3d.stringRows << " select groups x "
+                      << nand3d.stringColumns << " columns; peripherals "
+                      << nand3d.peripheralPlacement << std::endl;
+        }
+        std::cout << "Model: " << spec.model << " (" << spec.calibrationStatus << ")" << std::endl;
+        std::cout << "Source: " << spec.source << std::endl;
+        if (memCellType != NAND3D) {
+            std::cout << "Planar Area Per Flash Transistor: " << area << " F^2" << std::endl;
+        }
+        std::cout << "Threshold Low / High: " << spec.thresholdLow << " / "
+                  << spec.thresholdHigh << " V" << std::endl;
+        std::cout << "Query Read / Pass Bias: " << spec.voltageRead << " / "
+                  << spec.voltagePass << " V" << std::endl;
+        std::cout << "Bitline Precharge: " << spec.voltagePrecharge << " V" << std::endl;
+        std::cout << "Per-Decision Evaluation Time: " << ToSecond(spec.decisionTime) << std::endl;
+        std::cout << "Required Per-Class Reference Margin: " << spec.minSenseMargin << " V" << std::endl;
+        std::cout << "Program One Physical Page: " << ToSecond(spec.programPage.latency)
+                  << ", " << ToJoule(spec.programPage.energy) << std::endl;
+        std::cout << "Erase One Physical Block: " << ToSecond(spec.eraseBlock.latency)
+                  << ", " << ToJoule(spec.eraseBlock.energy) << std::endl;
+        return;
+    }
     const char *type[] = {
         "Wordline",
         "Searchline",
@@ -274,6 +303,9 @@ void MemCell::PrintCell()
             break;
         case SLCNAND:
             std::cout << "Memory Cell: Single-Level Cell NAND Flash" << std::endl;
+            break;
+        case NAND3D:
+            std::cout << "Memory Cell: 3D NAND Flash" << std::endl;
             break;
         case MLCNAND:
             std::cout << "Memory Cell: Multi-Level Cell NAND Flash" << std::endl;

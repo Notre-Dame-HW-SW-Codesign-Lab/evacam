@@ -158,6 +158,7 @@ const std::vector<std::pair<const char*, MemCellType>>& EnumTraits<MemCellType>:
         {"FBRAM", FBRAM},
         {"SLCNAND", SLCNAND},
         {"MLCNAND", MLCNAND},
+        {"NAND3D", NAND3D},
         {"FEFETRAM", FEFETRAM},
     };
     return k;

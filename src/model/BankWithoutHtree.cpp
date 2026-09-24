@@ -23,6 +23,11 @@ void BankWithoutHtree::Initialize(int _numRowMat, int _numColumnMat, long long _
     localWire = _localWire;
     globalWire = _globalWire;
     config = _config;
+    if (config->technology.cell->nandString) {
+        initialized = false;
+        invalid = true;
+        throw std::invalid_argument("NAND strings require NandCamBank; construct banks through BankFactory.");
+    }
 
     if (initialized) {
         /* Reset the class for re-initialization */

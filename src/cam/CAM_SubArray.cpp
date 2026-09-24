@@ -8,6 +8,7 @@
 #include "constant.h"
 #include "CAM_Line.h"
 #include "MemCell.h"
+#include "factories/NandCamFactory.h"
 
 #include <algorithm>
 #include <math.h>
@@ -310,6 +311,48 @@ void CAM_SubArray::Initialize(
         std::shared_ptr<EvaCamConfig> _config, 
         const Wire &_localWire,
         const CAM_Opt &_CAM_opt) {
+
+    if (_config->technology.cell->nandString) {
+        initialized = false;
+        invalid = false;
+        nandModel.reset();
+        if (_split || !_internalSenseAmp || _muxOutputLev1 != 1 || _muxOutputLev2 != 1
+                || _withInputEnc || _customInputEnc || _withWriteDriver || _withOutputAcc
+                || _withPriorityEnc || _withInputBuf || _withOutputBuf || _customSenseAmp
+                || _withVariation || _typeSenseAmp != discharge
+                || _typeInputEnc != encoding_two_bit || _camType != TCAM || _searchFunction != EX) {
+            throw std::invalid_argument("[CAM_SubArray] Unsupported NAND split, output mux, generic peripheral, or search option.");
+        }
+        config = _config;
+        localWire = _localWire;
+        CAM_opt = _CAM_opt;
+        camType = _camType;
+        searchFunction = _searchFunction;
+        configuredNumRow = numRow = _numRow;
+        configuredNumColumn = numColumn = _numColumn;
+        muxSenseAmp = _muxSenseAmp;
+        muxOutputLev1 = _muxOutputLev1;
+        muxOutputLev2 = _muxOutputLev2;
+        internalSenseAmp = _internalSenseAmp;
+        split = _split;
+        nandModel = CreateNandCamBackend(_config->technology.cell->memCellType);
+        nandModel->Initialize(config, _numRow, _numColumn, _muxSenseAmp, localWire);
+        initialized = true;
+        invalid = !nandModel->Metrics().senseMarginPass;
+        latencyCalculated = false;
+        variationSummary = {};
+        variationSamples.clear();
+        ApplyNandMetrics();
+        if (invalid) {
+            config->logger.Verbose() << "[NAND TCAM] No feasible sense margin at the configured decision time.";
+        }
+        return;
+    }
+    nandModel.reset();
+    if (_config->technology.cell->memCellType == SLCNAND
+            || _config->technology.cell->memCellType == NAND3D) {
+        throw std::runtime_error("[CAM_SubArray] SLCNAND/NAND3D requires topology: nand_string.");
+    }
 
     auto &logger = _config->logger;
     if (initialized) logger.Verbose() << "[CAM_SubArray] Warning: Already initialized!";
@@ -713,6 +756,10 @@ void CAM_SubArray::Initialize(
 }
 
 void CAM_SubArray::CalculateArea() {
+    if (nandModel) {
+        ApplyNandMetrics();
+        return;
+    }
     if (!initialized) {
         ThrowInitializationError("[CAM_SubArray]");
     } else if (invalid) {
@@ -815,6 +862,11 @@ void CAM_SubArray::CalculateArea() {
 }
 
 void CAM_SubArray::CalculateLatency(double _rampInput) {
+    if (nandModel) {
+        ApplyNandMetrics();
+        latencyCalculated = true;
+        return;
+    }
     if (!initialized) {
         throw std::runtime_error("[CAM_SubArray] Error: Require initialization first!");
     }
@@ -1041,6 +1093,13 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
 
 
 void CAM_SubArray::CalculatePower() {
+    if (nandModel) {
+        if (!latencyCalculated) {
+            throw std::runtime_error("[NAND TCAM] CalculateLatency must precede CalculatePower.");
+        }
+        ApplyNandMetrics();
+        return;
+    }
         if (!initialized) {
             ThrowInitializationError("[CAM_SubArray]");
         } else if (invalid) {
@@ -1404,6 +1463,12 @@ void CAM_SubArray::CalculatePower() {
 }
 
 void CAM_SubArray::PrintProperty() {
+    if (nandModel) {
+        std::cout << "NAND TCAM: " << ConfiguredRows() << " strings, "
+                  << ConfiguredColumns() << " logical bits per entry, "
+                  << nandModel->Metrics().physicalCells << " physical cells" << std::endl;
+        return;
+    }
     std::cout << "CAMSubarray Properties:" << std::endl;
     //FunctionUnit::PrintProperty();
     std::cout << "numRow:" << ConfiguredRows()
@@ -1434,6 +1499,31 @@ void CAM_SubArray::PrintProperty() {
     std::cout << "chargeLatency: " << chargeLatency*1e12 << "ps" << std::endl;
     std::cout << "columnDecoderLatency: " << columnDecoderLatency*1e12 << "ps" << std::endl;
     std::cout << "errors exist here!" << std::endl;
+}
+
+void CAM_SubArray::ApplyNandMetrics() {
+    const auto &metrics = nandModel->Metrics();
+    area = metrics.area;
+    width = lenRow = metrics.width;
+    height = lenCol = metrics.height;
+    searchLatency = metrics.searchLatency;
+    searchDynamicEnergy = metrics.searchEnergy;
+    readLatency = readDynamicEnergy = 0; // Page reads are unavailable for NAND CAM.
+    writeLatency = setLatency = metrics.programPageLatency;
+    resetLatency = metrics.eraseBlockLatency;
+    writeDynamicEnergy = setDynamicEnergy = metrics.programPageEnergy;
+    resetDynamicEnergy = metrics.eraseBlockEnergy;
+    cellReadEnergy = 0;
+    cellSetEnergy = metrics.programPageEnergy;
+    cellResetEnergy = metrics.eraseBlockEnergy;
+    leakage = metrics.leakage;
+    matchlineDelay = referDelay = metrics.decisionTime;
+    senseMargin = metrics.senseMargin;
+    senseVoltage = metrics.requiredSenseMargin;
+    const auto &cell = *config->technology.cell;
+    voltagePrecharge = cell.memCellType == NAND3D
+        ? cell.nand3d.electrical.voltagePrecharge : cell.nand.voltagePrecharge;
+    numSenseAmp = metrics.senseAmplifiers;
 }
 
 int CAM_SubArray::CountMismatches(const std::vector<int> &stored, const std::vector<int> &query) const {
@@ -2400,6 +2490,9 @@ double CAM_SubArray::MatchlineHorowitzDelay(
 }
 
 double CAM_SubArray::TcamSensedVoltage(int mismatches, double resistanceSigmaOffset) const {
+    if (nandModel) {
+        throw std::invalid_argument("[NAND TCAM] Sensing requires stored/query vectors, not a mismatch count.");
+    }
     if (!initialized || invalid || config->technology.cell->camType != TCAM
             || CAM_opt.BitSerialWidth <= 0) {
         throw std::runtime_error("[CAM_SubArray] Error: require a valid initialized TCAM subarray.");
@@ -2426,6 +2519,9 @@ double CAM_SubArray::TcamSensedVoltage(int mismatches, double resistanceSigmaOff
 }
 
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const {
+    if (nandModel) {
+        return nandModel->Evaluate(stored, query);
+    }
     if (CAM_opt.BitSerialWidth <= 0)
         throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
     if (stored.size() != static_cast<size_t>(CAM_opt.BitSerialWidth)
@@ -2438,6 +2534,9 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stor
 }
 
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCount) const {
+    if (nandModel) {
+        throw std::invalid_argument("[NAND TCAM] Matching requires stored/query vectors, not a mismatch count.");
+    }
     const auto &cell = *config->technology.cell;
 
     if (!initialized)

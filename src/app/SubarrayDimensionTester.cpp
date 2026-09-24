@@ -178,6 +178,11 @@ RunOutcome RunOne(
         }
 
         const EvaCamDesignResultDto &design = selectedResult->second;
+        const auto topology = design.metadata.find("topology");
+        if (topology != design.metadata.end() && topology->second == "nand_string") {
+            throw std::runtime_error("NAND TCAM is not supported by the generic subarray "
+                    "dimension tester; run fixed NAND architecture configurations directly");
+        }
         const int reportedRows = static_cast<int>(std::llround(
                 RequiredMetric(design.geometry, "subarray_rows")));
         const int reportedColumns = static_cast<int>(std::llround(

@@ -4,6 +4,81 @@ This document covers the YAML fields currently parsed by EvaCAM. Treat this file
 and the shipped examples under `config/` as the source of truth for real
 runs.
 
+## NAND String TCAM
+
+The complete supported fixture is `config/NAND_TCAM/NAND_TCAM.config.yaml`.
+The [NAND model guide](nand-tcam.md) defines its operation and geometry units.
+
+| File | Required NAND configuration |
+| --- | --- |
+| Cell | `cam_type: TCAM`, `topology: nand_string`, `memory_device`, and `layout`; generic `ports` and `access_device` are omitted |
+| Architecture | `design.search_function: EX`, fixed `organization.subarray.dimensions: [strings, key_bits]`, explicit total/active organization, `flash.page_size`, `flash.block_size` |
+| Sensing | `internal: true`, `custom_sense_amp: false`, `sensing_mode: discharge`; no generic sense-amplifier reference |
+| Memory device | `type: SLCNAND` with the `nand` fields below |
+
+All NAND memory-device sections are explicit. Unknown keys are rejected.
+
+| `nand` key | Meaning and units |
+| --- | --- |
+| `model` | `analytical_rc` |
+| `calibration_status`, `source` | Status is `synthetic`, `uncalibrated`, or user-declared `calibrated`; nonblank source is required. The example is `synthetic`; labels do not establish calibration evidence |
+| `resistance.read_on`, `.pass`, `.off`, `.select` | Ohms; must satisfy `off > read_on >= pass > 0` and positive select resistance |
+| `capacitance.gate`, `.internal`, `.bitline`, `.source`, `.select` | Farads; gate and bitline are positive; remaining terms may be zero |
+| `threshold.low`, `.high` | Volts; state thresholds |
+| `bias.read`, `.pass`, `.precharge` | Volts; `low < read < high < pass`, with positive precharge |
+| `supply_efficiency` | Supply efficiency in `(0, 1]` for modeled capacitive charging |
+| `sensing.decision_time` | Common electrical evaluation time in seconds |
+| `sensing.min_margin` | Required per-class reference margin in volts |
+| `sensing.reference_voltage` | Volts; zero selects automatic midpoint, otherwise below precharge |
+| `sensing.offset` | Nonnegative comparator offset allowance in volts |
+| `wordline_driver`, `sense`, `page_buffer` | Each requires `area` (m²), `latency` (s), `energy` (J), and `leakage` (W) |
+| `query`, `setup`, `precharge`, `recovery` | Each requires `latency` (s) and `energy` (J) |
+| `program_page`, `erase_block` | Positive complete local operation `latency` (s) and `energy` (J), per physical page/block |
+
+`layout.area` is one planar flash-transistor footprint in F². Physical flash
+cells include encoding, validity, and padding; CMOS select devices are counted
+separately. Legacy generic `flash`, `read`, `write`, and `resistance` device
+fields do not replace the `nand` model. See [limitations](limitations.md#nand-string-tcam)
+for rejected objectives, geometry, variation, and peripheral options.
+
+## 3D NAND TCAM
+
+The canonical example is
+`config/NAND_3D_TCAM/NAND_3D_TCAM.config.yaml`. It uses the normal
+`memory_device` YAML schema with `type: NAND3D` and a `nand3d` mapping;
+there is no additional `.spec` input format. The cell uses
+`topology: nand_string` and `cam_type: TCAM`. Its `layout` supplies
+`cell_process_node`; planar `area` and `aspect_ratio` are not accepted.
+
+The `nand3d` electrical resistance/capacitance/bias, sensing, peripheral, and
+operation groups use the same units as the `nand` groups above. Additional
+required fields are:
+
+| `nand3d` key | Meaning |
+| --- | --- |
+| `model` | `transient_rc` |
+| `storage_mode` | `SLC` |
+| `stack.storage_layers`, `stack.dummy_layers` | Storage and dummy layer counts; validity/padding are included in storage layers |
+| `layout.string_rows`, `layout.string_columns` | Sequential select groups and strings per group |
+| `layout.hole_pitch_x`, `layout.hole_pitch_y`, `layout.layer_pitch` | Lateral hole pitches and vertical layer pitch, in meters |
+| `layout.staircase_step_width`, `layout.staircase_contact_length`, `layout.isolation_width` | Physical staircase/isolation lengths, in meters |
+| `layout.peripheral_placement` | `beside` adds peripheral area; `under_array` overlaps it with the array footprint |
+| `precharge_driver_resistance` | Finite bitline precharge-driver resistance, in ohms |
+| `solver.max_step` | Maximum transient integration step, in seconds |
+| `solver.tolerance` | Numerical voltage tolerance, in volts |
+| `solver.max_steps` | Positive integration-step limit |
+
+`flash.page_size` is one selected group's SLC page (`string_columns` bits).
+`flash.block_size` is `string_rows * string_columns * storage_layers` bits.
+Fixed subarray dimensions are `[string_rows * string_columns, logical_key_bits]`.
+Storage layers must accommodate two devices per key bit plus a validity pair;
+total storage and dummy layers may not exceed 4096. String rows must be positive,
+string columns must be byte aligned and at least eight, and their product may
+not exceed 1,048,576. The solver requires positive step and tolerance, tolerance
+at most 1 mV, and at least 100 maximum steps.
+See [3D NAND TCAM](nand-3d-tcam.md) for scheduling, physical capacity, and
+numerical-verification versus device-calibration scope.
+
 ## Subarray Dimension Tester Config
 
 The compiled `--subarray-dimension-test` mode accepts a separate tester schema:

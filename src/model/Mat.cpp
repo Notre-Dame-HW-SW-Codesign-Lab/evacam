@@ -82,6 +82,8 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
 
     if (initialized)
         config->logger.Verbose() << "[Mat] Warning: Already initialized!";
+    initialized = false;
+    invalid = false;
 
     numRowSubarray = _numRowSubarray;
     numColumnSubarray = _numColumnSubarray;
@@ -119,6 +121,11 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
     // modified for EvaCAM
     long long numRow = 0;		/* Number of rows in a subarray */
     long long numColumn = 0;	/* Number of columns in a subarray */
+
+    if (config->technology.cell->nandString) {
+        numRow = config->runtimeSizing.fixedSubarrayRows;
+        numColumn = config->runtimeSizing.fixedSubarrayColumns;
+    } else {
 
     /* The number of address bits that are used to power gate inactive subarrays */
     int numAddressForGating = Log2Rounded(numRowSubarray * numColumnSubarray
@@ -163,6 +170,7 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
         return;
     }
 
+    }
     subarray = std::make_unique<CAM_SubArray>();
     subarray->Initialize(
             numRow, 
@@ -194,6 +202,12 @@ void Mat::Initialize(int _numRowSubarray, int _numColumnSubarray, int _numAddres
 
     if (subarray->invalid) {
         MarkInvalid(*this, "[Mat]: Subarray is invalid.");
+        return;
+    }
+    if (subarray->nandModel) {
+        predecoderLatency = areaAllPredecoderBlocks = 0;
+        initialized = true;
+        CalculateArea();
         return;
     }
     /* Subarray dimensions are used by the predecoder setup below. */
@@ -231,6 +245,12 @@ void Mat::CalculateArea() {
         height = width = area = kInvalidResult;
     } else {
         /* subarray CalculateArea() is already called during the initialization */
+        if (subarray->nandModel) {
+            width = subarray->width * numColumnSubarray;
+            height = subarray->height * numRowSubarray;
+            area = width * height;
+            return;
+        }
         ForEachPredecoderBlock(*this, [](PredecodeBlock &block) { block.CalculateArea(); });
 
         areaAllPredecoderBlocks = SumPredecoderMetric(*this, &FunctionUnit::area);
@@ -255,6 +275,7 @@ void Mat::CalculateRC() {
         throw std::runtime_error("[Mat] Error: Require initialization first!");
     } else if (!invalid) {
         /* Subarray RC is integrated into initialization. */
+        if (subarray->nandModel) return;
         ForEachPredecoderBlock(*this, [](PredecodeBlock &block) { block.CalculateRC(); });
     }
 }
@@ -266,6 +287,13 @@ void Mat::CalculateLatency(double _rampInput) {
         readLatency = writeLatency = kInvalidResult;
     } else {
         /* Calculate the predecoder blocks latency */
+        if (subarray->nandModel) {
+            subarray->CalculateLatency(_rampInput);
+            readLatency = 0;
+            writeLatency = setLatency = subarray->setLatency;
+            resetLatency = subarray->resetLatency;
+            return;
+        }
         ForEachPredecoderBlock(*this,
                 [_rampInput](PredecodeBlock &block) { block.CalculateLatency(_rampInput); });
 
@@ -298,6 +326,14 @@ void Mat::CalculatePower() {
     } else if (invalid) {
         readDynamicEnergy = writeDynamicEnergy = leakage = kInvalidResult;
     } else {
+        if (subarray->nandModel) {
+            subarray->CalculatePower();
+            readDynamicEnergy = cellReadEnergy = 0;
+            writeDynamicEnergy = setDynamicEnergy = cellSetEnergy = subarray->setDynamicEnergy;
+            resetDynamicEnergy = cellResetEnergy = subarray->resetDynamicEnergy;
+            leakage = subarray->leakage * numRowSubarray * numColumnSubarray;
+            return;
+        }
         ForEachPredecoderBlock(*this, [](PredecodeBlock &block) { block.CalculatePower(); });
         subarray->CalculatePower();
 

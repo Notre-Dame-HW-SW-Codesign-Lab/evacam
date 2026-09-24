@@ -7,6 +7,8 @@
 
 #include "typedef.h"
 #include "constant.h"
+#include "technology/NandDeviceSpec.h"
+#include "technology/Nand3dMemoryDevice.h"
 
 class MemCell {
     public:
@@ -111,6 +113,9 @@ class MemCell {
         double resistanceOnAtHalfResetVoltage; /* Low resistance state when 1/2 reset voltage is applied */
 
         /* For NAND flash */
+        bool nandString = false;
+        NandDeviceSpec nand;
+        Nand3dMemoryDevice nand3d;
         double flashEraseVoltage;		/* The erase voltage, Unit: V, highest W/E voltage in ITRS sheet */
         double flashPassVoltage;		/* The voltage applied on the unselected wordline within the same block during programming, Unit: V */
         double flashProgramVoltage;		/* The program voltage, Unit: V */

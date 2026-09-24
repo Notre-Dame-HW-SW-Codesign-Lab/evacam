@@ -4,9 +4,13 @@
 
 #include "BankWithHtree.h"
 #include "BankWithoutHtree.h"
+#include "model/NandCamBank.h"
 #include "EvaCamConfig.h"
 
 std::shared_ptr<Bank> BankFactory::CreateBank(const EvaCamConfig &config) {
+    if (config.technology.cell && config.technology.cell->nandString) {
+        return std::make_shared<NandCamBank>();
+    }
     switch (config.input.routingMode) {
         case h_tree:
             return std::make_shared<BankWithHtree>();

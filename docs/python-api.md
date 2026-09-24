@@ -88,7 +88,10 @@ The return object has:
 - `num_solutions`: number of valid solutions found.
 - `exploration_csv_path`: path to the exploration CSV for full-exploration runs, or an empty string.
 - `output_yaml_path`: YAML path used when `write_yaml=True`, or an empty string.
-- `best_results`: dictionary keyed by optimization target name.
+- `best_results`: dictionary keyed by optimization target name. It retains the
+  available per-objective winners from the run, including objectives other than
+  the configured target. NAND omits unsupported read objectives. A
+  single-objective YAML output contains the configured target's winner.
 
 Example:
 
@@ -117,7 +120,46 @@ print(search.geometry["comparison_columns_per_step"])
   retained diagnostic failure from a strict rejection.
 - `breakdown`: raw SI-valued component breakdown metrics keyed by dotted names.
 - `geometry`: selected raw geometry and design settings.
+- `metadata`: string-valued model/provenance information; NAND includes
+  `model_identifier`, `model_backend`, `calibration_status`, `model_source`,
+  `sense_polarity`, operation scopes, and `read_metrics: unavailable`.
 - `variation`: Monte Carlo summary and sample data when variation is enabled.
+
+For the synthetic NAND example:
+
+```python
+result = evacam_py.run("config/NAND_TCAM/NAND_TCAM.config.yaml")
+nand = result.best_results["SearchLatency"]
+print(nand.metadata["model_source"])
+print(nand.geometry["physical_cell_count"])
+print(nand.summary["timing.search_latency_s"])          # whole-array query
+print(nand.summary["energy.program_page_dynamic_j"])   # one local physical page
+print(nand.summary["energy.bank_erase_block_dynamic_j"]) # one block plus route
+```
+
+NAND results omit conventional read metrics. Generic `write_*` metrics alias
+the one-page program operation including its addressed route. The supported
+electrical approximation, validity handling, and operation units are documented
+in [NAND TCAM](nand-tcam.md). Match results keep ideal ternary `hit` separate
+from electrical sense-margin acceptance; a decision time is not the same as
+whole-query latency.
+
+For NAND, `evaluate_vector(stored, query)` assumes a valid entry.
+`evaluate_nand(stored, query, valid=False)` represents a programmed invalid
+marker. The caller must track occupancy and initialize erased strings before
+using them as invalid entries; an erased pair alone would conduct. Both APIs
+use `-1` for wildcard symbols.
+
+The same APIs support the synthetic 3D example at
+`config/NAND_3D_TCAM/NAND_3D_TCAM.config.yaml`. Its metadata identifies
+`evacam-nand3d-tcam-v1`, `array_layout: vertical_3d`, and the transient solver.
+`geometry` includes physical stack, select-group, and footprint quantities;
+`summary` includes solver and precharge diagnostics under `diagnostics.*`.
+The one-pole time-constant keys emitted by the planar approximation are absent.
+`matchline_conductance` is the terminal DC conductance of a linear resistor
+network, while `matchline_voltage` is the finite-precharge transient sample.
+These are separate electrical results; neither establishes measured flash
+device accuracy. See [3D NAND TCAM](nand-3d-tcam.md).
 
 ## EvaCAMMatch
 
@@ -152,7 +194,7 @@ Fields:
 - `hit`: boolean match result
 - `search_latency`: search latency in seconds
 - `search_dynamic_energy`: search dynamic energy in joules
-- `matchline_delay`: matchline delay in seconds
+- `matchline_delay`: matchline delay in seconds; NAND uses its configured evaluation decision time
 - `sense_margin`: sense margin in volts
 - `required_sense_margin`: configured detectable-voltage requirement in volts
 - `sense_margin_slack`: `sense_margin - required_sense_margin`
@@ -160,8 +202,8 @@ Fields:
 - `sense_margin_applicable`: false when no comparison boundary exists, such as
   an all-tied best-match array
 - `squared_euclidean_distance`: MCAM `sum((stored[i] - query[i])**2)`
-- `matchline_conductance`: MCAM row conductance in siemens
-- `matchline_voltage`: MCAM voltage at the sensing instant
+- `matchline_conductance`: MCAM row conductance or NAND terminal DC linear-network conductance in siemens
+- `matchline_voltage`: MCAM or NAND voltage at the sensing instant
 
 Example:
 

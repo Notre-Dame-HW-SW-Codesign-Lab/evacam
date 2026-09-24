@@ -266,6 +266,11 @@ void BankWithHtree::Initialize(int _numRowMat, int _numColumnMat, long long _cap
         const Wire &_localWire, const Wire &_globalWire, const CAM_Opt &_CAM_opt) {
 
     config = _config;
+    if (config->technology.cell->nandString) {
+        initialized = false;
+        invalid = true;
+        throw std::invalid_argument("NAND strings require NandCamBank; construct banks through BankFactory.");
+    }
     localWire = _localWire;
     globalWire = _globalWire;
 
