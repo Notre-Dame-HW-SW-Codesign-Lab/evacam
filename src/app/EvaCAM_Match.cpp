@@ -340,6 +340,11 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_distance_samples(
     return bank->mat->subarray->EvaluateMcamDistanceSamples(stored, query);
 }
 
+double EvaCAM_Match::sense_tcam_mismatches(int mismatches, double resistanceSigmaOffset) const {
+    EnsureInitialized();
+    return bank->mat->subarray->TcamSensedVoltage(mismatches, resistanceSigmaOffset);
+}
+
 std::vector<double> EvaCAM_Match::sense_mcam_conductances(
         const std::vector<double> &conductances) const {
     EnsureInitialized();

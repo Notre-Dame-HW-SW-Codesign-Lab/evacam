@@ -46,6 +46,7 @@ jobs:
           - test-cam-subarray-match
           - test-mcam-pair-response
           - test-mcam-distance-statistics
+          - test-cam-extrema
           - test-cam-subarray-variation
           - test-mat-bank
           - test-result-model

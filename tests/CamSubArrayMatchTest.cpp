@@ -176,6 +176,20 @@ void TestBinaryMatchAndValidation() {
     const EvaCAMMatchResult oneMiss = fixture.subarray.EvaluateBinaryMatch(
             stored, {1, 1, 0, 1});
     const EvaCAMMatchResult twoMiss = fixture.subarray.EvaluateBinaryMatchByMismatches(2);
+    fixture.subarray.nominalMatchlineWireRes = fixture.subarray.matchlineWireRes;
+    fixture.subarray.nominalResMatchTran = fixture.subarray.resMemCellOn;
+    fixture.subarray.nominalResMatchTranOff = fixture.subarray.resMemCellOff;
+    const double exactVoltage = fixture.subarray.TcamSensedVoltage(0);
+    const double oneMissVoltage = fixture.subarray.TcamSensedVoltage(1);
+    AssertNear(exactVoltage - oneMissVoltage, exact.senseMargin);
+    AssertNear(oneMissVoltage - fixture.subarray.TcamSensedVoltage(2), twoMiss.senseMargin);
+    AssertNear(fixture.subarray.TcamSensedVoltage(0, -3), exactVoltage);
+    AssertThrows<std::invalid_argument>([&] {
+        fixture.subarray.TcamSensedVoltage(5);
+    }, "mismatch count");
+    AssertThrows<std::invalid_argument>([&] {
+        fixture.subarray.TcamSensedVoltage(0, 4);
+    }, "sigma offset");
     assert(!oneMiss.hit);
     assert(!twoMiss.hit);
     Require(oneMiss.searchDynamicEnergy > exact.searchDynamicEnergy,

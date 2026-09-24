@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot MCAM distance statistics; --mode support-bounds selects historical extrema plots."""
+"""Plot MCAM statistics; --mode extrema creates MCAM/TCAM TV input-extrema plots."""
 
 import argparse
 from collections import defaultdict
@@ -457,8 +457,11 @@ def generate_run(config, directory, *, samples=None, seed=None, granularity=None
 
 def main(argv=None):
     mode_parser = argparse.ArgumentParser(add_help=False)
-    mode_parser.add_argument("--mode", choices=("statistics", "support-bounds"), default="statistics")
+    mode_parser.add_argument("--mode", choices=("statistics", "support-bounds", "extrema"), default="statistics")
     mode, remaining = mode_parser.parse_known_args(argv)
+    if mode.mode == "extrema":
+        from plot_cam_extrema import main as extrema_main
+        return extrema_main(remaining)
     if mode.mode == "statistics":
         from plot_mcam_distance_statistics import main as statistics_main
         return statistics_main(remaining)

@@ -111,6 +111,8 @@ PYBIND11_MODULE(evacam_py, module) {
                 py::arg("stored"), py::arg("query"))
         .def("sense_mcam_conductances", &EvaCAM_Match::sense_mcam_conductances,
                 py::arg("conductances"))
+        .def("sense_tcam_mismatches", &EvaCAM_Match::sense_tcam_mismatches,
+                py::arg("mismatches"), py::arg("resistance_sigma_offset") = 0)
         .def("distance_voltage_bounds", &EvaCAM_Match::distance_voltage_bounds,
                 py::arg("query"), py::arg("include_variation") = true)
         .def("evaluate_zero_query_compositions",

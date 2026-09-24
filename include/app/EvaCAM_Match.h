@@ -65,6 +65,7 @@ class EvaCAM_Match {
         // nominal sensing instant. Does not resample device variation.
         std::vector<double> sense_mcam_conductances(
                 const std::vector<double> &conductances) const;
+        double sense_tcam_mismatches(int mismatches, double resistanceSigmaOffset = 0) const;
         std::vector<EvaCAMDistanceVoltageBounds> distance_voltage_bounds(
                 const std::vector<int> &query, bool includeVariation = true) const;
         std::vector<EvaCAMMcamCompositionResult> evaluate_zero_query_compositions() const;

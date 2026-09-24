@@ -248,7 +248,7 @@ def draw_plot(records, size, level, directory, nominal=None, voltage_samples=Non
 
 
 def render_presentation(source, directory, size, level, *, with_points=False):
-    """Render saved statistics and optional raw points with a high-contrast palette."""
+    """Recompute exact extrema from saved inputs; optionally overlay saved points."""
     source = Path(source).resolve()
     directory = Path(directory)
     with (source / "distance_statistics.csv").open() as stream:
@@ -267,14 +267,16 @@ def render_presentation(source, directory, size, level, *, with_points=False):
                 raise ValueError("Saved sample distances do not match the statistical records")
         if voltage_samples.shape != (len(records), records[0]["samples"]):
             raise ValueError("Saved trial count does not match the statistical records")
-    directory.mkdir(parents=True, exist_ok=False)
+    from plot_cam_extrema import generate_extrema
+    generate_extrema('mcam', size, level, directory, source / 'inputs/run.config.yaml',
+                     nominal, voltage_samples)
     shutil.copyfile(source / "distance_statistics.csv", directory / "distance_statistics.csv")
     metadata = {
         "source_results": os.path.relpath(source, directory),
         "statistics": "source distance_statistics.csv copied byte-for-byte; no resampling or recomputation",
         "presentation": ("all unbinned nominal and sampled points with a diversity colorbar; " if with_points else
                          "no nominal or sampled points; no colorbar; ") +
-                        "opaque gold 3-SD and blue 1-SD bands; thick navy mean; gray exact-match band with dashed edges",
+                        "exact nominal extrema in blue; input +/-3-SD support extrema in gold; no sampled output-SD bands",
         "vector_dimensions": size, "resistance_stdev_percent": level,
     }
     if with_points:
@@ -286,7 +288,6 @@ def render_presentation(source, directory, size, level, *, with_points=False):
             "point_rendering": "every original point; no binning, grouping, deduplication, or subsampling; larger higher-opacity nominal markers and darker orange trials; rasterized scatter in PDF/SVG",
         })
     (directory / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    draw_plot(records, size, level, directory, nominal, voltage_samples, tv=True)
     print(f"Rendered presentation: {directory}", flush=True)
 
 
@@ -369,7 +370,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--presentation-from", type=Path,
-                        help="Render saved statistics from this results root with higher contrast; no simulation")
+                        help="Render exact input extrema from saved input snapshots; no Monte Carlo for bands")
     parser.add_argument("--with-points", action="store_true",
                         help="With --presentation-from, overlay every saved nominal point and varied trial")
     parser.add_argument("--band-only", action="store_true",

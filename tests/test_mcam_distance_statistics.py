@@ -19,7 +19,7 @@ from plot_mcam_voltage import prepare_config
 
 
 class DistanceStatisticsTests(unittest.TestCase):
-    def test_presentation_reuses_statistics_without_points_or_simulation(self):
+    def test_presentation_reuses_points_but_replaces_statistical_bands(self):
         records = [{'squared_euclidean_distance': distance,
                     'possible_ordered_vectors': 8**32,
                     **summarize(np.array([.45, .48, .5]) / (distance + 1))}
@@ -28,6 +28,12 @@ class DistanceStatisticsTests(unittest.TestCase):
             root = Path(temporary)
             source = root / 'source/stdev05/32x32'
             source.mkdir(parents=True)
+            prepare_config(ROOT / 'config/2FeFET_MCAM_variation/stdev05/2FeFET_MCAM_32x32.config.yaml',
+                           source / 'inputs', samples=2)
+            extrema = [dict(distance=r['squared_euclidean_distance'],
+                            nominal_min_voltage_v=.46 / (i + 1), nominal_max_voltage_v=.49 / (i + 1),
+                            min_voltage_v=.4 / (i + 1), max_voltage_v=.55 / (i + 1))
+                       for i, r in enumerate(records)]
             csv_path = source / 'distance_statistics.csv'
             with csv_path.open('w', newline='') as stream:
                 writer = csv.DictWriter(stream, fieldnames=list(records[0]))
@@ -41,7 +47,8 @@ class DistanceStatisticsTests(unittest.TestCase):
             with mock.patch('matplotlib.figure.Figure.savefig', autospec=True, side_effect=capture), \
                     mock.patch.object(plot, 'generate') as generate, \
                     mock.patch.object(plot, 'generate_nominal') as nominal, \
-                    mock.patch.object(plot, 'plot_all_points') as points:
+                    mock.patch.object(plot, 'plot_all_points') as points, \
+                    mock.patch('plot_cam_extrema.calculate_extrema', return_value=extrema):
                 plot.main(['--presentation-from', str(root / 'source'), '--output-dir', str(root / 'tv'),
                            '--sizes', '32', '--levels', '5'])
                 generate.assert_not_called()
@@ -53,12 +60,13 @@ class DistanceStatisticsTests(unittest.TestCase):
             for figure in figures:
                 self.assertEqual(len(figure.axes), 1)  # No point colorbar.
                 axis = figure.axes[0]
-                self.assertEqual(len(axis.collections), 2)  # Only statistical bands.
-                self.assertTrue(all(collection.get_alpha() == 1 for collection in axis.collections))
-                mean = next(line for line in axis.lines if line.get_label() == 'Mean matchline voltage')
-                np.testing.assert_allclose(mean.get_ydata(), [row['mean_voltage_v'] * 1000 for row in records])
-                self.assertEqual(mean.get_linewidth(), 3.2)
-                self.assertEqual(mean.get_color(), '#092A50')
+                self.assertEqual(len(axis.collections), 2)  # Input and nominal extrema.
+                labels = axis.get_legend_handles_labels()[1]
+                self.assertIn('Extrema from ±3σ input resistance limits', labels)
+                self.assertIn('Nominal composition extrema', labels)
+                self.assertNotIn('Mean matchline voltage', labels)
+                np.testing.assert_allclose(axis.lines[-1].get_ydata(),
+                                           [r['nominal_max_voltage_v'] * 1000 for r in extrema])
 
             # Add saved raw data with coincident points and verify that the
             # presentation path restores every point at its original position.
@@ -73,7 +81,8 @@ class DistanceStatisticsTests(unittest.TestCase):
             (source / 'metadata.json').write_text(json.dumps({'nominal_data': 'nominal.npy'}))
             figures.clear()
             with mock.patch('matplotlib.figure.Figure.savefig', autospec=True, side_effect=capture), \
-                    mock.patch.object(plot, 'generate') as generate:
+                    mock.patch.object(plot, 'generate') as generate, \
+                    mock.patch('plot_cam_extrema.calculate_extrema', return_value=extrema):
                 plot.main(['--presentation-from', str(root / 'source'), '--with-points',
                            '--output-dir', str(root / 'tv_points'), '--sizes', '32', '--levels', '5'])
                 generate.assert_not_called()

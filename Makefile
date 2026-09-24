@@ -702,3 +702,7 @@ test-mcam-pair-response: $(OBJECTS_NO_MAIN) tests/McamPairResponseTest.cpp tests
 .PHONY: test-mcam-distance-statistics
 test-mcam-distance-statistics: $(PYBIND_MODULE)
 	MPLCONFIGDIR=/tmp/evacam-matplotlib python3 tests/test_mcam_distance_statistics.py
+
+.PHONY: test-cam-extrema
+test-cam-extrema: $(PYBIND_MODULE)
+	MPLCONFIGDIR=/tmp/evacam-matplotlib python3 tests/test_cam_extrema.py

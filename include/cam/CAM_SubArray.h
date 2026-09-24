@@ -144,6 +144,7 @@ class CAM_SubArray: public FunctionUnit {
                 const std::vector<int> &query, bool includeVariation = true) const;
         double McamSensedVoltage(double matchlineConductance) const;
         double McamSensingTime() const;
+        double TcamSensedVoltage(int mismatches, double resistanceSigmaOffset = 0) const;
         CAMResistanceSample BuildNominalResistanceSample() const;
         CAMResistanceSample BuildResistanceSample(unsigned int sampleIndex = 0) const;
         CAMResistanceSample BuildCellMonteCarloResistanceSample(unsigned int sampleIndex) const;

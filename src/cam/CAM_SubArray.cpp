@@ -2399,6 +2399,32 @@ double CAM_SubArray::MatchlineHorowitzDelay(
             ramp);
 }
 
+double CAM_SubArray::TcamSensedVoltage(int mismatches, double resistanceSigmaOffset) const {
+    if (!initialized || invalid || config->technology.cell->camType != TCAM
+            || CAM_opt.BitSerialWidth <= 0) {
+        throw std::runtime_error("[CAM_SubArray] Error: require a valid initialized TCAM subarray.");
+    }
+    if (mismatches < 0 || mismatches > CAM_opt.BitSerialWidth
+            || !std::isfinite(resistanceSigmaOffset) || std::abs(resistanceSigmaOffset) > 3) {
+        throw std::invalid_argument("[CAM_SubArray] Error: invalid mismatch count or resistance sigma offset.");
+    }
+    const auto nominal = BuildNominalResistanceSample();
+    const double referenceRes = EffectiveMatchlineCellResistance(1, nominal.cellResOn, nominal.cellResOff);
+    double ramp = 0;
+    const double senseTime = MatchlineHorowitzDelay(
+            MatchlineTau(referenceRes, nominal.mlWireRes), referenceRes, &ramp);
+    const auto &variation = config->variation;
+    const double onFraction = variation.enabled ? variation.memoryDeviceResOnStdev : 0;
+    const double offFraction = variation.enabled ? variation.memoryDeviceResOffStdev : 0;
+    // Vary only memory resistance; access devices, wires and sensing time stay nominal.
+    const double onRes = nominal.accessRes + nominal.matchRes
+        * std::max(1e-12, 1 + resistanceSigmaOffset * onFraction);
+    const double offRes = nominal.accessResOff + nominal.matchResOff
+        * std::max(1e-12, 1 + resistanceSigmaOffset * offFraction);
+    const double resistance = EffectiveMatchlineCellResistance(mismatches, onRes, offRes);
+    return voltagePrecharge * std::exp(-senseTime / MatchlineTau(resistance, nominal.mlWireRes));
+}
+
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const {
     if (CAM_opt.BitSerialWidth <= 0)
         throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");

@@ -1,29 +1,71 @@
-# Default MCAM distance statistics with all points
+# MCAM and TCAM TV voltage extrema
 
-To render the same saved statistics without any points, using thicker lines and
-opaque gold/blue bands for higher contrast on a TV, run:
-
-```sh
-python3 scripts/plot_mcam_voltage.py --presentation-from results/mcam_distance_statistics_all_points
-```
-
-This writes full-range and active-region PNG/PDF/SVG figures under
-`results/mcam_distance_statistics_tv/` for the same three sizes and variation
-levels. It copies the statistics CSVs exactly and does not rerun simulations.
-The mean is dark navy, the ±3σ band gold, the ±1σ band blue, and the exact-match
-band gray with dashed boundaries. Points and their colorbar are omitted.
-Use `--output-dir` for a different destination, or `--sizes`/`--levels` for a subset.
-
-Add `--with-points` to restore every original nominal composition and varied
-trial using the same high-contrast bands, a thicker navy mean curve, larger
-nominal markers, and darker orange trial markers. This version defaults to
-`results/mcam_distance_statistics_tv_all_points/` and reads the original raw
-arrays directly: no binning, deduplication, subsampling, or new simulations.
-The colorbar still reports distinct nonzero deltas for each composition.
+Generate the current TV figures directly from the configured input limits:
 
 ```sh
-python3 scripts/plot_mcam_voltage.py --presentation-from results/mcam_distance_statistics_all_points --with-points
+make -j4 test-cam-extrema
+python3 scripts/plot_mcam_voltage.py --mode extrema
 ```
+
+The default output is `results/cam_voltage_extrema_tv/`, with separate `mcam/`
+and `tcam/` trees for 8-, 16-, 32-, and 64-cell rows at 0%, 5%, and 10%
+resistance standard deviation. Each case includes full-range and active-region
+PNG/PDF/SVG figures, `voltage_extrema.csv`, input snapshots and
+`extrema_metadata.json`. Existing output directories are never overwritten.
+Use `--models mcam` or `--models tcam`, `--sizes`, `--levels`, and `--output-dir`
+to select a smaller run. The direct entry point is `scripts/plot_cam_extrema.py`.
+
+At 0% variation, blue shows the exact nominal composition minima and maxima;
+there are no sigma bands or sampled means. At nonzero variation, gold shows
+exact extrema over the independent input resistance intervals
+`[max(R*1e-12, R-3*sigma), R+3*sigma]`, with nominal extrema in blue.
+The gray exact-match band uses the same input limits. These are support bounds,
+not output voltage standard deviations, quantiles or a claim of 99.73% coverage.
+No Monte Carlo trials are generated to find these extrema.
+
+MCAM uses the existing native dynamic program over all reachable squared
+Euclidean distances, with an all-zero query and the legacy sorted resistance
+table. Conductances add; the voltage decreases monotonically with total
+conductance. Therefore the largest conductance gives the lowest voltage and
+vice versa. The input endpoint calculation covers all compositions without
+having to enumerate them, including at 64 cells.
+
+TCAM uses `config/2FeFET_TCAM/2FeFET_TCAM_match.config.yaml`, resized to each
+requested square array. The selected percentage is applied to both on and off
+memory resistance in the saved input snapshot. Hamming distance counts
+mismatched cells; matching cells (including don't-care symbols in this model)
+use the off path. At distance `h`, conductance is
+`h/R_on_effective + (N-h)/R_off_effective`. The effective paths include native
+access resistance. All-low and all-high memory resistance endpoints give the
+exact voltage extrema; the access devices and wire resistance remain nominal.
+There is one nominal voltage per Hamming distance. Both models use their native
+RC voltage calculation at a fixed nominal one-mismatch sensing instant.
+
+The existing presentation command now recomputes extrema from the saved input
+snapshots, instead of plotting the old sampled output-SD bands:
+
+```sh
+python3 scripts/plot_mcam_voltage.py \
+  --presentation-from results/mcam_distance_statistics_all_points \
+  --output-dir results/mcam_input_extrema_tv
+```
+
+Add `--with-points` to overlay all saved nominal compositions and varied trials.
+Those points are reused without resampling; they do not determine the bands.
+The original `distance_statistics.csv` is copied for provenance; the displayed
+bounds are in the new `voltage_extrema.csv`. The source directory must contain
+its original `inputs/run.config.yaml` and referenced snapshots. For 64-cell
+saved runs, add `--sizes 64` and select their results root.
+
+Use `make test-cam-extrema` for exhaustive 8-cell MCAM endpoint checks, TCAM
+voltage/margin agreement, input-corner containment, zero-variation rendering,
+and export tests. `make test-mcam-distance-statistics` covers legacy sampling
+and presentation compatibility.
+
+# Historical sampled-statistics workflow
+
+The following workflow still produces the historical statistical analysis.
+It is separate from the TV input-extrema figures above.
 
 Run `python3 scripts/plot_mcam_voltage.py` after building the Python
 binding (`make -j4 test-pybind-match`). This defaults to the distance-based model
@@ -102,15 +144,3 @@ composition; the counts retain its exact identity even when voltages coincide.
 
 Use `make test-mcam-distance-statistics` for conditional-sampling, variation,
 statistical-summary, and native-voltage-conversion tests.
-
-For the 64×64 TV plots, generate statistics without points and render them from
-the saved CSVs:
-
-```sh
-python3 scripts/plot_mcam_distance_statistics.py --sizes 64 --levels 0 5 10 \
-  --samples 10000 --band-only \
-  --output-dir results/mcam_distance_statistics_64x64_band
-python3 scripts/plot_mcam_distance_statistics.py --sizes 64 --levels 0 5 10 \
-  --presentation-from results/mcam_distance_statistics_64x64_band \
-  --output-dir results/mcam_distance_statistics_tv_64x64
-```
