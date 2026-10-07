@@ -1,0 +1,10 @@
+# Reference fixture: https://scholar.nycu.edu.tw/en/publications/a-3t1r-nonvolatile-tcam-using-mlc-reram-with-sub-1ns-search-time/
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+# The paper enables voltage sensing from dual replica rows. Generic voltage
+# sensing is a proxy; the replica path and BVDC control delay remain unmatched.
+sensing_mode: nvsim_vol
+decision: {model: differential}

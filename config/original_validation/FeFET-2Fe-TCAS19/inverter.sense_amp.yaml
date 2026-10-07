@@ -1,0 +1,7 @@
+schema: sense_amp
+name: minimum_inverter
+model: analytical_inverter
+transistors:
+  n_sense_width: 1.444444444444444F
+  p_sense_width: 1.444444444444444F
+output_capacitance: 0fF

@@ -1,0 +1,6035 @@
+{
+  "schema": "evacam_park_extraction_v1",
+  "axes": {
+    "fig4c": {
+      "image": "fig4.png",
+      "source_sha256": "7623fb916d205122c2ba801fac3db35a24e04e20f99162a47fb2dff299a91d98",
+      "image_size": [
+        2585,
+        669
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.008995502248875567,
+        "intercept": -17.010494752623693,
+        "calibration_ticks": [
+          [
+            1891,
+            0
+          ],
+          [
+            2224.5,
+            3
+          ],
+          [
+            2558,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.20356058366119845,
+        "intercept": 115.30062522795888,
+        "calibration_ticks": [
+          [
+            75.5,
+            100
+          ],
+          [
+            271,
+            60
+          ],
+          [
+            468.5,
+            20
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            2002,
+            1
+          ],
+          [
+            2447,
+            5
+          ]
+        ],
+        "y": [
+          [
+            173,
+            80
+          ],
+          [
+            370,
+            40
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        1770,
+        35,
+        2585,
+        669
+      ]
+    },
+    "fig5": {
+      "image": "fig5.png",
+      "source_sha256": "b2204447cec4feeaa637edd32b01a4eeead4b35199c8d6befc0d60f279b7ecff",
+      "image_size": [
+        913,
+        708
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.007751937984496127,
+        "intercept": -0.945736434108529,
+        "calibration_ticks": [
+          [
+            122,
+            0
+          ],
+          [
+            509,
+            3
+          ],
+          [
+            896,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.040439012082644166,
+        "intercept": 20.74522487922028,
+        "calibration_ticks": [
+          [
+            18.5,
+            20
+          ],
+          [
+            265.5,
+            10
+          ],
+          [
+            389.5,
+            5
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            251,
+            1
+          ],
+          [
+            767,
+            5
+          ]
+        ],
+        "y": [
+          [
+            141.5,
+            15
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        0,
+        0,
+        913,
+        708
+      ]
+    },
+    "fig5_inset": {
+      "image": "fig5.png",
+      "source_sha256": "b2204447cec4feeaa637edd32b01a4eeead4b35199c8d6befc0d60f279b7ecff",
+      "image_size": [
+        913,
+        708
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 1.7790215381540162,
+        "intercept": -1016.0078623423785,
+        "calibration_ticks": [
+          [
+            571,
+            0
+          ],
+          [
+            740,
+            300
+          ],
+          [
+            852,
+            500
+          ]
+        ]
+      },
+      "y": {
+        "scale": "log10",
+        "slope": -0.005649717514124287,
+        "intercept": 2.6751412429378494,
+        "calibration_ticks": [
+          [
+            296.5,
+            10
+          ],
+          [
+            473.5,
+            1
+          ]
+        ]
+      },
+      "x_unit": "1",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            628,
+            100
+          ],
+          [
+            796,
+            400
+          ]
+        ],
+        "y": [
+          [
+            420,
+            2
+          ],
+          [
+            366.5,
+            4
+          ],
+          [
+            243.5,
+            20
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        530,
+        150,
+        890,
+        555
+      ]
+    },
+    "fig6": {
+      "image": "fig6.png",
+      "source_sha256": "3853615b8597fa7f7cdc14ee85afb4f4bc86f4c9ba47deb1c722e8ee37ea749b",
+      "image_size": [
+        896,
+        692
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.00790513833992095,
+        "intercept": -0.9407114624505923,
+        "calibration_ticks": [
+          [
+            119,
+            0
+          ],
+          [
+            498.5,
+            3
+          ],
+          [
+            878,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.03754356926682818,
+        "intercept": 20.695895075338846,
+        "calibration_ticks": [
+          [
+            18.5,
+            20
+          ],
+          [
+            285,
+            10
+          ],
+          [
+            418,
+            5
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            245.5,
+            1
+          ],
+          [
+            751.5,
+            5
+          ]
+        ],
+        "y": [
+          [
+            151,
+            15
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        0,
+        0,
+        896,
+        692
+      ]
+    },
+    "fig7a": {
+      "image": "fig7.png",
+      "source_sha256": "72a55b783fb22f21db3fd5cacea27fc43602a9b3bc7eaf742471b0f5e92bfc80",
+      "image_size": [
+        3295,
+        677
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.010432085556778648,
+        "intercept": -2.3767532955522253,
+        "calibration_ticks": [
+          [
+            132,
+            -1
+          ],
+          [
+            419.5,
+            2
+          ],
+          [
+            803,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.0424370904544203,
+        "intercept": 23.202482421859916,
+        "calibration_ticks": [
+          [
+            75.5,
+            20
+          ],
+          [
+            311,
+            10
+          ],
+          [
+            429,
+            5
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            228,
+            0
+          ],
+          [
+            611,
+            4
+          ]
+        ],
+        "y": [
+          [
+            193,
+            15
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        0,
+        0,
+        835,
+        677
+      ]
+    },
+    "fig7b": {
+      "image": "fig7.png",
+      "source_sha256": "72a55b783fb22f21db3fd5cacea27fc43602a9b3bc7eaf742471b0f5e92bfc80",
+      "image_size": [
+        3295,
+        677
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.0029585798816568064,
+        "intercept": -3.926035502958583,
+        "calibration_ticks": [
+          [
+            989,
+            -1
+          ],
+          [
+            1327,
+            0
+          ],
+          [
+            1665,
+            1
+          ]
+        ]
+      },
+      "y": {
+        "scale": "log10",
+        "slope": -0.024072143998261592,
+        "intercept": -2.3089499925554247,
+        "calibration_ticks": [
+          [
+            70.5,
+            0.0001
+          ],
+          [
+            319,
+            1e-10
+          ],
+          [
+            569,
+            1e-16
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            1158,
+            -0.5
+          ],
+          [
+            1496,
+            0.5
+          ]
+        ],
+        "y": [
+          [
+            153,
+            1e-06
+          ],
+          [
+            402.5,
+            1e-12
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        835,
+        0,
+        1690,
+        677
+      ],
+      "unit_status": "ambiguous_printed_uA_inconsistent_with_linear_panel"
+    },
+    "fig7c": {
+      "image": "fig7.png",
+      "source_sha256": "72a55b783fb22f21db3fd5cacea27fc43602a9b3bc7eaf742471b0f5e92bfc80",
+      "image_size": [
+        3295,
+        677
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.010479358490818031,
+        "intercept": -20.146637189219806,
+        "calibration_ticks": [
+          [
+            1827,
+            -1
+          ],
+          [
+            2113.5,
+            2
+          ],
+          [
+            2495,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.07299270072992697,
+        "intercept": 40.21897810218977,
+        "calibration_ticks": [
+          [
+            140,
+            30
+          ],
+          [
+            277,
+            20
+          ],
+          [
+            414,
+            10
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uS",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            1922.5,
+            0
+          ],
+          [
+            2304,
+            4
+          ]
+        ],
+        "y": [
+          [
+            208.5,
+            25
+          ],
+          [
+            482.5,
+            5
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        1690,
+        0,
+        2530,
+        677
+      ]
+    },
+    "fig9a": {
+      "image": "fig9.png",
+      "source_sha256": "2de68254a688bd82db638a7cf1f148f659111e65f050688161f7b3d8d3858be1",
+      "image_size": [
+        1645,
+        699
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.008097165991902834,
+        "intercept": -1.0769230769230773,
+        "calibration_ticks": [
+          [
+            133,
+            0
+          ],
+          [
+            503.5,
+            3
+          ],
+          [
+            874,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.038366667157333834,
+        "intercept": 21.072894564739673,
+        "calibration_ticks": [
+          [
+            28,
+            20
+          ],
+          [
+            288.5,
+            10
+          ],
+          [
+            419,
+            5
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            256.5,
+            1
+          ],
+          [
+            750.5,
+            5
+          ]
+        ],
+        "y": [
+          [
+            157.5,
+            15
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        0,
+        0,
+        885,
+        699
+      ]
+    },
+    "fig9b": {
+      "image": "fig9.png",
+      "source_sha256": "2de68254a688bd82db638a7cf1f148f659111e65f050688161f7b3d8d3858be1",
+      "image_size": [
+        1645,
+        699
+      ],
+      "x": {
+        "scale": "linear",
+        "slope": 0.008086253369272236,
+        "intercept": -7.067385444743933,
+        "calibration_ticks": [
+          [
+            874,
+            0
+          ],
+          [
+            1245,
+            3
+          ],
+          [
+            1616,
+            6
+          ]
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "slope": -0.038366667157333834,
+        "intercept": 21.072894564739673,
+        "calibration_ticks": [
+          [
+            28,
+            20
+          ],
+          [
+            288.5,
+            10
+          ],
+          [
+            419,
+            5
+          ]
+        ]
+      },
+      "x_unit": "V",
+      "y_unit": "uA",
+      "x_si_factor": 1.0,
+      "y_si_factor": 1e-06,
+      "held_back_ticks": {
+        "x": [
+          [
+            997.5,
+            1
+          ],
+          [
+            1492.5,
+            5
+          ]
+        ],
+        "y": [
+          [
+            157.5,
+            15
+          ]
+        ]
+      },
+      "tick_uncertainty_px": 2.0,
+      "crop": [
+        870,
+        0,
+        1645,
+        699
+      ]
+    }
+  },
+  "picks": [
+    {
+      "point_id": "fig4c_cal_n1_tcad_p00",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2108.0,
+        350.0
+      ],
+      "final_pixel": [
+        2108.0,
+        350.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p01",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2133.0,
+        316.0
+      ],
+      "final_pixel": [
+        2133.0,
+        316.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p02",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2167.0,
+        272.0
+      ],
+      "final_pixel": [
+        2167.0,
+        272.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p03",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2225.0,
+        226.0
+      ],
+      "final_pixel": [
+        2225.0,
+        226.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p04",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2275.0,
+        187.0
+      ],
+      "final_pixel": [
+        2275.0,
+        187.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p05",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2325.0,
+        163.0
+      ],
+      "final_pixel": [
+        2325.0,
+        163.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p06",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2392.0,
+        138.0
+      ],
+      "final_pixel": [
+        2392.0,
+        138.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p07",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2442.0,
+        125.0
+      ],
+      "final_pixel": [
+        2442.0,
+        125.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p08",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2500.0,
+        115.0
+      ],
+      "final_pixel": [
+        2500.0,
+        115.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_tcad_p09",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2540.0,
+        108.0
+      ],
+      "final_pixel": [
+        2540.0,
+        108.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p00",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2108.0,
+        345.5
+      ],
+      "final_pixel": [
+        2108.0,
+        345.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p01",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2133.0,
+        318.0
+      ],
+      "final_pixel": [
+        2133.0,
+        318.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p02",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2167.0,
+        283.5
+      ],
+      "final_pixel": [
+        2167.0,
+        283.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p03",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2225.0,
+        234.0
+      ],
+      "final_pixel": [
+        2225.0,
+        234.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p04",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2325.0,
+        175.0
+      ],
+      "final_pixel": [
+        2325.0,
+        175.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p05",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2392.0,
+        150.0
+      ],
+      "final_pixel": [
+        2392.0,
+        150.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p06",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2442.0,
+        136.0
+      ],
+      "final_pixel": [
+        2442.0,
+        136.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p07",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2500.0,
+        123.0
+      ],
+      "final_pixel": [
+        2500.0,
+        123.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n1_spectre_p08",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2540.0,
+        116.0
+      ],
+      "final_pixel": [
+        2540.0,
+        116.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p00",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2108.0,
+        367.0
+      ],
+      "final_pixel": [
+        2108.0,
+        367.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p01",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2133.0,
+        343.0
+      ],
+      "final_pixel": [
+        2133.0,
+        343.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p02",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2167.0,
+        307.0
+      ],
+      "final_pixel": [
+        2167.0,
+        307.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p03",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2225.0,
+        276.0
+      ],
+      "final_pixel": [
+        2225.0,
+        276.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p04",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2275.0,
+        262.0
+      ],
+      "final_pixel": [
+        2275.0,
+        262.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p05",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2325.0,
+        251.0
+      ],
+      "final_pixel": [
+        2325.0,
+        251.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p06",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2392.0,
+        242.0
+      ],
+      "final_pixel": [
+        2392.0,
+        242.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p07",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2442.0,
+        236.0
+      ],
+      "final_pixel": [
+        2442.0,
+        236.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p08",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2500.0,
+        230.0
+      ],
+      "final_pixel": [
+        2500.0,
+        230.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p09",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2540.0,
+        226.0
+      ],
+      "final_pixel": [
+        2540.0,
+        226.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p00",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2108.0,
+        365.5
+      ],
+      "final_pixel": [
+        2108.0,
+        365.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p01",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2133.0,
+        343.5
+      ],
+      "final_pixel": [
+        2133.0,
+        343.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p02",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2167.0,
+        317.0
+      ],
+      "final_pixel": [
+        2167.0,
+        317.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p03",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2225.0,
+        284.0
+      ],
+      "final_pixel": [
+        2225.0,
+        284.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p04",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2325.0,
+        252.0
+      ],
+      "final_pixel": [
+        2325.0,
+        252.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p05",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2392.0,
+        240.0
+      ],
+      "final_pixel": [
+        2392.0,
+        240.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p06",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2442.0,
+        233.0
+      ],
+      "final_pixel": [
+        2442.0,
+        233.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p07",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2500.0,
+        227.0
+      ],
+      "final_pixel": [
+        2500.0,
+        227.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n3_spectre_p08",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2540.0,
+        224.0
+      ],
+      "final_pixel": [
+        2540.0,
+        224.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p00",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2108.0,
+        386.0
+      ],
+      "final_pixel": [
+        2108.0,
+        386.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p01",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2133.0,
+        365.0
+      ],
+      "final_pixel": [
+        2133.0,
+        365.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p02",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2167.0,
+        341.0
+      ],
+      "final_pixel": [
+        2167.0,
+        341.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p03",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2225.0,
+        323.0
+      ],
+      "final_pixel": [
+        2225.0,
+        323.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p04",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2275.0,
+        313.0
+      ],
+      "final_pixel": [
+        2275.0,
+        313.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p05",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2325.0,
+        307.0
+      ],
+      "final_pixel": [
+        2325.0,
+        307.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p06",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2392.0,
+        300.0
+      ],
+      "final_pixel": [
+        2392.0,
+        300.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p07",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2442.0,
+        297.0
+      ],
+      "final_pixel": [
+        2442.0,
+        297.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p08",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2500.0,
+        294.0
+      ],
+      "final_pixel": [
+        2500.0,
+        294.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p09",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2540.0,
+        292.0
+      ],
+      "final_pixel": [
+        2540.0,
+        292.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p00",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2108.0,
+        382.5
+      ],
+      "final_pixel": [
+        2108.0,
+        382.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p01",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2133.0,
+        365.0
+      ],
+      "final_pixel": [
+        2133.0,
+        365.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p02",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2167.0,
+        345.0
+      ],
+      "final_pixel": [
+        2167.0,
+        345.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p03",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2225.0,
+        323.0
+      ],
+      "final_pixel": [
+        2225.0,
+        323.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p04",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2325.0,
+        302.0
+      ],
+      "final_pixel": [
+        2325.0,
+        302.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p05",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2392.0,
+        295.0
+      ],
+      "final_pixel": [
+        2392.0,
+        295.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p06",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2442.0,
+        291.0
+      ],
+      "final_pixel": [
+        2442.0,
+        291.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p07",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2500.0,
+        287.0
+      ],
+      "final_pixel": [
+        2500.0,
+        287.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig4c_cal_n5_spectre_p08",
+      "axis": "fig4c",
+      "initial_pixel": [
+        2540.0,
+        285.5
+      ],
+      "final_pixel": [
+        2540.0,
+        285.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        380.0
+      ],
+      "final_pixel": [
+        230.0,
+        380.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        251.0,
+        299.0
+      ],
+      "final_pixel": [
+        251.0,
+        299.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        228.0
+      ],
+      "final_pixel": [
+        270.0,
+        228.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        197.0
+      ],
+      "final_pixel": [
+        283.0,
+        197.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        300.0,
+        176.0
+      ],
+      "final_pixel": [
+        300.0,
+        176.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        162.0
+      ],
+      "final_pixel": [
+        330.0,
+        162.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        150.0
+      ],
+      "final_pixel": [
+        380.0,
+        150.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p07",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        145.0
+      ],
+      "final_pixel": [
+        444.0,
+        145.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p08",
+      "axis": "fig5",
+      "initial_pixel": [
+        700.0,
+        138.0
+      ],
+      "final_pixel": [
+        700.0,
+        138.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p09",
+      "axis": "fig5",
+      "initial_pixel": [
+        850.0,
+        136.0
+      ],
+      "final_pixel": [
+        850.0,
+        136.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        329.5
+      ],
+      "final_pixel": [
+        230.0,
+        329.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        230.0
+      ],
+      "final_pixel": [
+        270.0,
+        230.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        207.5
+      ],
+      "final_pixel": [
+        283.0,
+        207.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        300.0,
+        185.5
+      ],
+      "final_pixel": [
+        300.0,
+        185.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        162.0
+      ],
+      "final_pixel": [
+        330.0,
+        162.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        144.5
+      ],
+      "final_pixel": [
+        380.0,
+        144.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n32_spectre_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        137.0
+      ],
+      "final_pixel": [
+        444.0,
+        137.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        405.0
+      ],
+      "final_pixel": [
+        230.0,
+        405.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        251.0,
+        369.0
+      ],
+      "final_pixel": [
+        251.0,
+        369.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        343.0
+      ],
+      "final_pixel": [
+        270.0,
+        343.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        328.0
+      ],
+      "final_pixel": [
+        283.0,
+        328.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        300.0,
+        321.0
+      ],
+      "final_pixel": [
+        300.0,
+        321.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        320.0
+      ],
+      "final_pixel": [
+        330.0,
+        320.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        319.0
+      ],
+      "final_pixel": [
+        380.0,
+        319.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p07",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        318.0
+      ],
+      "final_pixel": [
+        444.0,
+        318.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        384.5
+      ],
+      "final_pixel": [
+        230.0,
+        384.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        333.5
+      ],
+      "final_pixel": [
+        270.0,
+        333.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        326.0
+      ],
+      "final_pixel": [
+        283.0,
+        326.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        300.0,
+        320.5
+      ],
+      "final_pixel": [
+        300.0,
+        320.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        316.0
+      ],
+      "final_pixel": [
+        330.0,
+        316.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        313.0
+      ],
+      "final_pixel": [
+        380.0,
+        313.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n64_spectre_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        312.0
+      ],
+      "final_pixel": [
+        444.0,
+        312.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        440.0
+      ],
+      "final_pixel": [
+        230.0,
+        440.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        251.0,
+        419.0
+      ],
+      "final_pixel": [
+        251.0,
+        419.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        413.0
+      ],
+      "final_pixel": [
+        270.0,
+        413.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        412.0
+      ],
+      "final_pixel": [
+        283.0,
+        412.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        411.0
+      ],
+      "final_pixel": [
+        330.0,
+        411.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        410.0
+      ],
+      "final_pixel": [
+        380.0,
+        410.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        410.0
+      ],
+      "final_pixel": [
+        444.0,
+        410.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_spectre_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        432.5
+      ],
+      "final_pixel": [
+        230.0,
+        432.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_spectre_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        413.5
+      ],
+      "final_pixel": [
+        270.0,
+        413.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_spectre_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        412.5
+      ],
+      "final_pixel": [
+        283.0,
+        412.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_spectre_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        411.0
+      ],
+      "final_pixel": [
+        330.0,
+        411.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_spectre_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        410.0
+      ],
+      "final_pixel": [
+        380.0,
+        410.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n128_spectre_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        410.0
+      ],
+      "final_pixel": [
+        444.0,
+        410.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        477.0
+      ],
+      "final_pixel": [
+        230.0,
+        477.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        251.0,
+        472.0
+      ],
+      "final_pixel": [
+        251.0,
+        472.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        471.0
+      ],
+      "final_pixel": [
+        270.0,
+        471.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        470.0
+      ],
+      "final_pixel": [
+        283.0,
+        470.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        470.0
+      ],
+      "final_pixel": [
+        330.0,
+        470.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        470.0
+      ],
+      "final_pixel": [
+        380.0,
+        470.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        470.0
+      ],
+      "final_pixel": [
+        444.0,
+        470.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_spectre_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        473.0
+      ],
+      "final_pixel": [
+        230.0,
+        473.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_spectre_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        469.5
+      ],
+      "final_pixel": [
+        270.0,
+        469.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_spectre_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        469.5
+      ],
+      "final_pixel": [
+        283.0,
+        469.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_spectre_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        468.5
+      ],
+      "final_pixel": [
+        330.0,
+        468.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_spectre_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        468.5
+      ],
+      "final_pixel": [
+        380.0,
+        468.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n300_spectre_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        469.0
+      ],
+      "final_pixel": [
+        444.0,
+        469.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        491.0
+      ],
+      "final_pixel": [
+        230.0,
+        491.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        251.0,
+        489.0
+      ],
+      "final_pixel": [
+        251.0,
+        489.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        488.0
+      ],
+      "final_pixel": [
+        270.0,
+        488.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        488.0
+      ],
+      "final_pixel": [
+        283.0,
+        488.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        488.0
+      ],
+      "final_pixel": [
+        330.0,
+        488.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        488.0
+      ],
+      "final_pixel": [
+        380.0,
+        488.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p06",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        488.0
+      ],
+      "final_pixel": [
+        444.0,
+        488.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_spectre_p00",
+      "axis": "fig5",
+      "initial_pixel": [
+        230.0,
+        488.0
+      ],
+      "final_pixel": [
+        230.0,
+        488.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_spectre_p01",
+      "axis": "fig5",
+      "initial_pixel": [
+        270.0,
+        487.0
+      ],
+      "final_pixel": [
+        270.0,
+        487.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_spectre_p02",
+      "axis": "fig5",
+      "initial_pixel": [
+        283.0,
+        487.0
+      ],
+      "final_pixel": [
+        283.0,
+        487.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_spectre_p03",
+      "axis": "fig5",
+      "initial_pixel": [
+        330.0,
+        487.0
+      ],
+      "final_pixel": [
+        330.0,
+        487.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_spectre_p04",
+      "axis": "fig5",
+      "initial_pixel": [
+        380.0,
+        486.5
+      ],
+      "final_pixel": [
+        380.0,
+        486.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_layers_n500_spectre_p05",
+      "axis": "fig5",
+      "initial_pixel": [
+        444.0,
+        487.0
+      ],
+      "final_pixel": [
+        444.0,
+        487.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p00",
+      "axis": "fig6",
+      "initial_pixel": [
+        246.0,
+        311.0
+      ],
+      "final_pixel": [
+        246.0,
+        311.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p01",
+      "axis": "fig6",
+      "initial_pixel": [
+        267.0,
+        259.0
+      ],
+      "final_pixel": [
+        267.0,
+        259.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p02",
+      "axis": "fig6",
+      "initial_pixel": [
+        280.0,
+        218.0
+      ],
+      "final_pixel": [
+        280.0,
+        218.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p03",
+      "axis": "fig6",
+      "initial_pixel": [
+        300.0,
+        188.0
+      ],
+      "final_pixel": [
+        300.0,
+        188.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p04",
+      "axis": "fig6",
+      "initial_pixel": [
+        350.0,
+        167.0
+      ],
+      "final_pixel": [
+        350.0,
+        167.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p05",
+      "axis": "fig6",
+      "initial_pixel": [
+        372.0,
+        164.0
+      ],
+      "final_pixel": [
+        372.0,
+        164.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p06",
+      "axis": "fig6",
+      "initial_pixel": [
+        435.0,
+        155.0
+      ],
+      "final_pixel": [
+        435.0,
+        155.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p07",
+      "axis": "fig6",
+      "initial_pixel": [
+        550.0,
+        149.0
+      ],
+      "final_pixel": [
+        550.0,
+        149.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p08",
+      "axis": "fig6",
+      "initial_pixel": [
+        688.0,
+        146.0
+      ],
+      "final_pixel": [
+        688.0,
+        146.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p09",
+      "axis": "fig6",
+      "initial_pixel": [
+        840.0,
+        145.0
+      ],
+      "final_pixel": [
+        840.0,
+        145.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p00",
+      "axis": "fig6",
+      "initial_pixel": [
+        267.0,
+        238.5
+      ],
+      "final_pixel": [
+        267.0,
+        238.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p01",
+      "axis": "fig6",
+      "initial_pixel": [
+        280.0,
+        217.0
+      ],
+      "final_pixel": [
+        280.0,
+        217.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p02",
+      "axis": "fig6",
+      "initial_pixel": [
+        300.0,
+        192.0
+      ],
+      "final_pixel": [
+        300.0,
+        192.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p03",
+      "axis": "fig6",
+      "initial_pixel": [
+        350.0,
+        160.5
+      ],
+      "final_pixel": [
+        350.0,
+        160.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p04",
+      "axis": "fig6",
+      "initial_pixel": [
+        372.0,
+        154.5
+      ],
+      "final_pixel": [
+        372.0,
+        154.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p05",
+      "axis": "fig6",
+      "initial_pixel": [
+        435.0,
+        146.5
+      ],
+      "final_pixel": [
+        435.0,
+        146.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p06",
+      "axis": "fig6",
+      "initial_pixel": [
+        550.0,
+        141.0
+      ],
+      "final_pixel": [
+        550.0,
+        141.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p07",
+      "axis": "fig6",
+      "initial_pixel": [
+        688.0,
+        138.0
+      ],
+      "final_pixel": [
+        688.0,
+        138.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_spectre_p08",
+      "axis": "fig6",
+      "initial_pixel": [
+        840.0,
+        137.5
+      ],
+      "final_pixel": [
+        840.0,
+        137.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p00",
+      "axis": "fig6",
+      "initial_pixel": [
+        246.0,
+        344.0
+      ],
+      "final_pixel": [
+        246.0,
+        344.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p01",
+      "axis": "fig6",
+      "initial_pixel": [
+        267.0,
+        304.0
+      ],
+      "final_pixel": [
+        267.0,
+        304.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p02",
+      "axis": "fig6",
+      "initial_pixel": [
+        280.0,
+        282.0
+      ],
+      "final_pixel": [
+        280.0,
+        282.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p03",
+      "axis": "fig6",
+      "initial_pixel": [
+        300.0,
+        272.0
+      ],
+      "final_pixel": [
+        300.0,
+        272.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p04",
+      "axis": "fig6",
+      "initial_pixel": [
+        350.0,
+        264.0
+      ],
+      "final_pixel": [
+        350.0,
+        264.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p05",
+      "axis": "fig6",
+      "initial_pixel": [
+        372.0,
+        263.0
+      ],
+      "final_pixel": [
+        372.0,
+        263.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p06",
+      "axis": "fig6",
+      "initial_pixel": [
+        435.0,
+        261.0
+      ],
+      "final_pixel": [
+        435.0,
+        261.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p07",
+      "axis": "fig6",
+      "initial_pixel": [
+        550.0,
+        257.0
+      ],
+      "final_pixel": [
+        550.0,
+        257.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p08",
+      "axis": "fig6",
+      "initial_pixel": [
+        688.0,
+        256.0
+      ],
+      "final_pixel": [
+        688.0,
+        256.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p09",
+      "axis": "fig6",
+      "initial_pixel": [
+        840.0,
+        254.0
+      ],
+      "final_pixel": [
+        840.0,
+        254.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p00",
+      "axis": "fig6",
+      "initial_pixel": [
+        267.0,
+        296.0
+      ],
+      "final_pixel": [
+        267.0,
+        296.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p01",
+      "axis": "fig6",
+      "initial_pixel": [
+        280.0,
+        284.5
+      ],
+      "final_pixel": [
+        280.0,
+        284.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p02",
+      "axis": "fig6",
+      "initial_pixel": [
+        300.0,
+        273.0
+      ],
+      "final_pixel": [
+        300.0,
+        273.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p03",
+      "axis": "fig6",
+      "initial_pixel": [
+        350.0,
+        260.5
+      ],
+      "final_pixel": [
+        350.0,
+        260.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p04",
+      "axis": "fig6",
+      "initial_pixel": [
+        372.0,
+        258.5
+      ],
+      "final_pixel": [
+        372.0,
+        258.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p05",
+      "axis": "fig6",
+      "initial_pixel": [
+        435.0,
+        254.5
+      ],
+      "final_pixel": [
+        435.0,
+        254.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p06",
+      "axis": "fig6",
+      "initial_pixel": [
+        550.0,
+        251.5
+      ],
+      "final_pixel": [
+        550.0,
+        251.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p07",
+      "axis": "fig6",
+      "initial_pixel": [
+        688.0,
+        250.0
+      ],
+      "final_pixel": [
+        688.0,
+        250.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_spectre_p08",
+      "axis": "fig6",
+      "initial_pixel": [
+        840.0,
+        249.5
+      ],
+      "final_pixel": [
+        840.0,
+        249.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p00",
+      "axis": "fig6",
+      "initial_pixel": [
+        246.0,
+        397.0
+      ],
+      "final_pixel": [
+        246.0,
+        397.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p01",
+      "axis": "fig6",
+      "initial_pixel": [
+        267.0,
+        383.0
+      ],
+      "final_pixel": [
+        267.0,
+        383.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p02",
+      "axis": "fig6",
+      "initial_pixel": [
+        280.0,
+        379.0
+      ],
+      "final_pixel": [
+        280.0,
+        379.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p03",
+      "axis": "fig6",
+      "initial_pixel": [
+        300.0,
+        375.0
+      ],
+      "final_pixel": [
+        300.0,
+        375.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p04",
+      "axis": "fig6",
+      "initial_pixel": [
+        350.0,
+        372.0
+      ],
+      "final_pixel": [
+        350.0,
+        372.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p05",
+      "axis": "fig6",
+      "initial_pixel": [
+        372.0,
+        371.0
+      ],
+      "final_pixel": [
+        372.0,
+        371.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p06",
+      "axis": "fig6",
+      "initial_pixel": [
+        435.0,
+        369.0
+      ],
+      "final_pixel": [
+        435.0,
+        369.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p07",
+      "axis": "fig6",
+      "initial_pixel": [
+        550.0,
+        368.0
+      ],
+      "final_pixel": [
+        550.0,
+        368.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p08",
+      "axis": "fig6",
+      "initial_pixel": [
+        688.0,
+        366.0
+      ],
+      "final_pixel": [
+        688.0,
+        366.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p09",
+      "axis": "fig6",
+      "initial_pixel": [
+        840.0,
+        366.0
+      ],
+      "final_pixel": [
+        840.0,
+        366.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p00",
+      "axis": "fig6",
+      "initial_pixel": [
+        267.0,
+        382.0
+      ],
+      "final_pixel": [
+        267.0,
+        382.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p01",
+      "axis": "fig6",
+      "initial_pixel": [
+        280.0,
+        379.0
+      ],
+      "final_pixel": [
+        280.0,
+        379.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p02",
+      "axis": "fig6",
+      "initial_pixel": [
+        300.0,
+        376.0
+      ],
+      "final_pixel": [
+        300.0,
+        376.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p03",
+      "axis": "fig6",
+      "initial_pixel": [
+        350.0,
+        372.0
+      ],
+      "final_pixel": [
+        350.0,
+        372.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p04",
+      "axis": "fig6",
+      "initial_pixel": [
+        372.0,
+        371.5
+      ],
+      "final_pixel": [
+        372.0,
+        371.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p05",
+      "axis": "fig6",
+      "initial_pixel": [
+        435.0,
+        370.0
+      ],
+      "final_pixel": [
+        435.0,
+        370.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p06",
+      "axis": "fig6",
+      "initial_pixel": [
+        550.0,
+        368.0
+      ],
+      "final_pixel": [
+        550.0,
+        368.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p07",
+      "axis": "fig6",
+      "initial_pixel": [
+        688.0,
+        366.5
+      ],
+      "final_pixel": [
+        688.0,
+        366.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_spectre_p08",
+      "axis": "fig6",
+      "initial_pixel": [
+        840.0,
+        366.5
+      ],
+      "final_pixel": [
+        840.0,
+        366.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p00",
+      "axis": "fig7a",
+      "initial_pixel": [
+        280.0,
+        474.0
+      ],
+      "final_pixel": [
+        280.0,
+        474.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p01",
+      "axis": "fig7a",
+      "initial_pixel": [
+        298.0,
+        392.0
+      ],
+      "final_pixel": [
+        298.0,
+        392.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p02",
+      "axis": "fig7a",
+      "initial_pixel": [
+        315.0,
+        295.0
+      ],
+      "final_pixel": [
+        315.0,
+        295.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p03",
+      "axis": "fig7a",
+      "initial_pixel": [
+        328.0,
+        246.0
+      ],
+      "final_pixel": [
+        328.0,
+        246.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p04",
+      "axis": "fig7a",
+      "initial_pixel": [
+        345.0,
+        216.0
+      ],
+      "final_pixel": [
+        345.0,
+        216.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p05",
+      "axis": "fig7a",
+      "initial_pixel": [
+        366.0,
+        209.0
+      ],
+      "final_pixel": [
+        366.0,
+        209.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_tcad_p06",
+      "axis": "fig7a",
+      "initial_pixel": [
+        391.0,
+        201.0
+      ],
+      "final_pixel": [
+        391.0,
+        201.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_spectre_p00",
+      "axis": "fig7a",
+      "initial_pixel": [
+        298.0,
+        349.5
+      ],
+      "final_pixel": [
+        298.0,
+        349.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_spectre_p01",
+      "axis": "fig7a",
+      "initial_pixel": [
+        315.0,
+        278.0
+      ],
+      "final_pixel": [
+        315.0,
+        278.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_spectre_p02",
+      "axis": "fig7a",
+      "initial_pixel": [
+        328.0,
+        244.5
+      ],
+      "final_pixel": [
+        328.0,
+        244.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_spectre_p03",
+      "axis": "fig7a",
+      "initial_pixel": [
+        345.0,
+        221.0
+      ],
+      "final_pixel": [
+        345.0,
+        221.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_spectre_p04",
+      "axis": "fig7a",
+      "initial_pixel": [
+        366.0,
+        205.5
+      ],
+      "final_pixel": [
+        366.0,
+        205.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl0_spectre_p05",
+      "axis": "fig7a",
+      "initial_pixel": [
+        391.0,
+        196.0
+      ],
+      "final_pixel": [
+        391.0,
+        196.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_tcad_p00",
+      "axis": "fig7a",
+      "initial_pixel": [
+        292.0,
+        474.0
+      ],
+      "final_pixel": [
+        292.0,
+        474.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_tcad_p01",
+      "axis": "fig7a",
+      "initial_pixel": [
+        310.0,
+        390.0
+      ],
+      "final_pixel": [
+        310.0,
+        390.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_tcad_p02",
+      "axis": "fig7a",
+      "initial_pixel": [
+        327.0,
+        310.0
+      ],
+      "final_pixel": [
+        327.0,
+        310.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_tcad_p03",
+      "axis": "fig7a",
+      "initial_pixel": [
+        347.0,
+        256.0
+      ],
+      "final_pixel": [
+        347.0,
+        256.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_tcad_p04",
+      "axis": "fig7a",
+      "initial_pixel": [
+        366.0,
+        230.0
+      ],
+      "final_pixel": [
+        366.0,
+        230.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_tcad_p05",
+      "axis": "fig7a",
+      "initial_pixel": [
+        391.0,
+        214.0
+      ],
+      "final_pixel": [
+        391.0,
+        214.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_spectre_p00",
+      "axis": "fig7a",
+      "initial_pixel": [
+        292.0,
+        435.5
+      ],
+      "final_pixel": [
+        292.0,
+        435.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_spectre_p01",
+      "axis": "fig7a",
+      "initial_pixel": [
+        310.0,
+        365.0
+      ],
+      "final_pixel": [
+        310.0,
+        365.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_spectre_p02",
+      "axis": "fig7a",
+      "initial_pixel": [
+        327.0,
+        306.5
+      ],
+      "final_pixel": [
+        327.0,
+        306.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_spectre_p03",
+      "axis": "fig7a",
+      "initial_pixel": [
+        347.0,
+        256.5
+      ],
+      "final_pixel": [
+        347.0,
+        256.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_spectre_p04",
+      "axis": "fig7a",
+      "initial_pixel": [
+        366.0,
+        227.5
+      ],
+      "final_pixel": [
+        366.0,
+        227.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl16_spectre_p05",
+      "axis": "fig7a",
+      "initial_pixel": [
+        391.0,
+        206.5
+      ],
+      "final_pixel": [
+        391.0,
+        206.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_tcad_p00",
+      "axis": "fig7a",
+      "initial_pixel": [
+        319.0,
+        394.0
+      ],
+      "final_pixel": [
+        319.0,
+        394.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_tcad_p01",
+      "axis": "fig7a",
+      "initial_pixel": [
+        336.0,
+        346.0
+      ],
+      "final_pixel": [
+        336.0,
+        346.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_tcad_p02",
+      "axis": "fig7a",
+      "initial_pixel": [
+        353.0,
+        295.0
+      ],
+      "final_pixel": [
+        353.0,
+        295.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_tcad_p03",
+      "axis": "fig7a",
+      "initial_pixel": [
+        389.0,
+        241.0
+      ],
+      "final_pixel": [
+        389.0,
+        241.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_tcad_p04",
+      "axis": "fig7a",
+      "initial_pixel": [
+        408.0,
+        220.0
+      ],
+      "final_pixel": [
+        408.0,
+        220.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_spectre_p00",
+      "axis": "fig7a",
+      "initial_pixel": [
+        319.0,
+        379.5
+      ],
+      "final_pixel": [
+        319.0,
+        379.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_spectre_p01",
+      "axis": "fig7a",
+      "initial_pixel": [
+        336.0,
+        331.5
+      ],
+      "final_pixel": [
+        336.0,
+        331.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_spectre_p02",
+      "axis": "fig7a",
+      "initial_pixel": [
+        353.0,
+        290.0
+      ],
+      "final_pixel": [
+        353.0,
+        290.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_spectre_p03",
+      "axis": "fig7a",
+      "initial_pixel": [
+        389.0,
+        229.5
+      ],
+      "final_pixel": [
+        389.0,
+        229.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7a_position_wl31_spectre_p04",
+      "axis": "fig7a",
+      "initial_pixel": [
+        408.0,
+        212.5
+      ],
+      "final_pixel": [
+        408.0,
+        212.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_tcad_p00",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1985.0,
+        248.0
+      ],
+      "final_pixel": [
+        1985.0,
+        248.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_tcad_p01",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1990.0,
+        242.0
+      ],
+      "final_pixel": [
+        1990.0,
+        242.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_tcad_p02",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1995.0,
+        248.0
+      ],
+      "final_pixel": [
+        1995.0,
+        248.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_tcad_p03",
+      "axis": "fig7c",
+      "initial_pixel": [
+        2000.0,
+        260.0
+      ],
+      "final_pixel": [
+        2000.0,
+        260.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_spectre_p00",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1985.0,
+        244.5
+      ],
+      "final_pixel": [
+        1985.0,
+        244.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_spectre_p01",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1990.0,
+        261.0
+      ],
+      "final_pixel": [
+        1990.0,
+        261.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_spectre_p02",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1995.0,
+        283.0
+      ],
+      "final_pixel": [
+        1995.0,
+        283.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl0_spectre_p03",
+      "axis": "fig7c",
+      "initial_pixel": [
+        2000.0,
+        313.0
+      ],
+      "final_pixel": [
+        2000.0,
+        313.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_tcad_p00",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1985.0,
+        350.0
+      ],
+      "final_pixel": [
+        1985.0,
+        350.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_tcad_p01",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1990.0,
+        345.0
+      ],
+      "final_pixel": [
+        1990.0,
+        345.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_tcad_p02",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1995.0,
+        344.0
+      ],
+      "final_pixel": [
+        1995.0,
+        344.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_tcad_p03",
+      "axis": "fig7c",
+      "initial_pixel": [
+        2000.0,
+        347.0
+      ],
+      "final_pixel": [
+        2000.0,
+        347.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_spectre_p00",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1985.0,
+        330.5
+      ],
+      "final_pixel": [
+        1985.0,
+        330.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_spectre_p01",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1990.0,
+        329.0
+      ],
+      "final_pixel": [
+        1990.0,
+        329.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_spectre_p02",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1995.0,
+        331.5
+      ],
+      "final_pixel": [
+        1995.0,
+        331.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl16_spectre_p03",
+      "axis": "fig7c",
+      "initial_pixel": [
+        2000.0,
+        337.5
+      ],
+      "final_pixel": [
+        2000.0,
+        337.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_tcad_p00",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1985.0,
+        400.0
+      ],
+      "final_pixel": [
+        1985.0,
+        400.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_tcad_p01",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1990.0,
+        394.0
+      ],
+      "final_pixel": [
+        1990.0,
+        394.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_tcad_p02",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1995.0,
+        393.0
+      ],
+      "final_pixel": [
+        1995.0,
+        393.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_tcad_p03",
+      "axis": "fig7c",
+      "initial_pixel": [
+        2000.0,
+        392.0
+      ],
+      "final_pixel": [
+        2000.0,
+        392.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_spectre_p00",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1985.0,
+        384.0
+      ],
+      "final_pixel": [
+        1985.0,
+        384.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_spectre_p01",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1990.0,
+        381.0
+      ],
+      "final_pixel": [
+        1990.0,
+        381.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_spectre_p02",
+      "axis": "fig7c",
+      "initial_pixel": [
+        1995.0,
+        380.0
+      ],
+      "final_pixel": [
+        1995.0,
+        380.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig7c_position_wl31_spectre_p03",
+      "axis": "fig7c",
+      "initial_pixel": [
+        2000.0,
+        381.0
+      ],
+      "final_pixel": [
+        2000.0,
+        381.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p00",
+      "axis": "fig9a",
+      "initial_pixel": [
+        250.0,
+        332.0
+      ],
+      "final_pixel": [
+        250.0,
+        332.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p01",
+      "axis": "fig9a",
+      "initial_pixel": [
+        267.0,
+        279.0
+      ],
+      "final_pixel": [
+        267.0,
+        279.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p02",
+      "axis": "fig9a",
+      "initial_pixel": [
+        287.0,
+        217.0
+      ],
+      "final_pixel": [
+        287.0,
+        217.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p03",
+      "axis": "fig9a",
+      "initial_pixel": [
+        318.0,
+        188.0
+      ],
+      "final_pixel": [
+        318.0,
+        188.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p04",
+      "axis": "fig9a",
+      "initial_pixel": [
+        350.0,
+        177.0
+      ],
+      "final_pixel": [
+        350.0,
+        177.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p05",
+      "axis": "fig9a",
+      "initial_pixel": [
+        380.0,
+        170.0
+      ],
+      "final_pixel": [
+        380.0,
+        170.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p06",
+      "axis": "fig9a",
+      "initial_pixel": [
+        504.0,
+        159.0
+      ],
+      "final_pixel": [
+        504.0,
+        159.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p07",
+      "axis": "fig9a",
+      "initial_pixel": [
+        689.0,
+        153.0
+      ],
+      "final_pixel": [
+        689.0,
+        153.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p08",
+      "axis": "fig9a",
+      "initial_pixel": [
+        840.0,
+        152.0
+      ],
+      "final_pixel": [
+        840.0,
+        152.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p00",
+      "axis": "fig9a",
+      "initial_pixel": [
+        250.0,
+        313.5
+      ],
+      "final_pixel": [
+        250.0,
+        313.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p01",
+      "axis": "fig9a",
+      "initial_pixel": [
+        267.0,
+        268.0
+      ],
+      "final_pixel": [
+        267.0,
+        268.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p02",
+      "axis": "fig9a",
+      "initial_pixel": [
+        287.0,
+        227.5
+      ],
+      "final_pixel": [
+        287.0,
+        227.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p03",
+      "axis": "fig9a",
+      "initial_pixel": [
+        318.0,
+        189.0
+      ],
+      "final_pixel": [
+        318.0,
+        189.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p04",
+      "axis": "fig9a",
+      "initial_pixel": [
+        350.0,
+        171.0
+      ],
+      "final_pixel": [
+        350.0,
+        171.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p05",
+      "axis": "fig9a",
+      "initial_pixel": [
+        380.0,
+        161.0
+      ],
+      "final_pixel": [
+        380.0,
+        161.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p06",
+      "axis": "fig9a",
+      "initial_pixel": [
+        504.0,
+        149.0
+      ],
+      "final_pixel": [
+        504.0,
+        149.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p07",
+      "axis": "fig9a",
+      "initial_pixel": [
+        689.0,
+        145.0
+      ],
+      "final_pixel": [
+        689.0,
+        145.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0_spectre_p08",
+      "axis": "fig9a",
+      "initial_pixel": [
+        840.0,
+        144.0
+      ],
+      "final_pixel": [
+        840.0,
+        144.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p00",
+      "axis": "fig9a",
+      "initial_pixel": [
+        250.0,
+        370.0
+      ],
+      "final_pixel": [
+        250.0,
+        370.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p01",
+      "axis": "fig9a",
+      "initial_pixel": [
+        267.0,
+        325.0
+      ],
+      "final_pixel": [
+        267.0,
+        325.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p02",
+      "axis": "fig9a",
+      "initial_pixel": [
+        287.0,
+        268.0
+      ],
+      "final_pixel": [
+        287.0,
+        268.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p03",
+      "axis": "fig9a",
+      "initial_pixel": [
+        318.0,
+        232.0
+      ],
+      "final_pixel": [
+        318.0,
+        232.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p04",
+      "axis": "fig9a",
+      "initial_pixel": [
+        350.0,
+        222.0
+      ],
+      "final_pixel": [
+        350.0,
+        222.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p05",
+      "axis": "fig9a",
+      "initial_pixel": [
+        380.0,
+        216.0
+      ],
+      "final_pixel": [
+        380.0,
+        216.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p06",
+      "axis": "fig9a",
+      "initial_pixel": [
+        504.0,
+        212.0
+      ],
+      "final_pixel": [
+        504.0,
+        212.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p07",
+      "axis": "fig9a",
+      "initial_pixel": [
+        689.0,
+        207.0
+      ],
+      "final_pixel": [
+        689.0,
+        207.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p08",
+      "axis": "fig9a",
+      "initial_pixel": [
+        840.0,
+        206.0
+      ],
+      "final_pixel": [
+        840.0,
+        206.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p00",
+      "axis": "fig9a",
+      "initial_pixel": [
+        250.0,
+        353.0
+      ],
+      "final_pixel": [
+        250.0,
+        353.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p01",
+      "axis": "fig9a",
+      "initial_pixel": [
+        267.0,
+        312.5
+      ],
+      "final_pixel": [
+        267.0,
+        312.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p02",
+      "axis": "fig9a",
+      "initial_pixel": [
+        287.0,
+        275.0
+      ],
+      "final_pixel": [
+        287.0,
+        275.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p03",
+      "axis": "fig9a",
+      "initial_pixel": [
+        318.0,
+        240.5
+      ],
+      "final_pixel": [
+        318.0,
+        240.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p04",
+      "axis": "fig9a",
+      "initial_pixel": [
+        350.0,
+        223.5
+      ],
+      "final_pixel": [
+        350.0,
+        223.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p05",
+      "axis": "fig9a",
+      "initial_pixel": [
+        380.0,
+        215.0
+      ],
+      "final_pixel": [
+        380.0,
+        215.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p06",
+      "axis": "fig9a",
+      "initial_pixel": [
+        504.0,
+        205.0
+      ],
+      "final_pixel": [
+        504.0,
+        205.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p07",
+      "axis": "fig9a",
+      "initial_pixel": [
+        689.0,
+        201.5
+      ],
+      "final_pixel": [
+        689.0,
+        201.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.1_spectre_p08",
+      "axis": "fig9a",
+      "initial_pixel": [
+        840.0,
+        200.5
+      ],
+      "final_pixel": [
+        840.0,
+        200.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p00",
+      "axis": "fig9a",
+      "initial_pixel": [
+        250.0,
+        394.0
+      ],
+      "final_pixel": [
+        250.0,
+        394.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p01",
+      "axis": "fig9a",
+      "initial_pixel": [
+        267.0,
+        360.0
+      ],
+      "final_pixel": [
+        267.0,
+        360.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p02",
+      "axis": "fig9a",
+      "initial_pixel": [
+        287.0,
+        325.0
+      ],
+      "final_pixel": [
+        287.0,
+        325.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p03",
+      "axis": "fig9a",
+      "initial_pixel": [
+        318.0,
+        277.0
+      ],
+      "final_pixel": [
+        318.0,
+        277.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p04",
+      "axis": "fig9a",
+      "initial_pixel": [
+        350.0,
+        270.0
+      ],
+      "final_pixel": [
+        350.0,
+        270.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p05",
+      "axis": "fig9a",
+      "initial_pixel": [
+        380.0,
+        264.0
+      ],
+      "final_pixel": [
+        380.0,
+        264.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p06",
+      "axis": "fig9a",
+      "initial_pixel": [
+        504.0,
+        257.0
+      ],
+      "final_pixel": [
+        504.0,
+        257.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p07",
+      "axis": "fig9a",
+      "initial_pixel": [
+        689.0,
+        254.0
+      ],
+      "final_pixel": [
+        689.0,
+        254.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p08",
+      "axis": "fig9a",
+      "initial_pixel": [
+        840.0,
+        252.0
+      ],
+      "final_pixel": [
+        840.0,
+        252.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p00",
+      "axis": "fig9a",
+      "initial_pixel": [
+        250.0,
+        386.5
+      ],
+      "final_pixel": [
+        250.0,
+        386.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p01",
+      "axis": "fig9a",
+      "initial_pixel": [
+        267.0,
+        351.0
+      ],
+      "final_pixel": [
+        267.0,
+        351.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p02",
+      "axis": "fig9a",
+      "initial_pixel": [
+        287.0,
+        318.5
+      ],
+      "final_pixel": [
+        287.0,
+        318.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p03",
+      "axis": "fig9a",
+      "initial_pixel": [
+        318.0,
+        286.0
+      ],
+      "final_pixel": [
+        318.0,
+        286.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p04",
+      "axis": "fig9a",
+      "initial_pixel": [
+        350.0,
+        272.0
+      ],
+      "final_pixel": [
+        350.0,
+        272.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p05",
+      "axis": "fig9a",
+      "initial_pixel": [
+        380.0,
+        265.0
+      ],
+      "final_pixel": [
+        380.0,
+        265.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p06",
+      "axis": "fig9a",
+      "initial_pixel": [
+        504.0,
+        257.0
+      ],
+      "final_pixel": [
+        504.0,
+        257.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p07",
+      "axis": "fig9a",
+      "initial_pixel": [
+        689.0,
+        254.5
+      ],
+      "final_pixel": [
+        689.0,
+        254.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9a_taper_0.2_spectre_p08",
+      "axis": "fig9a",
+      "initial_pixel": [
+        840.0,
+        253.0
+      ],
+      "final_pixel": [
+        840.0,
+        253.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p00",
+      "axis": "fig9b",
+      "initial_pixel": [
+        975.0,
+        355.0
+      ],
+      "final_pixel": [
+        975.0,
+        355.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p01",
+      "axis": "fig9b",
+      "initial_pixel": [
+        988.0,
+        311.0
+      ],
+      "final_pixel": [
+        988.0,
+        311.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p02",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1000.0,
+        279.0
+      ],
+      "final_pixel": [
+        1000.0,
+        279.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p03",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1014.0,
+        253.0
+      ],
+      "final_pixel": [
+        1014.0,
+        253.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p04",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1029.0,
+        231.0
+      ],
+      "final_pixel": [
+        1029.0,
+        231.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p05",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1060.0,
+        220.0
+      ],
+      "final_pixel": [
+        1060.0,
+        220.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_tcad_p06",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1090.0,
+        216.0
+      ],
+      "final_pixel": [
+        1090.0,
+        216.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_spectre_p00",
+      "axis": "fig9b",
+      "initial_pixel": [
+        975.0,
+        356.0
+      ],
+      "final_pixel": [
+        975.0,
+        356.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_spectre_p01",
+      "axis": "fig9b",
+      "initial_pixel": [
+        988.0,
+        314.5
+      ],
+      "final_pixel": [
+        988.0,
+        314.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_spectre_p02",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1000.0,
+        285.5
+      ],
+      "final_pixel": [
+        1000.0,
+        285.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_spectre_p03",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1014.0,
+        263.5
+      ],
+      "final_pixel": [
+        1014.0,
+        263.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_spectre_p04",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1029.0,
+        247.0
+      ],
+      "final_pixel": [
+        1029.0,
+        247.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl0_spectre_p05",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1060.0,
+        227.0
+      ],
+      "final_pixel": [
+        1060.0,
+        227.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p00",
+      "axis": "fig9b",
+      "initial_pixel": [
+        975.0,
+        398.0
+      ],
+      "final_pixel": [
+        975.0,
+        398.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p01",
+      "axis": "fig9b",
+      "initial_pixel": [
+        988.0,
+        359.0
+      ],
+      "final_pixel": [
+        988.0,
+        359.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p02",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1000.0,
+        329.0
+      ],
+      "final_pixel": [
+        1000.0,
+        329.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p03",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1014.0,
+        300.0
+      ],
+      "final_pixel": [
+        1014.0,
+        300.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p04",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1029.0,
+        273.0
+      ],
+      "final_pixel": [
+        1029.0,
+        273.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p05",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1060.0,
+        242.0
+      ],
+      "final_pixel": [
+        1060.0,
+        242.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_tcad_p06",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1090.0,
+        229.0
+      ],
+      "final_pixel": [
+        1090.0,
+        229.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_spectre_p00",
+      "axis": "fig9b",
+      "initial_pixel": [
+        975.0,
+        401.5
+      ],
+      "final_pixel": [
+        975.0,
+        401.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_spectre_p01",
+      "axis": "fig9b",
+      "initial_pixel": [
+        988.0,
+        364.0
+      ],
+      "final_pixel": [
+        988.0,
+        364.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_spectre_p02",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1000.0,
+        332.0
+      ],
+      "final_pixel": [
+        1000.0,
+        332.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_spectre_p03",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1014.0,
+        302.5
+      ],
+      "final_pixel": [
+        1014.0,
+        302.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_spectre_p04",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1029.0,
+        275.5
+      ],
+      "final_pixel": [
+        1029.0,
+        275.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl16_spectre_p05",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1060.0,
+        240.5
+      ],
+      "final_pixel": [
+        1060.0,
+        240.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p00",
+      "axis": "fig9b",
+      "initial_pixel": [
+        975.0,
+        430.0
+      ],
+      "final_pixel": [
+        975.0,
+        430.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p01",
+      "axis": "fig9b",
+      "initial_pixel": [
+        988.0,
+        405.0
+      ],
+      "final_pixel": [
+        988.0,
+        405.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p02",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1000.0,
+        369.0
+      ],
+      "final_pixel": [
+        1000.0,
+        369.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p03",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1014.0,
+        346.0
+      ],
+      "final_pixel": [
+        1014.0,
+        346.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p04",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1029.0,
+        316.0
+      ],
+      "final_pixel": [
+        1029.0,
+        316.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p05",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1060.0,
+        269.0
+      ],
+      "final_pixel": [
+        1060.0,
+        269.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_tcad_p06",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1090.0,
+        246.0
+      ],
+      "final_pixel": [
+        1090.0,
+        246.0
+      ],
+      "method": "manual native-pixel TCAD marker center; source rulers; no model output",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_spectre_p00",
+      "axis": "fig9b",
+      "initial_pixel": [
+        975.0,
+        423.0
+      ],
+      "final_pixel": [
+        975.0,
+        423.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_spectre_p01",
+      "axis": "fig9b",
+      "initial_pixel": [
+        988.0,
+        392.5
+      ],
+      "final_pixel": [
+        988.0,
+        392.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_spectre_p02",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1000.0,
+        365.0
+      ],
+      "final_pixel": [
+        1000.0,
+        365.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_spectre_p03",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1014.0,
+        335.0
+      ],
+      "final_pixel": [
+        1014.0,
+        335.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_spectre_p04",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1029.0,
+        306.5
+      ],
+      "final_pixel": [
+        1029.0,
+        306.5
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig9b_taper_position_wl31_spectre_p05",
+      "axis": "fig9b",
+      "initial_pixel": [
+        1060.0,
+        257.0
+      ],
+      "final_pixel": [
+        1060.0,
+        257.0
+      ],
+      "method": "red-pixel center at directly observed source abscissa; source legend/arrow branch ordering; require all branches separately visible",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n32_tcad_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        589.5,
+        263.0
+      ],
+      "final_pixel": [
+        589.5,
+        263.0
+      ],
+      "method": "manual square center from log-current inset",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n32_spectre_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        589.5,
+        264.0
+      ],
+      "final_pixel": [
+        589.5,
+        264.0
+      ],
+      "method": "manual red disk center; marker populations heavily overlap",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n64_tcad_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        607.5,
+        312.0
+      ],
+      "final_pixel": [
+        607.5,
+        312.0
+      ],
+      "method": "manual square center from log-current inset",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n64_spectre_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        607.5,
+        313.0
+      ],
+      "final_pixel": [
+        607.5,
+        313.0
+      ],
+      "method": "manual red disk center; marker populations heavily overlap",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n128_tcad_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        643.5,
+        363.0
+      ],
+      "final_pixel": [
+        643.5,
+        363.0
+      ],
+      "method": "manual square center from log-current inset",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n128_spectre_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        643.5,
+        364.0
+      ],
+      "final_pixel": [
+        643.5,
+        364.0
+      ],
+      "method": "manual red disk center; marker populations heavily overlap",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n300_tcad_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        740.0,
+        428.0
+      ],
+      "final_pixel": [
+        740.0,
+        428.0
+      ],
+      "method": "manual square center from log-current inset",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n300_spectre_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        740.0,
+        429.0
+      ],
+      "final_pixel": [
+        740.0,
+        429.0
+      ],
+      "method": "manual red disk center; marker populations heavily overlap",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n500_tcad_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        852.0,
+        467.5
+      ],
+      "final_pixel": [
+        852.0,
+        467.5
+      ],
+      "method": "manual square center from log-current inset",
+      "edited": false
+    },
+    {
+      "point_id": "fig5_inset_layers_n500_spectre_p00",
+      "axis": "fig5_inset",
+      "initial_pixel": [
+        852.0,
+        468.5
+      ],
+      "final_pixel": [
+        852.0,
+        468.5
+      ],
+      "method": "manual red disk center; marker populations heavily overlap",
+      "edited": false
+    }
+  ],
+  "method": "Manual source marker centers plus separate color-isolated fitted lines; native PNG pixels, upper-left origin.",
+  "uncertainty": "TCAD centers: +/-4 px horizontal, +/-6 px vertical. Inset: +/-3 px both axes. Spectre line center: +/-1 px horizontal, +/-2 px vertical. Log bounds are transformed in decades.",
+  "independent_recheck": [
+    {
+      "point_id": "fig4c_cal_n1_tcad_p09",
+      "axis": "fig4c",
+      "manual_y_pixel": 108.0,
+      "independent_y_pixel": 107.0,
+      "difference_pixel": -1.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig4c_cal_n3_tcad_p09",
+      "axis": "fig4c",
+      "manual_y_pixel": 226.0,
+      "independent_y_pixel": 226.0,
+      "difference_pixel": 0.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig4c_cal_n5_tcad_p09",
+      "axis": "fig4c",
+      "manual_y_pixel": 292.0,
+      "independent_y_pixel": 297.5,
+      "difference_pixel": 5.5,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig5_layers_n32_tcad_p09",
+      "axis": "fig5",
+      "manual_y_pixel": 136.0,
+      "independent_y_pixel": 136.5,
+      "difference_pixel": 0.5,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig5_layers_n64_tcad_p07",
+      "axis": "fig5",
+      "manual_y_pixel": 318.0,
+      "independent_y_pixel": 318.0,
+      "difference_pixel": 0.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig5_layers_n128_tcad_p06",
+      "axis": "fig5",
+      "manual_y_pixel": 410.0,
+      "independent_y_pixel": 410.0,
+      "difference_pixel": 0.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig5_layers_n300_tcad_p06",
+      "axis": "fig5",
+      "manual_y_pixel": 470.0,
+      "independent_y_pixel": 469.0,
+      "difference_pixel": -1.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig5_layers_n500_tcad_p06",
+      "axis": "fig5",
+      "manual_y_pixel": 488.0,
+      "independent_y_pixel": 486.0,
+      "difference_pixel": -2.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig6_bias_bl0.7_tcad_p09",
+      "axis": "fig6",
+      "manual_y_pixel": 145.0,
+      "independent_y_pixel": 145.0,
+      "difference_pixel": 0.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig6_bias_bl0.5_tcad_p09",
+      "axis": "fig6",
+      "manual_y_pixel": 254.0,
+      "independent_y_pixel": 251.0,
+      "difference_pixel": -3.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig6_bias_bl0.3_tcad_p09",
+      "axis": "fig6",
+      "manual_y_pixel": 366.0,
+      "independent_y_pixel": 365.0,
+      "difference_pixel": -1.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig9a_taper_0_tcad_p08",
+      "axis": "fig9a",
+      "manual_y_pixel": 152.0,
+      "independent_y_pixel": 152.5,
+      "difference_pixel": 0.5,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig9a_taper_0.1_tcad_p08",
+      "axis": "fig9a",
+      "manual_y_pixel": 206.0,
+      "independent_y_pixel": 206.5,
+      "difference_pixel": 0.5,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    },
+    {
+      "point_id": "fig9a_taper_0.2_tcad_p08",
+      "axis": "fig9a",
+      "manual_y_pixel": 252.0,
+      "independent_y_pixel": 251.0,
+      "difference_pixel": -1.0,
+      "method": "independent gray-threshold envelope midrange in 5-pixel column window",
+      "gray_threshold": {
+        "max_channel_spread": 12,
+        "min_mean": 55,
+        "max_mean": 225
+      }
+    }
+  ],
+  "log_unit_diagnostic": [
+    {
+      "pixel": [
+        1327,
+        337
+      ],
+      "selected_wl_voltage_v": -8.881784197001252e-16,
+      "printed_numeric_ordinate": 3.79085767996684e-11,
+      "printed_uA_to_A": 3.79085767996684e-17,
+      "alternative_if_label_should_be_A": 3.79085767996684e-11,
+      "status": "unassigned overlapping traces; unit ambiguity; excluded from calibration/validation",
+      "y_uncertainty_decades": 0.19257715198609274
+    },
+    {
+      "pixel": [
+        1395,
+        234
+      ],
+      "selected_wl_voltage_v": 0.20118343195266242,
+      "printed_numeric_ordinate": 1.1433213458249644e-08,
+      "printed_uA_to_A": 1.1433213458249644e-14,
+      "alternative_if_label_should_be_A": 1.1433213458249644e-08,
+      "status": "unassigned overlapping traces; unit ambiguity; excluded from calibration/validation",
+      "y_uncertainty_decades": 0.19257715198609274
+    },
+    {
+      "pixel": [
+        1463,
+        145
+      ],
+      "selected_wl_voltage_v": 0.40236686390532483,
+      "printed_numeric_ordinate": 1.5870445853388139e-06,
+      "printed_uA_to_A": 1.5870445853388138e-12,
+      "alternative_if_label_should_be_A": 1.5870445853388139e-06,
+      "status": "unassigned overlapping traces; unit ambiguity; excluded from calibration/validation",
+      "y_uncertainty_decades": 0.19257715198609274
+    },
+    {
+      "pixel": [
+        1625,
+        126
+      ],
+      "selected_wl_voltage_v": 0.8816568047337272,
+      "printed_numeric_ordinate": 4.549460133113755e-06,
+      "printed_uA_to_A": 4.549460133113755e-12,
+      "alternative_if_label_should_be_A": 4.549460133113755e-06,
+      "status": "unassigned overlapping traces; unit ambiguity; excluded from calibration/validation",
+      "y_uncertainty_decades": 0.19257715198609274
+    }
+  ],
+  "excluded_points": [
+    {
+      "axis": "fig4c",
+      "case_id": "cal_n1",
+      "population": "spectre",
+      "pixel": [
+        2275,
+        187
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig4c",
+      "case_id": "cal_n3",
+      "population": "spectre",
+      "pixel": [
+        2275,
+        262
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig4c",
+      "case_id": "cal_n5",
+      "population": "spectre",
+      "pixel": [
+        2275,
+        313
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n32",
+      "population": "spectre",
+      "pixel": [
+        251,
+        299
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n32",
+      "population": "spectre",
+      "pixel": [
+        700,
+        138
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n32",
+      "population": "spectre",
+      "pixel": [
+        850,
+        136
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n64",
+      "population": "spectre",
+      "pixel": [
+        251,
+        369
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n128",
+      "population": "spectre",
+      "pixel": [
+        251,
+        419
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n300",
+      "population": "spectre",
+      "pixel": [
+        251,
+        472
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig5",
+      "case_id": "layers_n500",
+      "population": "spectre",
+      "pixel": [
+        251,
+        489
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig6",
+      "case_id": "bias_bl0.7",
+      "population": "spectre",
+      "pixel": [
+        246,
+        311
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig6",
+      "case_id": "bias_bl0.5",
+      "population": "spectre",
+      "pixel": [
+        246,
+        344
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig6",
+      "case_id": "bias_bl0.3",
+      "population": "spectre",
+      "pixel": [
+        246,
+        397
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig7a",
+      "case_id": "position_wl0",
+      "population": "spectre",
+      "pixel": [
+        280,
+        474
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig9b",
+      "case_id": "taper_position_wl0",
+      "population": "spectre",
+      "pixel": [
+        1090,
+        216
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig9b",
+      "case_id": "taper_position_wl16",
+      "population": "spectre",
+      "pixel": [
+        1090,
+        229
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    },
+    {
+      "axis": "fig9b",
+      "case_id": "taper_position_wl31",
+      "population": "spectre",
+      "pixel": [
+        1090,
+        246
+      ],
+      "reason": "Red branches overlap or are obscured at this abscissa; trace rank cannot be assigned confidently."
+    }
+  ],
+  "unusable": [
+    {
+      "id": "fig7b_wl0_tcad",
+      "reason": "Printed uA label conflicts with linear panel by about six decades; overlapping same-color traces cannot be assigned uniquely. No silent relabeling.",
+      "case_id": "position_wl0",
+      "population": "tcad"
+    },
+    {
+      "id": "fig7b_wl0_spectre",
+      "reason": "Printed uA label conflicts with linear panel by about six decades; overlapping same-color traces cannot be assigned uniquely. No silent relabeling.",
+      "case_id": "position_wl0",
+      "population": "spectre"
+    },
+    {
+      "id": "fig7b_wl16_tcad",
+      "reason": "Printed uA label conflicts with linear panel by about six decades; overlapping same-color traces cannot be assigned uniquely. No silent relabeling.",
+      "case_id": "position_wl16",
+      "population": "tcad"
+    },
+    {
+      "id": "fig7b_wl16_spectre",
+      "reason": "Printed uA label conflicts with linear panel by about six decades; overlapping same-color traces cannot be assigned uniquely. No silent relabeling.",
+      "case_id": "position_wl16",
+      "population": "spectre"
+    },
+    {
+      "id": "fig7b_wl31_tcad",
+      "reason": "Printed uA label conflicts with linear panel by about six decades; overlapping same-color traces cannot be assigned uniquely. No silent relabeling.",
+      "case_id": "position_wl31",
+      "population": "tcad"
+    },
+    {
+      "id": "fig7b_wl31_spectre",
+      "reason": "Printed uA label conflicts with linear panel by about six decades; overlapping same-color traces cannot be assigned uniquely. No silent relabeling.",
+      "case_id": "position_wl31",
+      "population": "spectre"
+    },
+    {
+      "id": "fig5_inset_additional_layers",
+      "reason": "Additional plotted counts are not named in the requested main-curve inventory; not assigned to inferred integer layer counts."
+    },
+    {
+      "id": "fig7c_full_tails",
+      "reason": "Only separately identifiable peak-region samples extracted. Crossings, overlap, and annotation prevent confident full-trace identity."
+    },
+    {
+      "id": "fig5_main_occluded_region",
+      "reason": "Inset covers low-current main traces beyond about 3.3 V; inset endpoint retained separately."
+    },
+    {
+      "id": "fig4c_low_current",
+      "reason": "Overlapping TCAD squares below about 2 V cannot reliably identify each small-string curve. No logarithmic calibration family is supplied."
+    },
+    {
+      "id": "fig7a_fig9b_common_plateau",
+      "reason": "Converged same-color traces cannot be counted as distinct observations."
+    },
+    {
+      "id": "fig8",
+      "reason": "Geometry diagram only, transcribed in manifest; no numeric I-V curve."
+    },
+    {
+      "id": "table_I",
+      "reason": "Mentioned in HTML but absent from its content. Publisher PDF route rejected access; table not verified."
+    },
+    {
+      "id": "fig7d",
+      "reason": "Equivalent source/drain resistance diagram; no independently reported numerical curve."
+    }
+  ]
+}

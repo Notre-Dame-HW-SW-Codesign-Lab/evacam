@@ -6,7 +6,7 @@ resistance:
   'off': 1600000000ohm
 read:
   mode: voltage
-  power: 1uW
+  power: 0W # Control-node charging and divider loss are derived by fefet_gate.
   min_sense_voltage: 70mV
 write:
   set:

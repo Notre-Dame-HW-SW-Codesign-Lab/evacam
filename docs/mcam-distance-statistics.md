@@ -15,6 +15,66 @@ PNG/PDF/SVG figures, `voltage_extrema.csv`, input snapshots and
 Use `--models mcam` or `--models tcam`, `--sizes`, `--levels`, and `--output-dir`
 to select a smaller run. The direct entry point is `scripts/plot_cam_extrema.py`.
 
+For MCAM TV figures with a logarithmic voltage axis, run:
+
+```sh
+python3 scripts/plot_mcam_voltage.py --mode extrema --models mcam --yscale log \
+  --output-dir results/cam_voltage_extrema_tv_log
+```
+
+Distance remains linear, including the exact-match point at zero. Both full-range
+and active-region figures retain the positive voltage extrema without clipping
+them to a display floor; each view fits its voltage limits to the visible data.
+The saved metadata records the voltage axis scale. The default remains linear.
+
+For logarithmic distance and linear voltage instead, run:
+
+```sh
+python3 scripts/plot_mcam_voltage.py --mode extrema --models mcam --xscale log --yscale linear \
+  --output-dir results/cam_voltage_extrema_tv_logx
+```
+
+The log distance axis starts at the smallest positive reachable distance. Distance
+zero remains in the CSV and is represented by the horizontal exact-match reference
+band and dashed boundaries. Each figure notes this, and the metadata records both
+axis scales and the treatment of zero distance.
+
+For MCAM TV figures with both axes logarithmic, run:
+
+```sh
+python3 scripts/plot_mcam_voltage.py --mode extrema --models mcam --xscale log --yscale log \
+  --output-dir results/cam_voltage_extrema_tv_loglog
+```
+
+This produces full-range and active-region figures for all four array sizes and
+all three variation levels, with the same horizontal reference for distance zero.
+
+For the 22nm 2FeFET TCAM derived from the MCAM device files, run:
+
+```sh
+python3 scripts/plot_mcam_voltage.py --mode extrema --models tcam \
+  --tcam-config config/2FeFET_TCAM_22nm/2FeFET_TCAM_22nm.config.yaml \
+  --output-dir results/tcam_22nm_voltage_extrema_tv
+```
+
+This fileset copies the existing `2FeFET_MCAM_as_TCAM` configuration: 22nm cell
+and system process nodes, 22.9kohm on resistance, 1600Mohm off resistance,
+300F^2 cell area, aspect ratio 1.76, and the MCAM cell ports and read/write
+parameters. Its architecture retains the MCAM's 0fF extra matchline capacitance
+and 5F match transistor, with an explicit 64x64 nominal subarray. TCAM uses
+the binary on/off resistances; the MCAM's multilevel resistance and searchline
+voltage tables are omitted. These are inherited model inputs, not a new device
+calibration. The existing 45nm TCAM files and default plotting source remain
+unchanged.
+
+The command resizes the copied architecture for each of 8x8, 16x16, 32x32, and
+64x64, applying 0%, 5%, and 10% standard deviation to both binary resistances.
+Add `--xscale log`, `--yscale log`, or both and choose a separate output
+directory to generate the other axis views. The generated 22nm runs use
+`results/tcam_22nm_voltage_extrema_tv{,_log,_logx,_loglog}/`. Each figure names
+its device, and each metadata file records the cell and system process nodes.
+The saved inputs capture each size and variation level for reproduction.
+
 At 0% variation, blue shows the exact nominal composition minima and maxima;
 there are no sigma bands or sampled means. At nonzero variation, gold shows
 exact extrema over the independent input resistance intervals

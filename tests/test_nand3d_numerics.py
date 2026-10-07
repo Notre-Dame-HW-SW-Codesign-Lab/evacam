@@ -148,7 +148,7 @@ class CompiledNandNumericsTest(unittest.TestCase):
 
 
 class EncodedNand3dReferenceTest(unittest.TestCase):
-    def test_actual_backend_encoding_precharge_rounds_and_margin(self):
+    def test_analytical_backend_encoding_first_moment_and_margin(self):
         """Reassemble the encoded device from reported inputs, without C++ internals."""
         self.assertTrue(MODEL_PROBE.is_file(), "build with make test-nand3d-numerics")
         with tempfile.TemporaryDirectory(prefix="nand3d-model-reference-") as directory:
@@ -168,7 +168,7 @@ class EncodedNand3dReferenceTest(unittest.TestCase):
                                              capture_output=True, text=True)
                     self.assertEqual(process.returncode, 0, process.stderr)
                     report = yaml.safe_load(process.stdout)
-                    self.assertEqual(report["metadata"]["model_backend"], "transient_rc")
+                    self.assertEqual(report["metadata"]["model_backend"], "analytical_rc")
                     self.assertEqual(report["metadata"]["device_validation"], "not_performed_by_evacam")
                     device, geometry = report["device"], report["geometry"]
                     layers = geometry["data_wordlines"] + device["dummy_layers"]
@@ -176,10 +176,6 @@ class EncodedNand3dReferenceTest(unittest.TestCase):
                     cap.append(device["capacitance_bitline_f"])
                     all_pass = [device["resistance_pass_ohm"]] * layers + [device["resistance_select_ohm"]]
                     ground = {"connected": True, "resistance_ohm": device["resistance_select_ohm"], "voltage_v": 0.}
-                    driver = {"connected": True, "resistance_ohm": device["precharge_driver_resistance_ohm"],
-                              "voltage_v": device["voltage_precharge_v"]}
-                    circuit = {"capacitances_f": cap, "series_resistances_ohm": all_pass}
-                    first_charge = None
                     for pattern in report["patterns"]:
                         # Recreate physical L/H states and read/pass query biases,
                         # instead of selecting resistors with the C++ Encode formula.
@@ -196,35 +192,32 @@ class EncodedNand3dReferenceTest(unittest.TestCase):
                         source_dummy = device["dummy_layers"] // 2
                         evaluation_resistance = all_pass.copy()
                         evaluation_resistance[source_dummy:source_dummy + len(encoded)] = encoded
-                        state = np.zeros(len(cap))
-                        decision_voltages = []
-                        for _ in range(mux):
-                            circuit.update(series_resistances_ohm=all_pass, initial_voltages_v=state.tolist(),
-                                           duration_s=device["precharge_latency_s"], left={}, right=driver)
-                            charged = reference(circuit)
-                            if first_charge is None:
-                                first_charge = charged[len(cap) + 1]
-                            circuit.update(series_resistances_ohm=evaluation_resistance,
-                                           initial_voltages_v=charged[:len(cap)].tolist(),
-                                           duration_s=device["decision_time_s"], left=ground, right={})
-                            evaluated = reference(circuit)[:len(cap)]
-                            decision_voltages.append(evaluated[-1])
-                            circuit.update(series_resistances_ohm=all_pass, initial_voltages_v=evaluated.tolist(),
-                                           duration_s=device["recovery_latency_s"], left=ground,
-                                           right={**driver, "voltage_v": 0.})
-                            state = reference(circuit)[:len(cap)]
-                        expected = (max if pattern["ideal_hit"] else min)(decision_voltages)
-                        self.assertAlmostEqual(pattern["model_voltage_v"], expected, delta=3e-6)
+                        # For a passive RC step, integral of its normalized
+                        # falling response is -A^-1 * 1. This independent dense
+                        # nodal solve gives the far-node first moment without
+                        # reusing the production cumulative-resistance formula.
+                        n = len(cap)
+                        conductance = np.zeros((n, n))
+                        conductance[0, 0] += 1 / ground["resistance_ohm"]
+                        for edge, resistance in enumerate(evaluation_resistance):
+                            conductance[edge, edge] += 1 / resistance
+                            conductance[edge + 1, edge + 1] += 1 / resistance
+                            conductance[edge, edge + 1] -= 1 / resistance
+                            conductance[edge + 1, edge] -= 1 / resistance
+                        moment = np.linalg.solve(conductance, np.asarray(cap))[-1]
+                        expected = device["voltage_precharge_v"] * np.exp(-device["decision_time_s"] / moment)
+                        self.assertAlmostEqual(pattern["model_voltage_v"], expected, delta=1e-9)
                         expected_conductance = 1 / (sum(evaluation_resistance) + ground["resistance_ohm"])
                         self.assertAlmostEqual(pattern["model_conductance_s"] / expected_conductance, 1, places=12)
                         expected_margin = ((report["model"]["reference_voltage_v"] - expected) if pattern["ideal_hit"]
                                            else (expected - report["model"]["reference_voltage_v"])) - device["sense_offset_v"]
                         self.assertAlmostEqual(pattern["model_margin_v"], expected_margin, delta=3e-6)
-                        self.assertFalse(pattern["time_constant_inference_available"])
-                    if mux == 1:
-                        expected_energy = geometry["entries"] * driver["voltage_v"] * first_charge / device["supply_efficiency"]
-                        actual_energy = report["model"]["search_energy_breakdown_j"]["bitline_and_internal_precharge"]
-                        self.assertAlmostEqual(actual_energy / expected_energy, 1, places=5)
+                        self.assertTrue(pattern["time_constant_inference_available"])
+                        self.assertAlmostEqual(pattern["inferred_time_constant_s"] / moment, 1, delta=1e-8)
+                    expected_energy = geometry["entries"] * mux * sum(cap) * device["voltage_precharge_v"]**2 / device["supply_efficiency"]
+                    actual_energy = report["model"]["search_energy_breakdown_j"]["bitline_and_internal_precharge"]
+                    self.assertAlmostEqual(actual_energy / expected_energy, 1, places=12)
+
 
 
 if __name__ == "__main__":

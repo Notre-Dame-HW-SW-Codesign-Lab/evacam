@@ -1,12 +1,20 @@
 # 3D NAND TCAM
 
 EvaCAM's `NAND3D` backend models an SLC NAND TCAM with a vertical string
-layout, sequential select groups, and a numerical linear RC transient.
+layout, sequential select groups, and an analytical first-moment RC model.
 It uses the ordinary split YAML input format. The shipped electrical and
 peripheral parameters are synthetic; numerical circuit tests do not establish
 device calibration or reproduce published commercial 3D NAND performance.
-The [linear RC verification report](validation/nand3d-rc.md) records the
-numerical checks and their physical limits.
+The [linear RC verification report](validation/nand3d-rc.md) retains the
+independent reference solver and the known limits of the analytical approximation.
+
+EvaCAM is derived from NVSim. Departures in electrical, geometry, peripheral,
+and operation-cost modeling require the evidence recorded in the
+[NVSim justification audit](validation/nand-nvsim-justification.md).
+The [matched NVSim validation](validation/nand-nvsim.md) records the executed
+baseline, circuit comparisons, energy reconciliation, and remaining physical
+validation limits.
+The added detail is not, by itself, evidence of improved physical accuracy.
 
 ```sh
 make -j
@@ -17,7 +25,13 @@ The canonical example uses `NAND_3D_TCAM.config.yaml`, an architecture YAML,
 a cell YAML, and `NAND_3D_TCAM.memory_device.yaml`. There is no separate
 `.spec` input format. The cell selects `cam_type: TCAM` and
 `topology: nand_string`; its memory device selects `type: NAND3D`,
-`nand3d.storage_mode: SLC`, and `nand3d.model: transient_rc`.
+`nand3d.storage_mode: SLC`, and `nand3d.model: analytical_rc`.
+
+The normal model uses closed-form RC estimates. To migrate an earlier transient
+configuration, set `model: analytical_rc` and remove `solver` and
+`precharge_driver_resistance` from `nand3d`; those fields are now rejected rather
+than silently ignored. Keep the stack, layout, electrical and operation inputs.
+The nodal solver remains a separate verification tool.
 
 ## Geometry and physical operation units
 
@@ -96,44 +110,40 @@ and is not used as lateral CMOS wire length.
 
 The `nand3d` mapping supplies read-on, pass, off, and select resistances;
 distributed internal, source, bitline, gate, and select capacitances; bias
-voltages; and explicit NAND peripheral costs. Both threshold states share the
+voltages; and NAND peripheral costs. Missing RC, wordline-driver, and sense
+values can use the same warned [CMOS technology fallbacks](nand-tcam.md#technology-library-fallbacks)
+as planar NAND. These estimates do not characterize the vertical NAND channel;
+all 3D dimensions remain explicit. Both threshold states share the
 pass resistance in this initial SLC backend. Threshold values validate
 read/pass bias ordering. They do not supply nonlinear channel I-V curves.
 
-The transient solver integrates the linear nodal circuit. The physical
-orientation is the source select, source capacitance, series flash/dummy
-devices with internal-node capacitances, drain select, and loaded bitline.
-Wire parasitics follow the configured lateral geometry. The model operates
-three electrical phases:
+The source-to-drain circuit contains the source select resistor and source
+capacitance, storage/dummy devices and their internal-node capacitances, drain
+select, and the lateral bitline pi section. The model uses the same first-moment
+approach as the existing planar analytical backend:
 
-1. Precharge applies pass biases and charges the bitline through the configured
-   `precharge_driver_resistance`, with the source select open.
-2. Evaluation applies the query and grounds the selected string's source while
-   its precharged bitline floats. Matching strings discharge more rapidly.
-3. Recovery restores all-pass biases and grounds the source through its select
-   resistance and the bitline through the finite precharge-driver resistance.
-   The final maximum node residual must not exceed the solver tolerance;
-   otherwise the operation fails with a recovery diagnostic.
+```text
+tau = sum(Ci * resistance_from_ground_to_node_i)
+Vbitline(t) = Vprecharge * exp(-t / tau)
+```
 
-Internal nodes start from reset, then carry their actual computed voltages
-between phases and sense-multiplexing rounds. Separate select groups represent
-different strings and start from their own reset states. A finite precharge
-time therefore affects the decision waveform and energy; the solver does not
-assume that every internal node instantaneously reaches the rail.
+The bitline wire's distributed capacitance sees half its wire resistance.
+Dummy devices, padding, the validity pair and the selected complementary-pair
+members all contribute to this sum. A pattern evaluation requires one pass over
+the string and an exponential; it performs no transient time stepping.
 
-`solver.max_step`, `solver.tolerance`, and `solver.max_steps` control the
-numerical integration. The backend records its solver name and diagnostic
-values in the result. Failure to converge or complete the declared schedule
-is reported explicitly. Single-exponential time constants are not emitted for
-this backend. `solver.tolerance` and the reported
-`transient_absolute_tolerance_v` are local voltage-error controls, not proven
-bounds on accumulated endpoint error. Tolerance-convergence checks and the
-independent numerical references establish the tested endpoint accuracy.
+Each round assumes sufficient all-pass precharge to establish a uniform full
+rail on the internal nodes and bitline, followed by query evaluation. Recovery
+is assumed to reset the string before the next round. Supplied precharge and
+recovery durations contribute to operation latency, but their electrical
+sufficiency is not verified. Short durations do not reduce the assumed initial
+voltage or CV² charging energy. These are the same explicit initialization
+assumptions used by the planar analytical path.
 
 The reported conductance is the **DC conductance of the configured resistor
 network**. It is not a measured transistor transfer curve or the instantaneous
 bitline discharge current. Resistances, capacitances, and peripheral costs
-remain supplied parameters. The solver does not infer mobility, tunneling,
+remain supplied parameters. The model does not infer mobility, tunneling,
 threshold distributions, channel self-boosting, nonlinear coupling, or
 temperature-dependent flash I-V characteristics.
 
@@ -144,33 +154,30 @@ query includes query setup, electrical precharge/evaluation/recovery phases,
 driver and sensing overheads, group/mux rounds, and bank routing. These are
 separate quantities in the result.
 
-Sensing uses a common reference and comparator offset. Available margin is
-the smaller signed distance from the reference to the sampled match and
-mismatch signals, minus the offset allowance. The result labels these checks
-as `sensing_bound: sampled_patterns`; they are not an exhaustive guarantee
-over every possible key, query, device corner, or operation history.
-Per-query APIs return ideal ternary `hit` independently of the modeled
-voltage and `sense_margin_pass`. For a matching pattern the reported voltage
-is the highest across its mux rounds; for a nonmatching pattern it is the
-lowest, so each uses its least favorable sampled decision.
+Sensing uses a common reference and comparator offset. The model constructs the
+slowest matching first moment by choosing the source-side read-biased member
+of each pair. The fastest nonmatch has one blocking device, with other key
+queries masked; the drain-most key mismatch and programmed-invalid marker are
+both considered. Positive capacitance weights make these bounds cover the
+supported patterns **within the single-exponential approximation**. They do
+not bound the full distributed transient or an actual NAND circuit.
 
-The run samples five matching patterns (all-zero, all-one, all-wildcard, and
-both alternating polarities), single mismatches at every key position in both
-query polarities with masked and unmasked backgrounds, and three programmed
-invalid patterns (all-zero, all-one, and all-wildcard). It uses their least
-favorable match/mismatch voltages to choose an automatic midpoint reference
-when `reference_voltage` is zero. The sampled-pattern count is reported.
+A zero `reference_voltage` selects the midpoint of the match and mismatch
+voltages. Available margin is the smaller signed distance from the reference,
+minus the offset allowance. The run rejects insufficient analytical margin.
+Per-query APIs preserve ideal ternary `hit` independently of the calculated
+voltage and `sense_margin_pass`.
 
-Supply energy for modeled RC phases follows the transient charge delivered by
-the precharge supply. Wordline/select switching and explicit peripheral
-overheads are accounted for separately. The supplied device/peripheral
-parameters must not include a second copy of the capacitance energy already
-modeled. Run energy uses the maximum sampled per-string precharge supply
-energy, multiplied by all strings, plus the unmasked-query gate/driver cost.
-The model's pattern evaluator reports a block cost assuming that every string
-has the representative supplied pattern. The public `evaluate_nand` API
-scales that cost across the bank and adds routing. It does not infer the
-contents or energy distribution of an actual stored array. Page program and
+Bitline/internal-node supply energy is the fully charged CV² sum, multiplied
+by strings and sense-mux rounds and divided by the supplied efficiency. Source,
+internal and bitline capacitances, including lateral wire loading, are counted.
+There is no additional string-conduction term that would count the same
+capacitor discharge twice. Wordline/select switching and supplied peripheral
+overheads are accounted for separately. Those overheads must exclude charging
+energy already modeled. Query masks affect gate/driver energy; full reset and
+recharge make the bitline term independent of the stored pattern.
+
+Page program and
 block erase retain complete supplied operation
 costs: one **selected-group page** and one **physical erase block**,
 respectively. Bank totals add the addressed route. The implementation does
@@ -184,29 +191,26 @@ includes:
 
 ```yaml
 model_identifier: evacam-nand3d-tcam-v1
-model_backend: transient_rc
+model_backend: analytical_rc
 array_layout: vertical_3d
 calibration_status: synthetic
 ```
 
-The result also preserves the supplied source, solver name, sensing-pattern
-scope, electrical initial-condition convention, and peripheral placement.
+The result also preserves the supplied source, analytical delay model,
+approximation-bound scope, assumed full-precharge convention and peripheral placement.
 Numerical verification and physical calibration are separate claims: the
 synthetic fixture remains synthetic after every software or circuit test.
 A user-supplied calibration label alone does not provide correlation data.
 
 `geometry` contains logical capacity, physical storage cells, page/block
-sizes, group/sense-round counts, and 3D dimensions. `summary.diagnostics`
-contains finite-precharge and numerical-solver observations. Program/erase
+sizes, group/sense-round counts, and 3D dimensions. `summary.timing` includes
+`slowest_match_time_constant_s` and `fastest_mismatch_time_constant_s`.
+Transient-solver metadata and diagnostics are absent. Program/erase
 and full-query costs use the same SI naming conventions as
 [the NAND result contract](nand-tcam.md#results-and-provenance).
-Conventional read metrics and one-pole time constants are absent.
-Stack, grid, staircase, and peripheral geometry fields describe one block;
-`physical_cell_count` and allocated capacities cover all blocks. Diagnostics
-describe the representative string simulations. In particular,
-`precharge_min_voltage_v`, `precharge_max_voltage_v`, and
-`precharge_source_energy_j_per_string` describe the first precharge from reset;
-the search-energy total includes all mux rounds and strings.
+Conventional read metrics remain unavailable. Stack, grid, staircase and
+peripheral geometry fields describe one block; `physical_cell_count` and
+allocated capacities cover all blocks.
 
 ```python
 import evacam_py
@@ -231,11 +235,8 @@ internal sensing and either bank routing topology. Search, area, leakage, and
 physical-page program objectives are available. The shared NAND capability
 guards reject conventional-read objectives, generic CAM peripherals,
 full/deep exploration, generic dimension overrides, and variation.
-The transient backend caps sense mux at 256, combined storage/dummy layers
-at 4096, and initialization sampling work at 200 million node-step attempts.
-The per-phase solver limit can reject a run before that work cap. Large or
-stiff circuits may therefore require a smaller geometry or adjusted numerical
-settings even when their physical dimensions satisfy the schema.
+The analytical backend caps sense mux at 256 and combined storage/dummy layers
+at 4096. It has no integration-step, convergence or transient-sampling budget.
 
 MLC/TLC/QLC storage, approximate/top-k search, segmented keys, nonlinear
 device characterization, retention/disturb/endurance, ECC, and controller
@@ -243,9 +244,19 @@ simulation are outside this backend. The legacy `SLCNAND` analytical path
 remains available with its existing result contract and limitations.
 
 The earlier [linear-RC comparison](validation/nand-yang-2023.md) demonstrated
-limitations of the legacy one-pole approximation and assumed precharge. The
-new transient implementation addresses those numerical modeling assumptions;
-it does not turn that audit into a reproduction of Yang et al. or validate
-the supplied synthetic values against silicon. Independent measured/SPICE
-waveforms, circuit parameters, complete operating conditions, and holdout
-comparisons are still needed for device-level predictive claims.
+limits of the one-pole approximation and assumed precharge. Those limitations
+remain after restoring the analytical model; analytical sense-margin acceptance
+is not a guarantee about the full distributed circuit. The independent nodal
+solver retains these counterexamples as verification evidence. The
+[matched NVSim comparison](validation/nand-nvsim.md) found small uncorrected
+delay errors in its tested circuits and did not establish a physical accuracy
+gain that justified making transient integration the normal estimator.
+
+## Experimental nonlinear DC work
+
+A separate [cell-current and DC-string evaluator](validation/nand-nonlinear-dc.md)
+now provides the first numerical prototype for the nonlinear roadmap. Its
+parameters are uncalibrated, and it is accessible through the C++ electrical API
+and a test probe. It does not introduce a new CAM configuration mode or change
+this backend's `analytical_rc` model. Further nonlinear integration is outside
+the restored analytical scope.

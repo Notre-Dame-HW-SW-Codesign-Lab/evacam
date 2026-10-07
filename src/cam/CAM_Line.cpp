@@ -41,6 +41,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
                     1);
         }
 
+        wireCap = cap;
         const Technology &capTech = (cell.memCellType == FEFETRAM) ? fefetTech : tech;
         const double cmosWidth = CellPort.widthCmos * capTech.featureSize();
         const double cellWidth = cell.widthInFeatureSize * capTech.featureSize();
@@ -59,7 +60,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
                 cap += gateCap() * portMultiplier;
                 break;
             case diode:
-                cap += (gateCap() * numCell + drainCap()) * portMultiplier;
+                cap += (gateCap() + drainCap()) * portMultiplier;
                 break;
             case drain:
             case source: // TODO: source is the weird case in ISSCC'15 3t1r, double check this is right
@@ -68,6 +69,7 @@ void CAM_Line::Initialize(bool _isRow, int _index, double _len, long long _numCe
                 break;
         }
 
+        deviceCap = cap - wireCap;
         const int temperature = config->input.temperature;
         const double featureSize = tech.featureSize();
 
@@ -178,7 +180,9 @@ void CAM_Line::Initialize(double _len, long long _numCell, double _MuxWidth,
         cap = len * localWire.capWirePerUnit;
         res = len * localWire.resWirePerUnit;
 
-        cap += CalculateGateCap(_MuxWidth * tech.featureSize(), tech) * numCell;
+        wireCap = cap;
+        deviceCap = CalculateGateCap(_MuxWidth * tech.featureSize(), tech) * numCell;
+        cap += deviceCap;
         maxCurrent = 1e11;
         minMuxWidth = 0;
         initialized = true;

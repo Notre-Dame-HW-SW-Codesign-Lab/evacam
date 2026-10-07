@@ -4,7 +4,20 @@ Prepared against `updated` at `96e257a` on 2026-09-23. Scope: NAND-flash-based C
 
 **Recommendation:** implement an explicit NAND-string TCAM model, initially using two-state flash devices and exact/wildcard search. Reuse EvaCAM's configuration pipeline, exploration infrastructure, routing framework, and suitable peripherals. The old SLC NAND code is reference material for selected device/operation equations; it is not an existing NAND CAM implementation to reactivate.
 
-**Implementation status:** the analytical NAND-string TCAM path and a separate first SLC-mode 3D linear RC transient backend are implemented. See [NAND TCAM](nand-tcam.md) and [3D NAND TCAM](nand-3d-tcam.md) for their distinct configuration, physical assumptions, APIs, and limitations. A polymorphic `NandCamBackend` selects the analytical or 3D model behind the existing subarray facade; `NandCamBank` supplies block scheduling and routing. The 3D backend adds explicit stack/layout geometry, finite precharge, carried electrical state, and numerical diagnostics. Numerical circuit verification is separate from physical device calibration: the examples remain synthetic, and no published device-level accuracy is claimed. A general interface covering every CAM subarray, nonlinear device/SPICE calibration, and the later extensions below remain roadmap items. The dated investigation and proposed stages below are retained as the original plan, not a statement that every stage is complete.
+**Implementation status:** planar and 3D NAND-string TCAM paths use analytical
+first-moment RC estimates. See [NAND TCAM](nand-tcam.md) and
+[3D NAND TCAM](nand-3d-tcam.md). The 3D path retains stack/layout geometry,
+select-group scheduling and supplied peripheral costs. Nodal RC and nonlinear
+experiments remain separate verification tools; they are not used by the normal
+CAM estimator. Shipped values are synthetic and no device-level accuracy is
+claimed. The dated investigation and proposed stages below are historical
+planning material, not a statement of the current production scope.
+
+**Justification requirement:** EvaCAM derives from NVSim. Preserve applicable
+inherited modeling and justify departures with controlled evidence. The
+[NVSim change audit](validation/nand-nvsim-justification.md) records each major
+departure, the demonstrated benefit or open gap, and the comparisons required
+before accepting a replacement as an improvement.
 
 **1. Investigation scope and historical findings**
 

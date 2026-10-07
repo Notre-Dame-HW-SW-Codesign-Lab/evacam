@@ -16,6 +16,27 @@ void AssertFixed(const IntValueDomain &domain, int value) {
     assert(domain.Max() == value);
 }
 
+void TestReadSearchTimingSection() {
+    EvaCamConfig config;
+    ConfigSectionReaders::ReadSearchTimingSection(YAML::Load(
+            "search_timing: {control: broadcast, precharge: serial, driver_load: physical_line, recovery: 25ps}"), config);
+    assert(config.peripherals.explicitSearchTiming && config.peripherals.searchBroadcast);
+    assert(!config.peripherals.overlapSearchPrecharge && config.peripherals.usePhysicalDriverLoad);
+    TestSupport::AssertNear(config.peripherals.searchRecovery, 25e-12);
+    ConfigSectionReaders::ReadSearchTimingSection(YAML::Load("{}"), config);
+    assert(!config.peripherals.explicitSearchTiming && !config.peripherals.searchBroadcast);
+    assert(config.peripherals.overlapSearchPrecharge && !config.peripherals.usePhysicalDriverLoad);
+    assert(config.peripherals.searchRecovery == 0);
+    for (const char *value : {"{control: broadcast}",
+            "{control: invalid, precharge: serial, driver_load: physical_line}",
+            "{control: decoded, precharge: serial, driver_load: physical_line, recovery: -1ps}",
+            "{control: decoded, precharge: serial, driver_load: physical_line, unknown: true}"}) {
+        TestSupport::AssertThrows<std::runtime_error>([&] {
+            ConfigSectionReaders::ReadSearchTimingSection(YAML::Load(std::string("search_timing: ") + value), config);
+        }, "");
+    }
+}
+
 void TestReadDesignSection() {
     EvaCamConfig config;
     const YAML::Node root = YAML::Load(
@@ -362,7 +383,32 @@ void TestReadExtraSection() {
 
 }  // namespace
 
+
+void TestReadCircuitSensing() {
+    EvaCamConfig config;
+    const std::string head = "sensing:\n  internal: true\n  custom_sense_amp: false\n  sensing_mode: nvsim_vol\n";
+    ConfigSectionReaders::ReadSensingSection(YAML::Load(head + "  circuit: {model: direct_nvm, precharge_voltage: 550mV, bits_per_discharge_path: 2}\n"), config);
+    assert(config.peripherals.matchlineCircuit=="direct_nvm" && config.peripherals.bitsPerDischargePath==2);
+    TestSupport::AssertNear(config.peripherals.prechargeVoltage,.55);
+    ConfigSectionReaders::ReadSensingSection(YAML::Load(head + "  circuit: {model: clamped_keeper, precharge_voltage: 1.2V, keeper_high_clamp: 1V, keeper_low_clamp: 0.6V}\n"), config);
+    TestSupport::AssertNear(config.peripherals.keeperHighClamp,1);
+    for (const char *value : {"{model: wrong, precharge_voltage: 1V}",
+            "{model: direct_nvm, precharge_voltage: 0V}",
+            "{model: direct_nvm, precharge_voltage: 1V, bits_per_discharge_path: 3}",
+            "{model: direct_nvm, precharge_voltage: 1V, keeper_high_clamp: 0.5V}",
+            "{model: clamped_keeper, precharge_voltage: 1V, keeper_high_clamp: 1V, keeper_low_clamp: 0.6V}"}) {
+        TestSupport::AssertThrows<std::runtime_error>([&] {
+            ConfigSectionReaders::ReadSensingSection(YAML::Load(head + "  circuit: " + value),config);
+        }, "");
+    }
+    ConfigSectionReaders::ReadSensingSection(YAML::Load(head), config);
+    assert(config.peripherals.matchlineCircuit=="legacy" && config.peripherals.prechargeVoltage==0
+            && config.peripherals.bitsPerDischargePath==1 && config.peripherals.keeperHighClamp==0);
+}
+
 int main() {
+    TestReadCircuitSensing();
+    TestReadSearchTimingSection();
     TestReadDesignSection();
     TestReadMemorySection();
     TestReadRoutingSection();

@@ -1,0 +1,6 @@
+# Reference fixture: https://www.csis.tohoku.ac.jp/files/Matsunaga_2011_SymposiumonVLSI_Circuits.pdf
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml

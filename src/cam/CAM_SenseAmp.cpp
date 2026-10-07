@@ -178,11 +178,7 @@ void CAM_SenseAmp::CalculatePower() {
         if (isCustom && customSA->readDynamicEnergy > 0) {
             readDynamicEnergy = customSA->readDynamicEnergy * numColumn;
             writeDynamicEnergy = readDynamicEnergy;
-            if (customSA->leakage > 0) {
-                leakage = customSA->leakage * numColumn;
-            } else {
-                leakage = normalSenseAmp->leakage;
-            }
+            leakage = customSA->leakage * numColumn;
         }
         else if (typeSA == nvsim_voltage_sense || typeSA == nvsim_current_sense || typeSA == discharge) {
             readDynamicEnergy = normalSenseAmp->readDynamicEnergy;

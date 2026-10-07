@@ -74,6 +74,10 @@ void TestSingleResultStructureAssumptionsAndBreakdowns() {
 
     Require(root["assumptions"]["model_identifier"].as<std::string>() == "evacam-cam-v1",
             "model identifier is emitted");
+    Require(root["assumptions"]["technology"]["physical_feature_size"].as<std::string>() == "45nm",
+            "requested physical sizing is emitted");
+    Require(root["assumptions"]["technology"]["electrical_lower_node"].as<std::string>() == "45nm",
+            "electrical lookup is emitted separately");
     Require(root["assumptions"]["routing"].as<std::string>() == "non_h_tree",
             "non-H-tree routing is emitted");
     Require(root["assumptions"]["technology"]["roadmap"].as<std::string>() == "HP",
@@ -105,6 +109,12 @@ void TestSingleResultStructureAssumptionsAndBreakdowns() {
     AssertScalar(root["summary"]["power"], "read_dynamic_energy");
     AssertScalar(root["breakdown"]["subarray_area"], "total_cell_area");
     AssertScalar(root["breakdown"]["search_latency"], "matchline");
+    AssertScalar(root["breakdown"]["search_latency"], "control_node");
+    AssertScalar(root["breakdown"]["search_latency"], "subarray_full_search");
+    Require(root["assumptions"]["modeling_options"]["search_latency_scope"].as<std::string>()
+                == "legacy_single_sense", "single-sense timing boundary is explicit");
+    Require(root["assumptions"]["modeling_options"]["sense_amplifier_model"].as<std::string>()
+                == "generic", "generic sensing is labeled");
     AssertScalar(root["breakdown"]["search_dynamic_energy"], "cell_read");
     AssertScalar(root["breakdown"]["write_dynamic_energy"], "cell_set");
     AssertScalar(root["breakdown"]["leakage"], "sense_amplifier");

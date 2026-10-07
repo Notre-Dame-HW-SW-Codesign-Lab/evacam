@@ -1,0 +1,10 @@
+schema: config
+name: PCM-2T2R-JSSC14
+architecture: PCM-2T2R-JSSC14.architecture.yaml
+cell: PCM-2T2R-JSSC14.cell.yaml
+technology: ../../lib/technology/cmos.legacy.yaml
+optimization:
+  target: SearchLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

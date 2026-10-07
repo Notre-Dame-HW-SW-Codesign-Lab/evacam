@@ -5,9 +5,9 @@
 
 #include "technology/NandDeviceSpec.h"
 
-// NAND3D parameters are supplied by the ordinary memory_device YAML. Lengths,
-// resistance, and integration step use SI units; the solver tolerance is a
-// voltage. Storage layers include the reserved validity pair and padding.
+// NAND3D parameters are supplied by the ordinary memory_device YAML. Lengths
+// and resistance use SI units. Storage layers include the reserved validity
+// pair and padding. Electrical estimates use the analytical first-moment model.
 struct Nand3dMemoryDevice {
     bool configured = false;
     std::string storageMode;
@@ -23,10 +23,6 @@ struct Nand3dMemoryDevice {
     double staircaseContactLength = 0;
     double isolationWidth = 0;
     std::string peripheralPlacement;
-    double prechargeDriverResistance = 0;
-    double solverMaxStep = 0;
-    double solverTolerance = 0;
-    int solverMaxSteps = 0;
 };
 
 #endif  // TECHNOLOGY_NAND3DMEMORYDEVICE_H_

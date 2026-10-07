@@ -1,0 +1,62 @@
+# Reference fixture: https://li.seas.upenn.edu/publication/li-2014-jssc/
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: architecture
+design:
+  target: CAM
+  search_function: EX
+  system_process_node: 90nm
+  device_roadmap: HP
+  temperature: 350K
+memory:
+  capacity: 131072B
+  word_width: 64bits
+routing:
+  type: H-tree
+peripherals:
+  input:
+    buffer: true
+    encoder: false
+    custom_encoder: false
+  output:
+    buffer: false
+    priority_encoder: false
+    accumulator: false
+  write_driver: false
+wires:
+  local:
+    type: LocalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+  global:
+    type: GlobalAggressive
+    repeater: RepeatedNone
+    low_swing: false
+organization:
+  banks:
+    total:
+    - 4
+    - 2
+    active:
+    - 1
+    - 1
+  mats:
+    total:
+    - 2
+    - 2
+    active:
+    - 1
+    - 1
+  mux:
+    sense_amp: 1
+    output_level1: 8
+    output_level2: 1
+  subarray:
+    dimensions:
+    - 512
+    - 64
+  comparison_columns_per_step: 64
+sensing: PCM-2T2R-JSSC14.sensing.yaml
+matchline:
+  match_transistor:
+    cmos_width: 8F

@@ -41,8 +41,7 @@ void PrintNandResult(const Result &result) {
         << "Leakage: " << ToWatt(summary.at("power.leakage_w")) << '\n'
         << "Sensing: a match discharges the bitline; decision time "
         << ToSecond(summary.at("timing.decision_time_s")) << '\n'
-        << (is3d ? "Sampled-match / reference / sampled-mismatch voltage: "
-                 : "Slowest-match / reference / fastest-mismatch voltage: ")
+        << "Slowest-match / reference / fastest-mismatch voltage: "
         << summary.at("timing.match_voltage_v") << " / "
         << summary.at("timing.reference_voltage_v") << " / "
         << summary.at("timing.mismatch_voltage_v") << " V\n"
@@ -56,15 +55,9 @@ void PrintNandResult(const Result &result) {
             << ToMeter(geometry.at("vertical_stack_height_m")) << " stack height\n"
             << "String grid: " << geometry.at("string_rows") << " x "
             << geometry.at("string_columns") << '\n'
-            << "Transient solver: " << dto.metadata.at("transient_solver") << '\n'
+            << "Delay model: " << dto.metadata.at("delay_model") << '\n'
             << "Sense checks: " << dto.metadata.at("sensing_bound") << '\n'
             << "Device calibration: " << dto.metadata.at("calibration_status") << '\n';
-        const auto minimumPrecharge = summary.find("diagnostics.precharge_min_voltage_v");
-        const auto maximumPrecharge = summary.find("diagnostics.precharge_max_voltage_v");
-        if (minimumPrecharge != summary.end() && maximumPrecharge != summary.end()) {
-            std::cout << "Precharge node voltage range: " << minimumPrecharge->second << " to "
-                << maximumPrecharge->second << " V\n";
-        }
     }
 }
 

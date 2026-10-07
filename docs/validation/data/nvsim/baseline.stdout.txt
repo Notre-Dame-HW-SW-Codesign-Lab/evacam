@@ -1,0 +1,105 @@
+User-defined configuration file (/home/jbech002/Research/evacam/output/validation/nand-nvsim/baseline.cfg) is loaded
+
+Memory Cell: Single-Level Cell NAND Flash
+Cell Area (F^2)    : 4.000 (2.000Fx2.000F)
+Cell Aspect Ratio  : 1.000
+Pass Voltage       : 3.800V
+Programming Voltage: 6.000V
+Erase Voltage      : 16.000V
+Programming Time   : 200.000us
+Erase Time         : 1.250ms
+Gate Coupling Ratio: 0.700
+
+====================
+DESIGN SPECIFICATION
+====================
+Design Target: Random Access Memory
+Capacity   : 32MB
+Data Width : 8192Bits (1024Bytes)
+Page Size  : 1024Bytes
+Block Size : 64KB
+
+Searching for the best solution that is optimized for read latency ...
+
+=============
+CONFIGURATION
+=============
+Bank Organization: 16 x 1
+ - Row Activation   : 1 / 16
+ - Column Activation: 1 / 1
+Mat Organization: 1 x 1
+ - Row Activation   : 1 / 1
+ - Column Activation: 1 / 1
+ - Subarray Size    : 1024 Rows x 16384 Columns
+Mux Level:
+ - Senseamp Mux      : 2
+ - Output Level-1 Mux: 1
+ - Output Level-2 Mux: 1
+Local Wire:
+ - Wire Type : Local Aggressive
+ - Repeater Type: No Repeaters
+ - Low Swing : No
+Global Wire:
+ - Wire Type : Global Aggressive
+ - Repeater Type: No Repeaters
+ - Low Swing : No
+Buffer Design Style: Latency-Optimized
+=============
+   RESULT
+=============
+Area:
+ - Total Area = 1.658mm x 1.582mm = 2.623mm^2
+ |--- Mat Area      = 103.613um x 1.582mm = 163919.449um^2   (82.904%)
+ |--- Subarray Area = 103.613um x 1.557mm = 161371.498um^2   (84.213%)
+ - Area Efficiency = 82.904%
+Timing:
+ -  Read Latency = 317.260ns
+ |--- H-Tree Latency = 51.625ps
+ |--- Mat Latency    = 317.209ns
+    |--- Predecoder Latency = 146.316ps
+    |--- Subarray Latency   = 317.062ns
+       |--- Row Decoder Latency = 4.623ns
+       |--- Bitline Latency     = 306.510ns
+       |--- Senseamp Latency    = 3.653ps
+       |--- Mux Latency         = 12.313ps
+       |--- Precharge Latency   = 137.873ps
+ - Erase Latency = 1.250ms
+ |--- H-Tree Latency = 25.812ps
+ |--- Mat Latency    = 1.250ms
+ - Programming Latency   = 200.011us
+ |--- H-Tree Latency = 25.812ps
+ |--- Mat Latency    = 200.011us
+ - Read Bandwidth  = 3.276GB/s
+ - Write Bandwidth = 5.120MB/s
+Power:
+ -  Read Dynamic Energy = 15.129nJ
+ |--- H-Tree Dynamic Energy = 1.889nJ
+ |--- Mat Dynamic Energy    = 13.240nJ per mat
+    |--- Predecoder Dynamic Energy = 0.563pJ
+    |--- Subarray Dynamic Energy   = 13.239nJ per active subarray
+       |--- Row Decoder Dynamic Energy = 13.015nJ
+       |--- Mux Decoder Dynamic Energy = 5.746pJ
+       |--- Senseamp Dynamic Energy    = 17.745pJ
+       |--- Mux Dynamic Energy         = 17.931pJ
+       |--- Precharge Dynamic Energy   = 21.245pJ
+ - Erase Dynamic Energy = 272.579nJ per block
+ |--- H-Tree Dynamic Energy = 1.889nJ
+ |--- Mat Dynamic Energy    = 270.690nJ per mat
+    |--- Predecoder Dynamic Energy = 0.563pJ
+    |--- Subarray Dynamic Energy   = 16.479nJ per active subarray
+       |--- Row Decoder Dynamic Energy = 7.608nJ
+       |--- Mux Decoder Dynamic Energy = 5.746pJ
+       |--- Mux Dynamic Energy         = 17.931pJ
+ - Programming Dynamic Energy = 31.049nJ per page
+ |--- H-Tree Dynamic Energy = 1.889nJ
+ |--- Mat Dynamic Energy    = 29.160nJ per mat
+    |--- Predecoder Dynamic Energy = 0.563pJ
+    |--- Subarray Dynamic Energy   = 16.479nJ per active subarray
+       |--- Row Decoder Dynamic Energy = 7.608nJ
+       |--- Mux Decoder Dynamic Energy = 5.746pJ
+       |--- Mux Dynamic Energy         = 17.931pJ
+ - Leakage Power = 270.092mW
+ |--- H-Tree Leakage Power = 0.000pW
+ |--- Mat Leakage Power    = 16.881mW per mat
+
+Finished!

@@ -1,0 +1,7 @@
+# Reference fixture: https://scholar.nycu.edu.tw/en/publications/a-256b-wordlength-reram-based-tcam-with-1ns-search-time-and-14-im/
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+sensing_mode: nvsim_cur

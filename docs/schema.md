@@ -16,7 +16,13 @@ The [NAND model guide](nand-tcam.md) defines its operation and geometry units.
 | Sensing | `internal: true`, `custom_sense_amp: false`, `sensing_mode: discharge`; no generic sense-amplifier reference |
 | Memory device | `type: SLCNAND` with the `nand` fields below |
 
-All NAND memory-device sections are explicit. Unknown keys are rejected.
+With a selected technology library, omitted `resistance`, `capacitance`,
+`wordline_driver`, and `sense` values use CMOS estimates and emit a warning.
+Whole groups or individual fields may be omitted. Explicit values always win;
+nulls, invalid values, and unknown keys are rejected. All other groups below
+remain required (apart from the documented optional sensing/efficiency fields).
+See [technology fallbacks](nand-tcam.md#technology-library-fallbacks) for the
+derivations, limits, and recorded provenance. The same rules apply to `nand3d`.
 
 | `nand` key | Meaning and units |
 | --- | --- |
@@ -31,7 +37,7 @@ All NAND memory-device sections are explicit. Unknown keys are rejected.
 | `sensing.min_margin` | Required per-class reference margin in volts |
 | `sensing.reference_voltage` | Volts; zero selects automatic midpoint, otherwise below precharge |
 | `sensing.offset` | Nonnegative comparator offset allowance in volts |
-| `wordline_driver`, `sense`, `page_buffer` | Each requires `area` (m²), `latency` (s), `energy` (J), and `leakage` (W) |
+| `wordline_driver`, `sense`, `page_buffer` | `area` (m²), `latency` (s), `energy` (J), and `leakage` (W); `page_buffer` requires all four, while driver/sense omissions use the technology fallback |
 | `query`, `setup`, `precharge`, `recovery` | Each requires `latency` (s) and `energy` (J) |
 | `program_page`, `erase_block` | Positive complete local operation `latency` (s) and `energy` (J), per physical page/block |
 
@@ -56,17 +62,13 @@ required fields are:
 
 | `nand3d` key | Meaning |
 | --- | --- |
-| `model` | `transient_rc` |
+| `model` | `analytical_rc` |
 | `storage_mode` | `SLC` |
 | `stack.storage_layers`, `stack.dummy_layers` | Storage and dummy layer counts; validity/padding are included in storage layers |
 | `layout.string_rows`, `layout.string_columns` | Sequential select groups and strings per group |
 | `layout.hole_pitch_x`, `layout.hole_pitch_y`, `layout.layer_pitch` | Lateral hole pitches and vertical layer pitch, in meters |
 | `layout.staircase_step_width`, `layout.staircase_contact_length`, `layout.isolation_width` | Physical staircase/isolation lengths, in meters |
 | `layout.peripheral_placement` | `beside` adds peripheral area; `under_array` overlaps it with the array footprint |
-| `precharge_driver_resistance` | Finite bitline precharge-driver resistance, in ohms |
-| `solver.max_step` | Maximum transient integration step, in seconds |
-| `solver.tolerance` | Numerical voltage tolerance, in volts |
-| `solver.max_steps` | Positive integration-step limit |
 
 `flash.page_size` is one selected group's SLC page (`string_columns` bits).
 `flash.block_size` is `string_rows * string_columns * storage_layers` bits.
@@ -74,8 +76,8 @@ Fixed subarray dimensions are `[string_rows * string_columns, logical_key_bits]`
 Storage layers must accommodate two devices per key bit plus a validity pair;
 total storage and dummy layers may not exceed 4096. String rows must be positive,
 string columns must be byte aligned and at least eight, and their product may
-not exceed 1,048,576. The solver requires positive step and tolerance, tolerance
-at most 1 mV, and at least 100 maximum steps.
+not exceed 1,048,576. The analytical model assumes full precharge and reset each
+round. The obsolete `solver` and `precharge_driver_resistance` inputs are rejected.
 See [3D NAND TCAM](nand-3d-tcam.md) for scheduling, physical capacity, and
 numerical-verification versus device-calibration scope.
 
@@ -190,6 +192,20 @@ Useful optional keys:
 - `physical_limits.max_nmos_size`: transistor-width limit in feature-size multiples
 - `physical_limits.max_driver_current`: retained but currently has no model effect
 
+Array rows are stored entries and columns are physical cells in each entry.
+Active bank/mat partitions divide a word across subarrays; the ratio of total
+to active partitions divides the entries. Search energy still covers all
+searched subarrays. Comparison width is divided evenly among active data partitions and cannot
+exceed the columns present on a local matchline. A candidate whose comparison
+width cannot be divided evenly among those partitions is rejected. All attached cell terminals load the matchline,
+including during a serial comparison step.
+
+`memory.physical_capacity` is a byte capacity, like `memory.capacity`. For
+128 words of 72 bits, both are `1152B`; `9kb` means 9 KiB in this schema.
+An explicit comparison width must divide the full physical word width; partial
+final steps are rejected. Serial latency and energy include all steps when
+`peripherals.output.accumulator` is enabled.
+
 ## Cell File
 
 Required fields and sections:
@@ -218,6 +234,9 @@ Important notes:
 - `ports.row` and `ports.column` are maps keyed by integer index.
 - Each port defines `cmos_region`, `num_cmos`, `cmos_width`, and `is_nmos`
   directly. A `num_cmos` value of zero means no access device is present.
+- `is_nvm_discharge: true` on a column `matchline` or `matchline_bitline`
+  port includes the memory resistance in that port's discharge path. Setting
+  it on another port is rejected.
 
 ## Memory Device File
 
@@ -242,6 +261,15 @@ Common implemented optional sections:
 
 Important notes:
 
+- `match.is_nvm_discharge: true` enables NVM discharge participation for all
+  matchline ports. A port-level `true` can also enable participation; a port
+  `false` does not disable the cell-wide setting. Both default to false.
+  Direct FeFET match paths include the memory resistance; `topology: fefet_gate`
+  instead places it in the separate control node. Enable this only
+  when the NVM carries matchline current in the modeled schematic.
+- `match.cmos_width` and `match.additional_cap_on_ml` are rejected; use the
+  architecture's `matchline.match_transistor.cmos_width` and
+  `matchline.additional_cap` instead.
 - Variation is memory-device-driven. A memory-device `variation` section enables variation; omit the section for nominal-only runs. Run and architecture configs do not support a `variation` section.
 - Stochastic variation sampling uses a fixed bounded-Gaussian model; `variation.distribution` is not a supported input.
 - Supported user-facing variation modes are `single_point`, `monte_carlo`, and `corner`.
@@ -269,18 +297,85 @@ Important notes:
 - MCAM inputs are restricted to the shipped 2FeFET topology: a `FEFETRAM` memory device, `access_device.type: none`, two gate-connected searchline row ports, and two drain-connected matchline column ports, all indexed `0` and `1`.
 - The shipped eight-state resistance and searchline-voltage tables are provisional infrastructure examples, not calibrated correlation data. The voltage examples and reversed-pair mapping come from Kazemi et al., [Scientific Reports 12, 19201 (2022)](https://www.nature.com/articles/s41598-022-23116-w).
 
+## 2FeFET-1T Gate-Controlled TCAM
+
+The DATE21 example and its paper-reference fixture select these cell fields:
+
+```yaml
+topology: fefet_gate
+gate_node:
+  switching_voltage: 0.5V
+  additional_capacitance: 0fF # optional wiring/parasitic load
+```
+
+This topology requires `cam_type: TCAM`, a `FEFETRAM` memory device, CMOS
+access, two single-device source/drain searchline ports, and one NMOS-drain
+matchline port. Searchlines must be complementary `0/Vdd` signals. Both
+device and matchline NVM-discharge flags must be false. Memory-device
+`read.power` and `read.energy` must be zero or omitted because the model derives
+control-node charging and divider dissipation. Only nominal exact search is
+supported; variation and approximate search are rejected.
+
+The control-node load includes the pull-down gate and two FeFET drain
+capacitances, plus `additional_capacitance`. Its switching voltage must lie
+strictly between the derived match and mismatch levels. The two FeFET
+resistances affect this node, while the matchline discharges through the
+separate CMOS transistor. See [model equations and validation](validation/named-cam-sensing-topology.md).
+This is an uncalibrated first-order model; the example's `0.5V` is an explicit
+digital switching assumption, not a measured transistor threshold.
+
 ## Sensing File
 
 Required or common fields:
 
 - `schema`
 - `internal`: whether the architecture uses internal sensing
-- `sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from `sense_amplifier` when omitted
+- `sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from a generic `sense_amplifier` name when omitted; defaults to `nvsim_vol` for a scalar amplifier
 - `sense_amplifier`: reference to a `*.sense_amp.yaml` file
 - `worst_case_sense_margin`: optional matchline sensing margin
 - `strict_sense_margin`: optional boolean, default `false`; for MCAM, require
   every evaluated decision boundary to meet `read.min_sense_voltage` instead
   of reporting a diagnostic failure and continuing
+
+## Analytical TCAM Timing
+
+For nominal exact non-NAND TCAM, the sensing file may select an analytical
+decision event independently of the amplifier model:
+
+```yaml
+decision: {model: voltage_threshold, threshold: 0.5V}
+# Alternatively: decision: {model: differential}
+```
+
+`legacy_horowitz` is the default. `voltage_threshold` evaluates the one-miss
+line at the specified voltage and requires sufficient separation from the
+all-match line. `threshold` is required only for that model and must be between
+zero and precharge. `differential` finds the first time the separation reaches
+`read.min_sense_voltage`; its ideal reference is between the two lines. Neither
+option characterizes an amplifier or replica controller. Infeasible margins
+reject the candidate. These options currently reject variation, approximate
+search and `exclude_precharge_latency: true`.
+
+The architecture file may independently select explicit search phases:
+
+```yaml
+search_timing:
+  control: broadcast          # or decoded
+  precharge: overlap_input    # or serial
+  driver_load: physical_line  # or legacy_scaled
+  recovery: 0ps               # optional, nonnegative
+```
+
+The first three keys are required when the section is present. Broadcast
+control omits search address decoding; enabled search muxes still contribute
+select control. `physical_line` uses the calculated row terminal/wire load;
+`legacy_scaled` retains the historical 1.6 multiplier. This shared driver sizing
+also affects read/write estimates. Overlap starts evaluation when both query
+preparation and precharge finish; serial adds them. Recovery separates
+successive evaluations, including multiplexed or bit-serial operations.
+Reported cycle time assumes serialized searches, without pipelining. Absent
+`search_timing`, the existing schedule remains unchanged. The same nominal
+exact TCAM restrictions apply. See the [equations and validation report](validation/analytical-cam-timing.md).
 
 ## Sense-Amp File
 
@@ -297,6 +392,29 @@ Common implemented fields:
 - `iv_converter`
 
 `model: nvsim_cmos` uses the built-in NVSim-style equations with YAML-backed parameters.
+
+`model: scalar` selects a separately characterized amplifier through the same
+`sensing.sense_amplifier` reference. Do not set `custom_sense_amp` manually.
+For example, this **synthetic illustration** supplies per-amplifier quantities:
+
+```yaml
+schema: sense_amp
+name: example-characterized-amplifier
+model: scalar
+geometry: {area: 2um^2}
+timing: {latency: 40ps}
+power: {read_dynamic_energy: 7fJ, leakage: 0W}
+load: {capacitance: 1fF}
+```
+
+Area, latency, dynamic energy and input capacitance must be positive; leakage
+may be zero. Geometry can alternatively supply positive `height` and `width`
+in feature units (`F`). Area, energy and leakage scale by amplifier count;
+latency and input capacitance apply to one sense path. Zero leakage stays zero.
+Characterize these values at the intended process, load, bias, input swing and
+temperature. They do not automatically scale with operating conditions or
+reconstruct a nonlinear sensing circuit. Never use a whole-array paper delay
+as the amplifier-only latency.
 
 Architecture and run config notes:
 

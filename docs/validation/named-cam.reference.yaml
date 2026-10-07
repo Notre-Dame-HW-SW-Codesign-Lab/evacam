@@ -1,0 +1,251 @@
+schema: named_cam_reference
+version: 1
+common_assumptions:
+- Legacy PTM technology, wire rules, device sizes and resistances are retained unless
+  listed as matched.
+- Existing temperature and port biases are retained; they are not established paper
+  operating corners.
+- Generic NVSim sensing is retained; no delay, energy or resistance is fitted to the
+  paper result.
+- Bank search latency includes the configured peripherals and precharge. Paper timing
+  boundaries remain unresolved.
+- Cell area is an input; matching it is not independent area validation.
+cases:
+- id: FeFET-2Fe1T-DATE21
+  config: config/paper_reference/FeFET-2Fe1T-DATE21/FeFET-2Fe1T-DATE21.config.yaml
+  status: partial
+  reference:
+    latency_ns: 0.2528
+    kind: circuit_simulation
+    source: https://past.date-conference.com/proceedings-archive/2021/pdf/1478.pdf
+    locator: Table I, 2FeFET-1T column; Section IV-A
+    cell_area_um2: 0.36
+    energy_fj_per_bit: 0.195
+  matched_fields:
+  - 45nm process
+  - 0.36um^2 cell footprint
+  - separate CMOS matchline pull-down
+  assumptions:
+  - The inherited 64x64 array is not specified alongside Table I; array size and energy
+    scope remain unmatched.
+  - The paper uses compact FeFET devices and minimum-size PTM MOSFETs; this fixture
+    retains the inherited device abstraction.
+  - The fefet_gate topology models the two FeFET branches as resistors driving a CMOS
+    gate, with PTM terminal capacitances and a 0.5V switching assumption; no compact-model
+    transient calibration.
+  - The paper uses an inverter sense amplifier; generic NVSim voltage sensing remains
+    until its load, delay, energy and sizing are independently characterized.
+  - Gate-node energy conservatively charges every compared control node from zero
+    to mismatch voltage; paper activity is not matched.
+  - Analytical inverter decision assumes a 0.5V matchline trip point; broadcast control,
+    input/precharge overlap and zero recovery are explicit scheduling assumptions.
+  expected:
+    cell_topology: fefet_gate
+    node_nm: 45
+    entries: 64
+    word_bits: 64
+    subarray:
+    - 64
+    - 64
+    subarray_count: 1
+    sensing_mode: nvsim_vol
+    matchline_timing_model: analytical_voltage_threshold
+    search_timing:
+      control: broadcast
+      precharge: overlap_input
+      driver_load: physical_line
+    cell_area_um2: 0.36
+- id: MRAM-4T2R-VLSIC12
+  config: config/paper_reference/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  status: partial
+  reference:
+    latency_ns: 2.5
+    kind: silicon
+    source: https://doi.org/10.1109/VLSIC.2012.6243781
+    locator: Figs.4 and 7; NVSim-CAM Table2 reports area excluding blank space
+    cell_area_source: https://doi.org/10.1109/VLSIC.2012.6243781
+    cell_area_um2: 3.14
+    area_um2: 17118.95
+    area_scope: excludes blank area; not matched to EvaCAM total area
+  matched_fields:
+  - 64 entries
+  - 32-bit word
+  - 90nm process
+  - 3.14um^2 cell footprint
+  assumptions:
+  - This earlier fixture retains a generic keeper. Full chip-paper evidence and the
+    new analytical diode fixture are in original-evacam-validation.md.
+  - Diode-connected matchline, sensing threshold and device sizing are inherited;
+    the chip's custom sensing is uncharacterized.
+  expected:
+    node_nm: 90
+    entries: 64
+    word_bits: 32
+    subarray:
+    - 64
+    - 32
+    subarray_count: 1
+    sensing_mode: nvsim_vol
+    cell_area_um2: 3.14
+- id: MRAM-6T2R-VLSIC11
+  config: config/paper_reference/MRAM-6T2R-VLSIC11/MRAM-6T2R-VLSIC11.config.yaml
+  status: partial
+  reference:
+    latency_ns: 0.29
+    kind: silicon
+    source: https://www.csis.tohoku.ac.jp/files/Matsunaga_2011_SymposiumonVLSI_Circuits.pdf
+    locator: Slides 7 and 11; slide 19 is a separate energy experiment
+    cell_area_um2: 10.35
+    supply_v: 1.2
+  matched_fields:
+  - 64 entries
+  - 32-bit word
+  - 90nm process
+  - 1.2V supply
+  - 10.35um^2 cell footprint
+  assumptions:
+  - The diode-connected ML keeper is consistent with slide 7, but its nonlinear I-V
+    curve and self-discharge timing are not characterized here.
+  - The 1.04fJ/bit result belongs to a 256x144 segmented simulation at 2.8% activity,
+    not this prototype.
+  expected:
+    node_nm: 90
+    entries: 64
+    word_bits: 32
+    subarray:
+    - 64
+    - 32
+    subarray_count: 1
+    sensing_mode: nvsim_vol
+    cell_area_um2: 10.35
+- id: PCM-2T2R-JSSC14
+  config: config/paper_reference/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  status: partial
+  reference:
+    latency_ns: 1.9
+    kind: silicon
+    source: https://li.seas.upenn.edu/publication/li-2014-jssc/
+    locator: Abstract and title; DOI 10.1109/JSSC.2013.2292055
+    cell_area_um2: 0.41
+  matched_fields:
+  - 1Mbit nominal capacity
+  - 90nm system and cell node
+  - 0.41um^2 cell footprint
+  assumptions:
+  - The 64-bit word and 32 subarrays of 512x64 are now confirmed by JSSC14 TableIII
+    and SectionV; this earlier fixture still omits two-bit electrical encoding.
+  - Published two-bit encoding and clocked self-referenced sensing are not reproduced
+    by the inherited cell and generic amplifier.
+  - Capacity and cell-area conventions require reconciliation with two-bit encoding
+    before area or energy comparisons.
+  expected:
+    node_nm: 90
+    entries: 16384
+    word_bits: 64
+    subarray:
+    - 512
+    - 64
+    subarray_count: 32
+    sensing_mode: nvsim_vol
+    cell_area_um2: 0.41
+- id: ReRAM-2.5T1R-ISSCC16
+  config: config/paper_reference/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16.config.yaml
+  status: partial
+  reference:
+    latency_ns: 1.0
+    kind: silicon
+    source: https://scholar.nycu.edu.tw/en/publications/a-256b-wordlength-reram-based-tcam-with-1ns-search-time-and-14-im/
+    locator: Title and abstract; DOI 10.1109/ISSCC.2016.7417944
+  matched_fields:
+  - 256-bit word
+  assumptions:
+  - The inherited 64 entries, 65nm node and cell footprint are not confirmed by the
+    accessible abstract.
+  - The paper's region-splitter sense amplifier is not modeled by the generic current-sensing
+    converter.
+  expected:
+    node_nm: 65
+    entries: 64
+    word_bits: 256
+    subarray:
+    - 64
+    - 256
+    subarray_count: 1
+    sensing_mode: nvsim_cur
+- id: ReRAM-3T1R-ISSCC15
+  config: config/paper_reference/ReRAM-3T1R-ISSCC15/ReRAM-3T1R-ISSCC15.config.yaml
+  status: partial
+  reference:
+    latency_ns: 0.96
+    kind: silicon
+    source: https://picture.iczhiku.com/resource/eetop/syIFhqJDqDgdSnvB.pdf
+    locator: ISSCC 2015 paper 17.5, pp. 318-319; DOI 10.1109/ISSCC.2015.7063054
+    reported_supply_v: 1.0
+  matched_fields:
+  - two 64x64 blocks
+  - 64-bit word
+  - 90nm process
+  assumptions:
+  - Blocks are modeled as two partitions of entries in one mat; physical placement
+    and inter-block routing are assumed.
+  - The paper uses voltage-separation sensing and dual-replica enable timing; generic
+    voltage sensing replaces the inherited current converter in this reference only.
+  - Differential timing uses an ideal reference between all-match and one-miss lines,
+    with the inherited 25mV separation; actual reference, offset, replica/control
+    delay and MRS/X leakage are unavailable.
+  - Bi-directional voltage-divider control is not modeled; search0/search1 asymmetry
+    and internal node load remain unmatched.
+  - Paper supply is 1V; the generic 90nm current tables are characterized at 1.2V
+    and are retained. Changing Vdd alone would give inconsistent on-resistance.
+  - Broadcast control, input/precharge overlap and zero recovery are explicit scheduling
+    assumptions; measured chip delay excludes the external test path.
+  expected:
+    node_nm: 90
+    entries: 128
+    word_bits: 64
+    subarray:
+    - 64
+    - 64
+    subarray_count: 2
+    sensing_mode: nvsim_vol
+    matchline_timing_model: analytical_differential
+    search_timing:
+      control: broadcast
+      precharge: overlap_input
+      driver_load: physical_line
+- id: ReRAM-4T2R-VLSIC14
+  config: config/paper_reference/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14.config.yaml
+  status: partial
+  reference:
+    latency_ns: 1.2
+    kind: silicon
+    source: https://archive.vlsisymposium.org/14web/wp-content/uploads/2013/06/Circ-14-program.pdf
+    locator: Paper 12.2 abstract (PDF page 20); DOI 10.1109/VLSIC.2014.6858404
+  matched_fields:
+  - 128 entries
+  - 32-bit word
+  - 180nm system and cell node
+  assumptions:
+  - The paper's RC-filtered stress-decoupled circuitry is not characterized; transistor
+    widths and cell footprint remain inherited in F units.
+  - Electrical parameters interpolate the legacy 120nm and 200nm tables; physical
+    feature size is 180nm.
+  expected:
+    node_nm: 180
+    entries: 128
+    word_bits: 32
+    subarray:
+    - 128
+    - 32
+    subarray_count: 1
+    sensing_mode: nvsim_cur
+excluded:
+- id: MRAM-2T2R-ASPDAC12
+  reason: No comparable absolute delay or energy established from the accessible primary
+    abstract.
+- id: SRAM-16T-ESSCIRC15
+  reason: Paper attribution is tentative and 4GHz clock frequency is not a search-delay
+    measurement.
+- id: ReRAM-2T2R-VLSI21
+  reason: Missing matchline topology; likely source measures L1-distance prediction
+    rather than exact TCAM search.

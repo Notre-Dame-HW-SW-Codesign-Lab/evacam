@@ -797,8 +797,13 @@ void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cell
         cell.accessType = none_access;
         cell.processNode = 1;
         YamlHelpers::ReadNand3dSection(cell,
-                LoadMemoryDeviceForValidation(cellRoot, config.input.fileMemCell));
-        PhysicalDomainValidators::ValidateMemCell(cell);
+                LoadMemoryDeviceForValidation(cellRoot, config.input.fileMemCell), true);
+        // Geometry is needed before technology loading. Electrical defaults
+        // are resolved and the complete device validated in TechnologyLoader.
+        PhysicalDomainValidators::ValidateNand3dGeometry(cell.nand3d);
+        if (cell.nand3d.electrical.pendingTechnologyDefaults.empty()) {
+            PhysicalDomainValidators::ValidateMemCell(cell);
+        }
         nand3d = cell.nand3d;
     }
     if (!config.runtimeSizing.hasFixedSubarrayDimensions) {

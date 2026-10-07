@@ -1,3 +1,4 @@
 schema: sensing
 internal: true
 sense_amplifier: ../lib/sense_amp/nvsim_vol.sense_amp.yaml
+sensing_mode: nvsim_cur

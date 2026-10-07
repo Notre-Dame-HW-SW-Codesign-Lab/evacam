@@ -34,40 +34,41 @@ int main() {
     const auto bank = std::dynamic_pointer_cast<BankWithHtree>(result->bank);
     assert(bank && bank->mat && bank->mat->subarray);
 
-    assert(bank->numAddressBit == 6);
-    assert(bank->numDataBit == 16384);
+    // 1 Mibit holds 16,384 64-bit entries; inactive partitions split entries.
+    assert(bank->numAddressBit == 14);
+    assert(bank->numDataBit == 64);
     assert(bank->levelHorizontal == 1);
     assert(bank->levelVertical == 2);
 
     const auto &horizontal = bank->horizontalLevels.at(0);
-    assert(horizontal.addressBits == 6);
-    assert(horizontal.dataBits == 16384);
+    assert(horizontal.addressBits == 14);
+    assert(horizontal.dataBits == 64);
     assert(horizontal.wireGroups == 1);
     assert(horizontal.totalWireGroups == 1);
     assert(horizontal.activeWireGroups == 1);
 
     const auto &vertical0 = bank->verticalLevels.at(0);
-    assert(vertical0.addressBits == 6);
-    assert(vertical0.dataBits == 8192);
+    assert(vertical0.addressBits == 13);
+    assert(vertical0.dataBits == 64);
     assert(vertical0.wireGroups == 1);
     assert(vertical0.totalWireGroups == 2);
-    assert(vertical0.activeWireGroups == 2);
+    assert(vertical0.activeWireGroups == 1);
 
     const auto &vertical1 = bank->verticalLevels.at(1);
-    assert(vertical1.addressBits == 6);
-    assert(vertical1.dataBits == 4096);
+    assert(vertical1.addressBits == 12);
+    assert(vertical1.dataBits == 64);
     assert(vertical1.wireGroups == 1);
     assert(vertical1.totalWireGroups == 4);
-    assert(vertical1.activeWireGroups == 4);
+    assert(vertical1.activeWireGroups == 1);
 
-    assert(bank->mat->numAddressBit == 6);
-    assert(bank->mat->numDataBit == 2048);
-    assert(bank->mat->subarray->ConfiguredRows() == 64);
-    assert(bank->mat->subarray->ConfiguredColumns() == 512);
-    assert(bank->mat->subarray->numRow == 512);
-    assert(bank->mat->subarray->numColumn == 64);
-    assert(Near(bank->height, 999.633e-6, 1e-6));
-    assert(Near(bank->width, 2.683e-3, 1e-6));
+    assert(bank->mat->numAddressBit == 11);
+    assert(bank->mat->numDataBit == 64);
+    assert(bank->mat->subarray->ConfiguredRows() == 512);
+    assert(bank->mat->subarray->ConfiguredColumns() == 64);
+    assert(bank->mat->subarray->numRow == 64);
+    assert(bank->mat->subarray->numColumn == 512);
+    assert(Near(bank->height, 753.847e-6, 1e-6));
+    assert(Near(bank->width, 1.917e-3, 1e-6));
 
     const auto &subarray = *bank->mat->subarray;
     double expectedSearchEnergy = (subarray.searchDynamicEnergy * bank->mat->muxSenseAmp

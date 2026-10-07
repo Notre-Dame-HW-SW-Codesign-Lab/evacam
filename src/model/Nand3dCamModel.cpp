@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <numeric>
 #include <stdexcept>
 #include <string>
@@ -63,7 +62,7 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
     device = cell.nand3d;
     const auto &electrical = device.electrical;
     Require(device.configured && device.storageMode == "SLC"
-                    && electrical.model == "transient_rc", "requires configured SLC transient_rc NAND3D");
+                    && electrical.model == "analytical_rc", "requires configured SLC analytical_rc NAND3D");
     Require(!electrical.source.empty(), "model source is required");
     Require(electrical.calibrationStatus == "synthetic" || electrical.calibrationStatus == "uncalibrated"
                     || electrical.calibrationStatus == "calibrated", "invalid calibration status");
@@ -122,7 +121,7 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
     Require(config->input.flashBlockSize == entries * device.storageLayers,
             "physical flash.block_size must equal rows * columns * storage_layers bits");
     Require(muxSenseAmp > 0 && muxSenseAmp <= 256 && device.stringColumns % muxSenseAmp == 0,
-            "sense mux must divide string_columns and be at most 256 for transient simulation");
+            "sense mux must divide string_columns and be at most 256");
     Positive(device.holePitchX, "layout.hole_pitch_x");
     Positive(device.holePitchY, "layout.hole_pitch_y");
     Positive(device.layerPitch, "layout.layer_pitch");
@@ -131,11 +130,6 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
     Nonnegative(device.isolationWidth, "layout.isolation_width");
     Require(device.peripheralPlacement == "beside" || device.peripheralPlacement == "under_array",
             "peripheral placement must be beside or under_array");
-    Positive(device.prechargeDriverResistance, "precharge_driver_resistance");
-    Positive(device.solverMaxStep, "solver.max_step");
-    Positive(device.solverTolerance, "solver.tolerance");
-    Require(device.solverTolerance <= 1e-3 && device.solverMaxSteps >= 100,
-            "solver tolerance must be at most 1mV and max_steps at least 100");
     Require(wire.initialized, "local wire must be initialized");
     Nonnegative(wire.resWirePerUnit, "wire resistance");
     Nonnegative(wire.capWirePerUnit, "wire capacitance");
@@ -144,7 +138,6 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
     mux = muxSenseAmp;
     sourceDummyLayers = device.dummyLayers / 2;
     totalGateLayers = device.storageLayers + device.dummyLayers;
-    options = {device.solverMaxStep, device.solverTolerance, device.solverMaxSteps};
     metrics.modelBackend = electrical.model;
     metrics.modelSource = electrical.source;
     metrics.calibrationStatus = electrical.calibrationStatus;
@@ -163,19 +156,19 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
     metrics.metadata = {
         {"model_identifier", "evacam-nand3d-tcam-v1"}, {"array_layout", "vertical_3d"},
         {"topology", "nand_string"}, {"encoding", "complementary_pair_with_validity_pair"},
-        {"sense_polarity", "match_discharges_bitline"}, {"sensing_bound", "sampled_patterns"},
+        {"sense_polarity", "match_discharges_bitline"}, {"sensing_bound", "global_within_single_exponential_approximation"},
         {"sense_margin_definition", "min(reference-match,mismatch-reference)-offset"},
-        {"transient_solver", "adaptive_backward_euler_richardson_step_doubling"},
-        {"numerical_validation", "linear_rc_solver_reference_tests"},
+        {"delay_model", "first_moment_single_exponential"},
+        {"numerical_validation", "analytical_limits_and_independent_first_moment_tests"},
         {"device_validation", "not_performed_by_evacam"},
         {"terminal_conductance_model", "dc_linear_resistor_network"},
-        {"precharge_initial_condition", "reset_zero_then_carried_between_phases_and_mux_rounds"},
-        {"recovery_condition", "all_pass_both_terminals_grounded_final_residual_checked"},
+        {"precharge_initial_condition", "uniform_full_rail_assumed_each_round"},
+        {"recovery_condition", "complete_reset_assumed"},
         {"peripheral_placement", device.peripheralPlacement},
         {"internal_capacitance_model", "uniform_shunt_only_no_gate_or_neighbor_coupling"},
         {"wordline_wire_model", "lateral_manhattan_span_plus_all_string_gate_loads"},
         {"bitline_wire_model", "lateral_pi_section_no_vertical_stack_length"},
-        {"voltage_sampling", "worst_sense_mux_round_for_each_pattern"}
+        {"voltage_evaluation", "single_exponential_at_decision_time"}
     };
 
     const double coreWidth = device.stringColumns * device.holePitchX;
@@ -238,58 +231,35 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
         capacitances.push_back(electrical.capacitanceBitline + config->peripherals.addCapOnML + wireCapacitance);
         allPassResistances.push_back(electrical.resistanceSelect + wireResistance);
     }
-    initialPrecharge = NandRcLadder::Solve(capacitances, allPassResistances,
-            std::vector<double>(capacitances.size(), 0), electrical.precharge.latency,
-            {}, {true, device.prechargeDriverResistance, electrical.voltagePrecharge}, options);
-    metrics.diagnosticMetrics["precharge_min_voltage_v"] = *std::min_element(initialPrecharge.voltages.begin(), initialPrecharge.voltages.end());
-    metrics.diagnosticMetrics["precharge_max_voltage_v"] = *std::max_element(initialPrecharge.voltages.begin(), initialPrecharge.voltages.end());
-    metrics.diagnosticMetrics["precharge_source_energy_j_per_string"] = electrical.voltagePrecharge * initialPrecharge.capacitorChargeChange;
-    metrics.diagnosticMetrics["transient_absolute_tolerance_v"] = options.tolerance;
-    metrics.diagnosticMetrics["transient_max_step_s"] = options.maxStep;
-    metrics.diagnosticMetrics["transient_max_steps_per_phase"] = options.maxSteps;
-    metrics.matchVoltage = 0;
-    metrics.mismatchVoltage = electrical.voltagePrecharge;
-    double maximumPrechargeEnergy = 0;
-    long long work = 0;
-    int samples = 0;
-    const auto sample = [&](const std::vector<int> &stored, const std::vector<int> &query, bool valid, bool match) {
-        const auto response = Simulate(Encode(stored, query, valid));
-        if (match) metrics.matchVoltage = std::max(metrics.matchVoltage, response.maximumVoltage);
-        else metrics.mismatchVoltage = std::min(metrics.mismatchVoltage, response.minimumVoltage);
-        maximumPrechargeEnergy = std::max(maximumPrechargeEnergy, response.prechargeEnergy);
-        metrics.diagnosticMetrics["maximum_estimated_local_error_v"] = std::max(
-                metrics.diagnosticMetrics["maximum_estimated_local_error_v"], response.maximumLocalError);
-        metrics.diagnosticMetrics["maximum_reset_residual_v"] = std::max(
-                metrics.diagnosticMetrics["maximum_reset_residual_v"], response.finalResetVoltage);
-        metrics.diagnosticMetrics["maximum_solver_steps_per_pattern"] = std::max(
-                metrics.diagnosticMetrics["maximum_solver_steps_per_pattern"], static_cast<double>(response.steps));
-        work += response.steps * static_cast<long long>(capacitances.size());
-        if (work > 200000000) throw std::runtime_error("NAND3D CAM: transient sampling work limit exceeded; reduce geometry/mux or adjust solver settings");
-        samples++;
-    };
-    const std::vector<int> zeros(keyWidth, 0), ones(keyWidth, 1), masks(keyWidth, -1);
-    sample(zeros, zeros, true, true);
-    sample(ones, ones, true, true);
-    sample(masks, masks, true, true);
-    for (int polarity : {0, 1}) {
-        std::vector<int> alternating(keyWidth);
-        for (long bit = 0; bit < keyWidth; bit++) alternating[bit] = (bit + polarity) % 2;
-        sample(alternating, alternating, true, true);
-        for (long bit = 0; bit < keyWidth; bit++) {
-            for (bool masked : {false, true}) {
-                std::vector<int> query(keyWidth, masked ? -1 : polarity);
-                query[bit] = polarity;
-                auto stored = query;
-                stored[bit] = 1 - polarity;
-                sample(stored, query, true, false);
-            }
-        }
+    // Positive downstream-capacitance weights make a source-side read device
+    // the slowest matching member of each complementary pair. As in the
+    // planar analytical model, all other queries masked gives the fastest
+    // one-device mismatch. These are bounds on this approximation, not on
+    // the full distributed transient or measured NAND hardware.
+    auto slowMatch = allPassResistances;
+    slowMatch[sourceDummyLayers] = electrical.resistanceReadOn;
+    for (long bit = 0; bit < keyWidth; bit++) {
+        slowMatch[sourceDummyLayers + 2 + 2 * bit] = electrical.resistanceReadOn;
     }
-    sample(masks, masks, false, false);
-    sample(zeros, zeros, false, false);
-    sample(ones, ones, false, false);
-    metrics.diagnosticMetrics["sampled_patterns"] = samples;
-    metrics.diagnosticMetrics["sampling_node_steps"] = static_cast<double>(work);
+    metrics.slowestMatchTimeConstant = StringTimeConstant(slowMatch);
+    auto fastMismatch = allPassResistances;
+    fastMismatch[sourceDummyLayers] = electrical.resistanceReadOn;
+    const long lastKeyDevice = sourceDummyLayers + 2 * keyWidth + 1;
+    fastMismatch[lastKeyDevice] = electrical.resistanceOff;
+    metrics.fastestMismatchTimeConstant = StringTimeConstant(fastMismatch);
+    fastMismatch[lastKeyDevice] = electrical.resistancePass;
+    fastMismatch[sourceDummyLayers] = electrical.resistanceOff;
+    metrics.fastestMismatchTimeConstant = std::min(metrics.fastestMismatchTimeConstant,
+            StringTimeConstant(fastMismatch));
+    metrics.matchVoltage = electrical.voltagePrecharge
+            * std::exp(-electrical.decisionTime / metrics.slowestMatchTimeConstant);
+    metrics.mismatchVoltage = electrical.voltagePrecharge
+            * std::exp(-electrical.decisionTime / metrics.fastestMismatchTimeConstant);
+    const std::vector<int> zeros(keyWidth, 0);
+    // Full reset and all-pass precharge are assumed sufficient each round.
+    // Constant-voltage supply charging costs CV^2, not stored energy CV^2/2.
+    const double prechargeEnergy = mux * std::accumulate(capacitances.begin(), capacitances.end(), 0.0)
+            * electrical.voltagePrecharge * electrical.voltagePrecharge;
     metrics.referenceVoltage = electrical.referenceVoltage > 0 ? electrical.referenceVoltage
             : (metrics.matchVoltage + metrics.mismatchVoltage) / 2;
     metrics.senseMargin = std::min(metrics.referenceVoltage - metrics.matchVoltage,
@@ -310,7 +280,7 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
         {"wordline_capacitance", QueryGateEnergy(zeros)}, {"wordline_drivers", QueryDriverEnergy(zeros)},
         {"select_gate_capacitance", rounds * selectCapPerGroup * electrical.voltagePass * electrical.voltagePass / electrical.supplyEfficiency},
         {"select_gate_drivers", 4 * rounds * electrical.wordlineDriver.energy},
-        {"bitline_and_internal_precharge", entries * maximumPrechargeEnergy / electrical.supplyEfficiency},
+        {"bitline_and_internal_precharge", entries * prechargeEnergy / electrical.supplyEfficiency},
         {"precharge_overhead", rounds * electrical.precharge.energy},
         {"sensing", entries * electrical.sense.energy}, {"page_buffers", entries * electrical.pageBuffer.energy},
         {"recovery", rounds * electrical.recovery.energy}};
@@ -347,40 +317,17 @@ std::vector<double> Nand3dCamModel::Encode(const std::vector<int> &stored,
     return resistance;
 }
 
-Nand3dCamModel::PatternResponse Nand3dCamModel::Simulate(const std::vector<double> &resistances) const {
-    const auto &electrical = device.electrical;
-    PatternResponse response;
-    response.minimumVoltage = electrical.voltagePrecharge;
-    std::vector<double> state(capacitances.size(), 0);
-    const auto account = [&](const NandRcResult &result) {
-        response.steps += result.acceptedSteps + result.rejectedSteps;
-        response.maximumLocalError = std::max(response.maximumLocalError, result.maximumEstimatedLocalError);
-    };
-    for (int round = 0; round < mux; round++) {
-        const auto precharge = round == 0 ? initialPrecharge : NandRcLadder::Solve(
-                capacitances, allPassResistances, state, electrical.precharge.latency,
-                {}, {true, device.prechargeDriverResistance, electrical.voltagePrecharge}, options);
-        account(precharge);
-        response.prechargeEnergy += electrical.voltagePrecharge * precharge.capacitorChargeChange;
-        const auto evaluation = NandRcLadder::Solve(capacitances, resistances, precharge.voltages,
-                electrical.decisionTime, {true, electrical.resistanceSelect, 0}, {}, options);
-        account(evaluation);
-        response.minimumVoltage = std::min(response.minimumVoltage, evaluation.voltages.back());
-        response.maximumVoltage = std::max(response.maximumVoltage, evaluation.voltages.back());
-        // All-pass recovery explicitly grounds both terminals. Its final
-        // state is carried into the next mux round, never silently discarded.
-        const auto recovery = NandRcLadder::Solve(capacitances, allPassResistances, evaluation.voltages,
-                electrical.recovery.latency, {true, electrical.resistanceSelect, 0},
-                {true, device.prechargeDriverResistance, 0}, options);
-        account(recovery);
-        state = recovery.voltages;
+double Nand3dCamModel::StringTimeConstant(const std::vector<double> &resistances) const {
+    // Far-node Elmore first moment: each capacitance sees its resistance to
+    // the grounded source, including the lateral bitline pi section.
+    double resistanceToGround = device.electrical.resistanceSelect;
+    double tau = capacitances.front() * resistanceToGround;
+    for (std::size_t index = 0; index < resistances.size(); index++) {
+        resistanceToGround += resistances[index];
+        tau += capacitances[index + 1] * resistanceToGround;
     }
-    response.finalResetVoltage = *std::max_element(state.begin(), state.end());
-    if (response.finalResetVoltage > options.tolerance) {
-        throw std::runtime_error("NAND3D CAM: recovery insufficient to reset internal nodes; increase recovery.latency");
-    }
-    Nonnegative(response.prechargeEnergy, "integrated precharge supply energy");
-    return response;
+    Positive(tau, "string RC time constant");
+    return tau;
 }
 
 double Nand3dCamModel::QueryGateEnergy(const std::vector<int> &query) const {
@@ -405,7 +352,6 @@ EvaCAMMatchResult Nand3dCamModel::Evaluate(const std::vector<int> &stored,
         const std::vector<int> &query, bool valid) const {
     Metrics();
     const auto resistances = Encode(stored, query, valid);
-    const auto response = Simulate(resistances);
     bool hit = valid;
     for (std::size_t bit = 0; bit < stored.size(); bit++) {
         if (stored[bit] != -1 && query[bit] != -1 && stored[bit] != query[bit]) hit = false;
@@ -414,7 +360,8 @@ EvaCAMMatchResult Nand3dCamModel::Evaluate(const std::vector<int> &stored,
     result.hit = hit;
     result.matchlineDelay = metrics.decisionTime;
     result.searchLatency = metrics.searchLatency;
-    result.matchlineVoltage = hit ? response.maximumVoltage : response.minimumVoltage;
+    result.matchlineVoltage = device.electrical.voltagePrecharge
+            * std::exp(-metrics.decisionTime / StringTimeConstant(resistances));
     result.matchlineConductance = 1 / (device.electrical.resistanceSelect
             + std::accumulate(resistances.begin(), resistances.end(), 0.0));
     result.senseMargin = (hit ? metrics.referenceVoltage - result.matchlineVoltage
@@ -422,13 +369,10 @@ EvaCAMMatchResult Nand3dCamModel::Evaluate(const std::vector<int> &stored,
     result.requiredSenseMargin = metrics.requiredSenseMargin;
     result.senseMarginSlack = result.senseMargin - result.requiredSenseMargin;
     result.senseMarginPass = result.senseMarginSlack >= 0;
-    // Full-block cost if every string has this representative stored pattern;
-    // no stored-pattern distribution or independent string supply interaction
-    // is inferred. Scalar run metrics use the maximum sampled precharge cost.
+    // Full reset/recharge makes CV^2 independent of the stored pattern.
+    // Query masks still change the gate and driver switching costs.
     result.searchDynamicEnergy = metrics.searchEnergy
             - metrics.searchEnergyBreakdown.at("wordline_capacitance") + QueryGateEnergy(query)
-            - metrics.searchEnergyBreakdown.at("wordline_drivers") + QueryDriverEnergy(query)
-            - metrics.searchEnergyBreakdown.at("bitline_and_internal_precharge")
-            + metrics.entries * response.prechargeEnergy / device.electrical.supplyEfficiency;
+            - metrics.searchEnergyBreakdown.at("wordline_drivers") + QueryDriverEnergy(query);
     return result;
 }

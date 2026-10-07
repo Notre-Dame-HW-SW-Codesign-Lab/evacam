@@ -28,7 +28,8 @@ std::shared_ptr<EvaCamConfig> MakeBankConfig() {
 }
 
 CAM_Opt MakeCamOptions() {
-    return {area_first, area_first, 1};
+    // Compare the full word across all active data partitions.
+    return {area_first, area_first, 64};
 }
 
 void Initialize(BankWithHtree &bank, const std::shared_ptr<EvaCamConfig> &config,

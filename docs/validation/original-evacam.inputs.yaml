@@ -1,0 +1,2276 @@
+schema: cam_input_provenance
+version: 1
+inputs:
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /schema
+  value: architecture
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /design/target
+  value: CAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /design/search_function
+  value: EX
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /design/system_process_node
+  value: 45nm
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /design/device_roadmap
+  value: HP
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /design/temperature
+  value: 300K
+  status: approximation
+  basis: Paper 25C=298.15K; technology current table starts at 300K, so use nearest
+    supported point.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /memory/capacity
+  value: 512B
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /memory/word_width
+  value: 64bits
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /routing/type
+  value: H-tree
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/input/buffer
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/input/encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/input/custom_encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/output/buffer
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/output/priority_encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/output/accumulator
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /peripherals/write_driver
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /wires/local/type
+  value: LocalConservative
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /wires/local/repeater
+  value: RepeatedNone
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /wires/local/low_swing
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /wires/global/type
+  value: GlobalAggressive
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /wires/global/repeater
+  value: RepeatedNone
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /wires/global/low_swing
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/banks/total/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/banks/total/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/banks/active/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/banks/active/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mats/total/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mats/total/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mats/active/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mats/active/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mux/sense_amp
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mux/output_level1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/mux/output_level2
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/subarray/dimensions/0
+  value: 64
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/subarray/dimensions/1
+  value: 64
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /organization/comparison_columns_per_step
+  value: 64
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /sensing
+  value: FeFET-2Fe-TCAS19.sensing.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /matchline/match_transistor/cmos_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /search_timing/control
+  value: broadcast
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /search_timing/precharge
+  value: overlap_input
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.architecture.yaml
+  field: /search_timing/driver_load
+  value: physical_line
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /schema
+  value: cell
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /name
+  value: FeFET-2Fe-TCAS19
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /cam_type
+  value: TCAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /memory_device
+  value: FeFET-2Fe-TCAS19.memory_device.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /access_device/type
+  value: none
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /access_device/cmos_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /layout/cell_process_node
+  value: 45nm
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /layout/area
+  value: 74.07407407407408F^2
+  status: paper
+  basis: 'Cell footprint: TCAS19 Fig.6 0.15um^2; VLSIC12 title 3.14um^2; JSSC14 TableIII
+    0.41um^2. This input is not area validation.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /layout/aspect_ratio
+  value: 1.76
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/type
+  value: searchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/cmos_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/wire_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/voltages/set_lrs
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/voltages/set_mrs
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/voltages/reset
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/voltages/search0
+  value: 1V
+  status: paper
+  basis: TCAS19 schematic complementary 0/1V search inputs and grounded source line.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/0/voltages/search1
+  value: 0V
+  status: paper
+  basis: TCAS19 schematic complementary 0/1V search inputs and grounded source line.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/type
+  value: searchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/cmos_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/wire_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/voltages/set_lrs
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/voltages/set_mrs
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/voltages/reset
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/voltages/search0
+  value: 0V
+  status: paper
+  basis: TCAS19 schematic complementary 0/1V search inputs and grounded source line.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/row/1/voltages/search1
+  value: 1V
+  status: paper
+  basis: TCAS19 schematic complementary 0/1V search inputs and grounded source line.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/type
+  value: matchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/cmos_region
+  value: drain
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/num_cmos
+  value: 2
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/cmos_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/wire_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/voltages/set_lrs
+  value: 1V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/voltages/set_mrs
+  value: 1V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/voltages/reset
+  value: 1V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/voltages/search0
+  value: 0V
+  status: paper
+  basis: TCAS19 schematic complementary 0/1V search inputs and grounded source line.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.cell.yaml
+  field: /ports/column/0/voltages/search1
+  value: 0V
+  status: paper
+  basis: TCAS19 schematic complementary 0/1V search inputs and grounded source line.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /schema
+  value: config
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /name
+  value: FeFET-2Fe-TCAS19
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /architecture
+  value: FeFET-2Fe-TCAS19.architecture.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /cell
+  value: FeFET-2Fe-TCAS19.cell.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /technology
+  value: ../../lib/technology/cmos.legacy.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /optimization/target
+  value: LeakagePower
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /optimization/buffer_design
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /optimization/row_driver
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  field: /optimization/priority_encoder
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /schema
+  value: memory_device
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /name
+  value: FeFET-2Fe-TCAS19
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /type
+  value: FEFETRAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /resistance/on
+  value: 10000ohm
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /resistance/off
+  value: 1600000000ohm
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /read/mode
+  value: voltage
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /read/voltage
+  value: 1V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /read/current
+  value: 5.62uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /read/power
+  value: 5.62uW
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /read/min_sense_voltage
+  value: 70mV
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/set/mode
+  value: voltage
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/set/voltage
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/set/current
+  value: 5e-06uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/set/pulse
+  value: 10ns
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/set/energy
+  value: 2e-05pJ
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/reset/mode
+  value: voltage
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/reset/voltage
+  value: 4V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/reset/current
+  value: 5e-07uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/reset/pulse
+  value: 10ns
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.memory_device.yaml
+  field: /write/reset/energy
+  value: 2e-05pJ
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.sensing.yaml
+  field: /schema
+  value: sensing
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.sensing.yaml
+  field: /internal
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.sensing.yaml
+  field: /sense_amplifier
+  value: inverter.sense_amp.yaml
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.sensing.yaml
+  field: /decision/model
+  value: inverter_threshold
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.sensing.yaml
+  field: /circuit/model
+  value: direct_nvm
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.sensing.yaml
+  field: /circuit/precharge_voltage
+  value: 1V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/inverter.sense_amp.yaml
+  field: /schema
+  value: sense_amp
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/inverter.sense_amp.yaml
+  field: /name
+  value: minimum_inverter
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/FeFET-2Fe-TCAS19/inverter.sense_amp.yaml
+  field: /model
+  value: analytical_inverter
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/FeFET-2Fe-TCAS19/inverter.sense_amp.yaml
+  field: /transistors/n_sense_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/inverter.sense_amp.yaml
+  field: /transistors/p_sense_width
+  value: 1.444444444444444F
+  status: paper
+  basis: 'TCAS19 experimental setup: minimum MOS W/L=65/45nm; device width ratio 65/45.'
+- file: config/original_validation/FeFET-2Fe-TCAS19/inverter.sense_amp.yaml
+  field: /output_capacitance
+  value: 0fF
+  status: unavailable
+  basis: No external output load published; 0fF is an unloaded lower-bound assumption,
+    internal drains still charged.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /schema
+  value: architecture
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /design/target
+  value: CAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /design/search_function
+  value: EX
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /design/system_process_node
+  value: 90nm
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /design/device_roadmap
+  value: HP
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /design/temperature
+  value: 350K
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /memory/capacity
+  value: 256B
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /memory/word_width
+  value: 32bits
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /routing/type
+  value: H-tree
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/input/buffer
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/input/encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/input/custom_encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/output/buffer
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/output/priority_encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/output/accumulator
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /peripherals/write_driver
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /wires/local/type
+  value: LocalConservative
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /wires/local/repeater
+  value: RepeatedNone
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /wires/local/low_swing
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /wires/global/type
+  value: GlobalAggressive
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /wires/global/repeater
+  value: RepeatedNone
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /wires/global/low_swing
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/banks/total/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/banks/total/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/banks/active/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/banks/active/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mats/total/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mats/total/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mats/active/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mats/active/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mux/sense_amp
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mux/output_level1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/mux/output_level2
+  value: 64
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/subarray/dimensions/0
+  value: 64
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/subarray/dimensions/1
+  value: 32
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /organization/comparison_columns_per_step
+  value: 32
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /sensing
+  value: MRAM-4T2R-VLSIC12.sensing.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /matchline/match_transistor/cmos_width
+  value: 7.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /search_timing/control
+  value: broadcast
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /search_timing/precharge
+  value: overlap_input
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.architecture.yaml
+  field: /search_timing/driver_load
+  value: physical_line
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /schema
+  value: cell
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /name
+  value: MRAM-4T2R-VLSIC12
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /cam_type
+  value: TCAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /memory_device
+  value: MRAM-4T2R-VLSIC12.memory_device.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /access_device/type
+  value: diode
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /access_device/cmos_width
+  value: 7.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /access_device/voltage_drop
+  value: 0.15V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /layout/cell_process_node
+  value: 90nm
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /layout/area
+  value: 387.654320988F^2
+  status: paper
+  basis: 'Cell footprint: TCAS19 Fig.6 0.15um^2; VLSIC12 title 3.14um^2; JSSC14 TableIII
+    0.41um^2. This input is not area validation.'
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /layout/aspect_ratio
+  value: 1.7
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/type
+  value: searchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/cmos_width
+  value: 7.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/wire_width
+  value: 1.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/voltages/set_lrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/voltages/set_mrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/voltages/reset
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/voltages/search0
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/0/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/type
+  value: searchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/cmos_width
+  value: 7.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/wire_width
+  value: 1.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/voltages/set_lrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/voltages/set_mrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/voltages/reset
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/1/voltages/search1
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/type
+  value: wordline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/cmos_width
+  value: 15F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/wire_width
+  value: 1.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/voltages/set_lrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/voltages/set_mrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/voltages/reset
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/row/2/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/type
+  value: matchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/cmos_region
+  value: diode
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/cmos_width
+  value: 2F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/wire_width
+  value: 1.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/voltages/set_lrs
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/voltages/set_mrs
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/voltages/reset
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/0/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/type
+  value: bitline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/cmos_region
+  value: drain
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/cmos_width
+  value: 15F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/is_nmos
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/wire_width
+  value: 1.5F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/voltages/set_lrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/voltages/set_mrs
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/voltages/reset
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/1/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/type
+  value: bitline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/cmos_region
+  value: drain
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/cmos_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/wire_width
+  value: 6F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/voltages/set_lrs
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/voltages/set_mrs
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/voltages/reset
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.cell.yaml
+  field: /ports/column/2/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /schema
+  value: config
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /name
+  value: MRAM-4T2R-VLSIC12
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /architecture
+  value: MRAM-4T2R-VLSIC12.architecture.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /cell
+  value: MRAM-4T2R-VLSIC12.cell.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /technology
+  value: ../../lib/technology/cmos.legacy.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /optimization/target
+  value: SearchLatency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /optimization/buffer_design
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /optimization/row_driver
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  field: /optimization/priority_encoder
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /schema
+  value: memory_device
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /name
+  value: MRAM-4T2R-VLSIC12
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /type
+  value: MRAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /resistance/on
+  value: 1100ohm
+  status: paper
+  basis: 'VLSIC12 Fig.5: Rp=1.1kohm, Rap=2.5kohm.'
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /resistance/off
+  value: 2500ohm
+  status: paper
+  basis: 'VLSIC12 Fig.5: Rp=1.1kohm, Rap=2.5kohm.'
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /read/mode
+  value: voltage
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /read/current
+  value: 70uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /read/power
+  value: 87.6uW
+  status: illustrative_curve
+  basis: 'VLSIC12 Fig.1(c): largest DC operating current about 73uA; conservative
+    active-cell supply power = 1.2V*73uA = 87.6uW. Bias enable duration is modeled,
+    not measured.'
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /read/min_sense_voltage
+  value: 70mV
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/set/mode
+  value: current
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/set/current
+  value: 80uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/set/pulse
+  value: 10ns
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/set/energy
+  value: 1pJ
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/reset/mode
+  value: current
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/reset/current
+  value: 80uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/reset/pulse
+  value: 10ns
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.memory_device.yaml
+  field: /write/reset/energy
+  value: 1pJ
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /schema
+  value: sensing
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /internal
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /sense_amplifier
+  value: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /decision/model
+  value: keeper_midpoint
+  status: approximation
+  basis: Source-node midpoint plus PTM MOS threshold. The fabricated SA trip voltage
+    is unpublished; this assumption is not fitted to delay.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /circuit/model
+  value: diode_keeper
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /circuit/precharge_voltage
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /circuit/keeper_high_clamp
+  value: 0.71V
+  status: illustrative_curve
+  basis: 'VLSIC12 Fig.1(c), approximate DC intersections: Vcell low 0.32V, high 0.71V
+    (0.39V separation). diode_keeper adds technology Vth to obtain effective clamps.
+    Fixed-source and square-law reductions omit body effect and control-node settling.'
+- file: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.sensing.yaml
+  field: /circuit/keeper_low_clamp
+  value: 0.32V
+  status: illustrative_curve
+  basis: 'VLSIC12 Fig.1(c), approximate DC intersections: Vcell low 0.32V, high 0.71V
+    (0.39V separation). diode_keeper adds technology Vth to obtain effective clamps.
+    Fixed-source and square-law reductions omit body effect and control-node settling.'
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /schema
+  value: architecture
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /design/target
+  value: CAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /design/search_function
+  value: EX
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /design/system_process_node
+  value: 90nm
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /design/device_roadmap
+  value: HP
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /design/temperature
+  value: 350K
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /memory/capacity
+  value: 131072B
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /memory/word_width
+  value: 64bits
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /routing/type
+  value: H-tree
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/input/buffer
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/input/encoder
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/input/custom_encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/input/encoder_type
+  value: encoding_two_bit
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/output/buffer
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/output/priority_encoder
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/output/accumulator
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /peripherals/write_driver
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /wires/local/type
+  value: LocalAggressive
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /wires/local/repeater
+  value: RepeatedNone
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /wires/local/low_swing
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /wires/global/type
+  value: GlobalAggressive
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /wires/global/repeater
+  value: RepeatedNone
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /wires/global/low_swing
+  value: false
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/banks/total/0
+  value: 4
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/banks/total/1
+  value: 2
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/banks/active/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/banks/active/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mats/total/0
+  value: 2
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mats/total/1
+  value: 2
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mats/active/0
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mats/active/1
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mux/sense_amp
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mux/output_level1
+  value: 8
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/mux/output_level2
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/subarray/dimensions/0
+  value: 512
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/subarray/dimensions/1
+  value: 64
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /organization/comparison_columns_per_step
+  value: 64
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /sensing
+  value: PCM-2T2R-JSSC14.sensing.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /matchline/match_transistor/cmos_width
+  value: 8F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /search_timing/control
+  value: broadcast
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /search_timing/precharge
+  value: overlap_input
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.architecture.yaml
+  field: /search_timing/driver_load
+  value: physical_line
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /schema
+  value: cell
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /name
+  value: PCM-2T2R-JSSC14
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /cam_type
+  value: TCAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /memory_device
+  value: PCM-2T2R-JSSC14.memory_device.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /access_device/type
+  value: none
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /access_device/cmos_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /layout/cell_process_node
+  value: 90nm
+  status: paper
+  basis: Original device paper architecture/experimental section; original-evacam.reference.yaml
+    source.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /layout/area
+  value: 50.6172839506F^2
+  status: paper
+  basis: 'Cell footprint: TCAS19 Fig.6 0.15um^2; VLSIC12 title 3.14um^2; JSSC14 TableIII
+    0.41um^2. This input is not area validation.'
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /layout/aspect_ratio
+  value: 2.66
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/type
+  value: searchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/cmos_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/wire_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/voltages/set_lrs
+  value: 2.5V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/voltages/set_mrs
+  value: 2.5V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/voltages/reset
+  value: 2.5V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/voltages/search0
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/0/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/type
+  value: searchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/cmos_region
+  value: gate
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/cmos_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/wire_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/voltages/set_lrs
+  value: 2.5V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/voltages/set_mrs
+  value: 2.5V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/voltages/reset
+  value: 2.5V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/row/1/voltages/search1
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/type
+  value: matchline
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/cmos_region
+  value: drain
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/num_cmos
+  value: 1
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/cmos_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/is_nmos
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/wire_width
+  value: 1F
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/voltages/set_lrs
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/voltages/set_mrs
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/voltages/reset
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/voltages/search0
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.cell.yaml
+  field: /ports/column/0/voltages/search1
+  value: 0V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /schema
+  value: config
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /name
+  value: PCM-2T2R-JSSC14
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /architecture
+  value: PCM-2T2R-JSSC14.architecture.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /cell
+  value: PCM-2T2R-JSSC14.cell.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /technology
+  value: ../../lib/technology/cmos.legacy.yaml
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /optimization/target
+  value: SearchLatency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /optimization/buffer_design
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /optimization/row_driver
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  field: /optimization/priority_encoder
+  value: latency
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /schema
+  value: memory_device
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /name
+  value: PCM-2T2R-JSSC14
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /type
+  value: PCRAM
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /resistance/on
+  value: 10000ohm
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /resistance/off
+  value: 1000000ohm
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /read/mode
+  value: voltage
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /read/voltage
+  value: 1.2V
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /read/current
+  value: 100uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /read/power
+  value: 30uW
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /read/min_sense_voltage
+  value: 70mV
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /write/set/mode
+  value: current
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /write/set/current
+  value: 150uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /write/set/pulse
+  value: 150ns
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /write/reset/mode
+  value: current
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /write/reset/current
+  value: 300uA
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.memory_device.yaml
+  field: /write/reset/pulse
+  value: 40ns
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /schema
+  value: sensing
+  status: configuration
+  basis: Reference-file wiring or tool option; not a measured electrical parameter.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /internal
+  value: true
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /sense_amplifier
+  value: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+  status: inherited
+  basis: Existing EvaCAM config/model assumption; not independently established for
+    the fabricated circuit.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /decision/model
+  value: voltage_threshold
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /decision/threshold
+  value: 0.45V
+  status: illustrative_curve
+  basis: JSSC14 Figs.11-13 illustrative waveforms near 0.55/0.45V. Fabricated alpha/beta
+    sizing is not supplied; no accuracy claim.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /circuit/model
+  value: direct_nvm
+  status: analytical_model
+  basis: Documented closed-form circuit/schedule reduction in original-evacam-validation.md.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /circuit/precharge_voltage
+  value: 0.55V
+  status: illustrative_curve
+  basis: JSSC14 Figs.11-13 illustrative waveforms near 0.55/0.45V. Fabricated alpha/beta
+    sizing is not supplied; no accuracy claim.
+- file: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.sensing.yaml
+  field: /circuit/bits_per_discharge_path
+  value: 2
+  status: paper
+  basis: 'JSSC14 Sec.III TablesI-II: one selected branch per encoded two-bit pair;
+    full physical cell capacity retained.'

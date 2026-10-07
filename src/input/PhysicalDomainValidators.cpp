@@ -121,7 +121,17 @@ void ValidateNand3d(const MemCell& cell) {
         throw std::runtime_error("NAND3D CAM requires type: NAND3D, cell.topology: nand_string, and memory_device.nand3d only");
     }
     ValidateNandTopology(cell);
-    ValidateNandElectrical(spec.electrical, "memory_device.nand3d", "transient_rc");
+    ValidateNandElectrical(spec.electrical, "memory_device.nand3d", "analytical_rc");
+    YamlHelpers::require_positive(spec.electrical.capacitanceInternal, "memory_device.nand3d.capacitance.internal");
+    YamlHelpers::require_positive(spec.electrical.capacitanceSource, "memory_device.nand3d.capacitance.source");
+    PhysicalDomainValidators::ValidateNand3dGeometry(spec);
+}
+
+}  // namespace
+
+namespace PhysicalDomainValidators {
+
+void ValidateNand3dGeometry(const Nand3dMemoryDevice& spec) {
     if (spec.storageMode != "SLC") {
         throw std::runtime_error("memory_device.nand3d.storage_mode must be SLC");
     }
@@ -139,17 +149,10 @@ void ValidateNand3d(const MemCell& cell) {
     for (const auto& field : {std::pair<double, const char*>{spec.holePitchX, "layout.hole_pitch_x"},
             {spec.holePitchY, "layout.hole_pitch_y"}, {spec.layerPitch, "layout.layer_pitch"},
             {spec.staircaseStepWidth, "layout.staircase_step_width"},
-            {spec.staircaseContactLength, "layout.staircase_contact_length"},
-            {spec.prechargeDriverResistance, "precharge_driver_resistance"},
-            {spec.solverMaxStep, "solver.max_step"}, {spec.solverTolerance, "solver.tolerance"},
-            {spec.electrical.capacitanceInternal, "capacitance.internal"},
-            {spec.electrical.capacitanceSource, "capacitance.source"}}) {
+            {spec.staircaseContactLength, "layout.staircase_contact_length"}}) {
         YamlHelpers::require_positive(field.first, "memory_device.nand3d." + std::string(field.second));
     }
     YamlHelpers::require_non_negative(spec.isolationWidth, "memory_device.nand3d.layout.isolation_width");
-    if (spec.solverTolerance > 1e-3 || spec.solverMaxSteps < 100) {
-        throw std::runtime_error("NAND3D solver requires tolerance <= 1mV and max_steps >= 100");
-    }
     const double stringWidth = spec.stringColumns * spec.holePitchX;
     const double stringHeight = spec.stringRows * spec.holePitchY;
     const double stackHeight = (spec.storageLayers + spec.dummyLayers + 2.0) * spec.layerPitch;
@@ -160,10 +163,6 @@ void ValidateNand3d(const MemCell& cell) {
         YamlHelpers::require_positive(dimension, "NAND3D derived layout dimension/area");
     }
 }
-
-}  // namespace
-
-namespace PhysicalDomainValidators {
 
 void ValidateMemCell(const MemCell& cell) {
     YamlHelpers::require_positive(cell.processNode, "cell.layout.cell_process_node");
@@ -194,6 +193,42 @@ void ValidateMemCell(const MemCell& cell) {
     } else {
         YamlHelpers::require_non_negative(cell.resistanceOn, "memory_device.resistance.on");
         YamlHelpers::require_non_negative(cell.resistanceOff, "memory_device.resistance.off");
+    }
+
+    if (cell.fefetGate) {
+        if (cell.memCellType != FEFETRAM || cell.camType != TCAM || cell.isNVMdischarge
+                || cell.camNumRow != 2 || cell.accessType != CMOS_access) {
+            throw std::runtime_error("[FeFET gate] Requires 2FeFET-1T TCAM with separate CMOS discharge.");
+        }
+        if (cell.withVariation || cell.hasMcamStateVariations) {
+            throw std::runtime_error("[FeFET gate] Device variation is not characterized for this topology.");
+        }
+        YamlHelpers::require_positive(cell.gateNodeSwitchingVoltage, "cell.gate_node.switching_voltage");
+        YamlHelpers::require_non_negative(cell.gateNodeAdditionalCap, "cell.gate_node.additional_capacitance");
+        if (cell.readPower != 0 || cell.readEnergy != 0) {
+            throw std::runtime_error("[FeFET gate] read.power/read.energy must be zero; control-node energy is derived.");
+        }
+        for (int i = 0; i < 2; ++i) {
+            const auto &port = cell.camPort[0][i];
+            if (port.Type != Searchline || port.numCmos != 1 || !port.isNMOS
+                    || (port.ConnectedRegion != drain && port.ConnectedRegion != source)) {
+                throw std::runtime_error("[FeFET gate] Requires two single-device source/drain searchline ports.");
+            }
+        }
+        int matchlines = 0;
+        for (int i = 0; i < cell.camNumCol; ++i) {
+            const auto &port = cell.camPort[1][i];
+            if (port.Type == Matchline || port.Type == Matchline_Bitline) {
+                ++matchlines;
+                if (port.Type != Matchline || port.ConnectedRegion != drain || !port.isNMOS
+                        || port.numCmos != 1 || port.isNVMdischarge) {
+                    throw std::runtime_error("[FeFET gate] Matchline must connect to one NMOS drain without NVM discharge.");
+                }
+            }
+        }
+        if (matchlines != 1) {
+            throw std::runtime_error("[FeFET gate] Requires exactly one matchline.");
+        }
     }
 
     YamlHelpers::require_non_negative(

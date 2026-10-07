@@ -4,6 +4,7 @@
 
 #include "CAM_SubArray.h"
 #include "McamPairResponse.h"
+#include "model/FefetGateModel.h"
 #include "formula.h"
 #include "constant.h"
 #include "CAM_Line.h"
@@ -66,8 +67,9 @@ double MatchlineOffCurrent(const CAMPort &cellPort, const Technology &tech, int 
     return offCurrents[temperature - 300];
 }
 
-bool UsesMemoryResistanceInMatchPath(const MemCell &cell) {
-    return cell.isNVMdischarge || cell.memCellType == FEFETRAM;
+bool UsesMemoryResistanceInMatchPath(const MemCell &cell, const CAMPort &port) {
+    return cell.isNVMdischarge || port.isNVMdischarge
+        || (cell.memCellType == FEFETRAM && !cell.fefetGate);
 }
 
 MatchlineElectricalParams BuildDrainSourceMatchlineParams(
@@ -84,11 +86,11 @@ MatchlineElectricalParams BuildDrainSourceMatchlineParams(
     const double offCurrent = MatchlineOffCurrent(cellPort, tech, temperature);
 
     params.nominalResCellAccessOff = tech.vdd() / offCurrent / featureSize / cellPort.numCmos;
-    if (!cellPort.isNMOS && cell.isNVMdischarge) {
+    if (!cellPort.isNMOS && (cell.isNVMdischarge || cellPort.isNVMdischarge)) {
         params.nominalResCellAccessOff /= 2;
     }
 
-    const bool includeMemoryResistance = UsesMemoryResistanceInMatchPath(cell);
+    const bool includeMemoryResistance = UsesMemoryResistanceInMatchPath(cell, cellPort);
     params.nominalResMatchTranOff = includeMemoryResistance
             ? cell.resistanceOff / cellPort.numCmos
             : 0;
@@ -96,10 +98,10 @@ MatchlineElectricalParams BuildDrainSourceMatchlineParams(
             ? cell.resistanceOn / cellPort.numCmos
             : 0;
 
-    const double accessMultiplier = (cellPort.isNMOS == cell.isNVMdischarge) ? cellPort.numCmos : 1;
+    const double accessMultiplier = (cellPort.isNMOS == (cell.isNVMdischarge || cellPort.isNVMdischarge)) ? cellPort.numCmos : 1;
     params.resCellAccess = CalculateOnResistance(cmosWidth, mosType, temperature, tech) * accessMultiplier;
 
-    if (cellPort.isNMOS && cell.isNVMdischarge) {
+    if (cellPort.isNMOS && (cell.isNVMdischarge || cellPort.isNVMdischarge)) {
         params.capCellAccess = (CalculateDrainCap(cmosWidth * 3, NMOS, cellWidth * 3, tech)
                 + cell.capacitanceOff) * cellPort.numCmos;
     } else {
@@ -125,11 +127,11 @@ MatchlineElectricalParams BuildDiodeMatchlineParams(
     const double offCurrent = MatchlineOffCurrent(cellPort, tech, temperature);
 
     params.nominalResCellAccessOff = tech.vdd() / offCurrent / featureSize / cellPort.widthCmos * cellPort.numCmos;
-    if (cell.isNVMdischarge) {
+    if (cell.isNVMdischarge || cellPort.isNVMdischarge) {
         params.nominalResCellAccessOff /= 4;
     }
 
-    const bool includeMemoryResistance = UsesMemoryResistanceInMatchPath(cell);
+    const bool includeMemoryResistance = UsesMemoryResistanceInMatchPath(cell, cellPort);
     params.nominalResMatchTranOff = includeMemoryResistance
             ? cell.resistanceOff / cellPort.numCmos
             : 0;
@@ -137,10 +139,10 @@ MatchlineElectricalParams BuildDiodeMatchlineParams(
             ? cell.resistanceOn / cellPort.numCmos
             : 0;
 
-    const double accessMultiplier = (cellPort.isNMOS && cell.isNVMdischarge) ? 1 : cellPort.numCmos;
+    const double accessMultiplier = (cellPort.isNMOS && (cell.isNVMdischarge || cellPort.isNVMdischarge)) ? 1 : cellPort.numCmos;
     params.resCellAccess = CalculateOnResistance(cmosWidth, mosType, temperature, tech) * accessMultiplier;
     params.capCellAccess = CalculateDrainCap(cmosWidth, mosType, cellWidth, tech) * cellPort.numCmos
-        + CalculateGateCap(cmosWidth, tech);
+        + CalculateGateCap(cmosWidth, tech) * cellPort.numCmos;
 
     params.resMemCellOff = params.nominalResCellAccessOff + params.nominalResMatchTranOff;
     params.resMemCellOn = params.resCellAccess + params.resMatchTran;
@@ -283,6 +285,26 @@ long long CAM_SubArray::ConfiguredColumns() const {
     return configuredNumColumn > 0 ? configuredNumColumn : numColumn;
 }
 
+double CAM_SubArray::ScheduledSearchLatency(int senseGroups, int comparisonSteps) const {
+    if (senseGroups <= 0 || comparisonSteps <= 0) {
+        throw std::invalid_argument("Search schedule requires positive sense groups and comparison steps.");
+    }
+    const double operations = static_cast<double>(senseGroups) * comparisonSteps;
+    const double recovery = config->peripherals.explicitSearchTiming
+            ? config->peripherals.searchRecovery : 0;
+    if (config->peripherals.explicitSearchTiming) {
+        // Later sense groups reuse the latched input. Removing its preparation
+        // time cannot shorten a precharge that was already on the critical path.
+        const double cachedStart = config->peripherals.overlapSearchPrecharge
+                ? std::max(searchPhases.queryReady - inputBuf->readLatency, precharger->readLatency)
+                : searchPhases.evaluationStart - inputBuf->readLatency;
+        const double cachedLatency = searchLatency - searchPhases.evaluationStart + cachedStart;
+        return (searchLatency + cachedLatency * (senseGroups - 1)) * comparisonSteps
+                + recovery * (operations - 1);
+    }
+    return (searchLatency * senseGroups - inputBuf->readLatency * (senseGroups - 1))
+            * comparisonSteps + recovery * (operations - 1);
+}
 
 void CAM_SubArray::Initialize(
         long long _numRow, 
@@ -312,6 +334,23 @@ void CAM_SubArray::Initialize(
         const Wire &_localWire,
         const CAM_Opt &_CAM_opt) {
 
+    gateNodeDelay = gateNodeRamp = gateNodeCapacitance = 0;
+    gateNodeChargingEnergy = gateNodeStaticPower = 0;
+    gateNodeMatchVoltage = gateNodeMismatchVoltage = 0;
+    decisionResponse = {};
+    searchPhases = {};
+    decisionActivationTime = 0;
+    if (_config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz
+            || _config->peripherals.explicitSearchTiming) {
+        if (_config->technology.cell->nandString || _camType != TCAM || _searchFunction != EX
+                || _withVariation || _config->variation.enabled || _config->peripherals.noPrechargeInc) {
+            throw std::invalid_argument("Analytical decision/search_timing requires nominal exact non-NAND TCAM and full search timing.");
+        }
+    }
+    if (_config->technology.cell->fefetGate
+            && (_withVariation || _camType != TCAM || _searchFunction != EX)) {
+        throw std::invalid_argument("[FeFET gate] Only nominal exact TCAM search is supported.");
+    }
     if (_config->technology.cell->nandString) {
         initialized = false;
         invalid = false;
@@ -358,8 +397,6 @@ void CAM_SubArray::Initialize(
     if (initialized) logger.Verbose() << "[CAM_SubArray] Warning: Already initialized!";
 
     const auto &input = _config->input;
-    const auto &runtimeSizing = _config->runtimeSizing;
-    const auto &geometry = _config->exploration.geometry;
     const auto &peripherals = _config->peripherals;
     const auto &cell = *_config->technology.cell;
     const auto &tech = *_config->technology.tech;
@@ -432,19 +469,23 @@ void CAM_SubArray::Initialize(
      * Input Check
      ****************************************************************************/
 
-    if (!runtimeSizing.hasFixedSubarrayDimensions
-            && runtimeSizing.realCapacity != input.capacity
-            && runtimeSizing.realCapacity != 0) {
-
-        // deal with the ASP-DAC12 72-bit word
-        numRow = runtimeSizing.realCapacity / geometry.numRowSubarray.Min()
-            / geometry.numColumnSubarray.Min()
-            / geometry.numActiveMatPerRow.Min()
-            / geometry.numActiveMatPerColumn.Min() / numColumn;
-    }
-
     configuredNumRow = numRow;
     configuredNumColumn = numColumn;
+    // A bank-wide comparison may span multiple data partitions. Only the
+    // columns present in this subarray contribute parallel discharge paths.
+    const long long dataPartitions = std::max<long long>(1,
+            config->wordGeometry.physicalColumnsPerWord / numColumn);
+    if (CAM_opt.ComparisonColumns % dataPartitions != 0) {
+        invalid = true;
+        logger.Verbose() << "[CAM_SubArray] Comparison width must divide evenly across active data partitions.";
+        return;
+    }
+    CAM_opt.ComparisonColumns = std::min<long long>(
+            CAM_opt.ComparisonColumns / dataPartitions, numColumn);
+    CAM_opt.BitSerialWidth = CAM_opt.ComparisonColumns;
+    if (config->peripherals.matchlineCircuit != "legacy"
+            && CAM_opt.BitSerialWidth % config->peripherals.bitsPerDischargePath != 0)
+        throw std::invalid_argument("Comparison width must contain complete encoded pairs.");
     // A CAM row is one stored word and its matchline spans the configured
     // columns. The legacy circuit model attaches matchlines to column ports,
     // so rotate its internal electrical axes for both TCAM and MCAM cells.
@@ -506,7 +547,34 @@ void CAM_SubArray::Initialize(
                 params = BuildFloatingMatchlineParams(cellPort, cell, fefetTech);
             }
 
+            const auto &circuit = config->peripherals;
+            if (circuit.matchlineCircuit == "direct_nvm") {
+                // One selected memory branch per logical bit (or encoded pair).
+                // Both physical drains load the ML; only the selected branch
+                // conducts. FeFET is the access device, not a series CMOS FET.
+                const bool directFefet = cell.memCellType == FEFETRAM;
+                const auto &deviceTech = directFefet ? fefetTech : tech;
+                params.resCellAccess = directFefet ? 0 : CalculateOnResistance(
+                        cellPort.widthCmos * tech.featureSize(), NMOS, input.temperature, tech);
+                params.nominalResCellAccessOff = params.resCellAccess;
+                params.resMatchTran = cell.resistanceOn;
+                params.nominalResMatchTranOff = cell.resistanceOff;
+                params.resMemCellOn = params.resCellAccess + params.resMatchTran;
+                params.resMemCellOff = params.resCellAccess + params.nominalResMatchTranOff;
+                params.capCellAccess = 2 * CalculateDrainCap(cellPort.widthCmos * deviceTech.featureSize(),
+                        NMOS, cell.widthInFeatureSize * deviceTech.featureSize(), deviceTech);
+            } else if ((circuit.matchlineCircuit == "clamped_keeper" || circuit.matchlineCircuit == "diode_keeper")) {
+                params.resCellAccess = CalculateOnResistance(cellPort.widthCmos * tech.featureSize(),
+                        NMOS, input.temperature, tech);
+                params.nominalResCellAccessOff = params.resCellAccess;
+                params.resMatchTran = params.nominalResMatchTranOff = 0;
+                params.resMemCellOn = params.resMemCellOff = params.resCellAccess;
+            }
             totalMatchlineCellCap += params.capCellAccess;
+            // The topology-specific terminal model replaces the generic line
+            // terminals. Keep a single inventory for precharge, RC and energy.
+            Col[i].deviceCap = params.capCellAccess * numRow;
+            Col[i].cap = Col[i].wireCap + Col[i].deviceCap;
 
             if (indexMatchline < 0) {
                 indexMatchline = i;
@@ -521,7 +589,39 @@ void CAM_SubArray::Initialize(
         }
     }
 
+    if (cell.fefetGate) {
+        const auto &first = cell.camPort[0][0];
+        const auto &second = cell.camPort[0][1];
+        const auto near = [](double a, double b) { return std::abs(a - b) < 1e-9; };
+        if (!near(first.volSearch0, second.volSearch1)
+                || !near(first.volSearch1, second.volSearch0)
+                || !near(std::min(first.volSearch0, first.volSearch1), 0)
+                || !near(std::max(first.volSearch0, first.volSearch1), tech.vdd())) {
+            throw std::invalid_argument("[FeFET gate] Searchlines must be complementary 0/Vdd signals.");
+        }
+        const auto &matchPort = Col[indexMatchline].CellPort;
+        gateNodeCapacitance = CalculateGateCap(matchPort.widthCmos * tech.featureSize(), tech)
+                + cell.gateNodeAdditionalCap;
+        for (int i = 0; i < cell.camNumRow; ++i) {
+            gateNodeCapacitance += CalculateDrainCap(
+                    cell.camPort[0][i].widthCmos * fefetTech.featureSize(), NMOS,
+                    cell.widthInFeatureSize * fefetTech.featureSize(), fefetTech);
+        }
+        const auto response = EvaluateFefetGate(cell.resistanceOn, cell.resistanceOff,
+                gateNodeCapacitance, tech.vdd(), cell.gateNodeSwitchingVoltage);
+        gateNodeDelay = response.delay;
+        gateNodeRamp = response.ramp;
+        gateNodeChargingEnergy = response.chargingEnergy;
+        gateNodeStaticPower = response.staticPower;
+        gateNodeMatchVoltage = response.matchVoltage;
+        gateNodeMismatchVoltage = response.mismatchVoltage;
+    }
+
     capCellAccess = totalMatchlineCellCap;
+    // The shared sense path aggregates terminals from the matchline ports.
+    // Its precharger and mux must see the same load as the discharge model.
+    Col[indexMatchline].deviceCap = capCellAccess * numRow;
+    Col[indexMatchline].cap = Col[indexMatchline].wireCap + Col[indexMatchline].deviceCap;
     nominalMatchlineWireRes = Col[indexMatchline].res;
     nominalResCellAccess    = resCellAccess;
     nominalResMatchTran     = resMatchTran;
@@ -539,7 +639,8 @@ void CAM_SubArray::Initialize(
      * None access design could be n*volatgeMemOff
      */
 
-    voltagePrecharge = tech.vdd();
+    voltagePrecharge = config->peripherals.prechargeVoltage > 0
+            ? config->peripherals.prechargeVoltage : tech.vdd();
 
     /*****************************************************************************
      * Calculation for driver
@@ -553,7 +654,7 @@ void CAM_SubArray::Initialize(
         Row[i].Initialize(true, i, lenRow, numColumn, config, localWire);
     }
     for (int i = 0; i < cell.camNumCol; i++) {
-        Col[i].Initialize(false, i, lenCol, numRow, config, localWire);
+        // Preserve the topology-specific terminal inventory initialized above.
         if (Col[i].minMuxWidth > input.maxNmosSize * tech.featureSize()) {
             invalid = true;
             logger.Verbose() << "[CAM_SubArray] Column mux width exceeds the supported maximum.";
@@ -612,8 +713,7 @@ void CAM_SubArray::Initialize(
         RowDriver[i] = std::make_unique<RowDecoder>();
         RowDriver[i]->Initialize(
                 numRow,
-                Row[i].cap * 1.6, // TODO: verify the 1.6 scaling constant, it may need to be different for FeFET
-                                  //       previous maintainer tried 10 at one point for FeFET 
+                Row[i].cap * (peripherals.usePhysicalDriverLoad ? 1.0 : 1.6),
                 Row[i].res,
                 CamDecoderNandInputCount(numRow),
                 DriverOptLevel,
@@ -783,8 +883,8 @@ void CAM_SubArray::CalculateArea() {
 
         if (withInputEnc) {
             inputEnc->CalculateArea();
-            area += (inputEnc->area * numRow);
-            addWidthArea += (inputEnc->area * numRow);
+            area += (inputEnc->area * numRow / config->peripherals.bitsPerDischargePath);
+            addWidthArea += (inputEnc->area * numRow / config->peripherals.bitsPerDischargePath);
         }
 
         area += (RowDecMergeNand->area * 4);
@@ -902,7 +1002,12 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
         // those NAND merges the WL and SL signal
         double maxRowDriver = 0;
         for (int i=0; i<cell.camNumRow; i++) {
-            RowDriver[i]->CalculateLatency(std::max(inputEnc->rampOutput, RowDecMergeNand->rampOutput));
+            const auto &timing = config->peripherals;
+            const double driverRamp = timing.explicitSearchTiming
+                    ? (timing.searchBroadcast ? inputEnc->rampOutput
+                        : std::min(inputEnc->rampOutput, RowDecMergeNand->rampOutput))
+                    : std::max(inputEnc->rampOutput, RowDecMergeNand->rampOutput);
+            RowDriver[i]->CalculateLatency(driverRamp);
 
             if (RowDriver[i]->readLatency > maxRowDriver) {
                 maxRowDriver = RowDriver[i]->readLatency;
@@ -930,26 +1035,52 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             // Estimate the ML latency for 1-miss case
 
             resTotalCell = EffectiveMatchlineCellResistance(1, resMemCellOn, resMemCellOff);
-            capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
+            capTotalCell = capCellAccess * numRow;
 
             tau = MatchlineTau(resTotalCell, matchlineWireRes);
             const double oneMissTau = tau;
-            // tau = resTotalCell * capTotalCell + matchlineWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation);
-            // referDelay = tau * log((voltagePrecharge) / (config->technology.cell->readVoltage)); // Too hard for user to provide read voltage
-            // referDelay = tau * log(2);
-            // beta = resMemCellOff / CAM_opt->BitSerialWidth / resTotalCell;
             matchlineDelay = MatchlineHorowitzDelay(tau, resTotalCell, &matchlineRamp);
-            logger.Verbose() << "matchlineDelay = " << matchlineDelay * 1e12 << " ps";
 
-            // Estimate the ML latency for all-match case
-            resTotalCell = resMemCellOff / CAM_opt.BitSerialWidth;//  
+            // Estimate the ML latency for all-match case.
+            resTotalCell = EffectiveMatchlineCellResistance(0, resMemCellOn, resMemCellOff);
             tau = MatchlineTau(resTotalCell, matchlineWireRes);
-            //TODO: Need to get referDelay to be an expected value, took the following line from a commented out line above
+            if (config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz) {
+                decisionActivationTime = 1 / MatchlineInputRamp();
+                decisionResponse = EvaluateCamDecision(config->peripherals.decisionMode,
+                        voltagePrecharge, tau, oneMissTau, decisionActivationTime,
+                        senseVoltage, config->peripherals.decisionThreshold);
+                if (config->peripherals.matchlineCircuit == "clamped_keeper") {
+                    const auto &circuit = config->peripherals;
+                    decisionResponse = EvaluateCamKeeperDecision(voltagePrecharge, circuit.keeperHighClamp,
+                            circuit.keeperLowClamp, MatchlineTau(resCellAccess, 0),
+                            CAM_opt.BitSerialWidth, decisionActivationTime, senseVoltage, circuit.decisionThreshold,
+                            MatchlineTau(0, matchlineWireRes));
+                }
+                if (config->peripherals.matchlineCircuit == "diode_keeper") {
+                    const auto &circuit = config->peripherals;
+                    decisionResponse = EvaluateCamDiodeKeeperDecision(voltagePrecharge,
+                            circuit.keeperHighClamp + config->technology.tech->vth(),
+                            circuit.keeperLowClamp + config->technology.tech->vth(),
+                            DiodeKeeperRate(), CAM_opt.BitSerialWidth, decisionActivationTime,
+                            senseVoltage, circuit.decisionThreshold);
+                }
+                if (!decisionResponse.feasible) {
+                    invalid = true;
+                    searchLatency = readLatency = writeLatency = 1e41;
+                    logger.Verbose() << "[CAM_SubArray] Analytical sensing decision has no feasible margin.";
+                    return;
+                }
+                matchlineDelay = decisionResponse.time;
+                matchlineRamp = decisionResponse.ramp;
+            }
+            logger.Verbose() << "matchlineDelay = " << matchlineDelay * 1e12 << " ps";
             referDelay = matchlineDelay;
-            volMatchDrop = voltagePrecharge - voltagePrecharge * exp(-referDelay / tau);
+            volMatchDrop = voltagePrecharge - (config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz
+                    ? decisionResponse.matchVoltage : voltagePrecharge * exp(-referDelay / tau));
 
             // Primary sense margin check
-            senseMargin = MatchlineSenseMargin(tau, oneMissTau, referDelay);
+            senseMargin = config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz
+                    ? decisionResponse.margin : MatchlineSenseMargin(tau, oneMissTau, referDelay);
             if (senseMargin < senseVoltage) {
                 invalid = true;
                 logger.Verbose() << "[CAM_SubArray] Matchline is too long to be sensed.";
@@ -967,7 +1098,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
                     double resTemp0 = EffectiveMatchlineCellResistance(k, resMemCellOn, resMemCellOff);
                     double resTemp1 = EffectiveMatchlineCellResistance(k + 1, resMemCellOn, resMemCellOff);
 
-                    capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
+                    capTotalCell = capCellAccess * numRow;
 
                     double tauTemp0 = MatchlineTau(resTemp0, matchlineWireRes);
                     double tauTemp1 = MatchlineTau(resTemp1, matchlineWireRes);
@@ -997,7 +1128,7 @@ void CAM_SubArray::CalculateLatency(double _rampInput) {
             }
 
         } else if (cell.camType == MCAM) {
-            capTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
+            capTotalCell = capCellAccess * numRow;
             const std::vector<double> effectiveMcamResistances = EffectiveMcamStateResistances();
             const std::vector<double> mcamStateTaus = McamStateTaus(effectiveMcamResistances);
             const std::vector<double> mcamStateDelays = McamStateDelays(mcamStateTaus);
@@ -1186,14 +1317,14 @@ void CAM_SubArray::CalculatePower() {
                         resTotalCell, matchlineDelay, voltagePrecharge);
                 searchDynamicEnergy = mcamMatchlineDynamicEnergy;
             } else if (typeSenseAmp == discharge) {
-                searchDynamicEnergy = (Col[indexMatchline].cap 
+                searchDynamicEnergy = (Col[indexMatchline].wireCap
                         + ColMux[indexMatchline]->capForPreviousPowerCalculation + capTotalCell)
                         * (voltagePrecharge * voltagePrecharge - cell.readVoltage * cell.readVoltage) 
                         * numColumn / muxSenseAmp;
             } else {
                 if (UsesSramStyleCamModel(cell.memCellType)) {
                     // Calculate the SRAM matchline power
-                    searchDynamicEnergy = (Col[indexMatchline].cap
+                    searchDynamicEnergy = (Col[indexMatchline].wireCap
                             + ColMux[indexMatchline]->capForPreviousPowerCalculation + capTotalCell)
                             * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp;
 
@@ -1205,19 +1336,19 @@ void CAM_SubArray::CalculatePower() {
                         double vpreMax = cell.readVoltage * (resMatchlineMux + matchlineWireRes) /
                             (resMatchlineMux + matchlineWireRes + resMemCellOn);
                         searchDynamicEnergy = capTotalCell * vpreMax * vpreMax + ColMux[indexMatchline]->capForPreviousPowerCalculation
-                            * vpreMin * vpreMin + Col[indexMatchline].cap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
+                            * vpreMin * vpreMin + Col[indexMatchline].wireCap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
                         searchDynamicEnergy *= numColumn / muxSenseAmp;
 
                     } else {                /* voltage-sensing */
                         /*std::cout << "[CAM_Subarray]" << capTotalCell << std::endl;
-                          std::cout << "[CAM_Subarray]" << Col[indexMatchline].cap << std::endl;
+                          std::cout << "[CAM_Subarray]" << Col[indexMatchline].wireCap << std::endl;
                           std::cout << "[CAM_Subarray]" << ColMux[indexMatchline]->capForPreviousPowerCalculation << std::endl;
                           std::cout << "[CAM_Subarray]" << voltagePrecharge << std::endl;
                           std::cout << "[CAM_Subarray]" << voltageMemCellOn << std::endl;
                           std::cout << "[CAM_Subarray]" << numColumn << std::endl;
                           std::cout << "[CAM_Subarray]" << muxSenseAmp << std::endl;*/
                         searchDynamicEnergy = (capTotalCell 
-                                + Col[indexMatchline].cap 
+                                + Col[indexMatchline].wireCap
                                 + ColMux[indexMatchline]->capForPreviousPowerCalculation) 
                             * (voltagePrecharge * voltagePrecharge - voltageMemCellOn 
                                     * voltageMemCellOn ) * numColumn / muxSenseAmp;
@@ -1227,7 +1358,25 @@ void CAM_SubArray::CalculatePower() {
                     //             (voltagePrecharge * voltagePrecharge) * numColumn / muxSenseAmp;
             }// }
         }
-            if (cell.readEnergy != 0) {
+            if (config->peripherals.matchlineCircuit != "legacy") {
+                const double finalVoltage = config->peripherals.matchlineCircuit == "diode_keeper"
+                        ? config->peripherals.keeperLowClamp + tech.vth()
+                        : config->peripherals.matchlineCircuit == "clamped_keeper" ? config->peripherals.keeperLowClamp : 0;
+                const double capacitance = MatchlineTau(1, 0);
+                searchDynamicEnergy = CamSupplyRechargeEnergy(capacitance, tech.vdd(), voltagePrecharge,
+                        finalVoltage) * numColumn / muxSenseAmp;
+            }
+            if (config->peripherals.matchlineCircuit == "direct_nvm") {
+                // Floating ML discharge is paid for by recharge, not a second
+                // DC supply attached to every memory device.
+                cellReadEnergy = 0;
+            } else if (cell.fefetGate) {
+                // Conservative zero-to-mismatch transition on every compared
+                // control node. Supply work and steady divider loss are separate.
+                cellReadEnergy = (gateNodeChargingEnergy + gateNodeStaticPower
+                        * (gateNodeDelay + matchlineDelay + senseAmp->readLatency))
+                        * CAM_opt.BitSerialWidth;
+            } else if (cell.readEnergy != 0) {
                 cellReadEnergy = cell.readEnergy * CAM_opt.BitSerialWidth;
             } else if (cell.readPower != 0) {
                 cellReadEnergy = cell.readPower 
@@ -1256,7 +1405,7 @@ void CAM_SubArray::CalculatePower() {
         UpdateVariationPowerSummary();
 
         readDynamicEnergy = searchDynamicEnergy + inputBufReadEnergy * numRow 
-            + inputEncReadEnergy * numRow
+            + inputEncReadEnergy * numRow / config->peripherals.bitsPerDischargePath
             + cellReadEnergy + ColDecMergeNand->readDynamicEnergy + precharger->readDynamicEnergy
             + senseAmpMuxLev1Nand->readDynamicEnergy + senseAmpMuxLev2Nand->readDynamicEnergy
             + ColMux[indexMatchline]->readDynamicEnergy + senseAmp->readDynamicEnergy 
@@ -1265,12 +1414,24 @@ void CAM_SubArray::CalculatePower() {
             + outputBufReadEnergy * numColumn
             + inputLS->readDynamicEnergy * numRow + outputLS->readDynamicEnergy * numColumn;
 
-        searchDynamicEnergy +=  inputBufReadEnergy * numRow + inputEncReadEnergy * numRow
-            + cellReadEnergy + ColDecMergeNand->readDynamicEnergy + precharger->readDynamicEnergy
+        searchDynamicEnergy +=  inputBufReadEnergy * numRow + inputEncReadEnergy * numRow / config->peripherals.bitsPerDischargePath
+            + cellReadEnergy + ((!config->peripherals.explicitSearchTiming || muxSenseAmp > 1)
+                    ? ColDecMergeNand->readDynamicEnergy : 0) + precharger->readDynamicEnergy
             + ColMux[indexMatchline]->readDynamicEnergy
             + senseAmp->readDynamicEnergy
             + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
             + outputBuf->readDynamicEnergy * numColumn;
+
+        if (config->peripherals.explicitSearchTiming) {
+            searchDynamicEnergy += inputLS->readDynamicEnergy * numRow
+                    + outputLS->readDynamicEnergy * numColumn;
+            if (!config->peripherals.searchBroadcast)
+                searchDynamicEnergy += RowDecMergeNand->readDynamicEnergy;
+            if (muxOutputLev1 > 1) searchDynamicEnergy += senseAmpMuxLev1->readDynamicEnergy
+                    + senseAmpMuxLev1Nand->readDynamicEnergy;
+            if (muxOutputLev2 > 1) searchDynamicEnergy += senseAmpMuxLev2->readDynamicEnergy
+                    + senseAmpMuxLev2Nand->readDynamicEnergy;
+        }
 
         /*****************************************************************************
          * Calculate write
@@ -1539,12 +1700,12 @@ double CAM_SubArray::EffectiveMatchlineCellResistance(
         int mismatches,
         double cellResOn,
         double cellResOff) const {
-    if (mismatches <= 0) {
-        return cellResOff / CAM_opt.BitSerialWidth;
-    }
-
+    const int paths = CAM_opt.BitSerialWidth / config->peripherals.bitsPerDischargePath;
+    if (mismatches <= 0) return cellResOff / paths;
+    if (mismatches > paths)
+        throw std::invalid_argument("Mismatch paths exceed the number of active discharge paths.");
     return (cellResOn * cellResOff)
-        / ((CAM_opt.BitSerialWidth - mismatches) * cellResOn
+        / ((paths - mismatches) * cellResOn
                 + cellResOff * mismatches);
 }
 
@@ -1896,19 +2057,7 @@ double CAM_SubArray::McamStateTau(double effectiveStateResistance, double mlWire
     if (effectiveStateResistance <= 0) {
         throw std::runtime_error("[CAM_SubArray] Error: MCAM effective state resistance must be positive.");
     }
-
-    const auto &peripherals = config->peripherals;
-    const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
-
-    return effectiveStateResistance * (capTotalCellTemp
-                + Col[indexMatchline].cap
-                + ColMux[indexMatchline]->capForPreviousDelayCalculation
-                + precharger->capOutputBitlinePrecharger
-                + senseAmp->capLoad
-                + peripherals.addCapOnML)
-        + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                + capTotalCellTemp
-                + Col[indexMatchline].cap / 2);
+    return MatchlineTau(effectiveStateResistance, mlWireRes);
 }
 
 std::vector<double> CAM_SubArray::McamStateTaus(
@@ -1955,8 +2104,8 @@ double CAM_SubArray::McamMatchlineDynamicEnergy(
         double prechargeVoltage) const {
     const double tauValue = McamStateTau(effectiveResistance, matchlineWireRes);
     const double sensedVoltage = prechargeVoltage * std::exp(-senseTime / tauValue);
-    const double matchlineCapacitance = capCellAccess * CAM_opt.BitSerialWidth
-        + Col[indexMatchline].cap
+    const double matchlineCapacitance = capCellAccess * numRow
+        + Col[indexMatchline].wireCap
         + ColMux[indexMatchline]->capForPreviousPowerCalculation;
     return matchlineCapacitance
         * (prechargeVoltage * prechargeVoltage - sensedVoltage * sensedVoltage)
@@ -2347,7 +2496,11 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
                 senseAmp->CalculateLatency(senseMargin);
             }
         } else {
-            senseAmp->CalculateLatency();
+            if (config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz) {
+                senseAmp->CalculateLatency(senseMargin);
+            } else {
+                senseAmp->CalculateLatency();
+            }
         }
         senseAmpMuxLev1->CalculateLatency(1e20);
         senseAmpMuxLev2->CalculateLatency(senseAmpMuxLev1->rampOutput);
@@ -2380,6 +2533,7 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
 
     searchLatency = inputBuf->readLatency
         + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency)
+        + gateNodeDelay
         + matchlineDelay
         + ColMux[indexMatchline]->readLatency
         + senseAmp->readLatency
@@ -2393,8 +2547,34 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
 
     senseAmpLatency = senseAmp->readLatency;
 
+    if (config->peripherals.explicitSearchTiming) {
+        double rowDriver = 0;
+        for (int i = 0; i < cell.camNumRow; ++i) {
+            rowDriver = std::max(rowDriver, RowDriver[i]->readLatency);
+        }
+        const double rowControl = rowDriver + (config->peripherals.searchBroadcast
+                ? 0 : RowDecMergeNand->readLatency);
+        // Write address decoding is not on an unmultiplexed search path.
+        // Only enabled search muxes need column/address-select control.
+        const double columnControl = std::max({
+                muxSenseAmp > 1 ? ColDecMergeNand->readLatency : 0,
+                muxOutputLev1 > 1 ? senseAmpMuxLev1Nand->readLatency : 0,
+                muxOutputLev2 > 1 ? senseAmpMuxLev2Nand->readLatency : 0});
+        const double control = std::max(rowControl, columnControl);
+        const double evaluation = gateNodeDelay + matchlineDelay;
+        const double output = ColMux[indexMatchline]->readLatency + senseAmpLatency
+                + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency
+                + outputAcc->readLatency + priorityEnc->readLatency + outputBuf->readLatency
+                + outputLS->readLatency;
+        searchPhases = EvaluateCamSearchPhases(inputBuf->readLatency + inputEnc->readLatency
+                + inputLS->readLatency, control, precharger->readLatency, evaluation,
+                output, config->peripherals.searchRecovery, config->peripherals.overlapSearchPrecharge);
+        searchLatency = searchPhases.resultReady;
+    }
+
     readLatency = inputBuf->readLatency
         + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency)
+        + gateNodeDelay
         + matchlineDelay
         + ColMux[indexMatchline]->readLatency
         + senseAmp->readLatency
@@ -2406,22 +2586,27 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
         + outputLS->readLatency;
 }
 
+double CAM_SubArray::DiodeKeeperRate() const {
+    const auto &tech = *config->technology.tech;
+    const double width = Col[indexMatchline].CellPort.widthCmos * tech.featureSize();
+    const double overdrive = tech.vdd() - tech.vth();
+    const double current = tech.currentOnNmos()[config->input.temperature - 300] * width;
+    return current / (overdrive * overdrive * MatchlineTau(1, 0));
+}
+
 double CAM_SubArray::MatchlineTau(double effectiveCellRes, double mlWireRes) const {
     const auto &peripherals = config->peripherals;
-    const double capTotalCellTemp = capCellAccess * CAM_opt.BitSerialWidth;
+    const double distributedCap = Col[indexMatchline].wireCap + capCellAccess * numRow;
+    const double endCap = ColMux[indexMatchline]->capForPreviousDelayCalculation
+        + peripherals.addCapOnML + precharger->capOutputBitlinePrecharger
+        + senseAmp->capLoad;
 
     // Match state changes the effective discharge resistance, not the physical
     // matchline load. All TCAM states must use this shared capacitance inventory.
-    return effectiveCellRes * (capTotalCellTemp
-                + ColMux[indexMatchline]->capForPreviousDelayCalculation
-                + peripherals.addCapOnML
-                + precharger->capOutputBitlinePrecharger
-                + senseAmp->capLoad)
-                + mlWireRes * (ColMux[indexMatchline]->capForPreviousDelayCalculation
-                + peripherals.addCapOnML
-                + precharger->capOutputBitlinePrecharger
-                + senseAmp->capLoad
-	                + Col[indexMatchline].cap / 2);
+    // Elmore first moment: the discharge resistance sees every load; uniformly
+    // distributed wire and cell terminals see half the line resistance.
+    return effectiveCellRes * (distributedCap + endCap)
+        + mlWireRes * (distributedCap / 2 + endCap);
 }
 
 double CAM_SubArray::MatchlineEffectiveResistance(
@@ -2471,6 +2656,10 @@ double CAM_SubArray::MatchlineHorowitzDelay(
         int activeDischargePaths) const {
 
     const double beta = MatchlineBeta(effectiveCellRes, activeDischargePaths);
+    return horowitz(tau, beta, MatchlineInputRamp(), ramp);
+}
+
+double CAM_SubArray::MatchlineInputRamp() const {
     int maxRowDriverIndex = 0;
     double maxRowDriverLatency = 0;
     const int rowDriverCount = config->technology.cell->camNumRow;
@@ -2482,11 +2671,11 @@ double CAM_SubArray::MatchlineHorowitzDelay(
         }
     }
 
-    return horowitz(
-            tau,
-            beta,
-            RowDriver[maxRowDriverIndex]->rampOutput,
-            ramp);
+    double inputRamp = RowDriver[maxRowDriverIndex]->rampOutput;
+    if (config->technology.cell->fefetGate) {
+        inputRamp = std::min(inputRamp, gateNodeRamp);
+    }
+    return inputRamp;
 }
 
 double CAM_SubArray::TcamSensedVoltage(int mismatches, double resistanceSigmaOffset) const {
@@ -2501,11 +2690,27 @@ double CAM_SubArray::TcamSensedVoltage(int mismatches, double resistanceSigmaOff
             || !std::isfinite(resistanceSigmaOffset) || std::abs(resistanceSigmaOffset) > 3) {
         throw std::invalid_argument("[CAM_SubArray] Error: invalid mismatch count or resistance sigma offset.");
     }
+    if (config->peripherals.bitsPerDischargePath == 2 && mismatches > 1)
+        throw std::invalid_argument("Two-bit encoding requires mismatch pair locations for multi-bit sensed voltage.");
+    if (config->peripherals.matchlineCircuit == "diode_keeper") {
+        const auto &circuit = config->peripherals;
+        const double threshold = config->technology.tech->vth();
+        return CamDiodeKeeperVoltage(voltagePrecharge, circuit.keeperHighClamp + threshold,
+                circuit.keeperLowClamp + threshold, DiodeKeeperRate(), CAM_opt.BitSerialWidth,
+                mismatches, decisionActivationTime, decisionResponse.time);
+    }
+    if (config->peripherals.matchlineCircuit == "clamped_keeper") {
+        const auto &circuit = config->peripherals;
+        return CamKeeperVoltage(voltagePrecharge, circuit.keeperHighClamp, circuit.keeperLowClamp,
+                MatchlineTau(resCellAccess, 0), CAM_opt.BitSerialWidth, mismatches,
+                decisionActivationTime, decisionResponse.time, MatchlineTau(0, matchlineWireRes));
+    }
     const auto nominal = BuildNominalResistanceSample();
     const double referenceRes = EffectiveMatchlineCellResistance(1, nominal.cellResOn, nominal.cellResOff);
     double ramp = 0;
-    const double senseTime = MatchlineHorowitzDelay(
-            MatchlineTau(referenceRes, nominal.mlWireRes), referenceRes, &ramp);
+    const double senseTime = config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz
+            ? decisionResponse.time : MatchlineHorowitzDelay(
+                MatchlineTau(referenceRes, nominal.mlWireRes), referenceRes, &ramp);
     const auto &variation = config->variation;
     const double onFraction = variation.enabled ? variation.memoryDeviceResOnStdev : 0;
     const double offFraction = variation.enabled ? variation.memoryDeviceResOffStdev : 0;
@@ -2515,7 +2720,10 @@ double CAM_SubArray::TcamSensedVoltage(int mismatches, double resistanceSigmaOff
     const double offRes = nominal.accessResOff + nominal.matchResOff
         * std::max(1e-12, 1 + resistanceSigmaOffset * offFraction);
     const double resistance = EffectiveMatchlineCellResistance(mismatches, onRes, offRes);
-    return voltagePrecharge * std::exp(-senseTime / MatchlineTau(resistance, nominal.mlWireRes));
+    const double tau = MatchlineTau(resistance, nominal.mlWireRes);
+    return config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz
+            ? CamDischargeVoltage(voltagePrecharge, tau, decisionActivationTime, senseTime)
+            : voltagePrecharge * std::exp(-senseTime / tau);
 }
 
 EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatch(const std::vector<int> &stored, const std::vector<int> &query) const {
@@ -2549,6 +2757,19 @@ EvaCAMMatchResult CAM_SubArray::EvaluateBinaryMatchByMismatches(int mismatchCoun
         throw std::runtime_error("[CAM_SubArray] Error: CAM options are not initialized.");
     if (mismatchCount < 0 || mismatchCount > CAM_opt.BitSerialWidth)
         throw std::invalid_argument("[CAM_SubArray] Error: mismatch count is out of range.");
+
+    if (config->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz) {
+        // All rows are sampled at the same one-miss decision time. Multiple
+        // misses do not advance the externally visible completion event.
+        EvaCAMMatchResult result{};
+        result.hit = mismatchCount == 0 && decisionResponse.feasible;
+        result.searchLatency = searchLatency;
+        result.matchlineDelay = matchlineDelay;
+        result.searchDynamicEnergy = searchDynamicEnergy;
+        result.senseMargin = senseMargin;
+        SetSenseDiagnostics(result, senseVoltage);
+        return result;
+    }
 
     auto matchlineTau = [&](int mismatches) {
         if (mismatches == 0) {
@@ -2963,17 +3184,17 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
 
     if (variationSummary.mode == "single_point") {
         const CAMResistanceSample sample = BuildVariationResistanceSample(0);
-        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
+        const double sampleCapTotalCell = capCellAccess * numRow;
         double sampleSearchDynamicEnergy = 0;
 
         if (typeSenseAmp == discharge) {
-            sampleSearchDynamicEnergy = (Col[indexMatchline].cap
+            sampleSearchDynamicEnergy = (Col[indexMatchline].wireCap
                     + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
                 * (voltagePrecharge * voltagePrecharge - cell.readVoltage * cell.readVoltage)
                 * numColumn / muxSenseAmp;
         } else {
             if (UsesSramStyleCamModel(cell.memCellType)) {
-                sampleSearchDynamicEnergy = (Col[indexMatchline].cap + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
+                sampleSearchDynamicEnergy = (Col[indexMatchline].wireCap + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
                     * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp;
             } else if (UsesResistiveCamModel(cell.memCellType)) {
                 if (cell.readMode == false) {
@@ -2983,11 +3204,11 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
                         / (resMatchlineMux + sample.mlWireRes + sample.cellResOn);
                     sampleSearchDynamicEnergy = sampleCapTotalCell * vpreMax * vpreMax
                         + ColMux[indexMatchline]->capForPreviousPowerCalculation * vpreMin * vpreMin
-                        + Col[indexMatchline].cap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
+                        + Col[indexMatchline].wireCap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
                     sampleSearchDynamicEnergy *= numColumn / muxSenseAmp;
                 } else {
                     sampleSearchDynamicEnergy = (sampleCapTotalCell
-                            + Col[indexMatchline].cap
+                            + Col[indexMatchline].wireCap
                             + ColMux[indexMatchline]->capForPreviousPowerCalculation)
                         * (voltagePrecharge * voltagePrecharge - voltageMemCellOn * voltageMemCellOn)
                         * numColumn / muxSenseAmp;
@@ -3010,17 +3231,17 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
 
     for (int sampleIndex = 0; sampleIndex < variationSummary.samples; sampleIndex++) {
         const CAMResistanceSample sample = BuildVariationResistanceSample(sampleIndex);
-        const double sampleCapTotalCell = capCellAccess * CAM_opt.BitSerialWidth;
+        const double sampleCapTotalCell = capCellAccess * numRow;
         double sampleSearchDynamicEnergy = 0;
 
         if (typeSenseAmp == discharge) {
-            sampleSearchDynamicEnergy = (Col[indexMatchline].cap
+            sampleSearchDynamicEnergy = (Col[indexMatchline].wireCap
                     + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
                 * (voltagePrecharge * voltagePrecharge - cell.readVoltage * cell.readVoltage)
                 * numColumn / muxSenseAmp;
         } else {
             if (UsesSramStyleCamModel(cell.memCellType)) {
-                sampleSearchDynamicEnergy = (Col[indexMatchline].cap + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
+                sampleSearchDynamicEnergy = (Col[indexMatchline].wireCap + ColMux[indexMatchline]->capForPreviousPowerCalculation + sampleCapTotalCell)
                     * voltagePrecharge * voltagePrecharge * numColumn / muxSenseAmp;
             } else if (UsesResistiveCamModel(cell.memCellType)) {
                 if (cell.readMode == false) {
@@ -3030,11 +3251,11 @@ void CAM_SubArray::UpdateVariationPowerSummary() {
                         / (resMatchlineMux + sample.mlWireRes + sample.cellResOn);
                     sampleSearchDynamicEnergy = sampleCapTotalCell * vpreMax * vpreMax
                         + ColMux[indexMatchline]->capForPreviousPowerCalculation * vpreMin * vpreMin
-                        + Col[indexMatchline].cap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
+                        + Col[indexMatchline].wireCap * (vpreMax * vpreMax + vpreMin * vpreMin + vpreMax * vpreMin) / 3;
                     sampleSearchDynamicEnergy *= numColumn / muxSenseAmp;
                 } else {
                     sampleSearchDynamicEnergy = (sampleCapTotalCell
-                            + Col[indexMatchline].cap
+                            + Col[indexMatchline].wireCap
                             + ColMux[indexMatchline]->capForPreviousPowerCalculation)
                         * (voltagePrecharge * voltagePrecharge - voltageMemCellOn * voltageMemCellOn)
                         * numColumn / muxSenseAmp;

@@ -48,8 +48,8 @@ void TestNand3dTypedYamlAndUnits() {
             "NAND3D has its own typed memory device");
     Require(!cell.nand.configured && device.electrical.configured,
             "NAND3D electrical values must never populate the planar device");
-    Require(device.storageMode == "SLC" && device.electrical.model == "transient_rc",
-            "only the requested storage mode and transient backend are selected");
+    Require(device.storageMode == "SLC" && device.electrical.model == "analytical_rc",
+            "only the requested storage mode and analytical backend are selected");
     Require(device.storageLayers == 68 && device.dummyLayers == 2
             && device.stringRows == 4 && device.stringColumns == 16,
             "3D stack and sequential selection groups preserve configured dimensions");
@@ -62,10 +62,6 @@ void TestNand3dTypedYamlAndUnits() {
     AssertNear(device.layerPitch, 50e-9);
     AssertNear(device.staircaseContactLength, 500e-9);
     AssertNear(device.isolationWidth, 200e-9);
-    AssertNear(device.prechargeDriverResistance, 1000);
-    AssertNear(device.solverMaxStep, 0.5e-9);
-    AssertNear(device.solverTolerance, 1e-6);
-    Require(device.solverMaxSteps == 100000, "solver step budget is explicit");
     AssertNear(cell.flashProgramTime, device.electrical.programPage.latency);
     AssertNear(cell.flashEraseTime, device.electrical.eraseBlock.latency);
     MemCell direct = cell;
@@ -94,14 +90,14 @@ void TestNand3dStrictSchemaAndTypeIsolation() {
         {[](Fixture& f) { f.device["nand"] = YAML::Load("{}"); }, "requires type: SLCNAND"},
         {[](Fixture& f) { f.device["read"] = YAML::Load("{mode: voltage}"); }, "memory_device.read"},
         {[](Fixture& f) { f.device["nand3d"]["storage_mode"] = "MLC"; }, "storage_mode"},
-        {[](Fixture& f) { f.device["nand3d"]["model"] = "analytical_rc"; }, "transient_rc"},
+        {[](Fixture& f) { f.device["nand3d"]["model"] = "transient_rc"; }, "analytical_rc"},
         {[](Fixture& f) { f.device["nand3d"]["source"] = " "; }, "provenance"},
         {[](Fixture& f) { f.device["nand3d"]["spec"] = "outside.spec"; }, "unknown key"},
         {[](Fixture& f) { f.device["nand3d"]["layout"]["hole_pitch_z"] = "10nm"; }, "unknown key"},
-        {[](Fixture& f) { f.device["nand3d"]["solver"]["adaptive"] = true; }, "unknown key"},
+        {[](Fixture& f) { f.device["nand3d"]["solver"]["max_steps"] = 100; }, "unknown key"},
+        {[](Fixture& f) { f.device["nand3d"]["precharge_driver_resistance"] = "1kohm"; }, "unknown key"},
         {[](Fixture& f) { f.device["nand3d"]["stack"].remove("dummy_layers"); }, "dummy_layers"},
         {[](Fixture& f) { f.device["nand3d"]["layout"].remove("string_rows"); }, "string_rows"},
-        {[](Fixture& f) { f.device["nand3d"]["solver"].remove("max_steps"); }, "max_steps"},
         {[](Fixture& f) { f.device["nand3d"]["layout"]["peripheral_placement"] = "under"; }, "under_array"}
     };
     for (const auto& test : cases) {
@@ -140,11 +136,6 @@ void TestNand3dRejectsInvalidDomainsAndOverflow() {
         {"layout", "isolation_width", "-1nm", "isolation_width"},
         {"layout", "hole_pitch_x", "1e308m", "Non-finite"},
         {"layout", "hole_pitch_y", "1e308m", "Non-finite"},
-        {"solver", "max_step", "0ns", "solver.max_step"},
-        {"solver", "tolerance", "0V", "solver.tolerance"},
-        {"solver", "tolerance", "2mV", "tolerance <= 1mV"},
-        {"solver", "max_steps", "99", "max_steps >= 100"},
-        {"solver", "max_steps", "2147483648", "max_steps"},
         {"capacitance", "internal", "0fF", "capacitance.internal"},
         {"capacitance", "source", "0fF", "capacitance.source"}
     };
@@ -161,7 +152,7 @@ void TestNand3dRejectsInvalidDomainsAndOverflow() {
     direct.nand3d.holePitchX = std::numeric_limits<double>::quiet_NaN();
     AssertThrows<std::runtime_error>([&] { PhysicalDomainValidators::ValidateMemCell(direct); }, "Non-finite");
     direct = nominal.Load();
-    direct.nand3d.solverMaxStep = std::numeric_limits<double>::infinity();
+    direct.nand3d.layerPitch = std::numeric_limits<double>::infinity();
     AssertThrows<std::runtime_error>([&] { PhysicalDomainValidators::ValidateMemCell(direct); }, "Non-finite");
     direct = nominal.Load();
     direct.nand.configured = true;

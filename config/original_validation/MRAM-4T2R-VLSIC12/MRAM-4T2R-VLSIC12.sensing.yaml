@@ -1,0 +1,10 @@
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+decision:
+  model: keeper_midpoint
+circuit:
+  model: diode_keeper
+  precharge_voltage: 1.2V
+  keeper_high_clamp: 0.71V
+  keeper_low_clamp: 0.32V

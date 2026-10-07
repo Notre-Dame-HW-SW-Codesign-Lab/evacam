@@ -11,6 +11,7 @@
 #include "MemCell.h"
 #include "McamPairResponse.h"
 #include "input/MemoryDeviceYamlLoader.h"
+#include "input/NandTechnologyDefaults.h"
 #include "input/PhysicalDomainValidators.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
@@ -174,6 +175,9 @@ void parse_ports(const YAML::Node& ports, MemCell& cell) {
             parse_port_connection(p, port, "ports.row");
             port.leak = YamlHelpers::read_optional<bool>(p, "leak", false);
             port.isNVMdischarge = YamlHelpers::read_optional<bool>(p, "is_nvm_discharge", false);
+            if (port.isNVMdischarge) {
+                throw std::runtime_error("is_nvm_discharge requires a column matchline port");
+            }
             port.widthWire = YamlHelpers::read_quantity_required(p, "wire_width", YamlHelpers::FeatureUnits(), 1.0, "ports.row.wire_width");
             YamlHelpers::require_positive(port.widthWire, "cell.ports.row.wire_width");
 
@@ -214,6 +218,9 @@ void parse_ports(const YAML::Node& ports, MemCell& cell) {
             parse_port_connection(p, port, "ports.column");
             port.leak = YamlHelpers::read_optional<bool>(p, "leak", false);
             port.isNVMdischarge = YamlHelpers::read_optional<bool>(p, "is_nvm_discharge", false);
+            if (port.isNVMdischarge && port.Type != Matchline && port.Type != Matchline_Bitline) {
+                throw std::runtime_error("is_nvm_discharge requires a column matchline port");
+            }
             port.widthWire = YamlHelpers::read_quantity_required(p, "wire_width", YamlHelpers::FeatureUnits(), 1.0, "ports.column.wire_width");
             YamlHelpers::require_positive(port.widthWire, "cell.ports.column.wire_width");
 
@@ -229,22 +236,42 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
     }
 
     cell.nandString = false;
+    cell.fefetGate = false;
+    cell.gateNodeAdditionalCap = 0;
+    cell.gateNodeSwitchingVoltage = 0;
     cell.nand = NandDeviceSpec{};
     cell.nand3d = Nand3dMemoryDevice{};
     if (YamlHelpers::child_optional(root, "topology")) {
         const std::string topology = YamlHelpers::read_required<std::string>(root, "topology");
-        if (topology != "nand_string") {
+        if (topology != "nand_string" && topology != "fefet_gate") {
             throw std::runtime_error("Unsupported cell.topology: " + topology);
         }
-        cell.nandString = true;
-        for (const char* key : {"ports", "access_device"}) {
-            if (YamlHelpers::child_optional(root, key)) {
-                throw std::runtime_error(std::string("cell.") + key
-                        + " is not supported with topology: nand_string");
+        cell.fefetGate = topology == "fefet_gate";
+        cell.nandString = topology == "nand_string";
+        if (cell.nandString) {
+            for (const char* key : {"ports", "access_device"}) {
+                if (YamlHelpers::child_optional(root, key)) {
+                    throw std::runtime_error(std::string("cell.") + key
+                            + " is not supported with topology: nand_string");
+                }
             }
+            cell.camNumRow = 0;
+            cell.camNumCol = 0;
         }
-        cell.camNumRow = 0;
-        cell.camNumCol = 0;
+    }
+    const auto gateNode = YamlHelpers::child_optional(root, "gate_node");
+    if (cell.fefetGate) {
+        YamlHelpers::reject_unknown_keys(gateNode, {"switching_voltage", "additional_capacitance"}, "cell.gate_node");
+        cell.gateNodeSwitchingVoltage = YamlHelpers::read_quantity_required(
+                YamlHelpers::child_required(root, "gate_node"), "switching_voltage",
+                YamlHelpers::VoltageUnits(), 1.0, "cell.gate_node.switching_voltage");
+        if (YamlHelpers::child_optional(gateNode, "additional_capacitance")) {
+            cell.gateNodeAdditionalCap = YamlHelpers::read_quantity_required(gateNode,
+                    "additional_capacitance", YamlHelpers::CapacitanceUnits(), 1.0,
+                    "cell.gate_node.additional_capacitance");
+        }
+    } else if (gateNode) {
+        throw std::runtime_error("cell.gate_node requires topology: fefet_gate");
     }
     const YAML::Node layout = YamlHelpers::child_required(root, "layout");
     cell.processNode = YamlHelpers::checked_integer<int>(
@@ -299,7 +326,7 @@ void ReadV2CellSection(MemCell& cell, const YAML::Node& root, const std::string&
 void ValidateV2CellKeys(const YAML::Node& root) {
     YamlHelpers::reject_unknown_keys(root,
             {"schema", "name", "cam_type", "memory_device", "access_device", "layout",
-             "ports", "topology"},
+             "ports", "topology", "gate_node"},
             "cell");
     YamlHelpers::reject_unknown_keys(YamlHelpers::child_optional(root, "access_device"),
             {"type", "cmos_width", "voltage_drop", "leakage_current"},
@@ -733,7 +760,7 @@ void ReadPortsSection(MemCell& cell, const YAML::Node& root) {
 }
 
 void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
-        const std::string& inputFile) {
+        const std::string& inputFile, bool allowTechnologyDefaults) {
     const YAML::Node reference = YamlHelpers::child_optional(root, "memory_device");
     if (!reference || !reference.IsScalar()) {
         return;
@@ -746,6 +773,9 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     RejectUnsupportedDramSection(deviceRoot);
     cell.memCellType = YamlHelpers::read_enum_required<MemCellType>(
             deviceRoot, "type", false);
+    const YAML::Node match = YamlHelpers::child_optional(deviceRoot, "match");
+    cell.isNVMdischarge = match && YamlHelpers::read_optional<bool>(
+            match, "is_nvm_discharge", false);
     ReadResistanceSection(cell, deviceRoot);
     ReadCapacitanceSection(cell, deviceRoot);
     ReadDeviceSection(cell, deviceRoot);
@@ -755,24 +785,26 @@ void ReadMemoryDeviceReference(MemCell& cell, const YAML::Node& root,
     ReadFlashSection(cell, deviceRoot);
     ReadVariationSection(cell, deviceRoot);
     ReadMcamSection(cell, deviceRoot);
-    YamlHelpers::ReadNandSection(cell, deviceRoot);
-    YamlHelpers::ReadNand3dSection(cell, deviceRoot);
+    YamlHelpers::ReadNandSection(cell, deviceRoot, allowTechnologyDefaults);
+    YamlHelpers::ReadNand3dSection(cell, deviceRoot, allowTechnologyDefaults);
 }
 
 }  // namespace
 
 namespace YamlHelpers {
 
-void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile) {
+void ReadMemCellFromYaml(MemCell& cell, const std::string& inputFile,
+        const std::shared_ptr<EvaCamConfig> &technologyContext) {
     const YAML::Node root = YAML::LoadFile(inputFile);
     YamlHelpers::require_schema(root, "cell", "cell config");
     cell.accessType = none_access;
     RejectV2DeviceSections(root);
     ValidateV2CellKeys(root);
     ReadV2CellSection(cell, root, inputFile);
-    ReadMemoryDeviceReference(cell, root, inputFile);
+    ReadMemoryDeviceReference(cell, root, inputFile, static_cast<bool>(technologyContext));
     ReadAccessDeviceSection(cell, root);
     ReadPortsSection(cell, root);
+    ApplyNandTechnologyDefaults(cell, technologyContext);
     PhysicalDomainValidators::ValidateMemCell(cell);
 }
 

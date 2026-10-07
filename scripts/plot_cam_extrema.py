@@ -52,7 +52,8 @@ def calculate_extrema(matcher, model, size):
                  max_voltage_v=matcher.sense_tcam_mismatches(h, 3)) for h in range(size + 1)]
 
 
-def draw_extrema(records, model, size, level, directory, nominal=None, voltage_samples=None):
+def draw_extrema(records, model, size, level, directory, nominal=None, voltage_samples=None,
+                 *, xscale='linear', yscale='linear', device_label=None):
     """Render full and active ranges, preserving gaps at unreachable distances."""
     maximum = records[-1]['distance']
     x = np.arange(maximum + 1)
@@ -63,6 +64,9 @@ def draw_extrema(records, model, size, level, directory, nominal=None, voltage_s
             values[record['distance']] = 1000 * record[key]
     low, high = arrays['min_voltage_v'], arrays['max_voltage_v']
     nlow, nhigh = arrays['nominal_min_voltage_v'], arrays['nominal_max_voltage_v']
+    if yscale == 'log' and any(np.any(values[np.isfinite(values)] <= 0)
+                              for values in arrays.values()):
+        raise ValueError('Logarithmic voltage plots require positive extrema')
     near = np.flatnonzero(high > high[0] * .04)
     zoom = min(maximum, max(4 if model == 'tcam' else 12, int(near[-1]) + 2))
     metric = 'Squared Euclidean Distance' if model == 'mcam' else 'Hamming Distance'
@@ -70,13 +74,18 @@ def draw_extrema(records, model, size, level, directory, nominal=None, voltage_s
                          'figure.facecolor': 'white', 'axes.facecolor': 'white'}):
         for active, limit in ((False, maximum), (True, zoom)):
             fig, axis = plt.subplots(figsize=(12, 7))
-            fig.suptitle(f'{model.upper()} Matchline Voltage by {metric}', fontsize=18, fontweight='bold')
+            if xscale == 'log':
+                axis.set_xscale('log', nonpositive='mask')
+            fig.suptitle(f'{device_label or model.upper()} Matchline Voltage by {metric}',
+                         fontsize=18, fontweight='bold')
             axis.set_title(f'{size}x{size} array — {level}% resistance standard deviation — '
                            + ('active-region detail' if active else 'full range'), pad=12)
             axis.axhspan(low[0], high[0], color='#C9C9C9', label='Exact-match extrema')
             for boundary in np.unique([low[0], high[0]]):
                 axis.axhline(boundary, color='#555555', linestyle='--', linewidth=1.3)
             visible = x <= limit
+            if xscale == 'log':
+                visible &= x > 0
             if level:
                 axis.fill_between(x[visible], low[visible], high[visible], color='#E7AA37',
                                   label='Extrema from ±3σ input resistance limits')
@@ -91,19 +100,38 @@ def draw_extrema(records, model, size, level, directory, nominal=None, voltage_s
                 artist = plot_all_points(axis, nominal, np.array([r['distance'] for r in records]),
                                          voltage_samples, limit, tv=True)
                 fig.colorbar(artist, ax=axis, pad=.02).set_label('Distinct nonzero deltas in composition')
-            axis.set_xlabel(r'Squared Euclidean distance, $D^2$' if model == 'mcam' else 'Hamming distance (mismatched cells)')
-            axis.set_ylabel('Matchline (ML) voltage (mV)')
-            axis.set_xlim(0, limit * 1.02)
-            axis.set_ylim(-.025 * np.nanmax(high), 1.1 * np.nanmax(high))
-            axis.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=9, integer=True))
+            axis.set_xlabel((r'Squared Euclidean distance, $D^2$' if model == 'mcam'
+                             else 'Hamming distance (mismatched cells)')
+                            + (' — log scale' if xscale == 'log' else ''))
+            axis.set_ylabel('Matchline (ML) voltage (mV)' + (' — log scale' if yscale == 'log' else ''))
+            if xscale == 'log':
+                minimum_distance = x[visible & np.isfinite(high)][0]
+                axis.set_xlim(minimum_distance / 1.04, limit * 1.02)
+                axis.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10, numticks=9))
+            else:
+                axis.set_xlim(0, limit * 1.02)
+                axis.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=9, integer=True))
+            axis.set_yscale(yscale)
+            if yscale == 'log':
+                minimum = min(np.nanmin(values[visible]) for values in arrays.values())
+                maximum_voltage = max(high[0], max(np.nanmax(values[visible]) for values in arrays.values()))
+                padding = max(0.05, 0.025 * np.log10(maximum_voltage / minimum))
+                axis.set_ylim(minimum / 10**padding, maximum_voltage * 10**padding)
+                axis.yaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10, numticks=9))
+            else:
+                axis.set_ylim(-.025 * np.nanmax(high), 1.1 * np.nanmax(high))
             axis.spines[['top', 'right']].set_visible(False)
             axis.grid(True, color='#d9dee3', linewidth=.7)
+            if xscale == 'log':
+                axis.grid(True, which='minor', axis='x', color='#e9edf1', linewidth=.4)
             axis.set_axisbelow(True)
             axis.legend(loc='upper right', fontsize=11, framealpha=1)
-            fig.text(.5, .035, 'Fixed nominal one-mismatch sensing instant; '
-                     + ('exact nominal extrema.' if not level else
-                        'exact extrema over bounded input resistances; no output-distribution coverage implied.'),
-                     ha='center', fontsize=10)
+            footer = 'Fixed nominal one-mismatch sensing instant; ' + (
+                'exact nominal extrema.' if not level else
+                'exact extrema over bounded input resistances; no output-distribution coverage implied.')
+            if xscale == 'log':
+                footer += '\nDistance zero is shown only by the horizontal exact-match reference.'
+            fig.text(.5, .015 if xscale == 'log' else .035, footer, ha='center', fontsize=10)
             fig.subplots_adjust(left=.115, right=.97, bottom=.16, top=.86)
             stem = 'voltage_extrema_active_region' if active else 'voltage_extrema'
             for extension in ('png', 'pdf', 'svg'):
@@ -111,11 +139,14 @@ def draw_extrema(records, model, size, level, directory, nominal=None, voltage_s
             plt.close(fig)
 
 
-def generate_extrema(model, size, level, directory, source=None, nominal=None, voltage_samples=None):
+def generate_extrema(model, size, level, directory, source=None, nominal=None, voltage_samples=None,
+                     *, xscale='linear', yscale='linear'):
     sys.path.insert(0, str(ROOT))
     import evacam_py
     directory.mkdir(parents=True, exist_ok=False)
     actual = prepare_inputs(model, size, level, directory / 'inputs', source)
+    cell = yaml.safe_load((actual.parent / 'cell.yaml').read_text())
+    architecture = yaml.safe_load((actual.parent / 'architecture.yaml').read_text())
     records = calculate_extrema(evacam_py.EvaCAMMatch(str(actual)), model, size)
     with (directory / 'voltage_extrema.csv').open('w', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=list(records[0]))
@@ -129,8 +160,15 @@ def generate_extrema(model, size, level, directory, source=None, nominal=None, v
         'sampling': 'none; extrema are support bounds, not output standard deviations or quantiles',
         'query': 'all zero; TCAM Hamming distance counts mismatched cells',
         'inputs': 'inputs/run.config.yaml',
+        'device_name': cell['name'],
+        'cell_process_node': cell['layout']['cell_process_node'],
+        'system_process_node': architecture['design']['system_process_node'],
+        'voltage_axis_scale': yscale,
+        'distance_axis_scale': xscale,
+        'zero_distance_display': 'horizontal exact-match reference only' if xscale == 'log' else 'included on axis',
     }, indent=2) + '\n')
-    draw_extrema(records, model, size, level, directory, nominal, voltage_samples)
+    draw_extrema(records, model, size, level, directory, nominal, voltage_samples,
+                 xscale=xscale, yscale=yscale, device_label=cell['name'])
     print(f'Rendered extrema: {directory}', flush=True)
 
 
@@ -139,13 +177,21 @@ def main(argv=None):
     parser.add_argument('--models', nargs='+', choices=('mcam', 'tcam'), default=['mcam', 'tcam'])
     parser.add_argument('--sizes', nargs='+', type=int, choices=(8, 16, 32, 64), default=[8, 16, 32, 64])
     parser.add_argument('--levels', nargs='+', type=int, choices=(0, 5, 10), default=[0, 5, 10])
+    parser.add_argument('--tcam-config', type=Path,
+                        help='TCAM source config (default: the shipped 45nm TCAM match config)')
+    parser.add_argument('--yscale', choices=('linear', 'log'), default='linear',
+                        help='Voltage axis scale (default: linear)')
+    parser.add_argument('--xscale', choices=('linear', 'log'), default='linear',
+                        help='Distance axis scale; log shows distance zero only as an exact-match reference (default: linear)')
     parser.add_argument('--output-dir', type=Path, default=ROOT / 'results/cam_voltage_extrema_tv')
     args = parser.parse_args(argv)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     for model in args.models:
         for size in args.sizes:
             for level in args.levels:
-                generate_extrema(model, size, level, args.output_dir / model / f'stdev{level:02d}' / f'{size}x{size}')
+                generate_extrema(model, size, level, args.output_dir / model / f'stdev{level:02d}' / f'{size}x{size}',
+                                 source=args.tcam_config if model == 'tcam' else None,
+                                 xscale=args.xscale, yscale=args.yscale)
 
 
 if __name__ == '__main__':

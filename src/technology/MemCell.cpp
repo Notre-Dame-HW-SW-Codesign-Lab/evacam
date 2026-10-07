@@ -100,12 +100,13 @@ MemCell::MemCell() {
 
 }
 
-void MemCell::ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd) {
+void MemCell::ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd,
+        const std::shared_ptr<EvaCamConfig> &technologyContext) {
     designTarget = _designTarget;
     vdd = _vdd;
 
     if (YamlHelpers::is_yaml_file(inputFile)) {
-        YamlHelpers::ReadMemCellFromYaml(*this, inputFile);
+        YamlHelpers::ReadMemCellFromYaml(*this, inputFile, technologyContext);
         return;
     }
 

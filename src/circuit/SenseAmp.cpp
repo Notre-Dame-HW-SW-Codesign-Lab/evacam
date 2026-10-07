@@ -32,6 +32,8 @@ void SenseAmp::Initialize(long long _numColumn, bool _currentSense, double _sens
     if (!config->peripherals.fileSenseAmp.empty()) {
         model = YamlHelpers::ReadSenseAmpModelFromYaml(config->peripherals.fileSenseAmp);
     }
+    if (model.model == "analytical_inverter" && currentSense)
+        throw std::invalid_argument("Analytical inverter requires voltage sensing.");
 
     if (pitchSenseAmp <= tech.featureSize() * model.minPitch) {
         /* too small, cannot do the layout */
@@ -54,6 +56,16 @@ void SenseAmp::CalculateArea() {
         double tempHeight = 0;
         double tempWidth = 0;
         auto& tech = *config->technology.tech;
+
+        if (model.model == "analytical_inverter") {
+            CalculateGateArea(INV, 1, model.nSenseWidth * tech.featureSize(),
+                    model.pSenseWidth * tech.featureSize(), pitchSenseAmp, tech,
+                    &tempHeight, &tempWidth, config->peripherals.useUpdatedLib);
+            height = tempHeight * tempWidth / pitchSenseAmp;
+            width = pitchSenseAmp * numColumn;
+            area = height * width;
+            return;
+        }
 
         if (currentSense) {	/* current-sensing needs IV converter */
             area += model.ivConverterArea * tech.featureSize() * tech.featureSize();
@@ -102,6 +114,10 @@ void SenseAmp::CalculateRC() {
         capLoad = 1e41;
     } else {
         auto& tech = *config->technology.tech;
+        if (model.model == "analytical_inverter") {
+            capLoad = CalculateGateCap((model.pSenseWidth + model.nSenseWidth) * tech.featureSize(), tech);
+            return;
+        }
         capLoad = CalculateGateCap((model.pSenseWidth + model.nSenseWidth) * tech.featureSize(), tech)
             + CalculateDrainCap(model.nSenseWidth * tech.featureSize(), NMOS, pitchSenseAmp, tech)
             + CalculateDrainCap(model.pSenseWidth * tech.featureSize(), PMOS, pitchSenseAmp, tech)
@@ -122,6 +138,17 @@ void SenseAmp::CalculateLatency(double observedSenseVoltage) {
     } else {
         readLatency = writeLatency = 0;
         auto& tech = *config->technology.tech;
+        if (model.model == "analytical_inverter") {
+            const double capOutput = model.outputCapacitance
+                + CalculateDrainCap(model.nSenseWidth * tech.featureSize(), NMOS, pitchSenseAmp, tech)
+                + CalculateDrainCap(model.pSenseWidth * tech.featureSize(), PMOS, pitchSenseAmp, tech);
+            // A falling matchline produces a rising inverter output. RC 50%
+            // propagation after the configured ML threshold; no latch gain term.
+            readLatency = std::log(2.0) * capOutput * CalculateOnResistance(
+                    model.pSenseWidth * tech.featureSize(), PMOS, config->input.temperature, tech);
+            writeLatency = readLatency;
+            return;
+        }
         if (currentSense) {	/* current-sensing needs IV converter */
             readLatency += LookupNodeValue(model.currentSenseLatency, tech.featureSize());
         }
@@ -143,6 +170,17 @@ void SenseAmp::CalculatePower() {
         readDynamicEnergy = writeDynamicEnergy = 0;
         leakage = 0;
         auto& tech = *config->technology.tech;
+        if (model.model == "analytical_inverter") {
+            const double capOutput = model.outputCapacitance
+                + CalculateDrainCap(model.nSenseWidth * tech.featureSize(), NMOS, pitchSenseAmp, tech)
+                + CalculateDrainCap(model.pSenseWidth * tech.featureSize(), PMOS, pitchSenseAmp, tech);
+            // Input gate charging is in the ML inventory, not charged twice here.
+            readDynamicEnergy = capOutput * tech.vdd() * tech.vdd() * numColumn;
+            writeDynamicEnergy = readDynamicEnergy;
+            leakage = CalculateGateLeakage(INV, 1, model.nSenseWidth * tech.featureSize(),
+                    model.pSenseWidth * tech.featureSize(), config->input.temperature, tech) * tech.vdd() * numColumn;
+            return;
+        }
         if (currentSense) {	/* current-sensing needs IV converter */
             readDynamicEnergy += LookupNodeValue(model.currentSenseEnergy, tech.featureSize());
             leakage += LookupNodeValue(model.currentSenseLeakage, tech.featureSize());

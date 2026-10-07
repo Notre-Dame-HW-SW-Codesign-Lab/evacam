@@ -1,7 +1,37 @@
 # Plan: nonlinear electrical support for NAND3D
 
-Status: proposed implementation following the current linear NAND3D backend.
-This document does not claim nonlinear support or paper correlation is complete.
+Scope update, 2026-10-02: production NAND3D retains its geometry and now uses
+`analytical_rc`. Transient integration is removed from the application path;
+nodal and nonlinear experiments remain verification/research utilities. The
+older implementation stages below are historical proposals, not the current
+production contract. See [3D NAND TCAM](nand-3d-tcam.md).
+
+Status: the first experimental cell-current/DC-string prototype is implemented
+and numerically tested; see the [DC evaluator report](validation/nand-nonlinear-dc.md).
+The nonlinear transient, CAM integration, and paper-correlation gates remain open.
+The [Park reference extraction](validation/nand-park-2025.md) is now frozen as
+version 1, with source gaps and partial curve domains recorded. It supplies the
+calibration/held-out partition, but missing operating conditions still prevent
+an unconditional quantitative validation claim. Paper fitting, nonlinear
+transient implementation, and CAM integration remain future work.
+
+## Required justification relative to NVSim
+
+EvaCAM derives from NVSim. Follow the
+[model-change justification record](validation/nand-nvsim-justification.md):
+preserve applicable inherited modeling and require evidence for each departure.
+The current reduced current law is an experimental candidate, not a demonstrated
+physical improvement over NVSim. Numerical verification and added circuit detail
+do not discharge that requirement.
+
+Before accepting a physical-model replacement, compare it with the pinned
+NVSim-derived baseline under matched operations, conditions, and accounting
+boundaries. Isolate the changed assumption, quantify error against an independent
+reference, and report runtime and additional input requirements. A calibration
+study must compare equal access to calibration data and preserve held-out cases.
+If a CAM or 3D extension has no corresponding NVSim operation, establish its
+necessity and validate the extension separately; do not manufacture an accuracy
+comparison between different operations.
 
 ## Objective and staged scope
 
@@ -241,8 +271,10 @@ under Valgrind. Record commands and reproducible result paths in the report.
 ## Completion criteria and dependencies
 
 The DC milestone requires traceable inputs, an immutable calibration split,
-one frozen parameter set, and reported held-out errors. Passing is assessed
-per declared observable/domain; unresolved cases remain visible.
+one frozen parameter set, and reported held-out errors. Acceptance as a modeling
+improvement additionally requires the controlled baseline comparison specified
+above. Passing is assessed per declared observable/domain; unresolved cases
+remain visible.
 
 The transient milestone additionally requires independent numerical agreement,
 conservation checks, and explicit convergence diagnostics. It remains physically

@@ -122,6 +122,7 @@ class CAM_SubArray: public FunctionUnit {
 
         long long ConfiguredRows() const;
         long long ConfiguredColumns() const;
+        double ScheduledSearchLatency(int senseGroups, int comparisonSteps) const;
 
         void ReadCustomDesign(char* _fileInputEnc, char* _fileSenseAmp);
         void CalculateArea();
@@ -192,15 +193,28 @@ class CAM_SubArray: public FunctionUnit {
         std::vector<double> McamStateDelays(const std::vector<double> &stateTaus);
         void CalculateSearchPathLatenciesAfterMatchline();
         double MatchlineTau(double effectiveCellRes, double mlWireRes) const;
+        double DiodeKeeperRate() const;
         double MatchlineEffectiveResistance(const CAMResistanceSample &sample, int mismatches) const;
         double MatchlineAllMatchTau(const CAMResistanceSample &sample) const;
         double MatchlineSenseMargin(double tauAllMatch, double tauOneMiss, double senseTime) const;
         double MatchlineBeta(double effectiveCellRes, int activeDischargePaths = 1) const;
+        double MatchlineInputRamp() const;
         double MatchlineHorowitzDelay(double tau, double effectiveCellRes, double *ramp,
                 int activeDischargePaths = 1) const;
 
     public:
         /* Properties */
+        CamDecisionResult decisionResponse;
+        CamSearchPhases searchPhases;
+        double decisionActivationTime = 0;
+        // Separate control node in 2FeFET-1T cells; zero for other topologies.
+        double gateNodeDelay = 0;
+        double gateNodeRamp = 0;
+        double gateNodeCapacitance = 0;
+        double gateNodeChargingEnergy = 0;
+        double gateNodeStaticPower = 0;
+        double gateNodeMatchVoltage = 0;
+        double gateNodeMismatchVoltage = 0;
         // NAND has a distinct series-string engine; ordinary CAM peripheral
         // pointers are not populated for this topology.
         std::unique_ptr<NandCamBackend> nandModel;

@@ -1,0 +1,45 @@
+schema: evacam_kondo_assumptions_v1
+status: exploratory_follow_up_after_inspecting_original_residuals
+source_manifest: docs/validation/nand-kondo-2022.reference.yaml
+parameter_fitting: none
+purpose: Separate circuit construction from measurement-definition disagreements.
+topologies:
+  distributed_96:
+    sections: 96
+    capacitances: half-adjacent finite volumes, including source half-capacitance
+    role: original distributed-line interpretation
+  distributed_8:
+    sections: 8
+    capacitances: half-adjacent finite volumes, including source half-capacitance
+    role: control that changes section count without changing endpoint convention
+  l_sections_8:
+    sections: 8
+    capacitances: 3 pF / 8 at each downstream node; zero source capacitance
+    role: alternative discrete circuit; each series resistance is 1 MOhm / 8
+    evidence:
+      - Figure 2(a) draws capacitors after series resistors, with no source capacitor.
+      - Figures 6-8 show eight spatial samples labeled from 1/8 to 8/8.
+    limitation: Eight plotted samples do not establish the original netlist section count.
+scope:
+  positions: [0.25, 1.0]
+  data: [0, 1]
+  compared_figures: [3b, 4a_far, 6_current, 7_current]
+  exclusions:
+    - Figure 3a retains its contradictory data-state label.
+    - 33% and 66% are not nodes of an eight-section line; do not round these taps.
+    - Figure 4b aggregates all six positions, so a four-case maximum cannot validate it.
+current_rules:
+  loaded:
+    description: Original 90-110% of loaded DC current, both data states.
+    status: original_primary_interpretation
+  data0_upper_10na:
+    description: Data 0 below nominal 10 nA with no lower limit; data 1 unchanged.
+    status: alternative motivated by page 6
+  data0_upper_20na:
+    description: Data 0 below 10 nA + 10% of nominal data-1 current (20 nA), no lower limit; data 1 unchanged.
+    status: exploratory diagnostic suggested by residuals; not established by paper
+    limitation: Agreement under this rule is not independent validation of the rule.
+acceptance:
+  literature_allowance: Preserve original pixel uncertainty plus 5% timing/full-scale engineering allowance.
+  ten_percent: Report raw relative timing error separately; do not replace the frozen rule.
+  reproduction_status: incomplete until netlist and measurement definitions are independently resolved

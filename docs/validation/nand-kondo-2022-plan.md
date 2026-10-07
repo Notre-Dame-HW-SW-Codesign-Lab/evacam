@@ -1,6 +1,15 @@
 # Plan: Kondo and Tanzawa bitline RC validation
 
-Status: planned; this document does not report a completed reproduction.
+Status: implemented as a reproducible investigation on 2026-09-25. See the
+[findings and reproduction commands](nand-kondo-2022.md). Numerical solver
+verification and publication correlation are reported separately; unresolved
+source definitions do not constitute a successful paper reproduction.
+The follow-up `make investigate-nand-kondo` compares the distributed-line
+assumption with an eight-section circuit suggested by the source figures.
+It improves voltage-delay correlation while preserving the unresolved
+data-0 measurement definition and the original experiment.
+
+The work sequence below is retained as the original investigation contract.
 
 ## Objective and evidence boundary
 

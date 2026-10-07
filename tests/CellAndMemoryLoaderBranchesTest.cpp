@@ -86,7 +86,7 @@ std::string V2Cell(const std::string& deviceRef, const std::string& extra = "") 
         "layout: {cell_process_node: 45nm, area: 20F^2, aspect_ratio: 2}\n"
         "ports:\n"
         "  row:\n"
-        "    0: {type: searchline, cmos_region: gate, num_cmos: 2, cmos_width: 3F, is_nmos: true, leak: true, is_nvm_discharge: true, wire_width: 1F, voltages: {set_lrs: 1V, set_mrs: 2V, reset: 3V, search0: 4V, search1: 5V}}\n"
+        "    0: {type: searchline, cmos_region: gate, num_cmos: 2, cmos_width: 3F, is_nmos: true, leak: true, is_nvm_discharge: false, wire_width: 1F, voltages: {set_lrs: 1V, set_mrs: 2V, reset: 3V, search0: 4V, search1: 5V}}\n"
         "  column:\n"
         "    1: {type: matchline, cmos_region: drain, num_cmos: 1, cmos_width: 4F, is_nmos: false, wire_width: 2F}\n" + extra;
 }
@@ -129,7 +129,7 @@ void TestReadMemCellFromYamlV2ResolvesRelativeDeviceAndParsesEverySection() {
     Require(cell.camNumRow == 1 && cell.camNumCol == 2, "sparse port indices preserve extent");
     Require(cell.camPort[0][0].ConnectedRegion == gate && cell.camPort[1][1].ConnectedRegion == drain,
             "v2 direct port connection");
-    Require(cell.camPort[0][0].leak && cell.camPort[0][0].isNVMdischarge && !cell.camPort[1][1].isNMOS,
+    Require(cell.camPort[0][0].leak && !cell.camPort[0][0].isNVMdischarge && !cell.camPort[1][1].isNMOS,
             "port flags");
     AssertNear(cell.camPort[0][0].volSearch1, 5); AssertNear(cell.widthAccessCMOS, 2);
 }
@@ -166,6 +166,11 @@ void TestLoadersRejectSchemasKeysAndUnsupportedForms() {
     TemporaryDirectory temp("cell-loader-errors");
     const auto device = temp.WriteFile("device.yaml", DeviceBody());
     const auto v2 = temp.WriteFile("cell.yaml", V2Cell("device.yaml"));
+    AssertThrows<std::runtime_error>([&] {
+        LoadCell(temp.WriteFile("wrong-discharge-port.yaml", ReplaceOnce(
+                V2Cell("device.yaml"), "is_nvm_discharge: false", "is_nvm_discharge: true")));
+    }, "requires a column matchline port");
+
     (void)device;
     AssertThrows<std::runtime_error>([&] { LoadCell(temp.WriteFile("bad-access.yaml",
             ReplaceOnce(V2Cell("device.yaml"),

@@ -90,7 +90,7 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     require_schema(root, "sense_amp", "sense amp config");
     reject_unknown_keys(root,
             {"schema", "name", "model", "supported_modes", "layout", "transistors",
-             "iv_converter"},
+             "iv_converter", "output_capacitance"},
             "sense_amp");
 
     const YAML::Node supportedModes = child_optional(root, "supported_modes");
@@ -103,6 +103,18 @@ SenseAmpModel ReadSenseAmpModelFromYaml(const std::string& inputFile) {
     SenseAmpModel model;
     model.loaded = true;
     model.model = YamlHelpers::read_required<std::string>(root, "model");
+    if (model.model == "analytical_inverter") {
+        reject_unknown_keys(root, {"schema", "name", "model", "transistors", "output_capacitance"}, "sense_amp");
+        const auto transistors = child_required(root, "transistors");
+        reject_unknown_keys(transistors, {"p_sense_width", "n_sense_width"}, "sense_amp.transistors");
+        model.pSenseWidth = read_quantity_required(transistors, "p_sense_width", {{"F", 1.0}}, 1.0, "p_sense_width");
+        model.nSenseWidth = read_quantity_required(transistors, "n_sense_width", {{"F", 1.0}}, 1.0, "n_sense_width");
+        model.outputCapacitance = read_quantity_required(root, "output_capacitance", CapacitanceUnits(), 1.0, "output_capacitance");
+        require_positive(model.pSenseWidth, "p_sense_width");
+        require_positive(model.nSenseWidth, "n_sense_width");
+        require_non_negative(model.outputCapacitance, "output_capacitance");
+        return model;
+    }
     if (model.model != "nvsim_cmos") {
         throw std::runtime_error("sense_amp model is not nvsim_cmos");
     }

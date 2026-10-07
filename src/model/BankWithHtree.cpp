@@ -533,7 +533,7 @@ void BankWithHtree::CalculateLatencyAndPower() {
         setDynamicEnergy = mat->setDynamicEnergy * numActiveMatPerRow * numActiveMatPerColumn;
 
         if (config->peripherals.noPrechargeInc) {
-            searchLatency = mat->subarray->matchlineDelay
+            searchLatency = mat->subarray->gateNodeDelay + mat->subarray->matchlineDelay
                 + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
                 + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
 
@@ -544,12 +544,9 @@ void BankWithHtree::CalculateLatencyAndPower() {
             }
 
         } else {
-            searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
-                - (mat->subarray->inputBuf->readLatency) * (mat->muxSenseAmp - 1);
-            if (config->peripherals.withOutputAcc) {
-                searchLatency *= config->wordGeometry.physicalColumnsPerWord
-                    / CAM_opt.ComparisonColumns;
-            }
+            const int steps = config->peripherals.withOutputAcc
+                    ? config->wordGeometry.physicalColumnsPerWord / CAM_opt.ComparisonColumns : 1;
+            searchLatency = mat->subarray->ScheduledSearchLatency(mat->muxSenseAmp, steps);
         }
 
         searchDynamicEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp

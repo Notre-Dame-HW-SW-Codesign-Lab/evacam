@@ -1,0 +1,8 @@
+schema: sensing
+internal: true
+sense_amplifier: inverter.sense_amp.yaml
+decision:
+  model: inverter_threshold
+circuit:
+  model: direct_nvm
+  precharge_voltage: 1V

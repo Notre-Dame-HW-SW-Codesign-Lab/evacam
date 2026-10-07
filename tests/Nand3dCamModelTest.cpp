@@ -47,13 +47,9 @@ struct Fixture {
         device.staircaseContactLength = 500e-9;
         device.isolationWidth = 200e-9;
         device.peripheralPlacement = "beside";
-        device.prechargeDriverResistance = 1000;
-        device.solverMaxStep = 0.5e-9;
-        device.solverTolerance = 1e-8;
-        device.solverMaxSteps = 100000;
         auto &electrical = device.electrical;
         electrical.configured = true;
-        electrical.model = "transient_rc";
+        electrical.model = "analytical_rc";
         electrical.calibrationStatus = "synthetic";
         electrical.source = "Synthetic independent unit-test circuit";
         electrical.resistanceReadOn = 10000;
@@ -137,16 +133,17 @@ void TestGeometryAndPlacement() {
     AssertNear(moreLayers.geometryMetrics.at("block_core_width_m"), tallerPitch.geometryMetrics.at("block_core_width_m"));
     Require(moreLayers.geometryMetrics.at("staircase_area_m2") > tallerPitch.geometryMetrics.at("staircase_area_m2"),
             "additional layers must add staircase footprint");
-    Require(moreLayers.matchVoltage > tallerPitch.matchVoltage, "additional pass devices alter the full RC response");
+    Require(moreLayers.matchVoltage > tallerPitch.matchVoltage, "additional pass devices alter the analytical first moment");
 }
 
-void TestTernaryTruthAndSampledMargin() {
+void TestTernaryTruthAndAnalyticalMargin() {
     Fixture fixture;
     fixture.Initialize();
     const auto &metrics = fixture.model.Metrics();
-    Require(metrics.senseMarginPass, "synthetic short string must have a detectable sampled margin");
-    Require(metrics.metadata.at("sensing_bound") == "sampled_patterns", "sampling must not claim global proof");
-    AssertNear(metrics.diagnosticMetrics.at("sampled_patterns"), 4 * fixture.width + 8);
+    Require(metrics.senseMarginPass, "synthetic short string must have a detectable analytical margin");
+    Require(metrics.metadata.at("sensing_bound") == "global_within_single_exponential_approximation",
+            "bounds apply to the analytical approximation only");
+    Require(metrics.diagnosticMetrics.empty(), "analytical estimates do not claim solver diagnostics");
     for (int storedCode = 0; storedCode < 9; storedCode++) {
         for (int queryCode = 0; queryCode < 9; queryCode++) {
             const std::vector<int> stored{storedCode % 3 - 1, storedCode / 3 - 1};
@@ -157,16 +154,22 @@ void TestTernaryTruthAndSampledMargin() {
             const auto result = fixture.model.Evaluate(stored, query);
             Require(result.hit == expected, "complete ternary truth table");
             Require(result.senseMarginPass, "all short-string patterns should resolve electrically");
+            if (expected) Require(result.matchlineVoltage <= metrics.matchVoltage + 1e-14,
+                    "analytical slowest-match bound covers every ternary match");
+            else Require(result.matchlineVoltage >= metrics.mismatchVoltage - 1e-14,
+                    "analytical fastest-mismatch bound covers every ternary mismatch");
             Require(result.matchlineVoltage >= 0 && result.matchlineVoltage <= 0.8,
-                    "nodal circuit stays inside supply envelope");
+                    "analytical response stays inside supply envelope");
             const auto invalid = fixture.model.Evaluate(stored, query, false);
             Require(!invalid.hit && invalid.senseMarginPass, "programmed invalid marker rejects even masked query");
+            Require(invalid.matchlineVoltage >= metrics.mismatchVoltage - 1e-14,
+                    "analytical mismatch bound includes invalid entries");
         }
     }
     const auto sourceMismatch = fixture.model.Evaluate({1, -1}, {0, -1});
     const auto drainMismatch = fixture.model.Evaluate({-1, 0}, {-1, 1});
     Require(sourceMismatch.matchlineVoltage > drainMismatch.matchlineVoltage,
-            "blocking-device position must survive full nodal evaluation");
+            "blocking-device position must survive analytical RC evaluation");
 }
 
 void TestIndependentLumpedPhaseLimitAndEnergy() {
@@ -176,7 +179,6 @@ void TestIndependentLumpedPhaseLimitAndEnergy() {
     device.storageLayers = 4;
     device.dummyLayers = 0;
     device.stringRows = 1;
-    device.prechargeDriverResistance = 10000;
     device.electrical.capacitanceSource = 1e-20;
     device.electrical.capacitanceInternal = 1e-20;
     device.electrical.precharge.latency = 0.1e-9;
@@ -184,21 +186,26 @@ void TestIndependentLumpedPhaseLimitAndEnergy() {
     device.electrical.minSenseMargin = 0.01;
     fixture.Initialize();
     const auto &metrics = fixture.model.Metrics();
-    // Vanishing internal capacitances reduce precharge to Rdriver*Cbitline;
-    // evaluation reduces to (2Rselect+2Rread+2Rpass)*Cbitline.
-    const double precharged = 0.8 * (1 - std::exp(-0.1e-9 / (10000 * 20e-15)));
-    const double expected = precharged * std::exp(-0.3e-9 / (32000 * 20e-15));
+    // Vanishing internal capacitances recover the closed-form lumped limit.
+    // Full precharge is the explicit assumption even for this short schedule.
+    const double expected = 0.8 * std::exp(-0.3e-9 / (32000 * 20e-15));
     const auto result = fixture.model.Evaluate({0}, {0});
     AssertNear(result.matchlineVoltage, expected, 2e-6);
-    AssertNear(metrics.diagnosticMetrics.at("precharge_max_voltage_v"), precharged, 2e-6);
-    AssertNear(metrics.diagnosticMetrics.at("precharge_source_energy_j_per_string"),
-            0.8 * 20e-15 * precharged, 2e-20);
+    const double chargedCapacitance = 20e-15 + 5e-20;
     AssertNear(metrics.searchEnergyBreakdown.at("bitline_and_internal_precharge"),
-            8 * 0.8 * 20e-15 * precharged / 0.8, 2e-19);
-    Require(metrics.diagnosticMetrics.at("precharge_max_voltage_v") < 0.5 * 0.8,
-            "incomplete precharge must not be silently replaced with uniform full rail");
+            8 * chargedCapacitance * 0.8 * 0.8 / 0.8, 1e-25);
+    Require(metrics.metadata.at("precharge_initial_condition") == "uniform_full_rail_assumed_each_round",
+            "full-rail precharge is an assumption, not a simulated claim");
     Require(metrics.searchEnergyBreakdown.count("string_conduction") == 0,
-            "precharge supply integration already accounts for subsequent discharge");
+            "CV squared charging already accounts for subsequent discharge");
+    device.electrical.precharge.latency = 1e-15;
+    device.electrical.recovery.latency = 1e-15;
+    fixture.Initialize();
+    const auto shortSchedule = fixture.model.Evaluate({0}, {0});
+    AssertNear(shortSchedule.matchlineVoltage, result.matchlineVoltage, 1e-14);
+    AssertNear(shortSchedule.searchDynamicEnergy, result.searchDynamicEnergy, 1e-25);
+    Require(shortSchedule.searchLatency < result.searchLatency,
+            "supplied phase times affect the schedule without simulating state");
 }
 
 void TestMuxGroupsAndOperations() {
@@ -214,8 +221,8 @@ void TestMuxGroupsAndOperations() {
     AssertNear(muxed.searchEnergyBreakdown.at("bitline_and_internal_precharge"),
             2 * base.searchEnergyBreakdown.at("bitline_and_internal_precharge"), 1e-20);
     AssertNear(muxed.searchEnergyBreakdown.at("sensing"), base.searchEnergyBreakdown.at("sensing"));
-    Require(muxed.diagnosticMetrics.at("maximum_reset_residual_v") <= fixture.Device().solverTolerance,
-            "reuse requires explicit full-node reset verification");
+    Require(muxed.diagnosticMetrics.empty(), "analytical operation requires no integration steps");
+    AssertNear(muxed.matchVoltage, base.matchVoltage, 1e-14);
     fixture.Device().electrical.programPage = {400e-6, 4e-9};
     fixture.Device().electrical.eraseBlock = {4e-3, 40e-9};
     fixture.Initialize();
@@ -228,9 +235,38 @@ void TestMuxGroupsAndOperations() {
     fixture.wire.capWirePerUnit = 1e-9;
     fixture.Initialize();
     Require(fixture.model.Metrics().matchVoltage > operations.matchVoltage,
-            "lateral wire pi-section must contribute to nodal voltage evolution");
-    fixture.Device().electrical.recovery.latency = 1e-15;
-    AssertThrows<std::runtime_error>([&] { fixture.Initialize(); }, "recovery insufficient");
+            "lateral wire pi-section must contribute to the first moment");
+
+}
+
+void TestAgreementWithPlanarAnalyticalCircuit() {
+    Fixture fixture;
+    fixture.Device().dummyLayers = 0;
+    fixture.Initialize();
+    auto config = TestModelBuilders::MakeEvaCamConfig();
+    auto &cell = *config->technology.cell;
+    cell.memCellType = SLCNAND;
+    cell.nandString = true;
+    cell.camType = TCAM;
+    cell.area = 4;
+    cell.aspectRatio = 2;
+    cell.nand = fixture.Device().electrical;
+    config->input = fixture.config->input;
+    config->input.pageSize = fixture.model.Metrics().entries;
+    config->peripherals.addCapOnML = 0;
+    NandCamModel planar;
+    planar.Initialize(config, config->input.pageSize, fixture.width, fixture.mux, fixture.wire);
+    const auto &vertical = fixture.model.Metrics();
+    AssertNear(vertical.slowestMatchTimeConstant, planar.Metrics().slowestMatchTimeConstant, 1e-24);
+    AssertNear(vertical.fastestMismatchTimeConstant, planar.Metrics().fastestMismatchTimeConstant, 1e-24);
+    AssertNear(vertical.matchVoltage, planar.Metrics().matchVoltage, 1e-14);
+    AssertNear(vertical.mismatchVoltage, planar.Metrics().mismatchVoltage, 1e-14);
+    AssertNear(vertical.searchEnergyBreakdown.at("bitline_and_internal_precharge"),
+            planar.Metrics().searchEnergyBreakdown.at("bitline_and_internal_precharge"), 1e-25);
+    for (const auto &pattern : std::vector<std::vector<int>>{{0, 1}, {1, 0}, {-1, -1}}) {
+        AssertNear(fixture.model.Evaluate(pattern, {0, 1}).matchlineVoltage,
+                planar.Evaluate(pattern, {0, 1}).matchlineVoltage, 1e-14);
+    }
 }
 
 void TestValidationAndLifecycle() {
@@ -249,13 +285,13 @@ void TestValidationAndLifecycle() {
     fixture.Device().electrical.capacitanceInternal = 0;
     AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "capacitance.internal");
     fixture.Device().electrical.capacitanceInternal = 0.05e-15;
-    fixture.Device().solverTolerance = 0.1;
-    AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "solver tolerance");
-    fixture.Device().solverTolerance = 1e-8;
+    fixture.Device().electrical.model = "transient_rc";
+    AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "analytical_rc");
+    fixture.Device().electrical.model = "analytical_rc";
     fixture.Device().electrical.senseOffset = 0.8;
     fixture.Initialize();
     Require(!fixture.model.Metrics().senseMarginPass && fixture.model.Metrics().senseMargin < 0,
-            "infeasible sampled margins remain signed");
+            "infeasible analytical margins remain signed");
     Require(fixture.model.Evaluate({0, 0}, {0, 0}).hit,
             "logical match remains distinct from electrical margin failure");
 }
@@ -263,9 +299,10 @@ void TestValidationAndLifecycle() {
 
 int main() {
     TestGeometryAndPlacement();
-    TestTernaryTruthAndSampledMargin();
+    TestTernaryTruthAndAnalyticalMargin();
     TestIndependentLumpedPhaseLimitAndEnergy();
     TestMuxGroupsAndOperations();
+    TestAgreementWithPlanarAnalyticalCircuit();
     TestValidationAndLifecycle();
     std::cout << "NAND3D CAM model tests passed\n";
 }

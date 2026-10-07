@@ -16,6 +16,7 @@ struct SenseAmpModel {
     double enableWidth = 5.0;
     double muxWidth = 9.0;
     double ivConverterArea = 5000.0;
+    double outputCapacitance = 0;
 
     struct NodeValue {
         double minFeatureSize = 0;

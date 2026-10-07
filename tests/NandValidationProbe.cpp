@@ -98,10 +98,8 @@ YAML::Node Probe(const std::string &configPath) {
     metadata["invalid_marker"] = "programmed H,L validity pair queried 0; erased L,L is not an invalid marker";
     if (vertical) {
         for (const auto &item : metrics.metadata) metadata[item.first] = item.second;
-        metadata["purpose"] = "independently verify encoded finite-precharge linear RC phases";
-        metadata["initial_condition"] = "reset zero, finite-driver precharge, phase state carried between mux rounds";
+        metadata["purpose"] = "independently verify encoded analytical first-moment RC estimates";
         metadata["wordline_order"] = "source dummy layers, validity pair, key pairs, pass padding, drain dummy layers";
-        metadata["time_constant_source"] = "unavailable for transient model";
     }
 
     auto geometry = root["geometry"];
@@ -142,9 +140,7 @@ YAML::Node Probe(const std::string &configPath) {
     inputs["supply_efficiency"] = device.supplyEfficiency;
     if (vertical) {
         inputs["dummy_layers"] = device3d.dummyLayers;
-        inputs["precharge_driver_resistance_ohm"] = device3d.prechargeDriverResistance;
         inputs["recovery_latency_s"] = device.recovery.latency;
-        inputs["solver_tolerance_v"] = device3d.solverTolerance;
     }
 
     auto predictions = root["model"];

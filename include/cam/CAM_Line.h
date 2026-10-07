@@ -39,7 +39,9 @@ class CAM_Line {
         int index;
         int temperature;
         double len;
-        double cap;
+        double cap = 0;
+        double wireCap = 0;
+        double deviceCap = 0;
         double res;
         bool isRow;
         double numCell;

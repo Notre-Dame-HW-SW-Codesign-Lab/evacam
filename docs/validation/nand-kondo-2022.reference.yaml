@@ -1,0 +1,92 @@
+schema: evacam_kondo_reference_v1
+paper:
+  title: Pre-Emphasis Pulse Design for Reducing Bit-Line Access Time in NAND Flash
+    Memory
+  authors:
+  - Junnosuke Kondo
+  - Toru Tanzawa
+  doi: 10.3390/electronics11131926
+  url: https://www.mdpi.com/2079-9292/11/13/1926
+  pdf_url: https://mdpi-res.com/d_attachment/electronics/electronics-11-01926/article_deploy/electronics-11-01926-v2.pdf
+  version: Updated version of record, 2022-06-22
+  retrieved_on: '2026-09-25'
+  sha256: 3e41e6dac0fc563d23b919b2f4c4c9945006bdf804391c21e98473abaa3bac3c
+  license: CC BY 4.0; Kondo and Tanzawa (2022)
+  local_cache: output/validation/nand-kondo-2022/source-cache/article.pdf
+source_audit:
+  full_text: true
+  simulation_deck: null
+  numeric_dataset: null
+  spice_section_count: null
+  spice_version: null
+  transition_rise_fall_time_s: null
+  notes: No supplement, netlist, numeric data or section count disclosed in the accessed
+    article. Publisher landing page returned HTTP 429; publisher CDN PDF succeeded.
+    No author contact performed.
+circuit:
+  line_resistance_ohm: 1000000.0
+  line_capacitance_f: 3.0e-12
+  cell_resistance_ohm:
+    '0': 50000000.0
+    '1': 5000000.0
+  nominal_cell_current_a:
+    '0': 1.0e-08
+    '1': 1.0e-07
+  pre_voltage_v: 0.6
+  final_voltage_v: 0.5
+  positions:
+  - 0.25
+  - 0.33
+  - 0.5
+  - 0.66
+  - 0.75
+  - 1.0
+  input_status: 'R/C/resistance/biases/printed positions: reported Table 1 and Section
+    2; total uniform R/C interpretation: assumed'
+  initial_voltage_v: 0
+  initial_condition_status: inferred from Figures 3/6/7
+  discretization: Uniform distributed line; finite-volume capacitance over half-adjacent
+    segments, half capacitance at each end. Exact cell and observation coordinates
+    inserted. Source endpoint capacitance is algebraic and switching charge is accounted
+    separately.
+  position_alternative:
+  - 0.25
+  - 0.3333333333333333
+  - 0.5
+  - 0.6666666666666666
+  - 0.75
+  - 1.0
+measurements:
+  primary: loaded_steady_state_90_110_percent
+  alternatives:
+  - nominal_90_110_percent
+  - data0_below_nominal_current
+  settling: Earliest time remaining in the window through all later pulse transitions
+    and a certified decaying tail; last entry, not first crossing.
+  voltage_target: I_dc * R_cell
+  sense_current: Positive from ideal source through first physical line segment; excludes
+    source-node capacitor impulses.
+  current_target: V_final / (x * R_line + R_cell)
+  data0_ambiguity: Abstract specifies 90-110%; page 6 permits any sense current below
+    10 nA for data 0. Both evaluated.
+  voltage_ambiguity: Figure 3a window appears centered on about 0.476 V although caption
+    specifies data 0. Both 5 MOhm and 50 MOhm cases evaluated.
+acceptance:
+  frozen_before_comparison: true
+  numerical_voltage_v: 1.0e-05
+  numerical_current_a: 1.0e-11
+  numerical_settling_s: 5.0e-09
+  convergence_relative: 0.005
+  literature_engineering_fraction: 0.05
+  literature_rule: 'Each point: absolute residual <= pixel ordinate uncertainty +
+    abscissa sensitivity + numerical/mesh uncertainty + 5% of timing ordinate or waveform
+    full scale. Ambiguous definitions remain incomplete even if one interpretation
+    passes.'
+  relative_error_floor_s: 1.0e-09
+data_hashes:
+  curves.json: f78d7975adbde40bd8521fc61366724261787f72fd8d14355589727f6b2c8486
+  extraction.json: d1efb76b12e022f9d07e2a6c578a8acbd1d62f2184af680c71853af23faf6c8c
+  quality.json: 64860a5de7a896e55583e246c20c77883108eba304d6d6ac35ca8019b4c706e0
+extraction_uncertainty: 3 display pixels per coordinate; 5 vertical pixels for current
+  traces, covering the 4.10-pixel maximum difference in 18 independent source picks.
+  Engineering allowances unchanged.

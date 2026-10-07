@@ -1,0 +1,7 @@
+# Reference fixture: https://archive.vlsisymposium.org/14web/wp-content/uploads/2013/06/Circ-14-program.pdf
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+sensing_mode: nvsim_cur

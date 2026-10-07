@@ -141,6 +141,11 @@ void TestMcamTopologyAndAggregateCalculations() {
     assert(subarray.numRow == 32 && subarray.numColumn == 64);
     assert(subarray.CAM_opt.BitSerialWidth == 32);
     assert(subarray.precharger && subarray.senseAmp && subarray.ColMux.at(0));
+    TestSupport::AssertNear(subarray.Col[subarray.indexMatchline].deviceCap,
+            subarray.capCellAccess * subarray.numRow);
+    TestSupport::AssertNear(subarray.Col[subarray.indexMatchline].cap,
+            subarray.Col[subarray.indexMatchline].wireCap
+                + subarray.capCellAccess * subarray.numRow);
     assert(subarray.precharger->numColumn == 64);
     assert(subarray.senseAmp->numColumn == 64);
     AssertFinitePositive(subarray.area);

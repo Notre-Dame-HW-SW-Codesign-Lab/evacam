@@ -2,6 +2,7 @@
 #define MEMCELL_H_
 
 #include <stdint.h>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,8 @@
 #include "technology/NandDeviceSpec.h"
 #include "technology/Nand3dMemoryDevice.h"
 
+class EvaCamConfig;
+
 class MemCell {
     public:
         MemCell();
@@ -17,7 +20,8 @@ class MemCell {
         virtual ~MemCell() = default;
 
         /* Functions */
-        void ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd);
+        void ReadCellFromFile(const std::string & inputFile, DesignTarget _designTarget, double _vdd,
+                const std::shared_ptr<EvaCamConfig> &technologyContext = nullptr);
         void PrintCell();
         // void CellScaling(int _targetProcessNode);
         double GetMemristance(double _relativeReadVoltage);  /* Get the LRS resistance of memristor at log-linear region of I-V curve */
@@ -66,6 +70,9 @@ class MemCell {
         double camWidthMatchTran;		/* The gate width of CMOS access transistor, Unit: F */
         CAMType camType; /* Ternary CAM, Multi-bit CAM, or Analog CAM */
         bool isNVMdischarge;
+        bool fefetGate = false;
+        double gateNodeAdditionalCap = 0;
+        double gateNodeSwitchingVoltage = 0;
         int numResistanceState;
         std::vector<std::vector<double>> mcamPairResistance; // # of state of multi-bit CAM
                                 // double ResistanceValues[64]; // corresponding resistance values

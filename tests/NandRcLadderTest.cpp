@@ -99,6 +99,34 @@ void TestPrechargeAndStateCarry() {
     AssertNear(isolated.voltages[1], 0.4, 1e-7);
 }
 
+void TestGroundedShuntsAndChargeBalance() {
+    const NandRcOptions options{0.1, 1e-10, 100000};
+    for (double initial : {-1.0, 1.0}) {
+        const auto decay = NandRcLadder::Solve({2}, {}, {initial}, 1, {}, {}, options, {3});
+        AssertNear(decay.voltages[0], initial * std::exp(-1.5), 1e-8);
+        AssertNear(decay.capacitorChargeChange + decay.groundShuntCharge, 0, 1e-12);
+    }
+    const auto driven = NandRcLadder::Solve({2}, {}, {0.2}, 1,
+            {true, 0.5, 1}, {true, 1, 0.5}, options, {3});
+    const double steady = 2.5 / 6;
+    AssertNear(driven.voltages[0], steady + (0.2 - steady) * std::exp(-3.0), 1e-8);
+    AssertNear(driven.capacitorChargeChange,
+            driven.leftSourceCharge + driven.rightSourceCharge - driven.groundShuntCharge, 1e-12);
+    const auto original = NandRcLadder::Solve({1, 2}, {1}, {0.2, 0.8}, 1,
+            {true, 1, 1}, {}, options);
+    const auto zero = NandRcLadder::Solve({1, 2}, {1}, {0.2, 0.8}, 1,
+            {true, 1, 1}, {}, options, {0, 0});
+    Require(original.voltages == zero.voltages && original.leftSourceCharge == zero.leftSourceCharge,
+            "zero shunts preserve existing callers exactly");
+    AssertNear(zero.groundShuntCharge, 0);
+    for (const auto &shunts : std::vector<std::vector<double>>{{}, {-1},
+            {std::numeric_limits<double>::infinity()}, {std::numeric_limits<double>::quiet_NaN()}, {0, 0}}) {
+        AssertThrows<std::invalid_argument>([&] {
+            NandRcLadder::Solve({1}, {}, {0}, 1, {}, {}, options, shunts);
+        }, "shunt");
+    }
+}
+
 void TestValidationAndStepLimit() {
     const NandRcOptions options{1, 1e-8, 1000};
     AssertThrows<std::invalid_argument>([&] { NandRcLadder::Solve({}, {}, {}, 1, {}, {}, options); }, "nodes");
@@ -149,6 +177,7 @@ int main() {
     TestKnownTwoPoleCircuit();
     TestStiff512WordlineCounterexample();
     TestPrechargeAndStateCarry();
+    TestGroundedShuntsAndChargeBalance();
     TestValidationAndStepLimit();
     TestNonfiniteDerivedArithmeticIsRejected();
     std::cout << "NAND nodal RC ladder tests passed\n";

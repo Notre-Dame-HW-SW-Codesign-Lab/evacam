@@ -1,6 +1,10 @@
 schema: cell
 name: FeFET-2Fe1T-DATE-2021
 cam_type: TCAM
+topology: fefet_gate
+gate_node:
+  # First-order digital switching assumption; not a fitted paper parameter.
+  switching_voltage: 0.5V
 memory_device: ./FeFET-2Fe1T-DATE-2021.memory_device.yaml
 access_device:
   type: cmos

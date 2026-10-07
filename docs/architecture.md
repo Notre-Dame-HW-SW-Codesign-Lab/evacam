@@ -52,7 +52,7 @@ Validation and pretty-printing are intentionally split out of the class into `Ev
 routing. The existing `Mat`/`CAM_SubArray` objects act as a compatibility
 facade; `CAM_SubArray::nandModel` owns a `NandCamBackend` selected by the NAND
 factory. `NandCamModel` preserves the planar analytical approximation, while
-the `NAND3D` backend integrates a finite-precharge linear nodal circuit with
+the `NAND3D` backend uses analytical first-moment RC estimates with
 explicit vertical/lateral geometry. Both provide series-string evaluation and
 explicit peripheral/operation costs. Legacy CAM
 peripheral pointers are intentionally not initialized for this topology.
@@ -62,14 +62,14 @@ uses its full block search latency and energy, including sense rounds, and
 keeps page program and block erase as individual addressed operations.
 `ExtractEvaCamDesignResult` builds the NAND result once for YAML, console, and
 Python, with operation scopes and provenance in string metadata. Backend
-geometry and solver diagnostic maps pass through the same extractor. Each output
+geometry and analytical time constants pass through the same extractor. Each output
 path branches before inspecting ordinary CAM peripherals.
 
 The matcher evaluates actual stored/query patterns through `NandCamBackend`
 instead of using the ordinary mismatch-count lookup. Both backends support
 fixed NAND geometry and nominal exact/wildcard search. See
 [NAND TCAM](nand-tcam.md) for the analytical approximation and
-[3D NAND TCAM](nand-3d-tcam.md) for the first SLC linear RC transient backend.
+[3D NAND TCAM](nand-3d-tcam.md) for analytical RC with vertical geometry.
 
 ## Config Loading Pipeline
 

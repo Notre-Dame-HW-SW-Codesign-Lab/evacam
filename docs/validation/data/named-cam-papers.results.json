@@ -1,0 +1,676 @@
+{
+  "audit_date": "2026-10-06",
+  "warning": "Numerical differences are not controlled accuracy estimates. See the accompanying report for boundaries and unmatched conditions.",
+  "records": [
+    {
+      "config_name": "FeFET-2Fe1T-DATE-2021",
+      "config": "config/FeFET-2Fe1T-DATE-2021/FeFET-2Fe1T-DATE-2021.config.yaml",
+      "paper": {
+        "url": "https://past.date-conference.com/proceedings-archive/2021/pdf/1478.pdf",
+        "reference_search_ns": 0.2528,
+        "reference_energy_fj_bit_search": 0.195,
+        "reference_cell_um2": 0.36,
+        "evidence": "Table I; SPECTRE simulation; array dimensions and scope not fully matched"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 7336.676,
+        "search_ns": 0.35762099999999997,
+        "search_pj": 3.503,
+        "geometry": {
+          "logical_capacity_bits": 4096,
+          "allocated_capacity_bits": 4096,
+          "storage_width_bits": 64,
+          "logical_word_width_bits": 64,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 64,
+          "word_padding_bits": 0,
+          "physical_cell_count": 4096,
+          "comparison_columns_per_step": 64,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x64",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "45nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      }
+    },
+    {
+      "config_name": "MRAM-2T2R-ASPDAC12",
+      "config": "config/MRAM-2T2R-ASPDAC12/MRAM-2T2R-ASPDAC12.config.yaml",
+      "paper": {
+        "url": "https://www.aspdac.com/aspdac2012/archive/program/D1_abst.html",
+        "reference_search_ns": null,
+        "reference_cell_um2": 2.5,
+        "evidence": "Official abstract D1-5; bit-serial measured chip; no absolute timing/energy extracted"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 70399.317,
+        "search_ns": 1.244,
+        "search_pj": 59.948,
+        "geometry": {
+          "logical_capacity_bits": 9216,
+          "allocated_capacity_bits": 73728,
+          "storage_width_bits": 72,
+          "logical_word_width_bits": 72,
+          "entry_count": 1024,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 72,
+          "word_padding_bits": 0,
+          "physical_cell_count": 9216,
+          "comparison_columns_per_step": 72,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "72x128",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "140nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      },
+      "diagnostic_variant": {
+        "status": "numerical_result",
+        "area_um2": 69933.395,
+        "search_ns": 1.596,
+        "search_pj": 94.535,
+        "geometry": {
+          "logical_capacity_bits": 9216,
+          "allocated_capacity_bits": 9216,
+          "storage_width_bits": 72,
+          "logical_word_width_bits": 72,
+          "entry_count": 128,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 72,
+          "word_padding_bits": 0,
+          "physical_cell_count": 9216,
+          "comparison_columns_per_step": 72,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "128x72",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "140nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false,
+        "conditions": "Partial geometry/nominal-node adjustment; not calibrated or fully paper-matched",
+        "numerical_latency_gap_percent": null
+      }
+    },
+    {
+      "config_name": "MRAM-4T2R-VLSIC12",
+      "config": "config/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml",
+      "paper": {
+        "url": "https://doi.org/10.1109/VLSIC.2012.6243781",
+        "reference_search_ns": 2.5,
+        "reference_area_um2": 17118.95,
+        "metric_source_url": "https://miglopst.github.io/files/li_iccad2016.pdf",
+        "evidence": "NVSim-CAM Table 2 actual column, blank area excluded; original full text unavailable"
+      },
+      "shipped": {
+        "status": "no_valid_solutions",
+        "area_um2": null,
+        "search_ns": null,
+        "search_pj": null,
+        "geometry": null,
+        "subarray_dimensions": null,
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "90nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": null,
+        "sense_margin_enforced": null
+      },
+      "diagnostic_variant": {
+        "status": "numerical_result",
+        "area_um2": 28412.419,
+        "search_ns": 0.74315,
+        "search_pj": 39.301,
+        "geometry": {
+          "logical_capacity_bits": 2048,
+          "allocated_capacity_bits": 2048,
+          "storage_width_bits": 32,
+          "logical_word_width_bits": 32,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 32,
+          "word_padding_bits": 0,
+          "physical_cell_count": 2048,
+          "comparison_columns_per_step": 32,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x32",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "90nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false,
+        "conditions": "Partial geometry/nominal-node adjustment; not calibrated or fully paper-matched",
+        "numerical_latency_gap_percent": -70.274
+      }
+    },
+    {
+      "config_name": "MRAM-6T2R-VLSIC11",
+      "config": "config/MRAM-6T2R-VLSIC11/MRAM-6T2R-VLSIC11.config.yaml",
+      "paper": {
+        "url": "https://www.csis.tohoku.ac.jp/files/Matsunaga_2011_SymposiumonVLSI_Circuits.pdf",
+        "reference_search_ns": 0.29,
+        "reference_cell_um2": 10.35,
+        "evidence": "Author presentation slide 11; measured 64-word x 32-bit chip; slide 19 energy is a different simulated geometry"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 135608.836,
+        "search_ns": 13.992,
+        "search_pj": 7222.0,
+        "geometry": {
+          "logical_capacity_bits": 65536,
+          "allocated_capacity_bits": 65536,
+          "storage_width_bits": 256,
+          "logical_word_width_bits": 256,
+          "entry_count": 256,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 256,
+          "word_padding_bits": 0,
+          "physical_cell_count": 65536,
+          "comparison_columns_per_step": 256,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "256x256",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "40nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      },
+      "diagnostic_variant": {
+        "status": "numerical_result",
+        "area_um2": 48470.996,
+        "search_ns": 0.8081430000000001,
+        "search_pj": 41.624,
+        "geometry": {
+          "logical_capacity_bits": 2048,
+          "allocated_capacity_bits": 2048,
+          "storage_width_bits": 32,
+          "logical_word_width_bits": 32,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 32,
+          "word_padding_bits": 0,
+          "physical_cell_count": 2048,
+          "comparison_columns_per_step": 32,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x32",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "90nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false,
+        "conditions": "Partial geometry/nominal-node adjustment; not calibrated or fully paper-matched",
+        "numerical_latency_gap_percent": 178.67000000000002
+      }
+    },
+    {
+      "config_name": "PCM-2T2R-JSSC11",
+      "config": "config/PCM-2T2R-JSSC11/PCM-2T2R-JSSC11.config.yaml",
+      "paper": {
+        "url": "https://li.seas.upenn.edu/publication/li-2014-jssc/",
+        "reference_search_ns": 1.9,
+        "reference_cell_um2": 0.41,
+        "evidence": "Author abstract; JSSC 2014; match delay at nominal conditions; special sensing and encoding"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 2682000.0,
+        "search_ns": 1.059,
+        "search_pj": 16190.999999999998,
+        "geometry": {
+          "logical_capacity_bits": 1048576,
+          "allocated_capacity_bits": 1048576,
+          "storage_width_bits": 64,
+          "logical_word_width_bits": 64,
+          "entry_count": 16384,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 64,
+          "word_padding_bits": 0,
+          "physical_cell_count": 1048576,
+          "comparison_columns_per_step": 64,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x512",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "90nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      }
+    },
+    {
+      "config_name": "ReRAM-2.5T1R-ISSCC16",
+      "config": "config/ReRAM-2.5T1R-ISSCC16/ReRAM-2.5T1R-ISSCC16.config.yaml",
+      "paper": {
+        "url": "https://scholar.nycu.edu.tw/en/publications/a-256b-wordlength-reram-based-tcam-with-1ns-search-time-and-14-im/",
+        "reference_search_ns": 1.0,
+        "evidence": "Paper title and author-institution abstract; 256-bit words; region-splitter sensing"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 43918.17,
+        "search_ns": 0.6125470000000001,
+        "search_pj": 542.955,
+        "geometry": {
+          "logical_capacity_bits": 16384,
+          "allocated_capacity_bits": 16384,
+          "storage_width_bits": 256,
+          "logical_word_width_bits": 256,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 256,
+          "word_padding_bits": 0,
+          "physical_cell_count": 16384,
+          "comparison_columns_per_step": 256,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "256x64",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "65nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      },
+      "diagnostic_variant": {
+        "status": "numerical_result",
+        "area_um2": 71699.509,
+        "search_ns": 0.6986680000000001,
+        "search_pj": 160.523,
+        "geometry": {
+          "logical_capacity_bits": 16384,
+          "allocated_capacity_bits": 16384,
+          "storage_width_bits": 256,
+          "logical_word_width_bits": 256,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 256,
+          "word_padding_bits": 0,
+          "physical_cell_count": 16384,
+          "comparison_columns_per_step": 256,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x256",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "65nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false,
+        "conditions": "Partial geometry/nominal-node adjustment; not calibrated or fully paper-matched",
+        "numerical_latency_gap_percent": -30.133199999999995
+      }
+    },
+    {
+      "config_name": "ReRAM-3T1R-ISSCC15",
+      "config": "config/ReRAM-3T1R-ISSCC15/ReRAM-3T1R-ISSCC15.config.yaml",
+      "paper": {
+        "url": "https://scholar.nycu.edu.tw/en/publications/a-3t1r-nonvolatile-tcam-using-mlc-reram-with-sub-1ns-search-time/",
+        "reference_search_ns": 0.96,
+        "evidence": "Author-institution abstract; measured two 64x64 blocks in 90nm"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 21142.955,
+        "search_ns": 0.542886,
+        "search_pj": 42.285,
+        "geometry": {
+          "logical_capacity_bits": 4096,
+          "allocated_capacity_bits": 4096,
+          "storage_width_bits": 64,
+          "logical_word_width_bits": 64,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 64,
+          "word_padding_bits": 0,
+          "physical_cell_count": 4096,
+          "comparison_columns_per_step": 64,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x32",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "90nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      },
+      "diagnostic_variant": {
+        "status": "numerical_result",
+        "area_um2": 20197.953,
+        "search_ns": 0.544482,
+        "search_pj": 21.677,
+        "geometry": {
+          "logical_capacity_bits": 4096,
+          "allocated_capacity_bits": 4096,
+          "storage_width_bits": 64,
+          "logical_word_width_bits": 64,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 64,
+          "word_padding_bits": 0,
+          "physical_cell_count": 4096,
+          "comparison_columns_per_step": 64,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "64x64",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "90nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false,
+        "conditions": "Partial geometry/nominal-node adjustment; not calibrated or fully paper-matched",
+        "numerical_latency_gap_percent": -43.283125
+      }
+    },
+    {
+      "config_name": "ReRAM-4T2R-VLSIC14",
+      "config": "config/ReRAM-4T2R-VLSIC14/ReRAM-4T2R-VLSIC14.config.yaml",
+      "paper": {
+        "url": "https://archive.vlsisymposium.org/14web/wp-content/uploads/2013/06/Circ-14-program.pdf",
+        "reference_search_ns": 1.2,
+        "evidence": "Official program paper 12.2; measured 128x32 in 180nm"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 1247.166,
+        "search_ns": 0.188338,
+        "search_pj": 0.733,
+        "geometry": {
+          "logical_capacity_bits": 1024,
+          "allocated_capacity_bits": 1024,
+          "storage_width_bits": 16,
+          "logical_word_width_bits": 16,
+          "entry_count": 64,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 16,
+          "word_padding_bits": 0,
+          "physical_cell_count": 1024,
+          "comparison_columns_per_step": 16,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "16x64",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "40nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      },
+      "diagnostic_variant": {
+        "status": "numerical_result",
+        "area_um2": 49904.052,
+        "search_ns": 1.209,
+        "search_pj": 64.284,
+        "geometry": {
+          "logical_capacity_bits": 4096,
+          "allocated_capacity_bits": 4096,
+          "storage_width_bits": 32,
+          "logical_word_width_bits": 32,
+          "entry_count": 128,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 32,
+          "word_padding_bits": 0,
+          "physical_cell_count": 4096,
+          "comparison_columns_per_step": 32,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "128x32",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "180nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false,
+        "conditions": "Partial geometry/nominal-node adjustment; not calibrated or fully paper-matched",
+        "numerical_latency_gap_percent": 0.7500000000000062
+      }
+    },
+    {
+      "config_name": "SRAM-16T-ESSCIRC15",
+      "config": "config/SRAM-16T-ESSCIRC15/SRAM-16T-ESSCIRC15.config.yaml",
+      "paper": {
+        "url": "https://www.proceedings.com/content/028/028141webtoc.pdf",
+        "reference_search_ns": null,
+        "evidence": "Tentative Fritsch mapping; 14nm and 4GHz title; full primary text unavailable"
+      },
+      "shipped": {
+        "status": "numerical_result",
+        "area_um2": 272798.901,
+        "search_ns": 0.279113,
+        "search_pj": 240.557,
+        "geometry": {
+          "logical_capacity_bits": 262144,
+          "allocated_capacity_bits": 262144,
+          "storage_width_bits": 32,
+          "logical_word_width_bits": 32,
+          "entry_count": 8192,
+          "bits_per_cell": 1,
+          "physical_columns_per_word": 32,
+          "word_padding_bits": 0,
+          "physical_cell_count": 262144,
+          "comparison_columns_per_step": 32,
+          "comparison_steps": 1
+        },
+        "subarray_dimensions": "32x32",
+        "model_assumptions": {
+          "model_identifier": "evacam-cam-v1",
+          "design_target": "CAM",
+          "routing": "h_tree",
+          "technology": {
+            "process_node": "28nm",
+            "roadmap": "HP"
+          },
+          "modeling_options": {
+            "exclude_precharge_latency": false,
+            "include_leakage": false,
+            "strict_sense_margin": false,
+            "scaled_voltage": "0.000V"
+          },
+          "limitations_reference": "docs/limitations.md"
+        },
+        "sense_margin_pass": true,
+        "sense_margin_enforced": false
+      }
+    },
+    {
+      "config_name": "ReRAM-2T2R-VLSI21",
+      "config": "config/examples/ReRAM-2T2R-VLSI21/ReRAM-2T2R-VLSI21.config.yaml",
+      "paper": {
+        "url": "https://engineering.purdue.edu/~haitongl/assets/pdf/2022_TED_SAPIENS_final.pdf",
+        "reference_search_ns": null,
+        "evidence": "Tentative SAPIENS mapping, predecessor at reference 8; 200MHz is not exact-TCAM search latency"
+      },
+      "shipped": {
+        "status": "input_error"
+      }
+    }
+  ]
+}

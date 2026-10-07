@@ -28,6 +28,13 @@ technology: ../lib/technology/cmos.updated.yaml
 
 All references are resolved relative to the file that contains them.
 
+The DATE21 2FeFET-1T configs now explicitly select `topology: fefet_gate`:
+the FeFET pair drives a CMOS gate separately from matchline discharge.
+[The schema](schema.md#2fefet-1t-gate-controlled-tcam) describes its assumptions
+and restrictions. Characterized scalar sense amplifiers can be selected with
+the ordinary `sensing.sense_amplifier` reference; see the
+[scalar amplifier format](schema.md#sense-amp-file).
+
 The NAND-string example is `config/NAND_TCAM/NAND_TCAM.config.yaml`. Its cell
 file selects `topology: nand_string` and has no generic CAM port or access-device
 mapping. Its `SLCNAND` memory-device file contains all explicit electrical and
@@ -36,11 +43,16 @@ peripheral costs under `nand`; an inline architecture sensing block selects
 dimensions mean `[physical strings, logical key bits]`, while `flash.page_size`
 and `flash.block_size` describe physical storage. See [NAND TCAM](nand-tcam.md)
 and [the NAND schema](schema.md#nand-string-tcam) before changing its geometry.
+For both planar and 3D NAND, missing RC, wordline-driver, and sense costs can
+use [technology-library estimates](nand-tcam.md#technology-library-fallbacks).
+EvaCAM warns with the affected field names and records the defaults in results;
+flash-specific geometry, biases, sensing requirements, and operation costs
+still require inputs.
 
 The vertical NAND example is
 `config/NAND_3D_TCAM/NAND_3D_TCAM.config.yaml`. Its ordinary
 `*.memory_device.yaml` selects `type: NAND3D` and places stack, lateral layout,
-electrical, precharge-driver, and solver settings under `nand3d`. One physical
+and electrical settings under `nand3d`, with `model: analytical_rc`. One physical
 page spans one select group rather than every string in the block. See
 [3D NAND TCAM](nand-3d-tcam.md) for the exact capacity and grouping rules.
 
@@ -172,8 +184,22 @@ Representative fields:
 - `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size` and `physical_limits.max_driver_current`
 - `sensing.sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from the referenced sense-amplifier name when omitted
+- `sensing.decision`: optional analytical `voltage_threshold` or `differential` decision; defaults to `legacy_horowitz`
+- `search_timing`: optional architecture-level control, precharge-overlap, driver-load and recovery settings for nominal exact TCAM; see the [schema](schema.md) and [analytical timing report](validation/analytical-cam-timing.md)
 
 Use the grouped examples under `config/` as the source of truth for current syntax.
+
+Rows count stored entries and columns count physical cells per entry. Active
+partitions divide the word; total/active partitions divide entries. For an
+irregular 72-bit word, 128 entries occupy `1152B` of physical capacity.
+The ASPDAC12 example compares eight columns per step and accumulates nine
+steps. ReRAM VLSI14, ISSCC15, and ISSCC16 explicitly select `nvsim_cur`.
+
+For a memory device in the matchline discharge path, set
+`match.is_nvm_discharge: true` in the memory-device file or
+`is_nvm_discharge: true` on its column matchline port. Either enables
+participation; false does not override another enabled setting. A memory
+device that only controls a CMOS gate should leave this disabled.
 Reference-only samples for every input role live under
 [`docs/input_samples/`](input_samples/). Those samples use neutral placeholder
 values and include inline comments with accepted unit suffixes.
@@ -364,3 +390,12 @@ For current runtime restrictions, see [limitations.md](limitations.md).
 - Keep referenced files near the run config when practical; relative references are resolved from the file that contains them.
 - If a run fails while parsing YAML, check indentation first.
 - If a run parses but reports no valid solutions, the issue is usually an unsupported parameter combination rather than YAML syntax.
+
+## Circuit-specific analytical reference inputs
+
+The optional sensing circuit models `direct_nvm`, `clamped_keeper` and
+`diode_keeper`, and the `analytical_inverter` sense-amplifier schema are documented
+with their domains and assumptions in
+[the original EvaCAM validation audit](validation/original-evacam-validation.md#analytical-models-and-accounting).
+`decision.model` also accepts `inverter_threshold` and `keeper_midpoint` with their
+corresponding circuit/amplifier models. These modes require nominal exact TCAM.

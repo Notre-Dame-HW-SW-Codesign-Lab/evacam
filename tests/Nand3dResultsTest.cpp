@@ -62,12 +62,15 @@ void TestNand3dResultContract(RoutingMode route, const std::string &placement = 
             "terminal conductance describes the supplied linear circuit");
     Require(dto.metadata.at("model_source") == device.electrical.source, "3D model source is preserved");
     Require(dto.metadata.at("model_backend") == device.electrical.model, "model identifier agrees with selected YAML backend");
-    Require(dto.metadata.count("transient_solver") != 0, "transient solver is identified");
+    Require(dto.metadata.count("transient_solver") == 0, "analytical results have no transient solver");
+    Require(dto.metadata.at("delay_model") == "first_moment_single_exponential", "analytical delay is identified");
+    Require(dto.metadata.at("precharge_initial_condition") == "uniform_full_rail_assumed_each_round",
+            "precharge assumption is explicit");
     Require(dto.metadata.at("peripheral_placement") == placement, "supported peripheral placement survives factory and output");
     Require(dto.metadata.at("read_metrics") == "unavailable", "conventional NAND read remains unavailable");
-    Require(dto.summary.count("timing.slowest_match_time_constant_s") == 0
-            && dto.summary.count("timing.fastest_mismatch_time_constant_s") == 0,
-            "transient result does not fabricate single-exponential time constants");
+    Require(dto.summary.count("timing.slowest_match_time_constant_s") == 1
+            && dto.summary.count("timing.fastest_mismatch_time_constant_s") == 1,
+            "analytical time constants are reported");
     Require(dto.summary.count("timing.read_latency_s") == 0
             && dto.summary.count("energy.read_dynamic_j") == 0,
             "3D NAND omits unsupported read metrics");
@@ -92,7 +95,7 @@ void TestNand3dResultContract(RoutingMode route, const std::string &placement = 
     for (const auto &item : metrics.geometryMetrics) {
         RequireClose(dto.geometry.at(item.first), item.second, "backend geometry survives extraction");
     }
-    Require(!metrics.diagnosticMetrics.empty(), "finite-precharge/solver diagnostics are available");
+    Require(metrics.diagnosticMetrics.empty(), "analytical evaluation has no numerical solver diagnostics");
     for (const auto &item : metrics.diagnosticMetrics) {
         RequireClose(dto.summary.at("diagnostics." + item.first), item.second,
                 "backend numerical diagnostics survive extraction");
@@ -120,8 +123,9 @@ void TestNand3dResultContract(RoutingMode route, const std::string &placement = 
             dto.summary.at("timing.search_latency_s"), "YAML and structured result share SI search timing");
     RequireClose(yaml["geometry"]["physical_cell_count"].as<double>(), dto.geometry.at("physical_cell_count"),
             "YAML and structured result share physical cell count");
-    Require(!yaml["summary"]["timing"]["slowest_match_time_constant_s"], "YAML omits one-pole parameters");
-    Require(yaml["summary"]["diagnostics"].IsMap(), "YAML groups numerical diagnostics separately");
+    RequireClose(yaml["summary"]["timing"]["slowest_match_time_constant_s"].as<double>(),
+            metrics.slowestMatchTimeConstant, "YAML includes analytical time constants");
+    Require(!yaml["summary"]["diagnostics"], "YAML omits numerical solver diagnostics");
 
     std::ostringstream noSolutions;
     WriteResultsYamlNoSolutions(noSolutions, *result->config);
@@ -139,7 +143,7 @@ void TestNand3dResultContract(RoutingMode route, const std::string &placement = 
     captured.Stop();
     const auto &console = captured.Text();
     Require(console.find("3D NAND") != std::string::npos, "console names the 3D device");
-    Require(console.find("Sampled-match") != std::string::npos, "console does not claim exhaustive pattern bounds");
+    Require(console.find("Slowest-match") != std::string::npos, "console identifies analytical bounds");
     Require(console.find("synthetic") != std::string::npos, "console states physical calibration status");
     Require(console.find("Planar Area Per Flash Transistor") == std::string::npos,
             "3D console does not use a planar transistor footprint");

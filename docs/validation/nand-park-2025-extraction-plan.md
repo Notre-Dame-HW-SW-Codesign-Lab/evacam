@@ -1,6 +1,11 @@
 # Plan: extract Park et al. 3D NAND string references
 
-Status: planned; no extracted dataset or fitted device model is claimed here.
+Status: extraction completed with explicit exclusions (reference version 1).
+See the [extraction report](nand-park-2025.md) and
+[frozen manifest](nand-park-2025.reference.yaml). Missing operating inputs and
+the Figure 7(b) unit ambiguity remain unresolved; no fitted EvaCAM device model
+or quantitative device-validation result is claimed. The workflow below records
+the extraction requirements.
 
 ## Objective and source
 
@@ -114,7 +119,7 @@ EvaCAM outputs into the reference coordinates.
 
 ## 5. Publish the data contract and quality checks
 
-Proposed artifacts:
+Delivered artifacts:
 
 | Path | Content |
 | --- | --- |
@@ -132,9 +137,9 @@ unambiguous units, trace/source provenance, and disjoint case partitions.
 Use compact synthetic extraction fixtures to test known linear/log coordinates;
 tests must not merely compare the extractor with itself.
 
-Add a proposed `make test-nand-park-reference` target to the appropriate test
-aggregation and `.github/workflows/cpp-tests.yml`. A proposed
-`make validate-nand-park-reference` command should regenerate quality reports
+The `make test-nand-park-reference` target is included in the test
+aggregation and `.github/workflows/cpp-tests.yml`.
+`make validate-nand-park-reference` regenerates quality reports
 from the frozen data offline. Keep future device definitions in ordinary
 `.memory_device.yaml` files; this reference manifest is experimental data,
 not a new device input format.

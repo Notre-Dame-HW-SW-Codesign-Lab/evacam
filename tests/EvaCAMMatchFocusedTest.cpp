@@ -346,9 +346,10 @@ void TestExplicitMcamVectorGeometry() {
 }
 
 void TestMcamBestAndThresholdSearches() {
-    // The application can explore this shipped BCAM configuration, but the
-    // matcher rejects its configured bank before any BCAM public operation.
-    AssertThrows<std::runtime_error>([] { EvaCAM_Match bcam(kBcamConfig); }, "configured bank is invalid");
+    // Migrated entry partitions are shared by exploration and the matcher.
+    EvaCAM_Match bcam(kBcamConfig);
+    assert(bcam.word_width() == 32);
+    AssertMetrics(bcam.evaluate_mismatches(1));
 
     TestSupport::TemporaryDirectory temporary("evacam-match-mcam");
     AssertThrows<std::runtime_error>([&] {

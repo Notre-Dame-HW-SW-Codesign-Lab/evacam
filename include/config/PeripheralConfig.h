@@ -4,6 +4,7 @@
 #include <string>
 
 #include "typedef.h"
+#include "model/AnalyticalCamTiming.h"
 
 struct PeripheralConfig {
     bool withInputEnc = false;
@@ -27,6 +28,21 @@ struct PeripheralConfig {
     double scaledVoltage = 0;
     bool useUpdatedLib = false;
     double addCapOnML = 0;
+    CamDecisionMode decisionMode = CamDecisionMode::LegacyHorowitz;
+    double decisionThreshold = 0;
+    bool inverterTripDecision = false;
+    bool keeperMidpointDecision = false;
+    bool explicitSearchTiming = false;
+    bool searchBroadcast = false;
+    bool overlapSearchPrecharge = true;
+    bool usePhysicalDriverLoad = false;
+    double searchRecovery = 0;
+    // Opt-in circuit reductions; legacy examples keep their historical behavior.
+    std::string matchlineCircuit = "legacy";
+    double prechargeVoltage = 0;
+    int bitsPerDischargePath = 1;
+    double keeperHighClamp = 0;
+    double keeperLowClamp = 0;
 };
 
 #endif /* CONFIG_PERIPHERALCONFIG_H_ */

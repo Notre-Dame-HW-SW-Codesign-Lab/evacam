@@ -1,0 +1,221 @@
+schema: original_evacam_validation
+version: 1
+sources:
+  evacam_date22:
+    url: https://past.date-conference.com/proceedings-archive/2022/pdf/0130.pdf
+    local_file: Eva-CAM_A_Circuit_Architecture-Level_Evaluation_Tool_for_General_Content_Addressable_Memories.pdf
+    sha256: 011aa067b7fd4880e45c4d1f1b923b511b1d31fa44aeaec70a6463c7d5f83b41
+  fefet_tcas19:
+    url: https://doi.org/10.1109/TCSII.2018.2889225
+    local_file: CAM Arrangement/An_Ultra-Dense_2FeFET_TCAM_Design_Based_on_a_Multi-Domain_FeFET_Model.pdf
+    sha256: 94539fcf4f65cc84100347250908560f497ba4b11158d35524d4bc09f0f7cff0
+  mram_vlsic12:
+    url: https://doi.org/10.1109/VLSIC.2012.6243781
+    local_file: CAM Arrangement/A_3.14_um2_4T-2MTJ-cell_fully_parallel_TCAM_based_on_nonvolatile_logic-in-memory_architecture.pdf
+    sha256: cc8a5097b168aaf94f6d761b45c889a611434bf3669cf1e0e7a97133f51d4552
+  pcm_jssc14:
+    url: https://doi.org/10.1109/JSSC.2013.2292055
+    local_file: CAM Arrangement/1_Mb_0.41_m_2T-2R_Cell_Nonvolatile_TCAM_With_Two-Bit_Encoding_and_Clocked_Self-Referenced_Sensing.pdf
+    sha256: 92e5e6e471c0c23c2765339f3026ff61cb1ec415bdf733c4d9b8b8a94da6f7f2
+  sapiens_ted21:
+    url: https://engineering.purdue.edu/~haitongl/assets/pdf/2022_TED_SAPIENS_final.pdf
+    local_file: CAM Arrangement/SAPIENS_A_64-kb_RRAM-Based_Non-Volatile_Associative_Memory_for_One-Shot_Learning_and_Inference_at_the_Edge.pdf
+    sha256: 67066b0389273dda062581de503f0aab4535b1107b29c64eb0d11997d7bd4ea7
+error_definition: 100*(estimate/reference-1); only scored when scope, operation, conditions
+  and activity match
+cases:
+- id: FeFET-2Fe-TCAS19
+  source: fefet_tcas19
+  geometry:
+    entries: 64
+    word_bits: 64
+    node_nm: 45
+    subarray:
+    - 64
+    - 64
+    subarray_count: 1
+  expected_solution: true
+  observations:
+    latency:
+      value: 0.35
+      unit: ns
+      scope: 64x64_exact_search
+      kind: hspice
+    energy:
+      value: 1.5
+      unit: pJ
+      scope: 64x64_exact_search
+      kind: hspice
+    area:
+      value: null
+      unit: um^2
+      scope: subarray
+      kind: silicon
+  published_evacam:
+    latency: 0.345
+    energy: 1.48
+    area: 3274
+  comparable:
+    latency: false
+    energy: false
+    area: false
+  blockers:
+  - DATE22 HSPICE deck and its peripheral loads are unavailable; TCAS19 circuit is
+    reconstructed.
+  - FeFET effective R/C and inverter output load remain inherited/unspecified.
+  - Full-discharge energy envelope does not establish the HSPICE workload activity.
+  config: config/original_validation/FeFET-2Fe-TCAS19/FeFET-2Fe-TCAS19.config.yaml
+  status: partial_reconstruction
+  expected_model:
+    matchline_timing_model: analytical_voltage_threshold
+    matchline_circuit: direct_nvm
+    bits_per_discharge_path: 1
+    sense_amplifier_model: analytical_inverter
+- id: MRAM-4T2R-VLSIC12
+  source: mram_vlsic12
+  geometry:
+    entries: 64
+    word_bits: 32
+    node_nm: 90
+    subarray:
+    - 64
+    - 32
+    subarray_count: 1
+  expected_solution: true
+  observations:
+    latency:
+      value: 2.5
+      unit: ns
+      scope: ML_ST_to_OUT_32bit_word
+      kind: silicon
+    energy:
+      value: null
+      unit: pJ
+      scope: search
+      kind: silicon
+    area:
+      value: 17200
+      unit: um^2
+      scope: macro_excluding_blank
+      kind: silicon
+  published_evacam:
+    latency: 2.72
+    energy: null
+    area: 18270
+  comparable:
+    latency: false
+    energy: false
+    area: false
+  blockers:
+  - Measured DC source nodes are approximately 0.71/0.32V. Diode keeper uses PTM threshold/current
+    and an assumed midpoint SA trip; fabricated keeper sizing and control-node settling
+    are uncharacterized.
+  - Generic sensing/control and floorplan blank area differ from measured macro boundaries.
+  config: config/original_validation/MRAM-4T2R-VLSIC12/MRAM-4T2R-VLSIC12.config.yaml
+  status: partial_reconstruction
+  expected_model:
+    matchline_timing_model: analytical_voltage_threshold
+    matchline_circuit: diode_keeper
+    bits_per_discharge_path: 1
+    sense_amplifier_model: generic
+- id: PCM-2T2R-JSSC14
+  source: pcm_jssc14
+  geometry:
+    entries: 16384
+    word_bits: 64
+    node_nm: 90
+    subarray:
+    - 512
+    - 64
+    subarray_count: 32
+  expected_solution: false
+  observations:
+    latency:
+      value: 1.9
+      unit: ns
+      scope: screened_match_delay_1.2V
+      kind: silicon
+    energy:
+      value: null
+      unit: pJ
+      scope: search
+      kind: silicon
+    area:
+      value: 5940000
+      unit: um^2
+      scope: whole_die_with_reference_test_io
+      kind: silicon
+  published_evacam:
+    latency: 2.1
+    energy: null
+    area: null
+  comparable:
+    latency: false
+    energy: false
+    area: false
+  blockers:
+  - With corrected selected-access leakage and two-bit paths the inherited 70mV sense
+    requirement is infeasible at the illustrative 0.55/0.45V thresholds.
+  - CSRSS transistor sizing, charge-sharing node capacitance, latch and programmable
+    reference timing are not specified.
+  - Whole die 2.2x2.7mm includes test/reference/IO; it is not an array area target.
+  config: config/original_validation/PCM-2T2R-JSSC14/PCM-2T2R-JSSC14.config.yaml
+  status: partial_reconstruction
+  expected_model:
+    matchline_timing_model: analytical_voltage_threshold
+    matchline_circuit: direct_nvm
+    bits_per_discharge_path: 2
+    sense_amplifier_model: generic
+- id: SAPIENS-2T2R-TED21
+  source: sapiens_ted21
+  config: null
+  expected_solution: null
+  observations:
+    latency:
+      value: 5
+      unit: ns
+      scope: sensing_clock_period
+      kind: silicon
+      operator: lower_bound
+    energy:
+      value: 270
+      unit: pJ
+      scope: 32vector_search_unspecified_normalization
+      kind: silicon
+    area:
+      value: 98000
+      unit: um^2
+      scope: array_and_peripherals_die_photo_subset
+      kind: silicon
+  published_evacam:
+    latency:
+    - 2
+    - 4.4
+    energy: 268.5
+    area: 86600
+  comparable:
+    latency: false
+    energy: false
+    area: false
+  blockers:
+  - SAPIENS uses divider sensing, shared SAs and serial L1 accumulation; generic exact-TCAM
+    bank is a different operation.
+  - Divider charger, dual thresholds and digital accumulator/control costs need circuit
+    characterization.
+  - DATE22 area target is a die-photo subset; total SAPIENS core is 0.2mm^2.
+  status: unsupported_architecture
+sapiens_workload:
+  physical_rram_devices: 65536
+  devices_per_bit: 2
+  subarrays: 8
+  vectors_per_subarray: 32
+  vector_bits: 128
+  sense_amplifiers: 32
+  bitline_mux: 8
+  bits_per_cycle: 1
+  clock_mhz: 200
+  power_mw: 3.39
+  normalization_vectors: 32
+  note: Clock/workload arithmetic is a reconstruction from measured inputs, not an
+    independent EvaCAM prediction. 640ns is a 32-vector bank query; eight mux groups
+    take 5120ns if processed serially.

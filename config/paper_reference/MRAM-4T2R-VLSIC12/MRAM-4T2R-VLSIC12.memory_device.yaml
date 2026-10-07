@@ -1,0 +1,25 @@
+# Reference fixture: https://miglopst.github.io/files/li_iccad2016.pdf
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: memory_device
+name: MRAM-4T2R-VLSIC12-reference
+type: MRAM
+resistance:
+  'on': 1100ohm
+  'off': 2500ohm
+read:
+  mode: voltage
+  current: 70uA
+  power: 16.5uW
+  min_sense_voltage: 500mV
+write:
+  set:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 80uA
+    pulse: 10ns
+    energy: 1pJ

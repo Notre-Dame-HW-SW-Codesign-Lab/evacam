@@ -1,0 +1,25 @@
+# Reference fixture: https://scholar.nycu.edu.tw/en/publications/a-3t1r-nonvolatile-tcam-using-mlc-reram-with-sub-1ns-search-time/
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: memory_device
+name: ReRAM-3T1R-ISSCC15-reference
+type: memristor
+resistance:
+  'on': 400ohm
+  'off': 300000ohm
+read:
+  mode: current
+  voltage: 0.25V
+  power: 30uW
+  min_sense_voltage: 25mV
+write:
+  set:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ
+  reset:
+    mode: current
+    current: 150uA
+    pulse: 10ns
+    energy: 1pJ

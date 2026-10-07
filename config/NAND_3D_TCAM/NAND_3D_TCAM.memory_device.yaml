@@ -3,7 +3,7 @@ name: NAND_3D_TCAM_synthetic
 type: NAND3D
 nand3d:
   storage_mode: SLC
-  model: transient_rc
+  model: analytical_rc
   calibration_status: synthetic
   source: "Synthetic illustrative RC and peripheral values; not measured NAND characterization."
   stack: {storage_layers: 68, dummy_layers: 2}
@@ -17,8 +17,6 @@ nand3d:
     staircase_contact_length: 500nm
     isolation_width: 200nm
     peripheral_placement: beside
-  precharge_driver_resistance: 1kohm
-  solver: {max_step: 0.5ns, tolerance: 1uV, max_steps: 100000}
   # Pass resistance is shared by both threshold states in this backend.
   resistance:
     read_on: 10kohm
@@ -38,10 +36,11 @@ nand3d:
     decision_time: 50ns
     # Required distance of each class from reference, after offset allowance.
     min_margin: 0.1V
-    reference_voltage: 0V  # Automatic sampled-pattern midpoint.
+    reference_voltage: 0V  # Midpoint of the analytical match/mismatch bounds.
     offset: 0.01V
-  # Supply-side overheads exclude the modeled gate C*V^2 charging and finite
-  # precharge-driver energy integrated from transient source charge.
+  # Supply-side overheads exclude the modeled gate and precharge C*V^2 energy.
+  # Precharge and recovery durations are assumed sufficient for full reset
+  # and recharge; the analytical model does not integrate these phases.
   # Driver area/leakage is per storage/dummy wordline and select-group line;
   # driver energy is per voltage update. Sense hardware is per mux channel.
   # Page-buffer hardware is per string column, reused across selection groups.

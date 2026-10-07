@@ -1,5 +1,6 @@
 #include "output/ResultsYaml.h"
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <iomanip>
@@ -12,6 +13,7 @@
 #include "UnitFormatter.h"
 #include "EvaCamConfig.h"
 #include "EvaCamResultExtractor.h"
+#include "input/SenseAmpYamlLoader.h"
 
 namespace {
 
@@ -129,16 +131,12 @@ namespace {
         const auto& bank = result.bank;
         const auto& sub = bank->mat->subarray;
         if (result.config->peripherals.noPrechargeInc) {
-            return sub->matchlineDelay + sub->ColMux[sub->indexMatchline]->readLatency
+            return sub->gateNodeDelay + sub->matchlineDelay + sub->ColMux[sub->indexMatchline]->readLatency
                 + sub->senseAmpLatency + sub->outputAcc->readLatency;
         }
 
-        double latency = sub->searchLatency * bank->mat->muxSenseAmp
-            - sub->inputBuf->readLatency * (bank->mat->muxSenseAmp - 1);
-        if (result.config->peripherals.withOutputAcc) {
-            latency *= comparison_steps(result);
-        }
-        return latency;
+        const int steps = result.config->peripherals.withOutputAcc ? comparison_steps(result) : 1;
+        return sub->ScheduledSearchLatency(bank->mat->muxSenseAmp, steps);
     }
 
     double local_search_energy(const Result& result) {
@@ -207,6 +205,9 @@ namespace {
         return value.c_str();
     }
 
+    void write_si_metrics(YamlWriter &y, const std::string &name,
+            const std::unordered_map<std::string, double> &metrics);
+
     void write_assumptions(YamlWriter& y, const EvaCamConfig &config) {
         const bool nand3d = config.technology.cell && config.technology.cell->memCellType == NAND3D;
         y.begin_map("assumptions");
@@ -215,16 +216,84 @@ namespace {
                 ? "evacam-nand-tcam-v1" : "evacam-cam-v1");
         y.line("design_target", "CAM");
         y.line("routing", config.input.routingMode == h_tree ? "h_tree" : "non_h_tree");
+        if (config.technology.cell) {
+            y.line("cell_topology", config.technology.cell->nandString ? "nand_string"
+                    : config.technology.cell->fefetGate ? "fefet_gate" : "generic_ports");
+        }
         y.begin_map("technology");
         y.line("process_node", std::to_string(config.input.processNode) + "nm");
+        if (config.technology.tech) {
+            y.line("physical_feature_size", std::to_string(config.technology.tech->featureSizeInNano()) + "nm");
+        }
+        y.line("electrical_lower_node", std::to_string(config.technology.electricalLowerNode) + "nm");
+        y.line("electrical_upper_node", std::to_string(config.technology.electricalUpperNode) + "nm");
+        y.line("interpolation_alpha", std::to_string(config.technology.interpolationAlpha));
         y.line("roadmap", roadmap_name(config.input.deviceRoadmap));
         y.end_map();
         y.begin_map("modeling_options");
         y.line("exclude_precharge_latency", bool_name(config.peripherals.noPrechargeInc));
+        y.line("search_latency_scope", config.peripherals.noPrechargeInc
+                ? "legacy_single_sense" : "scheduled_full_search");
+        y.line("sense_amplifier_model", config.technology.cell && config.technology.cell->nandString
+                ? "nand_backend" : config.peripherals.customSenseAmp ? "scalar"
+                : (!config.peripherals.fileSenseAmp.empty()
+                    && YamlHelpers::ReadSenseAmpModelFromYaml(config.peripherals.fileSenseAmp).model == "analytical_inverter")
+                    ? "analytical_inverter" : "generic");
+        if (config.technology.cell && !config.technology.cell->nandString
+                && config.technology.cell->camType == TCAM) {
+            const auto mode = config.peripherals.decisionMode;
+            y.line("matchline_timing_model", mode == CamDecisionMode::LegacyHorowitz ? "horowitz_50_percent"
+                    : mode == CamDecisionMode::FixedThreshold ? "analytical_voltage_threshold" : "analytical_differential");
+            if (mode != CamDecisionMode::LegacyHorowitz) {
+                y.line("matchline_response", config.peripherals.matchlineCircuit == "diode_keeper" ? "piecewise_square_law_with_linear_activation"
+                        : config.peripherals.matchlineCircuit == "clamped_keeper"
+                        ? "piecewise_clamped_rc_with_linear_activation" : "one_pole_with_linear_conductance_activation");
+                y.line("decision_reference", mode == CamDecisionMode::FixedThreshold
+                        ? (config.peripherals.inverterTripDecision ? "analytical_inverter_trip"
+                            : config.peripherals.keeperMidpointDecision ? "source_midpoint_plus_mos_threshold" : "fixed_voltage")
+                        : "ideal_between_match_and_one_miss");
+                if (mode == CamDecisionMode::FixedThreshold)
+                    y.line("decision_threshold", fmt_voltage(config.peripherals.decisionThreshold));
+            }
+        }
+        if (config.peripherals.matchlineCircuit != "legacy") {
+            y.line("matchline_circuit", config.peripherals.matchlineCircuit);
+            y.line("precharge_voltage", fmt_voltage(config.peripherals.prechargeVoltage));
+            y.line("bits_per_discharge_path", std::to_string(config.peripherals.bitsPerDischargePath));
+            y.line("matchline_energy_scope", "conservative_full_discharge_supply_recharge");
+            y.line("cell_conduction_energy", config.peripherals.matchlineCircuit == "direct_nvm"
+                    ? "included_in_matchline_recharge" : "configured_cell_bias_power");
+            if (config.peripherals.matchlineCircuit == "diode_keeper") {
+                y.line("keeper_high_source", fmt_voltage(config.peripherals.keeperHighClamp));
+                y.line("keeper_low_source", fmt_voltage(config.peripherals.keeperLowClamp));
+                y.line("keeper_mos_threshold", fmt_voltage(config.technology.tech->vth()));
+                y.line("keeper_wire_model", "lumped_capacitance_wire_resistance_omitted");
+            } else if (config.peripherals.matchlineCircuit == "clamped_keeper") {
+                y.line("keeper_high_clamp", fmt_voltage(config.peripherals.keeperHighClamp));
+                y.line("keeper_low_clamp", fmt_voltage(config.peripherals.keeperLowClamp));
+            }
+        }
         y.line("include_leakage", bool_name(config.peripherals.includeLeakage));
         y.line("strict_sense_margin", bool_name(nand3d || config.peripherals.strictSenseMargin));
         y.line("scaled_voltage", fmt_voltage(config.peripherals.scaledVoltage));
         y.end_map();
+        if (config.peripherals.explicitSearchTiming) {
+            y.begin_map("search_timing");
+            y.line("control", config.peripherals.searchBroadcast ? "broadcast" : "decoded");
+            y.line("precharge", config.peripherals.overlapSearchPrecharge ? "overlap_input" : "serial");
+            y.line("driver_load", config.peripherals.usePhysicalDriverLoad ? "physical_line" : "legacy_scaled");
+            y.line("recovery", fmt_second(config.peripherals.searchRecovery));
+            y.end_map();
+        }
+        if (config.technology.cell && config.technology.cell->fefetGate) {
+            y.begin_map("fefet_gate");
+            y.line("model", "resistive_control_node_then_cmos_discharge");
+            y.line("calibration_status", "uncharacterized");
+            y.line("switching_voltage", fmt_voltage(config.technology.cell->gateNodeSwitchingVoltage));
+            write_si_metrics(y, "load", {{"additional_capacitance_f", config.technology.cell->gateNodeAdditionalCap}});
+            y.line("energy_activity", "all_compared_nodes_zero_to_mismatch");
+            y.end_map();
+        }
         if (config.technology.cell && config.technology.cell->nandString) {
             const auto &nand = nand3d ? config.technology.cell->nand3d.electrical
                 : config.technology.cell->nand;
@@ -233,6 +302,12 @@ namespace {
             y.line("calibration_status", quoted_string(nand.calibrationStatus));
             y.line("model_source", quoted_string(nand.source));
             y.line("read_metrics", "unavailable");
+            if (!nand.technologyDefaults.empty()) {
+                y.line("parameter_fallback", "technology_library_cmos_estimates");
+                y.line("technology_default_source", quoted_string(nand.technologyDefaultSource));
+                write_si_metrics(y, "technology_defaults",
+                        {nand.technologyDefaults.begin(), nand.technologyDefaults.end()});
+            }
             y.end_map();
         }
         y.line("limitations_reference", "docs/limitations.md");
@@ -356,9 +431,24 @@ namespace {
         y.end_map();
 
         y.begin_map("search_latency");
+        y.line("subarray_full_search", fmt_second(sub->searchLatency));
+        if (input->peripherals.explicitSearchTiming) {
+            y.line("query_ready", fmt_second(sub->searchPhases.queryReady));
+            y.line("evaluation_start", fmt_second(sub->searchPhases.evaluationStart));
+            y.line("subarray_cycle", fmt_second(sub->searchPhases.cycleTime));
+        }
+        y.line("control_node", fmt_second(sub->gateNodeDelay));
         y.line("input_encoder", fmt_second(sub->inputEnc->readLatency));
-        y.line("row_decoder", fmt_second(sub->RowDecMergeNand->readLatency + sub->senseAmpMuxLev1Nand->readLatency +
-                    sub->senseAmpMuxLev2Nand->readLatency));
+        if (input->peripherals.explicitSearchTiming) {
+            y.line("row_decoder", fmt_second(input->peripherals.searchBroadcast ? 0 : sub->RowDecMergeNand->readLatency));
+            y.line("column_decoder", fmt_second(std::max({
+                    sub->muxSenseAmp > 1 ? sub->ColDecMergeNand->readLatency : 0,
+                    sub->muxOutputLev1 > 1 ? sub->senseAmpMuxLev1Nand->readLatency : 0,
+                    sub->muxOutputLev2 > 1 ? sub->senseAmpMuxLev2Nand->readLatency : 0})));
+        } else {
+            y.line("row_decoder", fmt_second(sub->RowDecMergeNand->readLatency + sub->senseAmpMuxLev1Nand->readLatency +
+                        sub->senseAmpMuxLev2Nand->readLatency));
+        }
         double row_driver_latency = 0;
         for (int i = 0; i < input->technology.cell->camNumRow; i++)
             row_driver_latency = std::max(row_driver_latency, sub->RowDriver[i]->readLatency);
@@ -510,12 +600,23 @@ namespace {
         y.begin_map("timing");
         const double localSearchLatency = local_search_latency(result);
         y.line("search_latency", fmt_second(bank->searchLatency));
+        if (input->peripherals.explicitSearchTiming) {
+            y.line("search_cycle_time", fmt_second(bank->searchLatency + input->peripherals.searchRecovery));
+        }
         y.begin_map("search_latency_breakdown");
         y.line(route_key, fmt_second(bank->searchLatency - localSearchLatency));
         y.line("mat", fmt_second(localSearchLatency));
         y.end_map();
 
         const auto &subarray = *bank->mat->subarray;
+        if (input->peripherals.decisionMode != CamDecisionMode::LegacyHorowitz) {
+            y.begin_map("decision");
+            y.line("time", fmt_second(subarray.decisionResponse.time));
+            y.line("activation_time", fmt_second(subarray.decisionActivationTime));
+            y.line("match_voltage", fmt_voltage(subarray.decisionResponse.matchVoltage));
+            y.line("one_miss_voltage", fmt_voltage(subarray.decisionResponse.missVoltage));
+            y.end_map();
+        }
         const double nominalSenseMargin = subarray.variationSummary.senseMargin.available
             ? subarray.variationSummary.senseMargin.nominal
             : subarray.senseMargin;

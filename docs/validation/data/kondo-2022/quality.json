@@ -1,0 +1,168 @@
+{
+  "method": "Independent native-image blue-pixel threshold centroid in +/-8 display-pixel window: B>1.25R, B>1.15G, R<170. Compare to palette-distance extraction.",
+  "secondary_extraction": [
+    {
+      "curve": "fig6_0_cell_current",
+      "primary_pixel": [
+        194,
+        771.1652298850574
+      ],
+      "second_y": 772.1297892720306,
+      "difference_pixels": 0.9645593869731783
+    },
+    {
+      "curve": "fig6_0_cell_current",
+      "primary_pixel": [
+        206,
+        744.1575670498084
+      ],
+      "second_y": 744.1575670498084,
+      "difference_pixels": 0.0
+    },
+    {
+      "curve": "fig6_0_cell_current",
+      "primary_pixel": [
+        227,
+        722.4549808429119
+      ],
+      "second_y": 722.6961206896552,
+      "difference_pixels": 0.24113984674329458
+    },
+    {
+      "curve": "fig6_1_cell_current",
+      "primary_pixel": [
+        761,
+        772.3709291187739
+      ],
+      "second_y": 768.2715517241379,
+      "difference_pixels": -4.099377394636008
+    },
+    {
+      "curve": "fig6_1_cell_current",
+      "primary_pixel": [
+        772,
+        743.9164272030652
+      ],
+      "second_y": 743.1930076628353,
+      "difference_pixels": -0.7234195402298838
+    },
+    {
+      "curve": "fig6_1_cell_current",
+      "primary_pixel": [
+        793,
+        722.6961206896552
+      ],
+      "second_y": 722.4549808429119,
+      "difference_pixels": -0.24113984674329458
+    },
+    {
+      "curve": "fig6_2_cell_current",
+      "primary_pixel": [
+        1325,
+        752.838601532567
+      ],
+      "second_y": 748.9803639846743,
+      "difference_pixels": -3.8582375478927133
+    },
+    {
+      "curve": "fig6_2_cell_current",
+      "primary_pixel": [
+        1336,
+        726.0720785440614
+      ],
+      "second_y": 724.3840996168583,
+      "difference_pixels": -1.687978927203062
+    },
+    {
+      "curve": "fig6_2_cell_current",
+      "primary_pixel": [
+        1357,
+        704.8517720306513
+      ],
+      "second_y": 705.0929118773946,
+      "difference_pixels": 0.24113984674329458
+    },
+    {
+      "curve": "fig7_0_cell_current",
+      "primary_pixel": [
+        194,
+        866.4269891500904
+      ],
+      "second_y": 869.875226039783,
+      "difference_pixels": 3.4482368896925664
+    },
+    {
+      "curve": "fig7_0_cell_current",
+      "primary_pixel": [
+        216,
+        819.7608499095842
+      ],
+      "second_y": 819.7608499095842,
+      "difference_pixels": 0.0
+    },
+    {
+      "curve": "fig7_0_cell_current",
+      "primary_pixel": [
+        238,
+        785.0485985533454
+      ],
+      "second_y": 784.8187160940325,
+      "difference_pixels": -0.22988245931287565
+    },
+    {
+      "curve": "fig7_1_cell_current",
+      "primary_pixel": [
+        772,
+        868.495931283906
+      ],
+      "second_y": 868.495931283906,
+      "difference_pixels": 0.0
+    },
+    {
+      "curve": "fig7_1_cell_current",
+      "primary_pixel": [
+        794,
+        818.6114376130199
+      ],
+      "second_y": 818.1516726943943,
+      "difference_pixels": -0.4597649186256376
+    },
+    {
+      "curve": "fig7_1_cell_current",
+      "primary_pixel": [
+        816,
+        783.2095388788427
+      ],
+      "second_y": 782.9796564195299,
+      "difference_pixels": -0.22988245931287565
+    },
+    {
+      "curve": "fig7_2_cell_current",
+      "primary_pixel": [
+        1355,
+        870.5648734177215
+      ],
+      "second_y": 870.3349909584088,
+      "difference_pixels": -0.22988245931276197
+    },
+    {
+      "curve": "fig7_2_cell_current",
+      "primary_pixel": [
+        1376,
+        820.2206148282098
+      ],
+      "second_y": 820.6803797468355,
+      "difference_pixels": 0.4597649186256376
+    },
+    {
+      "curve": "fig7_2_cell_current",
+      "primary_pixel": [
+        1398,
+        785.2784810126583
+      ],
+      "second_y": 785.2784810126583,
+      "difference_pixels": 0.0
+    }
+  ],
+  "maximum_difference_pixels": 4.099377394636008
+}

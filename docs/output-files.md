@@ -78,6 +78,34 @@ Representative metrics include:
 - dynamic energy
 - leakage
 
+For ordinary CAMs, `assumptions.modeling_options.search_latency_scope` identifies
+`scheduled_full_search` or the compatibility option `legacy_single_sense`.
+Despite its old `exclude_precharge_latency` name, the latter omits more than
+precharge and reports only one sense operation even for serial or multiplexed
+designs. Use the full-search scope for the paper-reference comparisons.
+`sense_amplifier_model` distinguishes `generic` and `scalar`; the latter does
+not itself establish calibration provenance. TCAM outputs identify the
+matchline timing convention as `horowitz_50_percent`,
+`analytical_voltage_threshold`, or `analytical_differential`.
+
+Analytical decisions expose their time, activation time, all-match voltage and
+one-miss voltage under `summary.timing.decision`. The assumptions record the
+response and reference models, including the threshold for fixed-voltage
+sensing. Explicit scheduling adds `assumptions.search_timing`,
+`breakdown.search_latency.query_ready`, `evaluation_start`, `subarray_cycle`,
+and `summary.timing.search_cycle_time`. Phase times are relative to operation
+start; they must not be summed as component delays. The bank cycle is the full
+serialized search latency plus final recovery, not a pipelined throughput
+claim. See [analytical timing validation](validation/analytical-cam-timing.md).
+
+`breakdown.search_latency.subarray_full_search` exposes one full subarray
+operation before bank routing and repeated comparison steps. `control_node`
+is the separate 2FeFET-1T gate delay (zero for other ordinary CAMs); `matchline`
+excludes it. `assumptions.cell_topology` records the selected topology, and
+`assumptions.fefet_gate` records the switching threshold, extra capacitance,
+uncalibrated status and conservative charging activity. These timing boundaries
+must not be substituted for a paper's measurement endpoints without evidence.
+
 ## Subarray Dimension Test Outputs
 
 Compiled `--subarray-dimension-test` runs write one ordinary results YAML per

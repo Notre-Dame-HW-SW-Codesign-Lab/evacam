@@ -1,0 +1,13 @@
+# Reference fixture: https://scholar.nycu.edu.tw/en/publications/a-3t1r-nonvolatile-tcam-using-mlc-reram-with-sub-1ns-search-time/
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: config
+name: ReRAM-3T1R-ISSCC15-reference
+architecture: ReRAM-3T1R-ISSCC15.architecture.yaml
+cell: ReRAM-3T1R-ISSCC15.cell.yaml
+technology: ../../lib/technology/cmos.legacy.yaml
+optimization:
+  target: SearchLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

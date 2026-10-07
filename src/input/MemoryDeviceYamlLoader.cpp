@@ -1,4 +1,5 @@
 #include "input/MemoryDeviceYamlLoader.h"
+#include "input/NandTechnologyDefaults.h"
 
 #include <algorithm>
 #include <cmath>
@@ -99,7 +100,7 @@ void validate_memory_device_keys(const YAML::Node& root) {
     }
 
     reject_unknown_keys(child_optional(root, "match"),
-            {"cmos_width", "is_nvm_discharge", "additional_cap_on_ml"},
+            {"is_nvm_discharge"},
             "memory_device.match");
     reject_unknown_keys(child_optional(root, "sram"), {"nmos_width", "pmos_width"},
             "memory_device.sram");
@@ -121,7 +122,8 @@ void validate_memory_device_keys(const YAML::Node& root) {
 
 namespace {
 
-NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& prefix) {
+NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& prefix,
+        bool allowTechnologyDefaults) {
     NandDeviceSpec spec;
     spec.model = read_required<std::string>(node, "model");
     spec.calibrationStatus = read_required<std::string>(node, "calibration_status");
@@ -129,9 +131,10 @@ NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& pre
     spec.supplyEfficiency = read_optional<double>(node, "supply_efficiency", 1.0);
 
     auto readGroup = [&](const char* name, const std::vector<UnitSpec>& units,
-            std::initializer_list<std::pair<const char*, double*>> fields) {
-        const YAML::Node group = child_required(node, name);
-        if (!group.IsMap()) {
+            std::initializer_list<std::pair<const char*, double*>> fields, bool canDefault = false) {
+        const bool fallback = canDefault && allowTechnologyDefaults;
+        const YAML::Node group = fallback ? child_optional(node, name) : child_required(node, name);
+        if (group && !group.IsMap()) {
             throw std::runtime_error(prefix + "." + name + " must be a mapping");
         }
         for (const auto& entry : group) {
@@ -144,15 +147,19 @@ NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& pre
         }
         for (const auto& field : fields) {
             const std::string path = prefix + "." + std::string(name) + "." + field.first;
-            *field.second = read_quantity_required(group, field.first, units, 1.0, path.c_str());
+            if (fallback && (!group || !child_optional(group, field.first))) {
+                spec.pendingTechnologyDefaults.insert(std::string(name) + "." + field.first);
+            } else {
+                *field.second = read_quantity_required(group, field.first, units, 1.0, path.c_str());
+            }
         }
     };
     readGroup("resistance", ResistanceUnits(), {{"read_on", &spec.resistanceReadOn},
             {"pass", &spec.resistancePass}, {"off", &spec.resistanceOff},
-            {"select", &spec.resistanceSelect}});
+            {"select", &spec.resistanceSelect}}, true);
     readGroup("capacitance", CapacitanceUnits(), {{"gate", &spec.capacitanceGate},
             {"internal", &spec.capacitanceInternal}, {"bitline", &spec.capacitanceBitline},
-            {"source", &spec.capacitanceSource}, {"select", &spec.capacitanceSelect}});
+            {"source", &spec.capacitanceSource}, {"select", &spec.capacitanceSelect}}, true);
     readGroup("threshold", VoltageUnits(), {{"low", &spec.thresholdLow}, {"high", &spec.thresholdHigh}});
     readGroup("bias", VoltageUnits(), {{"read", &spec.voltageRead},
             {"pass", &spec.voltagePass}, {"precharge", &spec.voltagePrecharge}});
@@ -175,13 +182,22 @@ NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& pre
             {"mm^2", 1e-6}, {"um^2", 1e-12}, {"nm^2", 1e-18}};
     for (auto field : {std::pair<const char*, NandPeripheralSpec*>{"wordline_driver", &spec.wordlineDriver},
             {"sense", &spec.sense}, {"page_buffer", &spec.pageBuffer}}) {
-        const YAML::Node group = child_required(node, field.first);
+        const bool fallback = allowTechnologyDefaults && std::string(field.first) != "page_buffer";
+        const YAML::Node group = fallback ? child_optional(node, field.first) : child_required(node, field.first);
         const std::string path = prefix + "." + std::string(field.first);
+        if (group && !group.IsMap()) throw std::runtime_error(path + " must be a mapping");
         reject_unknown_keys(group, {"area", "latency", "energy", "leakage"}, path);
-        field.second->area = read_quantity_required(group, "area", areaUnits, 1.0, (path + ".area").c_str());
-        field.second->latency = read_quantity_required(group, "latency", TimeUnits(), 1.0, (path + ".latency").c_str());
-        field.second->energy = read_quantity_required(group, "energy", EnergyUnits(), 1.0, (path + ".energy").c_str());
-        field.second->leakage = read_quantity_required(group, "leakage", PowerUnits(), 1.0, (path + ".leakage").c_str());
+        const auto read = [&](const char *key, double &value, const std::vector<UnitSpec> &units) {
+            if (fallback && (!group || !child_optional(group, key))) {
+                spec.pendingTechnologyDefaults.insert(std::string(field.first) + "." + key);
+            } else {
+                value = read_quantity_required(group, key, units, 1.0, (path + "." + key).c_str());
+            }
+        };
+        read("area", field.second->area, areaUnits);
+        read("latency", field.second->latency, TimeUnits());
+        read("energy", field.second->energy, EnergyUnits());
+        read("leakage", field.second->leakage, PowerUnits());
     }
     for (auto field : {std::pair<const char*, NandOperationSpec*>{"query", &spec.query},
             {"setup", &spec.setup}, {"precharge", &spec.precharge}, {"recovery", &spec.recovery},
@@ -214,7 +230,7 @@ void SetNandOperationAliases(MemCell& cell, const NandDeviceSpec& spec) {
 
 }  // namespace
 
-void ReadNandSection(MemCell& cell, const YAML::Node& root) {
+void ReadNandSection(MemCell& cell, const YAML::Node& root, bool allowTechnologyDefaults) {
     const YAML::Node node = child_optional(root, "nand");
     if (!node) return;
     if (cell.memCellType != SLCNAND) {
@@ -228,11 +244,11 @@ void ReadNandSection(MemCell& cell, const YAML::Node& root) {
             "capacitance", "threshold", "bias", "sensing", "wordline_driver",
             "sense", "page_buffer", "query", "setup", "precharge", "recovery",
             "program_page", "erase_block", "supply_efficiency"}, "memory_device.nand");
-    cell.nand = ReadNandElectrical(node, "memory_device.nand");
+    cell.nand = ReadNandElectrical(node, "memory_device.nand", allowTechnologyDefaults);
     SetNandOperationAliases(cell, cell.nand);
 }
 
-void ReadNand3dSection(MemCell& cell, const YAML::Node& root) {
+void ReadNand3dSection(MemCell& cell, const YAML::Node& root, bool allowTechnologyDefaults) {
     const YAML::Node node = child_optional(root, "nand3d");
     if (!node) return;
     if (cell.memCellType != NAND3D) {
@@ -246,10 +262,10 @@ void ReadNand3dSection(MemCell& cell, const YAML::Node& root) {
             "capacitance", "threshold", "bias", "sensing", "wordline_driver",
             "sense", "page_buffer", "query", "setup", "precharge", "recovery",
             "program_page", "erase_block", "supply_efficiency", "storage_mode",
-            "stack", "layout", "solver", "precharge_driver_resistance"}, "memory_device.nand3d");
+            "stack", "layout"}, "memory_device.nand3d");
     Nand3dMemoryDevice spec;
     spec.storageMode = read_required<std::string>(node, "storage_mode");
-    spec.electrical = ReadNandElectrical(node, "memory_device.nand3d");
+    spec.electrical = ReadNandElectrical(node, "memory_device.nand3d", allowTechnologyDefaults);
     const YAML::Node stack = child_required(node, "stack");
     reject_unknown_keys(stack, {"storage_layers", "dummy_layers"}, "memory_device.nand3d.stack");
     spec.storageLayers = read_required<int>(stack, "storage_layers");
@@ -269,21 +285,13 @@ void ReadNand3dSection(MemCell& cell, const YAML::Node& root) {
         *field.second = read_quantity_required(layout, field.first, LengthUnits(), 1.0,
                 ("memory_device.nand3d.layout." + std::string(field.first)).c_str());
     }
-    const YAML::Node solver = child_required(node, "solver");
-    reject_unknown_keys(solver, {"max_step", "tolerance", "max_steps"}, "memory_device.nand3d.solver");
-    spec.solverMaxStep = read_quantity_required(solver, "max_step", TimeUnits(), 1.0,
-            "memory_device.nand3d.solver.max_step");
-    spec.solverTolerance = read_quantity_required(solver, "tolerance", VoltageUnits(), 1.0,
-            "memory_device.nand3d.solver.tolerance");
-    spec.solverMaxSteps = read_required<int>(solver, "max_steps");
-    spec.prechargeDriverResistance = read_quantity_required(node, "precharge_driver_resistance",
-            ResistanceUnits(), 1.0, "memory_device.nand3d.precharge_driver_resistance");
     spec.configured = true;
     cell.nand3d = spec;
     SetNandOperationAliases(cell, cell.nand3d.electrical);
 }
 
-void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile) {
+void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile,
+        const std::shared_ptr<EvaCamConfig> &technologyContext) {
     const YAML::Node root = YAML::LoadFile(inputFile);
     validate_memory_device_keys(root);
     if (child_optional(root, "type")) {
@@ -305,11 +313,15 @@ void ReadMemoryDeviceFromYaml(MemCell& cell, const std::string& inputFile) {
         cell.heightInFeatureSize = std::sqrt(cell.area * cell.aspectRatio);
         cell.widthInFeatureSize = std::sqrt(cell.area / cell.aspectRatio);
     }
+    const YAML::Node match = child_optional(root, "match");
+    cell.isNVMdischarge = match && read_optional<bool>(
+            match, "is_nvm_discharge", false);
     ReadResistanceSection(cell, root);
     ReadReadSection(cell, root);
     ReadWriteSection(cell, root);
-    ReadNandSection(cell, root);
-    ReadNand3dSection(cell, root);
+    ReadNandSection(cell, root, static_cast<bool>(technologyContext));
+    ReadNand3dSection(cell, root, static_cast<bool>(technologyContext));
+    ApplyNandTechnologyDefaults(cell, technologyContext);
     PhysicalDomainValidators::ValidateMemCell(cell);
 }
 }  // namespace YamlHelpers

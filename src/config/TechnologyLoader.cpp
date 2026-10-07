@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "MemCell.h"
+#include "EvaCamConfig.h"
 #include "Technology.h"
 #include "config/VariationConfigBuilder.h"
 #include "input/PhysicalDomainValidators.h"
@@ -51,9 +52,14 @@ const TechnologySpec *FindYamlBaseSpec(
     return FindYamlSpec(specs, bucketNode, roadmap);
 }
 
-std::shared_ptr<Technology> BuildTechFromSpec(const TechnologySpec &spec) {
+std::shared_ptr<Technology> BuildTechFromSpec(const TechnologySpec &spec, int requestedNode) {
     auto tech = std::make_shared<Technology>();
-    tech->InitializeFromSpec(spec);
+    TechnologySpec physicalSpec = spec;
+    // Table selection supplies electrical data, not the physical dimensions
+    // of the requested process. Preserve the same distinction as Initialize.
+    physicalSpec.featureSizeInNano = requestedNode;
+    physicalSpec.featureSize = requestedNode * 1e-9;
+    tech->InitializeFromSpec(physicalSpec);
     return tech;
 }
 
@@ -75,7 +81,7 @@ int HighInterpolationNode(int processNode) {
 }
 
 double InterpolationAlpha(int processNode) {
-    if (processNode > 120) return (processNode - 120.0) / 60;
+    if (processNode > 120) return (processNode - 120.0) / 80;
     if (processNode > 90) return (processNode - 90.0) / 30;
     if (processNode > 65) return (processNode - 65.0) / 25;
     if (processNode > 45) return (processNode - 45.0) / 20;
@@ -96,7 +102,7 @@ std::shared_ptr<Technology> LoadTechFromYaml(
         throw std::runtime_error("[Technology] Technology file does not provide requested roadmap/process_node.");
     }
 
-    auto tech = BuildTechFromSpec(*baseSpec);
+    auto tech = BuildTechFromSpec(*baseSpec, input.processNode);
     const int highNode = HighInterpolationNode(input.processNode);
     const TechnologySpec *highSpec = FindYamlSpec(specs, highNode, input.deviceRoadmap);
     if (!highSpec) {
@@ -108,9 +114,16 @@ std::shared_ptr<Technology> LoadTechFromYaml(
     return tech;
 }
 
-std::shared_ptr<MemCell> LoadCell(const InputConfig &input, const std::shared_ptr<Technology> &tech) {
+std::shared_ptr<MemCell> LoadCell(const InputConfig &input, const PeripheralConfig &peripherals,
+        const std::shared_ptr<Technology> &tech) {
     auto cell = std::make_shared<MemCell>();
-    cell->ReadCellFromFile(input.fileMemCell, input.designTarget, tech->vdd());
+    auto context = std::make_shared<EvaCamConfig>();
+    context->input = input;
+    context->peripherals = peripherals;
+    context->technology.tech = tech;
+    context->technology.cell = cell;
+    context->logger.SetOutputEnabled(false);
+    cell->ReadCellFromFile(input.fileMemCell, input.designTarget, tech->vdd(), context);
     if (input.hasCamWidthMatchTran) {
         cell->camWidthMatchTran = input.camWidthMatchTran;
     }
@@ -131,11 +144,11 @@ std::shared_ptr<Technology> LoadFefetTech(
         const InputConfig &input,
         const std::vector<TechnologySpec> &yamlSpecs) {
     if (const TechnologySpec *spec = FindYamlBaseSpec(yamlSpecs, input.processNode, FEFET)) {
-        return BuildTechFromSpec(*spec);
+        return BuildTechFromSpec(*spec, input.processNode);
     }
     if (const TechnologySpec *spec = FindYamlBaseSpec(
                 yamlSpecs, input.processNode, input.deviceRoadmap)) {
-        return BuildTechFromSpec(*spec);
+        return BuildTechFromSpec(*spec, input.processNode);
     }
     throw std::runtime_error("[Technology] Technology file does not provide FeFET fallback.");
 }
@@ -144,7 +157,7 @@ std::shared_ptr<Technology> LoadFefetTech(
 
 TechnologyContext TechnologyLoader::Load(
         const InputConfig &input,
-        const PeripheralConfig &,
+        const PeripheralConfig &peripherals,
         VariationConfig *variation) {
     TechnologyContext technology;
     if (input.fileTechnology.empty()) {
@@ -153,8 +166,12 @@ TechnologyContext TechnologyLoader::Load(
     const std::vector<TechnologySpec> yamlSpecs =
             YamlHelpers::ReadTechnologySpecsFromYaml(input.fileTechnology);
     technology.tech = LoadTechFromYaml(input, yamlSpecs);
+    technology.electricalLowerNode = FindYamlBaseSpec(
+            yamlSpecs, input.processNode, input.deviceRoadmap)->featureSizeInNano;
+    technology.electricalUpperNode = HighInterpolationNode(input.processNode);
+    technology.interpolationAlpha = InterpolationAlpha(input.processNode);
     PhysicalDomainValidators::ValidateTechnology(*technology.tech);
-    technology.cell = LoadCell(input, technology.tech);
+    technology.cell = LoadCell(input, peripherals, technology.tech);
     technology.fefetTech = LoadFefetTech(input, yamlSpecs);
     PhysicalDomainValidators::ValidateTechnology(*technology.fefetTech);
     if (variation) {

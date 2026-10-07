@@ -1,4 +1,6 @@
+import csv
 import itertools
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -96,8 +98,53 @@ class ExtremaTests(unittest.TestCase):
                 self.assertTrue((directory / 'voltage_extrema.csv').is_file())
                 self.assertTrue((directory / 'extrema_metadata.json').is_file())
                 self.assertFalse((directory / 'voltage_samples.npz').exists())
+                metadata = json.loads((directory / 'extrema_metadata.json').read_text())
+                self.assertEqual(metadata['cell_process_node'], '22nm' if model == 'mcam' else '45nm')
+                self.assertEqual(metadata['system_process_node'], '22nm' if model == 'mcam' else '45nm')
             with self.assertRaises(FileExistsError):
                 plot.main(['--output-dir', str(root)])
+
+    def test_22nm_tcam_config_cli_and_mcam_device_values(self):
+        source = ROOT / 'config/2FeFET_TCAM_22nm/2FeFET_TCAM_22nm.config.yaml'
+        original = {path: path.read_bytes() for path in source.parent.glob('*.yaml')}
+        mcam_root = ROOT / 'config/2FeFET_MCAM'
+        mcam_memory = yaml.safe_load((mcam_root / '2FeFET_MCAM.memory_device.yaml').read_text())
+        mcam_cell = yaml.safe_load((mcam_root / '2FeFET_MCAM.cell.yaml').read_text())
+        reference = evacam_py.EvaCAMMatch(str(mcam_root / '2FeFET_MCAM_as_TCAM.config.yaml'))
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.object(plot, 'draw_extrema') as draw:
+            root = Path(temporary) / 'plots'
+            plot.main(['--sizes', '8', '64', '--levels', '0', '10',
+                       '--tcam-config', str(source), '--output-dir', str(root)])
+            for model, size, level in itertools.product(('mcam', 'tcam'), (8, 64), (0, 10)):
+                directory = root / model / f'stdev{level:02d}' / f'{size}x{size}'
+                cell = yaml.safe_load((directory / 'inputs/cell.yaml').read_text())
+                memory = yaml.safe_load((directory / 'inputs/memory_device.yaml').read_text())
+                metadata = json.loads((directory / 'extrema_metadata.json').read_text())
+                self.assertEqual(cell['cam_type'], model.upper())
+                self.assertEqual(metadata['cell_process_node'], '22nm')
+                self.assertEqual(metadata['system_process_node'], '22nm')
+                if model == 'mcam':
+                    self.assertIn('mcam', memory)
+                    continue
+                self.assertNotIn('mcam', memory)
+                self.assertEqual(cell['layout'], mcam_cell['layout'])
+                self.assertEqual(cell['ports'], mcam_cell['ports'])
+                for field in ('type', 'resistance', 'read', 'write'):
+                    self.assertEqual(memory[field], mcam_memory[field])
+                for state in ('on', 'off'):
+                    self.assertEqual(memory['variation'][f'memory_device_resistance_{state}_stdev'],
+                                     f'{level}%')
+                with (directory / 'voltage_extrema.csv').open() as stream:
+                    rows = list(csv.DictReader(stream))
+                self.assertEqual([int(row['distance']) for row in rows], list(range(size + 1)))
+                if size == 64 and level == 0:
+                    for row in rows:
+                        self.assertAlmostEqual(float(row['nominal_min_voltage_v']),
+                                               reference.sense_tcam_mismatches(int(row['distance'])),
+                                               places=12)
+            self.assertEqual(draw.call_count, 8)
+            self.assertEqual(draw.call_args.kwargs['device_label'], '2FeFET-TCAM (22nm)')
+        self.assertEqual(original, {path: path.read_bytes() for path in original})
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ design:
 memory:
   capacity: 1152B
   word_width: 72bits
-  physical_capacity: 9kb
+  physical_capacity: 1152B
 routing:
   type: H-tree
 peripherals:
@@ -31,6 +31,8 @@ wires:
     repeater: RepeatedNone
     low_swing: false
 organization:
+  # Eight columns per step, nine steps per 72-bit word (legacy HV schedule).
+  comparison_columns_per_step: 8
   banks:
     total:
     - 1

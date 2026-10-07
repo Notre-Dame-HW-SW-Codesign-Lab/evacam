@@ -74,7 +74,7 @@ configuration, operation scopes, and model limitations.
 
 A vertical SLC `NAND3D` example is available at
 `config/NAND_3D_TCAM/NAND_3D_TCAM.config.yaml`. It adds explicit 3D geometry
-and finite-precharge linear RC transients using synthetic device parameters;
+and analytical first-moment RC estimates using synthetic device parameters;
 see [3D NAND TCAM](docs/nand-3d-tcam.md) for its supported scope.
 
 ## CLI
@@ -187,10 +187,21 @@ More detail:
 
 ## Validation
 
+Paper reference configs live in [`config/paper_reference/`](config/paper_reference/README.md).
+Run `make validate-named-cam` to compare seven named CAM fixtures with published
+delays and record input hashes, model results and remaining assumptions. See the
+[reference comparison](docs/validation/named-cam-reference-configs.md); these are
+partial reconstructions, not calibrated reproductions.
+
+Run `make validate-analytical-cam` for independent decision-equation checks and
+isolated timing/scheduling comparisons. The [analytical timing report](docs/validation/analytical-cam-timing.md)
+contains the current results and remaining characterization gaps.
+
 Available make targets:
 
 - `make test-yaml`: build and run the YAML helper test
 - `make test-generated-v2-configs`: load every generated v2 config expected to run
+- `make test-named-cam-regression test-named-cam-validation`: check paper fixture geometry and comparison reporting
 - `make test-v2-output-parity`: compare selected legacy/v2 output pairs with numeric tolerance
 - `make test`: run a sample config under valgrind
 - `make test-all-valgrind`: run a larger set of configs under valgrind
@@ -217,3 +228,13 @@ Common issues and their likely causes are documented here:
 - [Troubleshooting](docs/troubleshooting.md)
 - [Development Workflow](docs/development.md)
 - [Development Roadmap](docs/todos.md)
+
+Original publication validation: `make validate-original-evacam` reconstructs the
+DATE 2022 comparison contract, checks input provenance, and reports latency,
+energy and area with their measurement scopes. See
+[the audit and remaining model limits](docs/validation/original-evacam-validation.md).
+
+Compare the released code with shared inputs using
+`make compare-legacy-evacam LEGACY_REPO=/path/to/public/EvaCAM/checkout`.
+The [matched executable audit](docs/validation/matched-legacy-evacam.md) distinguishes
+published predictions, actual old search metrics, and current circuit estimates.

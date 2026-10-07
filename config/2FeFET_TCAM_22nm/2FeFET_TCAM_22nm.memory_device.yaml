@@ -1,0 +1,28 @@
+# Uses the 22nm MCAM binary on/off device values; the multilevel
+# resistance-state and search-voltage tables do not apply to TCAM.
+# Derived from ../2FeFET_MCAM/2FeFET_MCAM_as_TCAM.memory_device.yaml.
+schema: memory_device
+name: 2FeFET-TCAM (22nm)
+type: FEFETRAM
+resistance:
+  'on': 22900ohm
+  'off': 1600Mohm
+read:
+  mode: voltage
+  voltage: 1V
+  current: 5.62uA
+  power: 5.62uW
+  min_sense_voltage: 70mV
+write:
+  set:
+    mode: voltage
+    voltage: 4V
+    current: 5e-06uA
+    pulse: 10ns
+    energy: 2e-05pJ
+  reset:
+    mode: voltage
+    voltage: 4V
+    current: 5e-07uA
+    pulse: 10ns
+    energy: 2e-05pJ

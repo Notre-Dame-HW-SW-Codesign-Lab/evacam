@@ -25,6 +25,7 @@ struct NandRcResult {
     double finalStoredEnergy = 0;
     double leftSourceCharge = 0;
     double rightSourceCharge = 0;
+    double groundShuntCharge = 0; // Signed charge leaving nodes through grounded resistors.
     double maximumEstimatedLocalError = 0;
     int acceptedSteps = 0;
     int rejectedSteps = 0;
@@ -40,6 +41,15 @@ class NandRcLadder {
                 const std::vector<double> &initialVoltages, double duration,
                 const NandRcBoundary &left, const NandRcBoundary &right,
                 const NandRcOptions &options);
+
+        // Optional grounded resistive loads, one nonnegative conductance per node.
+        // Charge balance: delta(CV) = left + right - groundShuntCharge.
+        static NandRcResult Solve(const std::vector<double> &capacitances,
+                const std::vector<double> &seriesResistances,
+                const std::vector<double> &initialVoltages, double duration,
+                const NandRcBoundary &left, const NandRcBoundary &right,
+                const NandRcOptions &options,
+                const std::vector<double> &shuntConductances);
 };
 
 #endif  // MODEL_NANDRCLADDER_H_

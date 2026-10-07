@@ -102,7 +102,7 @@ void TestTechnologyLoaderInterpolatesBetweenUpdatedNodes() {
 
     TechnologyContext loaded = TechnologyLoader::Load(
             MakeInput(technologyFile, WriteCellFixture(directory), 28), EmptyPeripherals());
-    assert(loaded.tech->featureSizeInNano() == 22);
+    assert(loaded.tech->featureSizeInNano() == 28);
     const double alpha = 0.6;
     AssertNear(loaded.tech->vdd(), (1.0 - alpha) * low.vdd + alpha * high.vdd);
     AssertNear(loaded.tech->vth(), (1.0 - alpha) * low.vth + alpha * high.vth);
@@ -119,12 +119,38 @@ void TestTechnologyLoaderUsesLegacyBucketsAndLoadsCellRelativeToCellFile() {
     input.camWidthMatchTran = 2.5;
 
     TechnologyContext loaded = TechnologyLoader::Load(input, EmptyPeripherals());
-    assert(loaded.tech->featureSizeInNano() == 32);
+    assert(loaded.tech->featureSizeInNano() == 40);
     assert(loaded.cell != nullptr);
     assert(loaded.cell->processNode == 28);
     assert(loaded.cell->camType == TCAM);
     AssertNear(loaded.cell->camWidthMatchTran, 2.5);
     TestSupport::AssertFiniteNonNegative(loaded.cell->readPower, "loaded cell read power");
+}
+
+void TestRequestedPhysicalDimensionsSurviveTableSelection() {
+    TemporaryDirectory directory("evacam-physical-node");
+    const auto cellFile = WriteCellFixture(directory);
+    for (int node : {28, 40, 140, 180}) {
+        const auto context = TechnologyLoader::Load(MakeInput(
+                RepositoryPath("config/lib/technology/cmos.legacy.yaml"), cellFile, node),
+                EmptyPeripherals());
+        assert(context.tech->featureSizeInNano() == node);
+        assert(context.fefetTech->featureSizeInNano() == node);
+        AssertNear(context.tech->featureSize(), node * 1e-9);
+        AssertNear(context.fefetTech->featureSize(), node * 1e-9);
+        assert(context.electricalLowerNode < node);
+        assert(context.electricalUpperNode > node);
+        const double alpha = static_cast<double>(node - context.electricalLowerNode)
+                / (context.electricalUpperNode - context.electricalLowerNode);
+        AssertNear(context.interpolationAlpha, alpha);
+        const auto specs = YamlHelpers::ReadTechnologySpecsFromYaml(
+                RepositoryPath("config/lib/technology/cmos.legacy.yaml").string());
+        const auto &low = FindSpec(specs, context.electricalLowerNode, HP);
+        const auto &high = FindSpec(specs, context.electricalUpperNode, HP);
+        AssertNear(context.tech->vdd(), (1 - alpha) * low.vdd + alpha * high.vdd);
+        AssertNear(context.tech->currentOnNmos()[0],
+                (1 - alpha) * low.currentOnNmos[0] + alpha * high.currentOnNmos[0]);
+    }
 }
 
 void TestTechnologyLoaderRejectsUnavailableNodesAndRoadmaps() {
@@ -256,6 +282,7 @@ int main() {
     TestTechnologyLoaderLoadsExactUpdatedAndLegacyNodes();
     TestTechnologyLoaderInterpolatesBetweenUpdatedNodes();
     TestTechnologyLoaderUsesLegacyBucketsAndLoadsCellRelativeToCellFile();
+    TestRequestedPhysicalDimensionsSurviveTableSelection();
     TestTechnologyLoaderRejectsUnavailableNodesAndRoadmaps();
     TestVariationConfigBuilderBuildsNominalAndSinglePointConfigurations();
     TestVariationConfigBuilderBuildsMonteCarloCellAndEffectiveGranularity();

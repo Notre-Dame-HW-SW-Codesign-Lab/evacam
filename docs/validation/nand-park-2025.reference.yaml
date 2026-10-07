@@ -1,0 +1,1772 @@
+schema: evacam_park_reference_v1
+version: 1
+status: extraction_complete_with_explicit_exclusions; model_not_calibrated
+paper:
+  title: Current-Voltage Modeling of 3D-NAND String Using Genetic Algorithm
+  authors:
+  - Gihong Park
+  - Jung Nam Kim
+  - Jun Hui Park
+  - Suk-Kang Sung
+  - Garam Kim
+  - Yoon Kim
+  doi: 10.5573/JSTS.2025.25.4.420
+  journal: JSTS
+  volume: 25
+  issue: 4
+  pages: 420-426
+  year: 2025
+  retrieved_on: '2026-09-25'
+  url: https://www.jsts.org/jsts/XmlViewer/f438850
+  license: CC BY-NC 3.0
+  copyright: The Institute of Electronics and Information Engineers (IEIE)
+  license_url: https://creativecommons.org/licenses/by-nc/3.0/
+sources:
+  article.html:
+    url: https://www.jsts.org/jsts/XmlViewer/f438850
+    sha256: b8cc49cbb492ced4b541b0f3bcae773767b21fa6ebb235e9d31e61b7e8f9280d
+    bytes: 160529
+    redistributed: false
+  fig1.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig1.png
+    sha256: 9e27f85174543e4defb865f3571af1aba4e3a2d2579f6c090071880361fbf476
+    bytes: 246385
+    redistributed: false
+  fig2.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig2.png
+    sha256: 80c01636bf26be07c92b990d28dab576d3c88dd2a3ca28a6757b9236bc9e5226
+    bytes: 1317486
+    redistributed: false
+  fig4.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig4.png
+    sha256: 7623fb916d205122c2ba801fac3db35a24e04e20f99162a47fb2dff299a91d98
+    bytes: 773062
+    redistributed: false
+  fig5.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig5.png
+    sha256: b2204447cec4feeaa637edd32b01a4eeead4b35199c8d6befc0d60f279b7ecff
+    bytes: 266861
+    redistributed: false
+  fig6.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig6.png
+    sha256: 3853615b8597fa7f7cdc14ee85afb4f4bc86f4c9ba47deb1c722e8ee37ea749b
+    bytes: 198264
+    redistributed: false
+  fig7.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig7.png
+    sha256: 72a55b783fb22f21db3fd5cacea27fc43602a9b3bc7eaf742471b0f5e92bfc80
+    bytes: 741925
+    redistributed: false
+  fig8.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig8.png
+    sha256: 62bf5ae660ca55408e22ec59a09344760a156966474c0ffbd3b01613fc3bda65
+    bytes: 411038
+    redistributed: false
+  fig9.png:
+    url: https://www.jsts.org/Resources/ieie/JSTS.2025.25.4.420/fig9.png
+    sha256: 2de68254a688bd82db638a7cf1f148f659111e65f050688161f7b3d8d3858be1
+    bytes: 400027
+    redistributed: false
+  pdf-download.html:
+    url: http://journal.auric.kr/openAccess/cart_openAccess2015.asp?DB=RD_R&DN=438850
+    sha256: b035b4b95397728b6f90714bb1d77bce95d884247c5f6fd9e89cc6406ca691c9
+    bytes: 156
+    redistributed: false
+  pdf-viewer.html:
+    url: http://journal.auric.kr/Common/pdf_viewer?returnVal=RD_R&dn=438850
+    sha256: 73e5a767ebabf6efcdf8b7fa2595db7ccdbabd7b549443d91853244bfb5e3265
+    bytes: 192
+    redistributed: false
+source_cache: output/validation/nand-park-2025/source-cache
+source_audit:
+  pdf: not obtained
+  table_I: 'not verified: absent in HTML; PDF download returned authorization error'
+  full_model_card: null
+  numeric_dataset: null
+  netlist: null
+  supplement: null
+  audited_locations:
+  - publisher HTML and full-resolution figures
+  - publisher PDF viewer/download route
+  - University of Seoul publication record
+  - author AIDL publication list
+  access_attempts:
+  - url: https://journal.auric.kr/Common/pdf_viewer?returnVal=RD_R&dn=438850
+    result: TLS certificate expired
+  - url: http://journal.auric.kr/openAccess/cart_openAccess2015.asp?DB=RD_R&DN=438850
+    result: 'publisher endpoint returned: You are not authorized user'
+  conclusion: No card/deck/numeric supplement linked in accessed material; access
+    failures do not establish unavailability elsewhere. No authors contacted.
+models:
+  reference: Synopsys Sentaurus TCAD
+  reference_version:
+    value: null
+    unit: version
+    status: unavailable
+    source: 2023 user guide citation is not a simulator version disclosure
+    reason: Not specified in the accessed article/figures.
+  physics:
+    value:
+    - mobility degradation
+    - high-field saturation
+    - drift-diffusion in cylindrical coordinates
+    unit: description
+    status: reported
+    source: Section II
+  comparison:
+    value: Cadence Spectre 21.1
+    unit: version
+    status: reported
+    source: Section II
+  compact_model:
+    value: BSIM-CMG GEOMOD=3
+    unit: description
+    status: reported
+    source: Section II
+  compact_model_version:
+    value: null
+    unit: version
+    status: unavailable
+    source: Reference 8 cites manual 111.2.1
+    reason: A manual citation does not establish exact implementation/card version.
+  optimized_parameter_count:
+    value: 24
+    unit: '1'
+    status: reported
+    source: Section II
+  optimized_parameter_values:
+    value: null
+    unit: model_card
+    status: unavailable
+    source: Table I unavailable; HTML describes only some key parameters.
+    reason: Not specified in the accessed article/figures.
+geometry:
+  channel_material:
+    value: single-crystalline silicon
+    unit: description
+    status: reported
+    source: Section II
+  gate_stack:
+    value:
+    - SiO2
+    - Si3N4
+    - SiO2
+    unit: materials
+    status: reported
+    source: Section II
+  oxide_filler_radius:
+    value: 1.35e-08
+    unit: m
+    status: reported
+    source: Figure 2
+  channel_thickness:
+    value: 1.0e-08
+    unit: m
+    status: reported
+    source: Figure 2
+  tunnel_oxide_thickness:
+    value: 5.0e-09
+    unit: m
+    status: reported
+    source: Figure 2
+  trap_layer_thickness:
+    value: 5.0e-09
+    unit: m
+    status: reported
+    source: Figure 2
+  blocking_oxide_thickness:
+    value: 6.0e-09
+    unit: m
+    status: reported
+    source: Figure 2
+  channel_doping:
+    value: 1.0e+21
+    unit: m^-3
+    status: reported
+    source: 'Figure 2: 1e15 cm^-3; multiply by 1e6'
+  channel_doping_type:
+    value: null
+    unit: description
+    status: unavailable
+    source: Figure 2
+    reason: Not specified in the accessed article/figures.
+  bl_sl_doping:
+    value: 5.0e+25
+    unit: m^-3
+    status: reported
+    source: 'Figure 2: 5e19 cm^-3; multiply by 1e6'
+  wl_work_function:
+    value: 4.8
+    unit: eV
+    status: reported
+    source: Figure 2
+  wl_length:
+    value: 5.0e-08
+    unit: m
+    status: reported
+    source: Figure 2 / Section II
+  spacer_length:
+    value: 5.0e-08
+    unit: m
+    status: reported
+    source: Figure 2 / Section II
+  ssl_gsl_length:
+    value: 5.0e-08
+    unit: m
+    status: reported
+    source: Section II
+  outer_channel_diameter:
+    value: 4.7e-08
+    unit: m
+    status: derived
+    source: 2*(13.5 nm filler radius + 10 nm channel thickness); consistent with Figure
+      8 SSL D label
+  taper_example_diameters:
+    value:
+      SSL: 4.7e-08
+      WL31: 4.63e-08
+      WL30: 4.55e-08
+      WL1: 2.44e-08
+      WL0: 2.34e-08
+      GSL: 2.27e-08
+    unit: m
+    status: reported
+    source: Figure 8c
+  taper_example_angle:
+    value: null
+    unit: degree
+    status: unavailable
+    source: 'Figure 8c: no angle assigned to diameter example'
+    reason: Not specified in the accessed article/figures.
+  taper_diameter_rule:
+    value: null
+    unit: equation
+    status: unavailable
+    source: 'Section III / Figure 8: D varies by device; explicit rule not supplied'
+    reason: Not specified in the accessed article/figures.
+cases:
+- id: cal_n1
+  split: calibration
+  active_word_lines:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figure 4a/c
+  selected_word_line:
+    value: 0
+    unit: zero_based_index
+    status: reported
+    source: Figure 4a/c
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: reported
+    source: Figure 4c
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+- id: cal_n3
+  split: calibration
+  active_word_lines:
+    value: 3
+    unit: '1'
+    status: reported
+    source: Figure 4a/c
+  selected_word_line:
+    value: 1
+    unit: zero_based_index
+    status: reported
+    source: Figure 4a/c
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: reported
+    source: Figure 4c
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+- id: cal_n5
+  split: calibration
+  active_word_lines:
+    value: 5
+    unit: '1'
+    status: reported
+    source: Figure 4a/c
+  selected_word_line:
+    value: 2
+    unit: zero_based_index
+    status: reported
+    source: Figure 4a/c
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: reported
+    source: Figure 4c
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+- id: layers_n32
+  split: validation_layers
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 5
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 5
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: layers_n64
+  split: validation_layers
+  active_word_lines:
+    value: 64
+    unit: '1'
+    status: reported
+    source: Figure 5
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 5
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: layers_n128
+  split: validation_layers
+  active_word_lines:
+    value: 128
+    unit: '1'
+    status: reported
+    source: Figure 5
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 5
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: layers_n300
+  split: validation_layers
+  active_word_lines:
+    value: 300
+    unit: '1'
+    status: reported
+    source: Figure 5
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 5
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: layers_n500
+  split: validation_layers
+  active_word_lines:
+    value: 500
+    unit: '1'
+    status: reported
+    source: Figure 5
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 5
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: bias_bl0.7
+  split: validation_bias
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 6
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 6
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: Figure 6 label
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: bias_bl0.5
+  split: validation_bias
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 6
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 6
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.5
+    unit: V
+    status: reported
+    source: Figure 6 label
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: bias_bl0.3
+  split: validation_bias
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 6
+  selected_word_line:
+    value: null
+    unit: zero_based_index
+    status: unavailable
+    source: Figure 6
+    reason: Not specified in the accessed article/figures.
+  bitline_voltage:
+    value: 0.3
+    unit: V
+    status: reported
+    source: Figure 6 label
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - selected_word_line
+  - pass_voltage_not_reconfirmed
+- id: position_wl0
+  split: validation_position
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 7
+  selected_word_line:
+    value: 0
+    unit: zero_based_index
+    status: reported
+    source: Figure 7
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+- id: position_wl16
+  split: validation_position
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 7
+  selected_word_line:
+    value: 16
+    unit: zero_based_index
+    status: reported
+    source: Figure 7
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+- id: position_wl31
+  split: validation_position
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 7
+  selected_word_line:
+    value: 31
+    unit: zero_based_index
+    status: reported
+    source: Figure 7
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.0
+    unit: degree
+    status: derived
+    source: Section III distinguishes cylindrical baseline from taper challenge
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+- id: taper_0
+  split: geometry_challenge
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: assumed
+    source: Figure 9(b) caption reports N=32; applied to companion panel 9(a)
+    reason: Figure 9(a) does not repeat active WL count.
+  selected_word_line:
+    value: 16
+    unit: zero_based_index
+    status: reported
+    source: Figure 9a caption/labels
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0
+    unit: degree
+    status: reported
+    source: Figure 9a caption/labels
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+  - active_word_lines_not_reconfirmed
+- id: taper_0.1
+  split: geometry_challenge
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: assumed
+    source: Figure 9(b) caption reports N=32; applied to companion panel 9(a)
+    reason: Figure 9(a) does not repeat active WL count.
+  selected_word_line:
+    value: 16
+    unit: zero_based_index
+    status: reported
+    source: Figure 9a caption/labels
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.1
+    unit: degree
+    status: reported
+    source: Figure 9a caption/labels
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+  - geometry.taper_diameter_rule
+  - active_word_lines_not_reconfirmed
+- id: taper_0.2
+  split: geometry_challenge
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: assumed
+    source: Figure 9(b) caption reports N=32; applied to companion panel 9(a)
+    reason: Figure 9(a) does not repeat active WL count.
+  selected_word_line:
+    value: 16
+    unit: zero_based_index
+    status: reported
+    source: Figure 9a caption/labels
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.2
+    unit: degree
+    status: reported
+    source: Figure 9a caption/labels
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+  - geometry.taper_diameter_rule
+  - active_word_lines_not_reconfirmed
+- id: taper_position_wl0
+  split: geometry_challenge
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 9b caption/labels
+  selected_word_line:
+    value: 0
+    unit: zero_based_index
+    status: reported
+    source: Figure 9b caption/labels
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.1
+    unit: degree
+    status: reported
+    source: Figure 9b caption/labels
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+  - geometry.taper_diameter_rule
+- id: taper_position_wl16
+  split: geometry_challenge
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 9b caption/labels
+  selected_word_line:
+    value: 16
+    unit: zero_based_index
+    status: reported
+    source: Figure 9b caption/labels
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.1
+    unit: degree
+    status: reported
+    source: Figure 9b caption/labels
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+  - geometry.taper_diameter_rule
+- id: taper_position_wl31
+  split: geometry_challenge
+  active_word_lines:
+    value: 32
+    unit: '1'
+    status: reported
+    source: Figure 9b caption/labels
+  selected_word_line:
+    value: 31
+    unit: zero_based_index
+    status: reported
+    source: Figure 9b caption/labels
+  bitline_voltage:
+    value: 0.7
+    unit: V
+    status: reported
+    source: 'Section III: default BL voltage'
+  source_voltage:
+    value: null
+    unit: V
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  pass_voltage:
+    value: 6.0
+    unit: V
+    status: assumed
+    source: Figure 4c
+    reason: Inherited protocol; not restated for this figure.
+  ssl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  gsl_count:
+    value: 1
+    unit: '1'
+    status: reported
+    source: Figures 1, 2, 4a
+  ssl_gsl_bias:
+    value: V_PASS
+    unit: symbol
+    status: reported
+    source: 'Figure 4 caption: unread WLs including GSL and SSL'
+  temperature:
+    value: null
+    unit: K
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  threshold_charge_state:
+    value: null
+    unit: description
+    status: unavailable
+    source: Sections II-III
+    reason: Not specified in the accessed article/figures.
+  taper_angle:
+    value: 0.1
+    unit: degree
+    status: reported
+    source: Figure 9b caption/labels
+  geometry: park_figure2_macaroni
+  current_sign:
+    value: positive BL-to-SL magnitude
+    unit: description
+    status: derived
+    source: Figure 1 orientation and positive plotted BL current
+  quantitative_validation_eligible: false
+  blocking_inputs:
+  - source_voltage
+  - temperature
+  - threshold_charge_state
+  - pass_voltage_not_reconfirmed
+  - geometry.taper_diameter_rule
+partitions:
+  unit: entire physical curve family; populations/panels of one case never split
+  frozen_before_fitting: true
+  fitting_performed: false
+  calibration:
+  - cal_n1
+  - cal_n3
+  - cal_n5
+  validation_layers:
+  - layers_n32
+  - layers_n64
+  - layers_n128
+  - layers_n300
+  - layers_n500
+  validation_bias:
+  - bias_bl0.7
+  - bias_bl0.5
+  - bias_bl0.3
+  validation_position:
+  - position_wl0
+  - position_wl16
+  - position_wl31
+  geometry_challenge:
+  - taper_0
+  - taper_0.1
+  - taper_0.2
+  - taper_position_wl0
+  - taper_position_wl16
+  - taper_position_wl31
+  dependency_groups:
+  - - layers_n32
+    - bias_bl0.7
+    - position_wl16
+    - taper_0
+  - - taper_0.1
+    - taper_position_wl16
+  dependency_note: These panels may repeat the same physical operating point once
+    unspecified selected-WL/protocol inputs are resolved. Treat as correlated; none
+    is in calibration.
+evidence_boundary: Static synthetic TCAD curves, not measured NAND. No CAM timing,
+  capacitance, switching energy, threshold-state or retention validation.
+data_hashes:
+  curves.json: f4b0037008c3d56454587caa24d0db656264c23a1a0884847feb1adea9322129
+  extraction.json: 5a36643991352ef2fab820f1b57cb9073ef9c36db7c44375ae4ca750bf8c4752

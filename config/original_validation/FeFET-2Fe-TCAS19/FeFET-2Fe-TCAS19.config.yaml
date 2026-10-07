@@ -1,0 +1,10 @@
+schema: config
+name: FeFET-2Fe-TCAS19
+architecture: FeFET-2Fe-TCAS19.architecture.yaml
+cell: FeFET-2Fe-TCAS19.cell.yaml
+technology: ../../lib/technology/cmos.legacy.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

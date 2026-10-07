@@ -55,7 +55,7 @@ void ValidateRunConfigKeys(const YAML::Node &root) {
 void ValidateArchitectureConfigKeys(const YAML::Node &root) {
     reject_unknown_keys(root,
             {"schema", "name", "design", "memory", "routing", "peripherals", "sensing",
-             "wires", "organization", "matchline", "flash", "physical_limits"},
+             "wires", "organization", "matchline", "flash", "physical_limits", "search_timing"},
             "architecture config");
     reject_unknown_keys(YamlHelpers::child_optional(root, "design"),
             {"target", "search_function", "system_process_node", "device_roadmap", "temperature"},
@@ -135,7 +135,7 @@ YAML::Node ResolveSensingNode(const std::string &architectureFile, const YAML::N
     }
     reject_unknown_keys(resolved,
             {"schema", "name", "internal", "custom_sense_amp", "sensing_mode",
-             "sense_amplifier", "worst_case_sense_margin", "strict_sense_margin"},
+             "sense_amplifier", "worst_case_sense_margin", "strict_sense_margin", "decision", "circuit"},
             "sensing");
     if (HasKey(resolved, "amplifier_type")) {
         throw std::runtime_error(
@@ -148,12 +148,17 @@ YAML::Node ResolveSensingNode(const std::string &architectureFile, const YAML::N
                 sensingFile, senseAmpReference.as<std::string>());
         const YAML::Node senseAmp = YAML::LoadFile(senseAmpFile);
         YamlHelpers::require_schema(senseAmp, "sense_amp", "sense amp config");
+        const auto model = YamlHelpers::read_optional<std::string>(senseAmp, "model", "nvsim_cmos");
+        if (model != "scalar" && model != "nvsim_cmos" && model != "analytical_inverter") {
+            throw std::runtime_error("Unsupported sense_amp.model: " + model);
+        }
+        const bool custom = model == "scalar";
         if (!YamlHelpers::child_optional(resolved, "sensing_mode")) {
-            resolved["sensing_mode"] = YamlHelpers::read_optional<std::string>(
+            resolved["sensing_mode"] = (custom || model == "analytical_inverter") ? "nvsim_vol" : YamlHelpers::read_optional<std::string>(
                     senseAmp, "name", "nvsim_vol");
         }
-        resolved["custom_sense_amp"] = false;
-        resolved["sense_amp_input_file"] = senseAmpFile;
+        resolved["custom_sense_amp"] = custom;
+        resolved[custom ? "custom_sa_input_file" : "sense_amp_input_file"] = senseAmpFile;
         resolved.remove("sense_amplifier");
     }
 
@@ -168,6 +173,7 @@ void ReadMergedConfig(const YAML::Node &root, EvaCamConfig &config) {
     ConfigSectionReaders::ReadRoutingSection(root, config);
     ConfigSectionReaders::ReadPeripheralSection(root, config);
     ConfigSectionReaders::ReadSensingSection(root, config);
+    ConfigSectionReaders::ReadSearchTimingSection(root, config);
     ConfigSectionReaders::ReadOptimizationSection(root, config);
     ConfigSectionReaders::ReadWireSection(root, config);
     ConfigSectionReaders::ReadOrganizationSection(root, config);
@@ -222,14 +228,15 @@ YAML::Node BuildMergedRootV2(const std::string &configFile, const YAML::Node &ro
     const YAML::Node architectureSensing =
             ResolveSensingNode(architectureFile, YamlHelpers::child_required(architectureRoot, "sensing"));
     if (HasKey(architectureSensing, "custom_sense_amp")
-            && YamlHelpers::read_required<bool>(architectureSensing, "custom_sense_amp")) {
+            && YamlHelpers::read_required<bool>(architectureSensing, "custom_sense_amp")
+            && !HasKey(architectureSensing, "custom_sa_input_file")) {
         throw std::runtime_error(
                 "[Input] Error: architecture config must not contain sensing.custom_sense_amp.");
     }
 
     YAML::Node merged(YAML::NodeType::Map);
     for (const char *key : {"design", "memory", "routing", "peripherals", "sensing",
-                            "wires", "organization", "matchline", "flash"}) {
+                            "wires", "organization", "matchline", "flash", "search_timing"}) {
         CopyIfPresent(architectureRoot, merged, key);
     }
     merged["sensing"] = architectureSensing;
@@ -294,6 +301,8 @@ YAML::Node BuildMergedRootV2(const std::string &configFile, const YAML::Node &ro
             architectureSensing, "worst_case_sense_margin", extra, "worst_case_sense_margin");
     CopyMappedIfPresent(
             architectureSensing, "sense_amp_input_file", advanced, "sense_amp_input_file");
+    CopyMappedIfPresent(
+            architectureSensing, "custom_sa_input_file", advanced, "custom_sa_input_file");
     const YAML::Node organization =
             YamlHelpers::child_optional(architectureRoot, "organization");
     if (organization) {

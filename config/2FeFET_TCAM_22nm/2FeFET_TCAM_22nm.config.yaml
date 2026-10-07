@@ -1,0 +1,11 @@
+# Derived from ../2FeFET_MCAM/2FeFET_MCAM_as_TCAM.config.yaml.
+schema: config
+name: 2FeFET_TCAM_22nm
+architecture: 2FeFET_TCAM_22nm.architecture.yaml
+cell: 2FeFET_TCAM_22nm.cell.yaml
+technology: ../lib/technology/cmos.legacy.yaml
+optimization:
+  target: LeakagePower
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

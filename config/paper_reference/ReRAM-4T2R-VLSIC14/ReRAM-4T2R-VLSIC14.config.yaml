@@ -1,0 +1,13 @@
+# Reference fixture: https://archive.vlsisymposium.org/14web/wp-content/uploads/2013/06/Circ-14-program.pdf
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: config
+name: ReRAM-4T2R-VLSIC14-reference
+architecture: ReRAM-4T2R-VLSIC14.architecture.yaml
+cell: ReRAM-4T2R-VLSIC14.cell.yaml
+technology: ../../lib/technology/cmos.legacy.yaml
+optimization:
+  target: SearchLatency
+  buffer_design: latency
+  row_driver: latency
+  priority_encoder: latency

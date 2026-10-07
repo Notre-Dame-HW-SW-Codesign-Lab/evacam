@@ -145,6 +145,94 @@ void ReadSensingSection(const YAML::Node &root, EvaCamConfig &config) {
     config.peripherals.typeSenseAmp = YamlHelpers::read_enum_required<TypeOfSenseAmp>(sensing, "sensing_mode");
     config.peripherals.strictSenseMargin = YamlHelpers::read_optional<bool>(
             sensing, "strict_sense_margin", false);
+    config.peripherals.decisionMode = CamDecisionMode::LegacyHorowitz;
+    config.peripherals.decisionThreshold = 0;
+    config.peripherals.inverterTripDecision = false;
+    config.peripherals.keeperMidpointDecision = false;
+    auto &circuitSettings = config.peripherals;
+    circuitSettings.matchlineCircuit = "legacy";
+    circuitSettings.prechargeVoltage = 0;
+    circuitSettings.bitsPerDischargePath = 1;
+    circuitSettings.keeperHighClamp = circuitSettings.keeperLowClamp = 0;
+    const auto circuit = YamlHelpers::child_optional(sensing, "circuit");
+    if (circuit) {
+        YamlHelpers::reject_unknown_keys(circuit, {"model", "precharge_voltage", "bits_per_discharge_path",
+                "keeper_high_clamp", "keeper_low_clamp"}, "sensing.circuit");
+        circuitSettings.matchlineCircuit = YamlHelpers::read_required<std::string>(circuit, "model");
+        if (circuitSettings.matchlineCircuit != "direct_nvm" && circuitSettings.matchlineCircuit != "clamped_keeper" && circuitSettings.matchlineCircuit != "diode_keeper")
+            throw std::runtime_error("sensing.circuit.model must be direct_nvm, clamped_keeper or diode_keeper");
+        circuitSettings.prechargeVoltage = YamlHelpers::read_quantity_required(circuit, "precharge_voltage",
+                YamlHelpers::VoltageUnits(), 1.0, "sensing.circuit.precharge_voltage");
+        YamlHelpers::require_positive(circuitSettings.prechargeVoltage, "sensing.circuit.precharge_voltage");
+        circuitSettings.bitsPerDischargePath = YamlHelpers::read_optional<int>(circuit, "bits_per_discharge_path", 1);
+        if (circuitSettings.bitsPerDischargePath != 1 && circuitSettings.bitsPerDischargePath != 2)
+            throw std::runtime_error("sensing.circuit.bits_per_discharge_path must be 1 or 2");
+        if (circuitSettings.matchlineCircuit == "clamped_keeper" || circuitSettings.matchlineCircuit == "diode_keeper") {
+            circuitSettings.keeperHighClamp = YamlHelpers::read_quantity_required(circuit, "keeper_high_clamp",
+                    YamlHelpers::VoltageUnits(), 1.0, "keeper_high_clamp");
+            circuitSettings.keeperLowClamp = YamlHelpers::read_quantity_required(circuit, "keeper_low_clamp",
+                    YamlHelpers::VoltageUnits(), 1.0, "keeper_low_clamp");
+            if (circuitSettings.keeperLowClamp < 0 || circuitSettings.keeperLowClamp >= circuitSettings.keeperHighClamp
+                    || circuitSettings.keeperHighClamp >= circuitSettings.prechargeVoltage)
+                throw std::runtime_error("sensing.circuit requires 0 <= low clamp < high clamp < precharge");
+        } else if (YamlHelpers::child_optional(circuit, "keeper_high_clamp") || YamlHelpers::child_optional(circuit, "keeper_low_clamp")) {
+            throw std::runtime_error("keeper clamps require clamped_keeper circuit");
+        }
+    }
+    const auto decision = YamlHelpers::child_optional(sensing, "decision");
+    if (decision) {
+        YamlHelpers::reject_unknown_keys(decision, {"model", "threshold"}, "sensing.decision");
+        const auto model = YamlHelpers::read_required<std::string>(decision, "model");
+        if (model == "keeper_midpoint") {
+            config.peripherals.decisionMode = CamDecisionMode::FixedThreshold;
+            config.peripherals.keeperMidpointDecision = true;
+        } else if (model == "inverter_threshold") {
+            config.peripherals.decisionMode = CamDecisionMode::FixedThreshold;
+            config.peripherals.inverterTripDecision = true;
+        } else if (model == "voltage_threshold") {
+            config.peripherals.decisionMode = CamDecisionMode::FixedThreshold;
+            config.peripherals.decisionThreshold = YamlHelpers::read_quantity_required(
+                    decision, "threshold", YamlHelpers::VoltageUnits(), 1.0, "sensing.decision.threshold");
+            YamlHelpers::require_positive(config.peripherals.decisionThreshold, "sensing.decision.threshold");
+        } else if (model == "differential") {
+            config.peripherals.decisionMode = CamDecisionMode::Differential;
+        } else if (model != "legacy_horowitz") {
+            throw std::runtime_error("Unsupported sensing.decision.model: " + model);
+        }
+        if (model != "voltage_threshold" && YamlHelpers::child_optional(decision, "threshold")) {
+            throw std::runtime_error("sensing.decision.threshold requires voltage_threshold model");
+        }
+    }
+}
+
+void ReadSearchTimingSection(const YAML::Node &root, EvaCamConfig &config) {
+    auto &settings = config.peripherals;
+    const auto timing = YamlHelpers::child_optional(root, "search_timing");
+    settings.explicitSearchTiming = static_cast<bool>(timing);
+    settings.searchBroadcast = false;
+    settings.overlapSearchPrecharge = true;
+    settings.usePhysicalDriverLoad = false;
+    settings.searchRecovery = 0;
+    if (!timing) return;
+    YamlHelpers::reject_unknown_keys(timing,
+            {"control", "precharge", "driver_load", "recovery"}, "search_timing");
+    const auto control = YamlHelpers::read_required<std::string>(timing, "control");
+    const auto precharge = YamlHelpers::read_required<std::string>(timing, "precharge");
+    const auto load = YamlHelpers::read_required<std::string>(timing, "driver_load");
+    if (control != "decoded" && control != "broadcast")
+        throw std::runtime_error("search_timing.control must be decoded or broadcast");
+    if (precharge != "overlap_input" && precharge != "serial")
+        throw std::runtime_error("search_timing.precharge must be overlap_input or serial");
+    if (load != "legacy_scaled" && load != "physical_line")
+        throw std::runtime_error("search_timing.driver_load must be legacy_scaled or physical_line");
+    settings.searchBroadcast = control == "broadcast";
+    settings.overlapSearchPrecharge = precharge == "overlap_input";
+    settings.usePhysicalDriverLoad = load == "physical_line";
+    if (YamlHelpers::child_optional(timing, "recovery")) {
+        settings.searchRecovery = YamlHelpers::read_quantity_required(
+                timing, "recovery", YamlHelpers::TimeUnits(), 1.0, "search_timing.recovery");
+        YamlHelpers::require_non_negative(settings.searchRecovery, "search_timing.recovery");
+    }
 }
 
 void ReadOptimizationSection(const YAML::Node &root, EvaCamConfig &config) {

@@ -1,0 +1,1543 @@
+{
+  "revision": "6334d00ca2e0320a9c930eae45de145ca65c210c",
+  "adapter_sha256": "4fcb05b424177dfa3b99c05194ba3cbada141146f4c253ece254ffc040cf460e",
+  "config_sha256": "c72b74b689d1c9f346c60d4c78b73ae83d57911ee47e35448f774e195542cb6b",
+  "cases": [
+    {
+      "pages": 16,
+      "rows": 1024,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 8192,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 345973.1928055905,
+      "bitline_resistance_ohm": 1135.0613333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 3.1437215428233344e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 9.60427926803384e-08,
+      "read_latency_s": 9.616125841637153e-08,
+      "program_latency_s": 0.0002000001616553367,
+      "erase_latency_s": 0.0012500001616553367,
+      "read_energy_j": 1.2527887776576604e-09,
+      "program_energy_j": 2.4087926803548992e-09,
+      "erase_energy_j": 2.3675844308807503e-08,
+      "write_energy_j": 1.8697253794179184e-09,
+      "area_m2": 1.568725248648649e-08,
+      "leakage_w": 0.006406273295936269,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 1.1358001382263154e-10,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.23707468175949e-09,
+          "write_j": 1.0528283761726678e-09,
+          "set_j": 1.2398286258924431e-09,
+          "reset_j": 1.3853250023246282e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p16-r1024-c1024"
+    },
+    {
+      "pages": 16,
+      "rows": 1024,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 131072,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 345973.1928055905,
+      "bitline_resistance_ohm": 1135.0613333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 3.1437215428233344e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 9.60427926803384e-08,
+      "read_latency_s": 1.065659640828753e-07,
+      "program_latency_s": 0.0002000105663610032,
+      "erase_latency_s": 0.0012500105663610032,
+      "read_energy_j": 1.4449227072247535e-08,
+      "program_energy_j": 3.293345940355957e-08,
+      "erase_energy_j": 3.104594528517942e-07,
+      "write_energy_j": 2.5150515724449253e-08,
+      "area_m2": 1.7723077589189193e-07,
+      "leakage_w": 0.0161825090231449,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 1.5381340255314898e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.4199788841331798e-08,
+          "write_j": 1.2084913585452127e-08,
+          "set_j": 1.423140004940627e-08,
+          "reset_j": 1.5901483394396774e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p16-r1024-c16384"
+    },
+    {
+      "pages": 16,
+      "rows": 4096,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 8192,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 345973.1928055905,
+      "bitline_resistance_ohm": 4540.245333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.2574886171293337e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 3.628878195171706e-07,
+      "read_latency_s": 3.630062852532037e-07,
+      "program_latency_s": 0.00020000048676853443,
+      "erase_latency_s": 0.0012500004867685344,
+      "read_energy_j": 5.002004215785752e-09,
+      "program_energy_j": 9.599945601835781e-09,
+      "erase_energy_j": 9.50536943236676e-08,
+      "write_energy_j": 7.471136124326459e-09,
+      "area_m2": 5.95190092864865e-08,
+      "leakage_w": 0.024543240522177916,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 5.391268866304528e-10,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 4.951523074601191e-09,
+          "write_j": 4.227086905789468e-09,
+          "set_j": 4.954277018734144e-09,
+          "reset_j": 5.599834868551666e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p16-r4096-c1024"
+    },
+    {
+      "pages": 16,
+      "rows": 4096,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 131072,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 345973.1928055905,
+      "bitline_resistance_ohm": 4540.245333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.2574886171293337e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 3.628878195171706e-07,
+      "read_latency_s": 3.7341099091970747e-07,
+      "program_latency_s": 0.00020001089147420094,
+      "erase_latency_s": 0.001250010891474201,
+      "read_energy_j": 5.764187706498158e-08,
+      "program_energy_j": 1.3119710912993827e-07,
+      "erase_energy_j": 1.2448295559762964e-06,
+      "write_energy_j": 1.0041066725632995e-07,
+      "area_m2": 6.72431339091892e-07,
+      "leakage_w": 0.04931408993651536,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 5.923106116516444e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 5.6836166109483575e-08,
+          "write_j": 4.852070967194748e-08,
+          "set_j": 5.686777731755805e-08,
+          "reset_j": 6.427782724213907e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p16-r4096-c16384"
+    },
+    {
+      "pages": 64,
+      "rows": 1024,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 32768,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 1268568.3736204987,
+      "bitline_resistance_ohm": 1020.0213333333335,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 2.7047292337058345e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 3.0651002585908416e-07,
+      "read_latency_s": 3.0662849159511727e-07,
+      "program_latency_s": 0.00020000015235159752,
+      "erase_latency_s": 0.0012500001523515975,
+      "read_energy_j": 1.147991354385949e-09,
+      "program_energy_j": 2.1437834334984433e-09,
+      "erase_energy_j": 2.0663892884824276e-08,
+      "write_energy_j": 1.2173504314815959e-09,
+      "area_m2": 1.4731734315789477e-08,
+      "leakage_w": 0.006406273295936269,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 9.934682216154562e-11,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.1338955597361094e-09,
+          "write_j": 6.62834160103685e-10,
+          "set_j": 1.1366495038690625e-09,
+          "reset_j": 1.2097204245651684e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p64-r1024-c1024"
+    },
+    {
+      "pages": 64,
+      "rows": 1024,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 524288,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 1268568.3736204987,
+      "bitline_resistance_ohm": 1020.0213333333335,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 2.7047292337058345e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 3.0651002585908416e-07,
+      "read_latency_s": 3.1703319726162103e-07,
+      "program_latency_s": 0.00020001055705726404,
+      "erase_latency_s": 0.001250010557057264,
+      "read_energy_j": 1.3238990439270028e-08,
+      "program_energy_j": 2.9159833593226146e-08,
+      "erase_energy_j": 2.7068968890784703e-07,
+      "write_energy_j": 1.647852245504129e-08,
+      "area_m2": 1.6137149846616546e-07,
+      "leakage_w": 0.0161825090231449,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 1.3786878363988832e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.3015445028327583e-08,
+          "write_j": 7.608356430758907e-09,
+          "set_j": 1.3047056236402056e-08,
+          "reset_j": 1.3885802400740846e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p64-r1024-c16384"
+    },
+    {
+      "pages": 64,
+      "rows": 4096,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 32768,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 1268568.3736204987,
+      "bitline_resistance_ohm": 4080.085333333334,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.0818916934823338e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 1.142977462302638e-06,
+      "read_latency_s": 1.1430959280386712e-06,
+      "program_latency_s": 0.00020000041589011215,
+      "erase_latency_s": 0.001250000415890112,
+      "read_energy_j": 4.582814522698906e-09,
+      "program_energy_j": 8.539908614409959e-09,
+      "erase_energy_j": 8.465671353456794e-08,
+      "write_energy_j": 4.865387205287605e-09,
+      "area_m2": 5.5577507115789485e-08,
+      "leakage_w": 0.024543240522177916,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 4.498070250079087e-10,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 4.538806586507668e-09,
+          "write_j": 2.6671100415135363e-09,
+          "set_j": 4.541560530640622e-09,
+          "reset_j": 5.0730211352732864e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p64-r4096-c1024"
+    },
+    {
+      "pages": 64,
+      "rows": 4096,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 524288,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 1268568.3736204987,
+      "bitline_resistance_ohm": 4080.085333333334,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.0818916934823338e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 1.142977462302638e-06,
+      "read_latency_s": 1.153500633705175e-06,
+      "program_latency_s": 0.00020001082059577867,
+      "erase_latency_s": 0.0012500108205957786,
+      "read_energy_j": 5.280093053307155e-08,
+      "program_energy_j": 1.161026058886046e-07,
+      "erase_energy_j": 1.1042237762048856e-06,
+      "write_energy_j": 6.578265325118099e-08,
+      "area_m2": 6.087963176661656e-07,
+      "leakage_w": 0.04931408993651536,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 5.020884456343511e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 5.2098790857466714e-08,
+          "write_j": 3.06144810531746e-08,
+          "set_j": 5.2130402065541186e-08,
+          "reset_j": 5.823078426117129e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p64-r4096-c16384"
+    },
+    {
+      "pages": 256,
+      "rows": 1024,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 131072,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 4958949.0968801305,
+      "bitline_resistance_ohm": 991.2613333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 2.5949811564264587e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 1.153643859790795e-06,
+      "read_latency_s": 1.1537623255268283e-06,
+      "program_latency_s": 0.0002000001500803582,
+      "erase_latency_s": 0.001250000150080358,
+      "read_energy_j": 1.121791998568021e-09,
+      "program_energy_j": 2.077531121784329e-09,
+      "erase_energy_j": 1.7847373895286883e-08,
+      "write_energy_j": 1.0703455656511945e-09,
+      "area_m2": 1.4494298553191492e-08,
+      "leakage_w": 0.006406273295936269,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 9.582905090536204e-11,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.1081007792302643e-09,
+          "write_j": 5.739100483598505e-10,
+          "set_j": 1.1108547233632174e-09,
+          "reset_j": 9.463135579259785e-09
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p256-r1024-c1024"
+    },
+    {
+      "pages": 256,
+      "rows": 1024,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 2097152,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 4958949.0968801305,
+      "bitline_resistance_ohm": 991.2613333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 2.5949811564264587e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 1.153643859790795e-06,
+      "read_latency_s": 1.164167031193332e-06,
+      "program_latency_s": 0.0002000105547860247,
+      "erase_latency_s": 0.0012500105547860248,
+      "read_energy_j": 1.293643128102565e-08,
+      "program_energy_j": 2.8216427140642786e-08,
+      "erase_energy_j": 2.3765565291638772e-07,
+      "write_energy_j": 1.4529066956040041e-08,
+      "area_m2": 1.574090716595745e-07,
+      "leakage_w": 0.0161825090231449,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 1.3387518377286617e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.2719359075076529e-08,
+          "write_j": 6.5876390656039565e-09,
+          "set_j": 1.2750970283151001e-08,
+          "reset_j": 1.0862280910256951e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p256-r1024-c16384"
+    },
+    {
+      "pages": 256,
+      "rows": 4096,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 131072,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 4958949.0968801305,
+      "bitline_resistance_ohm": 3965.045333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.0379924625705835e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 4.285880206935868e-06,
+      "read_latency_s": 4.285998672671902e-06,
+      "program_latency_s": 0.00020000039904563392,
+      "erase_latency_s": 0.001250000399045634,
+      "read_energy_j": 4.478017099427195e-09,
+      "program_energy_j": 8.2748993675535e-09,
+      "erase_energy_j": 7.999393720375144e-08,
+      "write_energy_j": 4.278305460142608e-09,
+      "area_m2": 5.4593575353191496e-08,
+      "leakage_w": 0.024543240522177916,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 4.2834672874422996e-10,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 4.435627464484288e-09,
+          "write_j": 2.3114135945381983e-09,
+          "set_j": 4.4383814086172415e-09,
+          "reset_j": 4.7218119797543665e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p256-r4096-c1024"
+    },
+    {
+      "pages": 256,
+      "rows": 4096,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 2097152,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 4958949.0968801305,
+      "bitline_resistance_ohm": 3965.045333333333,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.0379924625705835e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 4.285880206935868e-06,
+      "read_latency_s": 4.296403378338405e-06,
+      "program_latency_s": 0.00020001080375130044,
+      "erase_latency_s": 0.0012500108037513005,
+      "read_energy_j": 5.159069390009404e-08,
+      "program_energy_j": 1.1232898007827114e-07,
+      "erase_energy_j": 1.0459807362565604e-06,
+      "write_energy_j": 5.799982102329669e-08,
+      "area_m2": 5.928899548595746e-07,
+      "leakage_w": 0.04931408993651536,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 4.803618989942212e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 5.0914447044462495e-08,
+          "write_j": 2.65316115925548e-08,
+          "set_j": 5.094605825253697e-08,
+          "reset_j": 5.419942227385943e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p256-r4096-c16384"
+    },
+    {
+      "pages": 512,
+      "rows": 1024,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 262144,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 9879456.727892974,
+      "bitline_resistance_ohm": 986.468,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 2.5766898102132298e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 2.2835643592532692e-06,
+      "read_latency_s": 2.2836828249893025e-06,
+      "program_latency_s": 0.00020000014970394535,
+      "erase_latency_s": 0.0012500001497039454,
+      "read_energy_j": 1.1174254392650332e-09,
+      "program_energy_j": 2.0664890698319766e-09,
+      "erase_energy_j": 1.4810004208623346e-08,
+      "write_energy_j": 1.046470433002104e-09,
+      "area_m2": 1.4454790530612248e-08,
+      "leakage_w": 0.006406273295936269,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 9.524423708702025e-11,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.1038016491459567e-09,
+          "write_j": 5.594228136020662e-10,
+          "set_j": 1.1065555932789098e-09,
+          "reset_j": 6.29249736971398e-09
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p512-r1024-c1024"
+    },
+    {
+      "pages": 512,
+      "rows": 1024,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 4194304,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 9879456.727892974,
+      "bitline_resistance_ohm": 986.468,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 2.5766898102132298e-14,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 2.2835643592532692e-06,
+      "read_latency_s": 2.294087530655806e-06,
+      "program_latency_s": 0.00020001055440961184,
+      "erase_latency_s": 0.001250010554409612,
+      "read_energy_j": 1.2886004754651588e-08,
+      "program_energy_j": 2.8059192731878896e-08,
+      "erase_energy_j": 2.0341377313322324e-07,
+      "write_energy_j": 1.4212656593586808e-08,
+      "area_m2": 1.567487742507289e-07,
+      "leakage_w": 0.0161825090231449,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 1.3320896578952475e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 1.2670011416201354e-08,
+          "write_j": 6.421347023992735e-09,
+          "set_j": 1.2701622624275826e-08,
+          "reset_j": 7.222856893933746e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p512-r1024-c16384"
+    },
+    {
+      "pages": 512,
+      "rows": 4096,
+      "columns": 1024,
+      "page_bits": 512,
+      "block_bits": 262144,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 9879456.727892974,
+      "bitline_resistance_ohm": 3945.872,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.0306759240852919e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 8.478158292616215e-06,
+      "read_latency_s": 8.478276758352248e-06,
+      "program_latency_s": 0.00020000039627225363,
+      "erase_latency_s": 0.0012500003962722535,
+      "read_energy_j": 4.460550862215243e-09,
+      "program_energy_j": 8.230731159744092e-09,
+      "erase_energy_j": 7.664885796020806e-08,
+      "write_energy_j": 4.182961215909015e-09,
+      "area_m2": 5.4429651330612255e-08,
+      "leakage_w": 0.024543240522177916,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 4.2480378910245516e-10,
+      "row_decoder_ramp": 11812835222.15334,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 4.418430944147057e-09,
+          "write_j": 2.2534646555070612e-09,
+          "set_j": 4.421184888280011e-09,
+          "reset_j": 4.390114443986498e-08
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.481577010387084e-13,
+          "write_j": 1.481577010387084e-13,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 1.3666841171598424e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.1207020463769492e-12,
+          "write_j": 1.1207020463769492e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.1090772783876194e-12,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p512-r4096-c1024"
+    },
+    {
+      "pages": 512,
+      "rows": 4096,
+      "columns": 16384,
+      "page_bits": 8192,
+      "block_bits": 4194304,
+      "vdd_v": 1,
+      "precharge_v": 0.6,
+      "sense_drop_v": 0.2,
+      "string_resistance_ohm": 9879456.727892974,
+      "bitline_resistance_ohm": 3945.872,
+      "cell_capacitance_f": 5.799166213229175e-17,
+      "bitline_capacitance_f": 1.0306759240852919e-13,
+      "mux_delay_capacitance_f": 2.6769592948427107e-15,
+      "mux_energy_capacitance_f": 1.7026424516396388e-16,
+      "bitline_delay_s": 8.478158292616215e-06,
+      "read_latency_s": 8.488681464018752e-06,
+      "program_latency_s": 0.00020001080097792012,
+      "erase_latency_s": 0.0012500108009779202,
+      "read_energy_j": 5.138898779459779e-08,
+      "program_energy_j": 1.117000424432156e-07,
+      "erase_energy_j": 1.0075373558139184e-06,
+      "write_energy_j": 5.673667786817054e-08,
+      "area_m2": 5.90239001450729e-07,
+      "leakage_w": 0.04931408993651536,
+      "program_voltage_v": 6,
+      "erase_voltage_v": 16,
+      "pass_voltage_v": 3.8,
+      "program_time_s": 0.0002,
+      "cell_area_m2": 8.100000000000001e-15,
+      "junction_capacitance_f_per_m2": 0.0006882472016116854,
+      "builtin_voltage_v": 0.9,
+      "tunnel_current_density_a_per_m2": 10,
+      "threshold_change_v": 5,
+      "precharge_driver_resistance_ohm": 3642.1964132807498,
+      "precharger_latency_s": 4.767727213137625e-10,
+      "row_decoder_ramp": 110188866.86610603,
+      "minimum_nmos_gm_s": 8.482500000000002e-05,
+      "components": {
+        "row_decoder": {
+          "read_j": 5.0717056408961795e-08,
+          "write_j": 2.5866443426109914e-08,
+          "set_j": 5.074866761703627e-08,
+          "reset_j": 5.039202484139823e-07
+        },
+        "bitline_mux_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2_decoder": {
+          "read_j": 1.9153508012865203e-12,
+          "write_j": 1.9153508012865203e-12,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "precharger": {
+          "read_j": 2.1245159665573058e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "bitline_mux": {
+          "read_j": 1.7931232742031186e-11,
+          "write_j": 1.7931232742031186e-11,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_amp": {
+          "read_j": 1.774523645420191e-11,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux1": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        },
+        "sense_mux2": {
+          "read_j": 0,
+          "write_j": 0,
+          "set_j": 0,
+          "reset_j": 0
+        }
+      },
+      "id": "p512-r4096-c16384"
+    }
+  ]
+}

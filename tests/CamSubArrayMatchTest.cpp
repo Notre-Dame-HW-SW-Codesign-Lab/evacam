@@ -9,6 +9,10 @@
 #include "TestSupport.h"
 
 struct CamSubArrayTestAccessor {
+    static double DiodeKeeperRate(const CAM_SubArray &subarray) { return subarray.DiodeKeeperRate(); }
+    static double MatchlineInputRamp(const CAM_SubArray &subarray) {
+        return subarray.MatchlineInputRamp();
+    }
     static int CountMismatches(const CAM_SubArray &subarray, const std::vector<int> &stored,
             const std::vector<int> &query) {
         return subarray.CountMismatches(stored, query);
@@ -142,10 +146,13 @@ struct SubArrayFixture {
         subarray.searchDynamicEnergy = 2e-15;
         subarray.decoderLatency = 3e-12;
         subarray.numColumn = 4;
+        subarray.numRow = 4;
         subarray.muxSenseAmp = 1;
 
         subarray.Col.resize(1);
-        subarray.Col[0].cap = 2e-15;
+        subarray.Col[0].cap = 6e-15;
+        subarray.Col[0].wireCap = 2e-15;
+        subarray.Col[0].deviceCap = 4e-15;
         subarray.Col[0].CellPort.widthCmos = 2;
         subarray.ColMux.resize(1);
         subarray.ColMux[0] = std::make_unique<Mux>();
@@ -290,6 +297,52 @@ void TestTcamStatesShareMatchlineCapacitance() {
             (allMatchResistance + wireResistance) * additionalCapacitance);
 }
 
+// Integrating C dv/dt = -Gv from a uniform precharge to zero gives
+// G * integral(v dt) = C * 1. Solve that nodal system independently of
+// the production Elmore expression using a discretized RC ladder.
+double LadderDischargeMoment(int segments, double cellResistance, double wireResistance,
+        double distributedCap, double endCap) {
+    const int count = segments + 1;
+    const double conductance = segments / wireResistance;
+    std::vector<double> diagonal(count, 2 * conductance);
+    std::vector<double> rhs(count, distributedCap / segments);
+    diagonal.front() = conductance + 1 / cellResistance;
+    diagonal.back() = conductance;
+    rhs.front() *= 0.5;
+    rhs.back() = rhs.back() * 0.5 + endCap;
+    for (int i = 1; i < count; ++i) {
+        const double multiplier = -conductance / diagonal[i - 1];
+        diagonal[i] += multiplier * conductance;
+        rhs[i] -= multiplier * rhs[i - 1];
+    }
+    return rhs.back() / diagonal.back();
+}
+
+void TestMatchlineAgainstIndependentRcLadder() {
+    SubArrayFixture fixture;
+    auto &subarray = fixture.subarray;
+    const double distributed = subarray.Col[0].wireCap + subarray.Col[0].deviceCap;
+    const double endCap = 12e-15;
+    for (int segments : {8, 32, 128}) {
+        for (double resistance : {100.0, 2500.0}) {
+            for (double wireResistance : {40.0, 400.0}) {
+                const double independent = LadderDischargeMoment(
+                        segments, resistance, wireResistance, distributed, endCap);
+                const double modeled = CamSubArrayTestAccessor::MatchlineTau(
+                        subarray, resistance, wireResistance);
+                Require(std::abs(modeled / independent - 1) < 1e-9,
+                        "matchline first moment must match the nodal RC solve");
+            }
+        }
+    }
+    const double original = CamSubArrayTestAccessor::MatchlineTau(subarray, 100, 0);
+    subarray.CAM_opt.BitSerialWidth = 1;
+    AssertNear(CamSubArrayTestAccessor::MatchlineTau(subarray, 100, 0), original);
+    subarray.Col[0].wireCap *= 2;
+    AssertNear(CamSubArrayTestAccessor::MatchlineTau(subarray, 100, 0) - original,
+            100 * 2e-15);
+}
+
 void TestMcamAndSearchlineHelpers() {
     SubArrayFixture fixture;
     CAM_SubArray &subarray = fixture.subarray;
@@ -407,10 +460,51 @@ void TestMcamAndSearchlineHelpers() {
 
 }  // namespace
 
+void TestInputRampAndScheduledSearchLatency() {
+    SubArrayFixture fixture;
+    auto &sub = fixture.subarray;
+    sub.RowDriver[0]->readLatency = 1e-12;
+    sub.RowDriver[0]->rampOutput = 1e12;
+    sub.RowDriver[1]->readLatency = 2e-12;
+    sub.RowDriver[1]->rampOutput = 5e11;
+    AssertNear(CamSubArrayTestAccessor::MatchlineInputRamp(sub), 5e11);
+    fixture.config->technology.cell->fefetGate = true;
+    sub.gateNodeRamp = 1e11;
+    AssertNear(CamSubArrayTestAccessor::MatchlineInputRamp(sub), 1e11);
+    sub.inputBuf = std::make_unique<CAM_DataBuffer>();
+    sub.inputBuf->readLatency = 40e-12;
+    sub.precharger->readLatency = 100e-12;
+    sub.searchLatency = 300e-12;
+    AssertNear(sub.ScheduledSearchLatency(2, 3), 1680e-12);
+    fixture.config->peripherals.explicitSearchTiming = true;
+    fixture.config->peripherals.searchRecovery = 10e-12;
+    sub.searchPhases.queryReady = 50e-12;
+    sub.searchPhases.evaluationStart = 100e-12;
+    AssertNear(sub.ScheduledSearchLatency(2, 3), 1850e-12);
+    fixture.config->peripherals.overlapSearchPrecharge = false;
+    sub.searchPhases.evaluationStart = 150e-12;
+    AssertNear(sub.ScheduledSearchLatency(2, 3), 1730e-12);
+    AssertThrows<std::invalid_argument>([&] { sub.ScheduledSearchLatency(1, 0); }, "positive");
+}
+
+void TestDiodeKeeperRate() {
+    SubArrayFixture fixture;
+    auto &sub = fixture.subarray;
+    const double rate = CamSubArrayTestAccessor::DiodeKeeperRate(sub);
+    Require(rate > 0, "diode coefficient must be positive");
+    sub.Col[0].CellPort.widthCmos *= 2;
+    AssertNear(CamSubArrayTestAccessor::DiodeKeeperRate(sub), 2*rate);
+    sub.capCellAccess *= 2;
+    Require(CamSubArrayTestAccessor::DiodeKeeperRate(sub) < 2*rate, "more capacitance slows diode response");
+}
+
 int main() {
+    TestDiodeKeeperRate();
+    TestInputRampAndScheduledSearchLatency();
     TestBinaryMatchAndValidation();
     TestResistanceAndMatchlineMath();
     TestTcamStatesShareMatchlineCapacitance();
+    TestMatchlineAgainstIndependentRcLadder();
     TestMcamAndSearchlineHelpers();
     std::cout << "CAM subarray match tests passed\n";
     return 0;

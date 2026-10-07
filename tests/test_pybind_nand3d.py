@@ -65,13 +65,14 @@ def main():
         assert cli["metadata"] == python["metadata"] == design.metadata
         assert design.metadata["model_identifier"] == "evacam-nand3d-tcam-v1"
         assert design.metadata["array_layout"] == "vertical_3d"
-        assert design.metadata["model_backend"] == "transient_rc"
+        assert design.metadata["model_backend"] == "analytical_rc"
         assert design.metadata["calibration_status"] == "synthetic"
         assert design.metadata["device_validation"] == "not_performed_by_evacam"
         assert design.metadata["terminal_conductance_model"] == "dc_linear_resistor_network"
         assert "synthetic" in design.metadata["model_source"].lower()
         assert design.metadata["read_metrics"] == "unavailable"
-        assert "transient_solver" in design.metadata
+        assert "transient_solver" not in design.metadata
+        assert design.metadata["delay_model"] == "first_moment_single_exponential"
         assert cli["assumptions"]["model_identifier"] == "evacam-nand3d-tcam-v1"
         assert not design.variation.enabled
         for section in ("summary", "geometry", "breakdown"):
@@ -82,11 +83,11 @@ def main():
                 require_close(value, python_values[name], f"CLI/Python YAML {section}.{name}")
                 require_close(value, structured[name], f"CLI/DTO {section}.{name}")
 
-        assert "timing.slowest_match_time_constant_s" not in design.summary
-        assert "timing.fastest_mismatch_time_constant_s" not in design.summary
+        assert "timing.slowest_match_time_constant_s" in design.summary
+        assert "timing.fastest_mismatch_time_constant_s" in design.summary
         assert "timing.read_latency_s" not in design.summary
         assert "energy.read_dynamic_j" not in design.summary
-        assert any(name.startswith("diagnostics.") for name in design.summary)
+        assert not any(name.startswith("diagnostics.") for name in design.summary)
         geometry = design.geometry
         entries = geometry["string_rows"] * geometry["string_columns"]
         require_close(geometry["strings_per_block"], entries, "entries per vertical block")

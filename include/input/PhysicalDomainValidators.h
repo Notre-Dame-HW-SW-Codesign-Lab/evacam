@@ -3,9 +3,11 @@
 
 class MemCell;
 class Technology;
+struct Nand3dMemoryDevice;
 
 namespace PhysicalDomainValidators {
 
+void ValidateNand3dGeometry(const Nand3dMemoryDevice& spec);
 void ValidateMemCell(const MemCell& cell);
 void ValidateTechnology(const Technology& technology);
 

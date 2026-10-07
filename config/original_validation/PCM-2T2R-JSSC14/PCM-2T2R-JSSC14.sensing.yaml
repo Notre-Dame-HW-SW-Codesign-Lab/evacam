@@ -1,0 +1,10 @@
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+decision:
+  model: voltage_threshold
+  threshold: 0.45V
+circuit:
+  model: direct_nvm
+  precharge_voltage: 0.55V
+  bits_per_discharge_path: 2

@@ -1,6 +1,8 @@
 #ifndef TECHNOLOGY_NANDDEVICESPEC_H_
 #define TECHNOLOGY_NANDDEVICESPEC_H_
 
+#include <map>
+#include <set>
 #include <string>
 
 // All values use SI units. Peripheral costs are per physical wordline or string;
@@ -22,6 +24,11 @@ struct NandDeviceSpec {
     std::string model;
     std::string calibrationStatus;
     std::string source;
+    // Missing supported inputs are resolved from the selected CMOS technology
+    // before a complete configuration is returned. Values are recorded in SI.
+    std::set<std::string> pendingTechnologyDefaults;
+    std::map<std::string, double> technologyDefaults;
+    std::string technologyDefaultSource;
     double resistanceReadOn = 0;
     double resistancePass = 0;
     double resistanceOff = 0;

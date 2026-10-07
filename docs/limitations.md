@@ -16,6 +16,9 @@ This file summarizes current runtime restrictions enforced by the code.
 - Process nodes above `200nm` are rejected
 - Intermediate nodes are interpolated between built-in technology tables
 - The supported anchor nodes are `7`, `10`, `14`, `22`, `32`, `45`, `65`, `90`, `120`, and `200` nm
+- Physical dimensions use the requested process node even when electrical
+  parameters use nearby tables. Result assumptions report physical feature
+  size, electrical table bounds, and the interpolation coefficient separately.
 
 ## Memory Technologies
 
@@ -26,6 +29,37 @@ Known unsupported or incomplete modes:
 - `DRAM` is under development
 - `eDRAM` is under development
 - `MLCNAND` is under development
+
+The named non-flash examples are design exploration inputs, not complete
+paper reproductions. The [paper comparison](validation/named-cam-papers.md)
+records their different sizes, circuits, and measurement scopes. The
+[CAM repair notes](validation/named-cam-fixes.md) describe corrected input
+semantics and capacitance accounting. The independent RC check validates
+the linear network's first moment; it does not validate a single-exponential
+waveform or paper-specific sensing circuits.
+
+Separate [paper reference fixtures](validation/named-cam-reference-configs.md)
+pin sourced dimensions, process and cell footprints and can be rerun with
+`make validate-named-cam`. Their manifest labels every case as a partial
+reconstruction and records unmatched sensing, operating conditions and metric
+scope. Small numerical gaps do not change that status.
+
+The [analytical decision and scheduling model](validation/analytical-cam-timing.md)
+adds explicit sensing events and phase dependencies for nominal exact TCAM.
+Its one-pole equations and ideal differential reference are analytical
+approximations, not a characterization of the named chip. Replica/control
+delays, sensing offsets, MRS/X-state leakage, actual inverter trip points and
+operating-corner current tables remain required for tighter paper agreement.
+Generic search energy retains its conservative activity budget; timing changes
+do not establish data-dependent energy accuracy. Other modes keep legacy timing.
+
+The [sensing and topology repairs](validation/named-cam-sensing-topology.md)
+restore scalar-amplifier inputs and give DATE21 an explicit `fefet_gate`
+control-node model. That model supports nominal exact TCAM search and uses
+a resistive divider followed by CMOS discharge, with an assumed switching
+voltage. Its independent numerical checks establish equation correctness,
+not compact-model or silicon calibration. Scalar amplifier values do not
+automatically scale across load, voltage, process or temperature.
 
 ## NAND String TCAM
 
@@ -42,9 +76,14 @@ Known unsupported or incomplete modes:
 - Fixed `[strings, logical key bits]` subarray dimensions describe one erase
   block. Physical pages contain one bit per string. Keys must fit in one
   string after complementary encoding and a validity pair.
-- NAND uses explicit query, wordline-driver, sense, page-buffer, and operation
+- NAND uses supplied query, wordline-driver, sense, page-buffer, and operation
   costs. Generic CAM peripheral toggles, external sensing, generic matchline
   overrides, and variation are rejected.
+- Missing RC, wordline-driver, and sense parameters can use warned CMOS
+  [technology-library estimates](nand-tcam.md#technology-library-fallbacks).
+  These do not establish NAND calibration or high-voltage circuit costs.
+  Geometry, biases, sensing requirements, page buffers, and operation costs
+  still need explicit inputs.
 - Search/area/leakage objectives are supported; write objectives mean one
   physical page program. Conventional read, full/deep exploration, design
   constraints, and legacy exploration CSV are unsupported.
@@ -59,17 +98,18 @@ Known unsupported or incomplete modes:
 ## 3D NAND String TCAM
 
 - `NAND3D` is a separate SLC-mode backend with explicit vertical stack and
-  lateral layout geometry. Its finite-precharge linear RC transient replaces
-  the planar model's one-pole voltage approximation.
+  lateral layout geometry and the same first-moment, single-exponential RC
+  approach as the planar analytical model.
 - The supplied 3D example is synthetic and uncalibrated. Numerical convergence
-  checks verify the configured linear circuit equations; they do not validate
+  checks of the separate nodal reference verify circuit equations; they do not validate
   flash device physics, fabricated area, or measurements from a paper.
-- Sense margins and energy envelopes use the reported sampled patterns, not
-  exhaustive guarantees over every stored and query vector. The model enforces
-  its sampled sense-margin requirement and checks the recovery reset condition.
+- Sense bounds cover supported patterns within the analytical approximation,
+  not the full distributed RC transient. Full precharge and recovery reset are
+  assumed each round; phase durations are supplied and their sufficiency is not
+  simulated. The separate nodal reference retains known approximation failures.
 - A physical page contains one bit per string in one select group. Groups are
   searched sequentially; each logical entry occupies a complete vertical string.
-- Only explicit SLC resistance states and linear capacitances are modeled. No
+- Only SLC resistance states and linear capacitances are modeled. No
   nonlinear transistor I–V, charge trapping, process variation, coupling noise,
   high-voltage programming waveform, retention, or endurance model is included.
 - The operation and runtime restrictions listed for NAND string TCAM above also
@@ -118,3 +158,10 @@ Known unsupported or incomplete modes:
 - Change one axis at a time: technology, organization geometry, or peripheral options
 - Use `./EvaCAM -v <config>` when testing new combinations
 - If a run ends with `No valid solutions.`, the YAML may be valid but the design point is illegal or unsupported. The console and no-solution YAML still report the configured minimum required sense margin.
+
+The [original EvaCAM validation audit](validation/original-evacam-validation.md)
+separates implementation checks from paper accuracy. The diode-keeper reduction
+uses fixed DC source nodes, square-law current and lumped capacitance; it omits
+wire resistance, body effect and source-node settling. PCM CSRSS/reference and
+SAPIENS's complete serial divider/accumulator architecture remain unreproduced.
+Neither an unavailable metric nor a mismatched metric scope has an error score.

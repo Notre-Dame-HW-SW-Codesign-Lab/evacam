@@ -307,9 +307,42 @@ void TestCamSenseAmpPrintsIdentity() {
             "CAM sense amp property output lacks area");
 }
 
+
+void TestAnalyticalInverterSensing() {
+    const auto config = TestModelBuilders::MakeEvaCamConfig();
+    TemporaryDirectory temp("analytical-inverter");
+    const std::string base = "schema: sense_amp\nmodel: analytical_inverter\n"
+        "transistors: {n_sense_width: 2F, p_sense_width: 3F}\n";
+    config->peripherals.fileSenseAmp = temp.WriteFile("inverter.yaml", base + "output_capacitance: 1fF\n").string();
+    CAM_SenseAmp amp;
+    const double pitch = 100 * config->technology.tech->featureSize();
+    amp.Initialize(16, nvsim_voltage_sense, false, .05, pitch, "", config);
+    amp.CalculateLatency(.1);
+    amp.CalculatePower();
+    AssertFinitePositive(amp.area, "inverter area");
+    AssertFinitePositive(amp.capLoad, "inverter input capacitance");
+    AssertFinitePositive(amp.readLatency, "inverter delay");
+    const double delay = amp.readLatency, energy = amp.readDynamicEnergy, cap = amp.capLoad;
+    amp.CalculateLatency(.2);
+    AssertNear(amp.readLatency, delay); // no fictitious regenerative latch gain
+    config->peripherals.fileSenseAmp = temp.WriteFile("loaded.yaml", base + "output_capacitance: 10fF\n").string();
+    CAM_SenseAmp loaded;
+    loaded.Initialize(16, nvsim_voltage_sense, false, .05, pitch, "", config);
+    loaded.CalculateLatency(); loaded.CalculatePower();
+    Require(loaded.readLatency > delay && loaded.readDynamicEnergy > energy, "output load must cost time and energy");
+    AssertNear(loaded.capLoad, cap);
+    CAM_SenseAmp current;
+    AssertThrows<std::invalid_argument>([&] { current.Initialize(16,nvsim_current_sense,false,.05,pitch,"",config); }, "voltage");
+    for (const auto &tail : {"output_capacitance: -1fF\n", "output_capacitance: 0fF\nunknown: 1\n"}) {
+        const auto path = temp.WriteFile("invalid.yaml",base + tail);
+        AssertThrows<std::runtime_error>([&] { YamlHelpers::ReadSenseAmpModelFromYaml(path.string()); }, "");
+    }
+}
+
 }  // namespace
 
 int main() {
+    TestAnalyticalInverterSensing();
     TestUninitializedCamComponentsRejectCalculations();
     TestBasicMmrSupportedAndUnsupportedInputCounts();
     TestBasicMmrPrintsIdentity();

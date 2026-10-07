@@ -12,6 +12,7 @@ void ReadMemorySection(const YAML::Node &root, EvaCamConfig &config);
 void ReadRoutingSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadPeripheralSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadSensingSection(const YAML::Node &root, EvaCamConfig &config);
+void ReadSearchTimingSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadOptimizationSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadWireSection(const YAML::Node &root, EvaCamConfig &config);
 void ReadOrganizationSection(const YAML::Node &root, EvaCamConfig &config);

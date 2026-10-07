@@ -1,0 +1,2440 @@
+{
+  "schema": "evacam_kondo_extraction_v1",
+  "axes": {
+    "fig3a": {
+      "image_file": "kondo-fig-001.jpg",
+      "source_sha256": "296048ad284d4eb86b605b695ac0bb64a578fae89d2e2e05479c566f286c1ce5",
+      "source_size": [
+        3980,
+        1428
+      ],
+      "digitization_size": [
+        1800,
+        646
+      ],
+      "box": [
+        118,
+        479,
+        812,
+        47
+      ],
+      "limits": [
+        0,
+        0,
+        3e-06,
+        0.6
+      ],
+      "x_unit": "s",
+      "y_unit": "V",
+      "held_back_ticks": [
+        [
+          350,
+          1e-06,
+          "x"
+        ],
+        [
+          191,
+          0.4,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        3
+      ]
+    },
+    "fig3b": {
+      "image_file": "kondo-fig-001.jpg",
+      "source_sha256": "296048ad284d4eb86b605b695ac0bb64a578fae89d2e2e05479c566f286c1ce5",
+      "source_size": [
+        3980,
+        1428
+      ],
+      "digitization_size": [
+        1800,
+        646
+      ],
+      "box": [
+        1010,
+        484,
+        1769,
+        54
+      ],
+      "limits": [
+        0,
+        0,
+        5e-06,
+        6e-06
+      ],
+      "x_unit": "s",
+      "y_unit": "s",
+      "held_back_ticks": [
+        [
+          1313,
+          2e-06,
+          "x"
+        ],
+        [
+          197,
+          4e-06,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        3
+      ]
+    },
+    "fig4a": {
+      "image_file": "kondo-fig-002.jpg",
+      "source_sha256": "40df794a17b23b05b6cf7d53419b157b0454d626546c250e168b4ba419ee769a",
+      "source_size": [
+        4036,
+        1512
+      ],
+      "digitization_size": [
+        1800,
+        674
+      ],
+      "box": [
+        117,
+        499,
+        835,
+        32
+      ],
+      "limits": [
+        0,
+        0,
+        4e-06,
+        8e-06
+      ],
+      "x_unit": "s",
+      "y_unit": "s",
+      "held_back_ticks": [
+        [
+          476,
+          2e-06,
+          "x"
+        ],
+        [
+          265,
+          4e-06,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        3
+      ]
+    },
+    "fig4b": {
+      "image_file": "kondo-fig-002.jpg",
+      "source_sha256": "40df794a17b23b05b6cf7d53419b157b0454d626546c250e168b4ba419ee769a",
+      "source_size": [
+        4036,
+        1512
+      ],
+      "digitization_size": [
+        1800,
+        674
+      ],
+      "box": [
+        1044,
+        499,
+        1762,
+        32
+      ],
+      "limits": [
+        0,
+        0,
+        4e-06,
+        8e-06
+      ],
+      "x_unit": "s",
+      "y_unit": "s",
+      "held_back_ticks": [
+        [
+          1403,
+          2e-06,
+          "x"
+        ],
+        [
+          265,
+          4e-06,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        3
+      ]
+    },
+    "fig6_0": {
+      "image_file": "kondo-fig-004.jpg",
+      "source_sha256": "9d9f23c77082513c44cbcde29e65b36eb0d50a1a13dd929ef9e21c7d0a4db528",
+      "source_size": [
+        3732,
+        2088
+      ],
+      "digitization_size": [
+        1800,
+        1007
+      ],
+      "box": [
+        184,
+        879.9999999999994,
+        614,
+        526.9999999999999
+      ],
+      "limits": [
+        0,
+        0,
+        1e-05,
+        2e-07
+      ],
+      "x_unit": "s",
+      "y_unit": "A",
+      "held_back_ticks": [
+        [
+          399,
+          5e-06,
+          "x"
+        ],
+        [
+          791.5,
+          5e-08,
+          "y"
+        ],
+        [
+          615.5,
+          1.5e-07,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        5
+      ],
+      "initial_box": [
+        184,
+        884,
+        614,
+        528
+      ],
+      "calibration_y_ticks": [
+        {
+          "pixel": 880.5,
+          "value": 0
+        },
+        {
+          "pixel": 702.5,
+          "value": 1e-07
+        },
+        {
+          "pixel": 527.5,
+          "value": 2e-07
+        }
+      ],
+      "calibration_note": "Least-squares affine calibration from centers of the printed 0/100/200 nA tick labels. The plot border is not substituted for a zero tick. 50/150 nA labels held back."
+    },
+    "fig6_1": {
+      "image_file": "kondo-fig-004.jpg",
+      "source_sha256": "9d9f23c77082513c44cbcde29e65b36eb0d50a1a13dd929ef9e21c7d0a4db528",
+      "source_size": [
+        3732,
+        2088
+      ],
+      "digitization_size": [
+        1800,
+        1007
+      ],
+      "box": [
+        750,
+        879.9999999999994,
+        1180,
+        526.9999999999999
+      ],
+      "limits": [
+        0,
+        0,
+        1e-05,
+        2e-07
+      ],
+      "x_unit": "s",
+      "y_unit": "A",
+      "held_back_ticks": [
+        [
+          965,
+          5e-06,
+          "x"
+        ],
+        [
+          791.5,
+          5e-08,
+          "y"
+        ],
+        [
+          615.5,
+          1.5e-07,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        5
+      ],
+      "initial_box": [
+        750,
+        884,
+        1180,
+        528
+      ],
+      "calibration_y_ticks": [
+        {
+          "pixel": 880.5,
+          "value": 0
+        },
+        {
+          "pixel": 702.5,
+          "value": 1e-07
+        },
+        {
+          "pixel": 527.5,
+          "value": 2e-07
+        }
+      ],
+      "calibration_note": "Least-squares affine calibration from centers of the printed 0/100/200 nA tick labels. The plot border is not substituted for a zero tick. 50/150 nA labels held back."
+    },
+    "fig6_2": {
+      "image_file": "kondo-fig-004.jpg",
+      "source_sha256": "9d9f23c77082513c44cbcde29e65b36eb0d50a1a13dd929ef9e21c7d0a4db528",
+      "source_size": [
+        3732,
+        2088
+      ],
+      "digitization_size": [
+        1800,
+        1007
+      ],
+      "box": [
+        1314,
+        848.1666666666662,
+        1744,
+        524.1666666666665
+      ],
+      "limits": [
+        0,
+        0,
+        1e-05,
+        2e-07
+      ],
+      "x_unit": "s",
+      "y_unit": "A",
+      "held_back_ticks": [
+        [
+          1529,
+          5e-06,
+          "x"
+        ],
+        [
+          768.5,
+          5e-08,
+          "y"
+        ],
+        [
+          606.0,
+          1.5e-07,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        5
+      ],
+      "initial_box": [
+        1314,
+        852,
+        1744,
+        528
+      ],
+      "calibration_y_ticks": [
+        {
+          "pixel": 849.5,
+          "value": 0
+        },
+        {
+          "pixel": 683.5,
+          "value": 1e-07
+        },
+        {
+          "pixel": 525.5,
+          "value": 2e-07
+        }
+      ],
+      "calibration_note": "Least-squares affine calibration from centers of the printed 0/100/200 nA tick labels. The plot border is not substituted for a zero tick. 50/150 nA labels held back."
+    },
+    "fig7_0": {
+      "image_file": "kondo-fig-005.jpg",
+      "source_sha256": "a57564f02015cb8d3fe2eaa4cee6d6fedffc960b723fc7c4544d44915b5b6482",
+      "source_size": [
+        3916,
+        2212
+      ],
+      "digitization_size": [
+        1800,
+        1017
+      ],
+      "box": [
+        172,
+        887.5833333333326,
+        611,
+        539.0833333333331
+      ],
+      "limits": [
+        0,
+        0,
+        1e-05,
+        2e-07
+      ],
+      "x_unit": "s",
+      "y_unit": "A",
+      "held_back_ticks": [
+        [
+          392,
+          5e-06,
+          "x"
+        ],
+        [
+          800.5,
+          5e-08,
+          "y"
+        ],
+        [
+          625.5,
+          1.5e-07,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        5
+      ],
+      "initial_box": [
+        172,
+        900,
+        611,
+        537
+      ],
+      "calibration_y_ticks": [
+        {
+          "pixel": 888.0,
+          "value": 0
+        },
+        {
+          "pixel": 712.5,
+          "value": 1e-07
+        },
+        {
+          "pixel": 539.5,
+          "value": 2e-07
+        }
+      ],
+      "calibration_note": "Least-squares affine calibration from centers of the printed 0/100/200 nA tick labels. The plot border is not substituted for a zero tick. 50/150 nA labels held back."
+    },
+    "fig7_1": {
+      "image_file": "kondo-fig-005.jpg",
+      "source_sha256": "a57564f02015cb8d3fe2eaa4cee6d6fedffc960b723fc7c4544d44915b5b6482",
+      "source_size": [
+        3916,
+        2212
+      ],
+      "digitization_size": [
+        1800,
+        1017
+      ],
+      "box": [
+        750,
+        887.5833333333326,
+        1188,
+        539.0833333333331
+      ],
+      "limits": [
+        0,
+        0,
+        1e-05,
+        2e-07
+      ],
+      "x_unit": "s",
+      "y_unit": "A",
+      "held_back_ticks": [
+        [
+          969,
+          5e-06,
+          "x"
+        ],
+        [
+          800.5,
+          5e-08,
+          "y"
+        ],
+        [
+          625.5,
+          1.5e-07,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        5
+      ],
+      "initial_box": [
+        750,
+        900,
+        1188,
+        537
+      ],
+      "calibration_y_ticks": [
+        {
+          "pixel": 888.0,
+          "value": 0
+        },
+        {
+          "pixel": 712.5,
+          "value": 1e-07
+        },
+        {
+          "pixel": 539.5,
+          "value": 2e-07
+        }
+      ],
+      "calibration_note": "Least-squares affine calibration from centers of the printed 0/100/200 nA tick labels. The plot border is not substituted for a zero tick. 50/150 nA labels held back."
+    },
+    "fig7_2": {
+      "image_file": "kondo-fig-005.jpg",
+      "source_sha256": "a57564f02015cb8d3fe2eaa4cee6d6fedffc960b723fc7c4544d44915b5b6482",
+      "source_size": [
+        3916,
+        2212
+      ],
+      "digitization_size": [
+        1800,
+        1017
+      ],
+      "box": [
+        1333,
+        881.3333333333327,
+        1767,
+        560.333333333333
+      ],
+      "limits": [
+        0,
+        0,
+        1e-05,
+        2e-07
+      ],
+      "x_unit": "s",
+      "y_unit": "A",
+      "held_back_ticks": [
+        [
+          1550,
+          5e-06,
+          "x"
+        ],
+        [
+          802.5,
+          5e-08,
+          "y"
+        ],
+        [
+          641.5,
+          1.5e-07,
+          "y"
+        ]
+      ],
+      "method": "Manual visual center picks on a 1800-pixel-wide Pillow resize of the embedded JPEG; no simulator outputs used.",
+      "pixel_uncertainty": [
+        3,
+        5
+      ],
+      "initial_box": [
+        1333,
+        900,
+        1767,
+        570
+      ],
+      "calibration_y_ticks": [
+        {
+          "pixel": 882.5,
+          "value": 0
+        },
+        {
+          "pixel": 718.5,
+          "value": 1e-07
+        },
+        {
+          "pixel": 561.5,
+          "value": 2e-07
+        }
+      ],
+      "calibration_note": "Least-squares affine calibration from centers of the printed 0/100/200 nA tick labels. The plot border is not substituted for a zero tick. 50/150 nA labels held back."
+    }
+  },
+  "unusable": [
+    {
+      "panel": "Figures 6 and 7 upper",
+      "reason": "Spatial profiles have no numerical time legend; not eligible for transient comparison."
+    },
+    {
+      "panel": "Figure 6 lower I_BLF",
+      "reason": "Exact current-probe location relative to distributed capacitance is not specified; cell and sense currents retained."
+    },
+    {
+      "panel": "Figures 3b/4a overlap",
+      "reason": "Coincident marker centers cannot be separated reliably; 3-pixel uncertainty and shared provenance retained, not independent measurements."
+    },
+    {
+      "panel": "Figure 3a data state",
+      "reason": "Caption says data 0 but the illustrated window and late waveform suggest data 1; compare both without changing the source label."
+    },
+    {
+      "panel": "All plots",
+      "reason": "Clipped switching peaks and obscured points omitted. Smooth connecting lines are not extra independent observations."
+    },
+    {
+      "panel": "Figures 8-14",
+      "reason": "Outside the frozen Figures 3/4/6/7 first SLM benchmark; Figure 8 consulted for the data-0 one-sided decision ambiguity."
+    },
+    {
+      "panel": "fig3a_p1.4",
+      "pixel_x": 805,
+      "reason": "Source trace obscured by a dashed guide or label; automated color pick selected that annotation. Excluded after visual source QA."
+    },
+    {
+      "panel": "fig6_2_cell_current",
+      "pixel_x": 1486,
+      "reason": "Source trace obscured by a dashed guide or label; automated color pick selected that annotation. Excluded after visual source QA."
+    }
+  ],
+  "revision": "Source-pixel QA revision before literature residual evaluation; correct manual seed locations without consulting model outputs. Frozen acceptance criteria unchanged.",
+  "point_refinement": {
+    "method": "Native JPEG RGB distance, 5-column strip; manual seed +/-40 display pixels (70 for initial branch); closest connected color component; max RGB distance 35. Selected palette recorded per series in the audit script.",
+    "audit": [
+      {
+        "curve": "fig3a_common_rise",
+        "before": [
+          141,
+          377
+        ],
+        "after": [
+          141,
+          346.9761904761904
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.48074069840786
+      },
+      {
+        "curve": "fig3a_common_rise",
+        "before": [
+          164,
+          310
+        ],
+        "after": [
+          164,
+          276.1785714285714
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 9.273618495495704
+      },
+      {
+        "curve": "fig3a_common_rise",
+        "before": [
+          210,
+          238
+        ],
+        "after": [
+          210,
+          217.82142857142856
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 8.306623862918075
+      },
+      {
+        "curve": "fig3a_common_rise",
+        "before": [
+          257,
+          207
+        ],
+        "after": [
+          257,
+          187.7380952380952
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.916079783099616
+      },
+      {
+        "curve": "fig3a_common_rise",
+        "before": [
+          303,
+          181
+        ],
+        "after": [
+          303,
+          169.8690476190476
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.123105625617661
+      },
+      {
+        "curve": "fig3a_p1.0",
+        "before": [
+          365,
+          172
+        ],
+        "after": [
+          365,
+          167.60714285714283
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.605551275463989
+      },
+      {
+        "curve": "fig3a_p1.0",
+        "before": [
+          395,
+          178
+        ],
+        "after": [
+          395,
+          177.78571428571428
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.58257569495584
+      },
+      {
+        "curve": "fig3a_p1.0",
+        "before": [
+          466,
+          173
+        ],
+        "after": [
+          466,
+          175.52380952380952
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 15.652475842498529
+      },
+      {
+        "curve": "fig3a_p1.0",
+        "before": [
+          581,
+          161
+        ],
+        "after": [
+          581,
+          163.9880952380952
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.782329983125268
+      },
+      {
+        "curve": "fig3a_p1.0",
+        "before": [
+          697,
+          153
+        ],
+        "after": [
+          697,
+          156.07142857142856
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 33.58571124749333
+      },
+      {
+        "curve": "fig3a_p1.0",
+        "before": [
+          805,
+          145
+        ],
+        "after": [
+          805,
+          145
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 45.12205669071391
+      },
+      {
+        "curve": "fig3a_p1.2",
+        "before": [
+          416,
+          165
+        ],
+        "after": [
+          416,
+          159.69047619047618
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.4641016151377544
+      },
+      {
+        "curve": "fig3a_p1.2",
+        "before": [
+          444,
+          169
+        ],
+        "after": [
+          444,
+          166.92857142857142
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.1622776601683795
+      },
+      {
+        "curve": "fig3a_p1.2",
+        "before": [
+          490,
+          166
+        ],
+        "after": [
+          490,
+          167.60714285714283
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.164414002968976
+      },
+      {
+        "curve": "fig3a_p1.2",
+        "before": [
+          581,
+          157
+        ],
+        "after": [
+          581,
+          161.04761904761904
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.708203932499369
+      },
+      {
+        "curve": "fig3a_p1.2",
+        "before": [
+          697,
+          150
+        ],
+        "after": [
+          697,
+          150
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 60.70420084310476
+      },
+      {
+        "curve": "fig3a_p1.2",
+        "before": [
+          805,
+          144
+        ],
+        "after": [
+          805,
+          144
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 60.54750201288241
+      },
+      {
+        "curve": "fig3a_p1.4",
+        "before": [
+          464,
+          141
+        ],
+        "after": [
+          464,
+          150.8690476190476
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig3a_p1.4",
+        "before": [
+          489,
+          155
+        ],
+        "after": [
+          489,
+          158.78571428571428
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.7320508075688772
+      },
+      {
+        "curve": "fig3a_p1.4",
+        "before": [
+          535,
+          158
+        ],
+        "after": [
+          535,
+          160.14285714285714
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.123105625617661
+      },
+      {
+        "curve": "fig3a_p1.4",
+        "before": [
+          605,
+          153
+        ],
+        "after": [
+          605,
+          156.07142857142856
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.916079783099616
+      },
+      {
+        "curve": "fig3a_p1.4",
+        "before": [
+          697,
+          149
+        ],
+        "after": [
+          697,
+          152.67857142857142
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 19.0
+      },
+      {
+        "curve": "fig3a_p1.4",
+        "before": [
+          805,
+          143
+        ],
+        "after": [
+          805,
+          172.35714285714283
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 10.392304845413264
+      },
+      {
+        "curve": "fig3a_p1.6",
+        "before": [
+          510,
+          146
+        ],
+        "after": [
+          510,
+          142.27380952380952
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.605551275463989
+      },
+      {
+        "curve": "fig3a_p1.6",
+        "before": [
+          558,
+          154
+        ],
+        "after": [
+          558,
+          153.13095238095238
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 7.3484692283495345
+      },
+      {
+        "curve": "fig3a_p1.6",
+        "before": [
+          605,
+          153
+        ],
+        "after": [
+          605,
+          153.13095238095238
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.605551275463989
+      },
+      {
+        "curve": "fig3a_p1.6",
+        "before": [
+          697,
+          147
+        ],
+        "after": [
+          697,
+          149.9642857142857
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.916079783099616
+      },
+      {
+        "curve": "fig3a_p1.6",
+        "before": [
+          805,
+          141
+        ],
+        "after": [
+          805,
+          141
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 36.796738985948195
+      },
+      {
+        "curve": "fig3a_p1.8",
+        "before": [
+          557,
+          132
+        ],
+        "after": [
+          557,
+          135.94047619047618
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.449489742783178
+      },
+      {
+        "curve": "fig3a_p1.8",
+        "before": [
+          581,
+          142
+        ],
+        "after": [
+          581,
+          143.85714285714283
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.0
+      },
+      {
+        "curve": "fig3a_p1.8",
+        "before": [
+          628,
+          148
+        ],
+        "after": [
+          628,
+          147.92857142857142
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 10.954451150103322
+      },
+      {
+        "curve": "fig3a_p1.8",
+        "before": [
+          697,
+          145
+        ],
+        "after": [
+          697,
+          146.79761904761904
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 11.180339887498949
+      },
+      {
+        "curve": "fig3a_p1.8",
+        "before": [
+          805,
+          140
+        ],
+        "after": [
+          805,
+          144.3095238095238
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 10.488088481701515
+      },
+      {
+        "curve": "fig3a_p2.0",
+        "before": [
+          602,
+          125
+        ],
+        "after": [
+          602,
+          128.25
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig3a_p2.0",
+        "before": [
+          628,
+          137
+        ],
+        "after": [
+          628,
+          138.42857142857142
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.0
+      },
+      {
+        "curve": "fig3a_p2.0",
+        "before": [
+          674,
+          144
+        ],
+        "after": [
+          674,
+          142.95238095238093
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.0990195135927845
+      },
+      {
+        "curve": "fig3a_p2.0",
+        "before": [
+          744,
+          141
+        ],
+        "after": [
+          744,
+          142.95238095238093
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 7.0
+      },
+      {
+        "curve": "fig3a_p2.0",
+        "before": [
+          805,
+          138
+        ],
+        "after": [
+          805,
+          142.5
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.7416573867739413
+      },
+      {
+        "curve": "fig3a_p2.2",
+        "before": [
+          650,
+          117
+        ],
+        "after": [
+          650,
+          123.95238095238093
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 14.45683229480096
+      },
+      {
+        "curve": "fig3a_p2.2",
+        "before": [
+          675,
+          128
+        ],
+        "after": [
+          675,
+          133.67857142857142
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 21.79449471770337
+      },
+      {
+        "curve": "fig3a_p2.2",
+        "before": [
+          721,
+          136
+        ],
+        "after": [
+          721,
+          138.42857142857142
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 13.490737563232042
+      },
+      {
+        "curve": "fig3a_p2.2",
+        "before": [
+          767,
+          138
+        ],
+        "after": [
+          767,
+          138
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 38.84584919911006
+      },
+      {
+        "curve": "fig3a_p2.2",
+        "before": [
+          805,
+          137
+        ],
+        "after": [
+          805,
+          137
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 48.342527861087284
+      },
+      {
+        "curve": "fig3a_p2.4",
+        "before": [
+          695,
+          115
+        ],
+        "after": [
+          695,
+          118.74999999999999
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 9.433981132056603
+      },
+      {
+        "curve": "fig3a_p2.4",
+        "before": [
+          721,
+          129
+        ],
+        "after": [
+          721,
+          129.1547619047619
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 11.357816691600547
+      },
+      {
+        "curve": "fig3a_p2.4",
+        "before": [
+          766,
+          135
+        ],
+        "after": [
+          766,
+          134.35714285714283
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.744562646538029
+      },
+      {
+        "curve": "fig3a_p2.4",
+        "before": [
+          805,
+          136
+        ],
+        "after": [
+          805,
+          135.7142857142857
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.0
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          194,
+          775
+        ],
+        "after": [
+          194,
+          771.1652298850574
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          206,
+          746
+        ],
+        "after": [
+          206,
+          744.1575670498084
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          227,
+          725
+        ],
+        "after": [
+          227,
+          722.4549808429119
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.1622776601683795
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          249,
+          708
+        ],
+        "after": [
+          249,
+          709.4334291187739
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.477225575051661
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          281,
+          717
+        ],
+        "after": [
+          281,
+          716.4264846743296
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.708203932499369
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          313,
+          718
+        ],
+        "after": [
+          313,
+          716.4264846743296
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.0990195135927845
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          399,
+          715
+        ],
+        "after": [
+          399,
+          714.2562260536398
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 7.0710678118654755
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          485,
+          714
+        ],
+        "after": [
+          485,
+          714.2562260536398
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.47213595499958
+      },
+      {
+        "curve": "fig6_0_cell_current",
+        "before": [
+          571,
+          714
+        ],
+        "after": [
+          571,
+          714
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 96.01041610158765
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          283,
+          677
+        ],
+        "after": [
+          283,
+          666.7516762452108
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          292,
+          650
+        ],
+        "after": [
+          292,
+          649.87188697318
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.7320508075688772
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          313,
+          662
+        ],
+        "after": [
+          313,
+          662.4111590038315
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          335,
+          682
+        ],
+        "after": [
+          335,
+          678.5675287356322
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.7320508075688772
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          356,
+          693
+        ],
+        "after": [
+          356,
+          689.6599616858238
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          399,
+          706
+        ],
+        "after": [
+          399,
+          702.4403735632184
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.7320508075688772
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          442,
+          711
+        ],
+        "after": [
+          442,
+          708.710009578544
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.0
+      },
+      {
+        "curve": "fig6_0_sense_current",
+        "before": [
+          485,
+          713
+        ],
+        "after": [
+          485,
+          711.3625478927203
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.69041575982343
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          761,
+          774
+        ],
+        "after": [
+          761,
+          772.3709291187739
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          772,
+          746
+        ],
+        "after": [
+          772,
+          743.9164272030652
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          793,
+          724
+        ],
+        "after": [
+          793,
+          722.6961206896552
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.48074069840786
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          814,
+          708
+        ],
+        "after": [
+          814,
+          709.4334291187739
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.4031242374328485
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          840,
+          700
+        ],
+        "after": [
+          840,
+          699.0644157088122
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.898979485566356
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          875,
+          715
+        ],
+        "after": [
+          875,
+          715.220785440613
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 17.832554500127006
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          922,
+          715
+        ],
+        "after": [
+          922,
+          715
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 53.74011537017761
+      },
+      {
+        "curve": "fig6_1_cell_current",
+        "before": [
+          1051,
+          715
+        ],
+        "after": [
+          1051,
+          715
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 105.54146104730596
+      },
+      {
+        "curve": "fig6_1_sense_current",
+        "before": [
+          862,
+          773
+        ],
+        "after": [
+          862,
+          776.2291666666666
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_1_sense_current",
+        "before": [
+          870,
+          735
+        ],
+        "after": [
+          870,
+          726.554358237548
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_1_sense_current",
+        "before": [
+          879,
+          721
+        ],
+        "after": [
+          879,
+          718.1144636015326
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.123105625617661
+      },
+      {
+        "curve": "fig6_1_sense_current",
+        "before": [
+          901,
+          716
+        ],
+        "after": [
+          901,
+          716
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 42.20189569201838
+      },
+      {
+        "curve": "fig6_1_sense_current",
+        "before": [
+          944,
+          715
+        ],
+        "after": [
+          944,
+          712.80938697318
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 23.62202362203543
+      },
+      {
+        "curve": "fig6_1_sense_current",
+        "before": [
+          1051,
+          715
+        ],
+        "after": [
+          1051,
+          714.4973659003831
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.7416573867739413
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1325,
+          751
+        ],
+        "after": [
+          1325,
+          752.838601532567
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1336,
+          726
+        ],
+        "after": [
+          1336,
+          726.0720785440614
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1357,
+          705
+        ],
+        "after": [
+          1357,
+          704.8517720306513
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.0990195135927845
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1379,
+          691
+        ],
+        "after": [
+          1379,
+          692.3125
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1422,
+          677
+        ],
+        "after": [
+          1422,
+          678.3263888888889
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.1622776601683795
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1447,
+          693
+        ],
+        "after": [
+          1447,
+          693.5181992337165
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 15.132745950421556
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1486,
+          698
+        ],
+        "after": [
+          1486,
+          666.9928160919541
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 26.248809496813376
+      },
+      {
+        "curve": "fig6_2_cell_current",
+        "before": [
+          1615,
+          698
+        ],
+        "after": [
+          1615,
+          697.3764367816092
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 9.9498743710662
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1448,
+          789
+        ],
+        "after": [
+          1448,
+          772.6120689655172
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1464,
+          755
+        ],
+        "after": [
+          1464,
+          738.852490421456
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1486,
+          738
+        ],
+        "after": [
+          1486,
+          724.6252394636016
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1529,
+          718
+        ],
+        "after": [
+          1529,
+          710.8802681992337
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1572,
+          708
+        ],
+        "after": [
+          1572,
+          703.8872126436781
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 0.0
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1615,
+          702
+        ],
+        "after": [
+          1615,
+          700.511254789272
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 4.358898943540674
+      },
+      {
+        "curve": "fig6_2_sense_current",
+        "before": [
+          1701,
+          698
+        ],
+        "after": [
+          1701,
+          698.5821360153257
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 5.744562646538029
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          194,
+          865
+        ],
+        "after": [
+          194,
+          866.4269891500904
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          216,
+          818
+        ],
+        "after": [
+          216,
+          819.7608499095842
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          238,
+          783
+        ],
+        "after": [
+          238,
+          785.0485985533454
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.3166247903554
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          260,
+          756
+        ],
+        "after": [
+          260,
+          756
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 91.37286249209882
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          304,
+          751
+        ],
+        "after": [
+          304,
+          751.0259945750453
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          348,
+          749
+        ],
+        "after": [
+          348,
+          749.876582278481
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 6.557438524302
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          392,
+          748
+        ],
+        "after": [
+          392,
+          750.1064647377939
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.7416573867739413
+      },
+      {
+        "curve": "fig7_0_cell_current",
+        "before": [
+          524,
+          748
+        ],
+        "after": [
+          524,
+          748
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 81.32650244538985
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          278,
+          749
+        ],
+        "after": [
+          278,
+          747.5777576853527
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 23.895606290697042
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          292,
+          734
+        ],
+        "after": [
+          292,
+          734
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 36.30426972134269
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          304,
+          735
+        ],
+        "after": [
+          304,
+          735.1641048824594
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 25.079872407968907
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          326,
+          738
+        ],
+        "after": [
+          326,
+          740.2215189873418
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 34.785054261852174
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          348,
+          742
+        ],
+        "after": [
+          348,
+          742.9801084990959
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 31.464265445104548
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          392,
+          746
+        ],
+        "after": [
+          392,
+          746.4283453887884
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 23.515952032609693
+      },
+      {
+        "curve": "fig7_0_sense_current",
+        "before": [
+          480,
+          748
+        ],
+        "after": [
+          480,
+          748.0375226039783
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 21.95449840010015
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          772,
+          865
+        ],
+        "after": [
+          772,
+          868.495931283906
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.0
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          794,
+          818
+        ],
+        "after": [
+          794,
+          818.6114376130199
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.0
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          816,
+          783
+        ],
+        "after": [
+          816,
+          783.2095388788427
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          838,
+          756
+        ],
+        "after": [
+          838,
+          760.4511754068717
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.3166247903554
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          870,
+          744
+        ],
+        "after": [
+          870,
+          743.8996383363473
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.605551275463989
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          904,
+          747
+        ],
+        "after": [
+          904,
+          745.7386980108499
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          969,
+          748
+        ],
+        "after": [
+          969,
+          748
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 45.16635916254486
+      },
+      {
+        "curve": "fig7_1_cell_current",
+        "before": [
+          1144,
+          748
+        ],
+        "after": [
+          1144,
+          748
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 106.16967551989597
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          877,
+          819
+        ],
+        "after": [
+          877,
+          798.1518987341773
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 27.27636339397171
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          881,
+          800
+        ],
+        "after": [
+          881,
+          792.4048372513563
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 27.331300737432898
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          904,
+          778
+        ],
+        "after": [
+          904,
+          774.0142405063292
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 26.095976701399778
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          925,
+          766
+        ],
+        "after": [
+          925,
+          765.2787070524413
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 25.099800796022265
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          969,
+          755
+        ],
+        "after": [
+          969,
+          756.7730560578663
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 27.80287754891569
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          1057,
+          749
+        ],
+        "after": [
+          1057,
+          751.255877034358
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 34.49637662132068
+      },
+      {
+        "curve": "fig7_1_sense_current",
+        "before": [
+          1144,
+          748
+        ],
+        "after": [
+          1144,
+          749.876582278481
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 30.610455730027933
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1355,
+          868
+        ],
+        "after": [
+          1355,
+          870.5648734177215
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.0
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1376,
+          826
+        ],
+        "after": [
+          1376,
+          820.2206148282098
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.4142135623730951
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1398,
+          794
+        ],
+        "after": [
+          1398,
+          785.2784810126583
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 1.0
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1420,
+          770
+        ],
+        "after": [
+          1420,
+          761.8304701627487
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1442,
+          750
+        ],
+        "after": [
+          1442,
+          746.4283453887884
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 2.23606797749979
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1463,
+          743
+        ],
+        "after": [
+          1463,
+          737.6928119349005
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.7416573867739413
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1507,
+          747
+        ],
+        "after": [
+          1507,
+          742.9801084990959
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 3.3166247903554
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1594,
+          748
+        ],
+        "after": [
+          1594,
+          748
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 67.3721010508059
+      },
+      {
+        "curve": "fig7_2_cell_current",
+        "before": [
+          1724,
+          748
+        ],
+        "after": [
+          1724,
+          748
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 104.71389592599446
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1477,
+          848
+        ],
+        "after": [
+          1477,
+          846.6570976491863
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 21.61018278497431
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1485,
+          823
+        ],
+        "after": [
+          1485,
+          826.6573236889693
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 27.331300737432898
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1507,
+          791
+        ],
+        "after": [
+          1507,
+          796.7726039783003
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 28.231188426986208
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1528,
+          775
+        ],
+        "after": [
+          1528,
+          780.9107142857143
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 29.29163703175362
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1572,
+          759
+        ],
+        "after": [
+          1572,
+          761.6005877034358
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 27.27636339397171
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1637,
+          751
+        ],
+        "after": [
+          1637,
+          753.3248191681737
+        ],
+        "status": "source_color_center",
+        "minimum_rgb_distance": 24.596747752497688
+      },
+      {
+        "curve": "fig7_2_sense_current",
+        "before": [
+          1724,
+          748
+        ],
+        "after": [
+          1724,
+          748
+        ],
+        "status": "manual_retained_no_color_center",
+        "minimum_rgb_distance": 47.853944456021594
+      }
+    ]
+  }
+}

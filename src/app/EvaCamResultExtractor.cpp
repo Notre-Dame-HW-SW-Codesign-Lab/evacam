@@ -551,6 +551,15 @@ EvaCamDesignResultDto ExtractEvaCamDesignResult(const Result &result) {
     for (const auto &item : metrics.diagnosticMetrics) {
         dto.summary["diagnostics." + item.first] = item.second;
     }
+    const auto &cell = *result.config->technology.cell;
+    const auto &nand = cell.memCellType == NAND3D ? cell.nand3d.electrical : cell.nand;
+    if (!nand.technologyDefaults.empty()) {
+        dto.metadata["parameter_fallback"] = "technology_library_cmos_estimates";
+        dto.metadata["technology_default_source"] = nand.technologyDefaultSource;
+        for (const auto &item : nand.technologyDefaults) {
+            dto.summary["technology_defaults." + item.first] = item.second;
+        }
+    }
     const auto &word = result.config->wordGeometry;
     dto.geometry = {
         {"capacity_bits", static_cast<double>(word.logicalCapacityBits)},

@@ -5,6 +5,12 @@ two-state flash devices and exact search with stored and query wildcards.
 The shipped values are synthetic. This is an analytical first-moment RC
 approximation, not a calibrated prediction of a commercial NAND device or SSD.
 
+This analytical TCAM path is an adaptation of the NVSim-derived codebase,
+not an unchanged NVSim flash reference. Comparisons with the separate nodal
+reference therefore do not establish superiority over NVSim. The 3D backend
+also uses analytical RC, with its own vertical geometry. See the
+[model-change justification record](validation/nand-nvsim-justification.md).
+
 Run the complete example from the repository root:
 
 ```sh
@@ -146,9 +152,10 @@ architecture and measurement-boundary differences, is documented separately in
 
 ## Cost accounting
 
-The model takes explicit area, latency, dynamic energy, and leakage for
-wordline drivers, sense amplifiers, and page buffers. These are supplied model
-parameters, not automatically characterized high-voltage transistor circuits.
+The model accepts explicit area, latency, dynamic energy, and leakage for
+wordline drivers, sense amplifiers, and page buffers. Missing driver/sense
+values can use the CMOS estimates described below. These are not
+automatically characterized high-voltage transistor circuits.
 The fixed setup/query/recovery costs can include rail startup and local query
 or output handling. No priority encoder or top-k result sorter is modeled.
 
@@ -158,6 +165,52 @@ reset. Each sense round also includes precharge, evaluation, sensing,
 page-buffer, and recovery time. The output is one match bit per physical entry.
 A whole-query bank latency includes the necessary sequential block rounds and
 bank routing.
+
+### Technology-library fallbacks
+
+Both `nand` and `nand3d` allow missing fields in `resistance`, `capacitance`,
+`wordline_driver`, and `sense`. Omit a field or its whole group to use the
+selected `technology` library at the configured system process node, roadmap,
+and temperature. This requires a full configuration load (or an initialized
+technology context when using the standalone cell/device loader).
+
+Each affected load prints a warning to stderr, including when normal logging
+is disabled: `Warning: missing NAND parameters: ...; using technology library
+defaults from ...`. The warning lists every omitted field and identifies the
+values as **CMOS estimates, not characterized NAND parameters**. Explicit
+values remain unchanged. Null, malformed, or out-of-range values are errors,
+not requests for defaults. A mixture of explicit and default resistances must
+still satisfy `pass <= read_on < off`; the loader does not retune supplied data.
+
+Let `F` and `Vdd` denote the selected CMOS library feature size and supply.
+The fallback reuses existing analytical circuit models:
+
+| Omitted fields | Derivation and limits |
+| --- | --- |
+| `resistance.read_on`, `.pass`, `.select` | `CalculateOnResistance(F, NMOS, temperature)`, following NVSim's one-feature-width SLC NMOS approximation. Equal read/pass resistance is a proxy, without NAND bias or vertical-channel characterization. |
+| `resistance.off` | `Vdd / (currentOffNmos[temperature - 300] * F)`; an effective CMOS off resistance at the library supply, not a flash threshold-state leakage curve. |
+| `capacitance.gate`, `.select` | `CalculateGateCap(F)`. |
+| `capacitance.internal`, `.source`, `.bitline` | `CalculateDrainCap(F, NMOS, 20*F)`. Intrinsic node capacitance only; each NAND backend adds its geometry-dependent wire capacitance separately. |
+| `sense.*` | Existing voltage-mode `SenseAmp`, one channel, pitch `20*F`, and the supplied `sensing.min_margin`. Uses its ordinary area, latency, energy, and leakage calculations. |
+| `wordline_driver.*` | Existing latency-optimized `OutputDriver` driving `strings_per_block * capacitance.gate`. Area, delay, and leakage use that CMOS chain. Energy excludes the output-load `C*Vdd²` term because NAND separately accounts for wordline charging at NAND voltages. This estimate excludes high-voltage conversion and wire-loading delay. |
+
+Geometry, threshold/bias voltages, sensing decision time/minimum margin,
+page-buffer costs, and query/setup/precharge/recovery/program/erase costs
+remain explicit: the library cannot derive them from a paper's geometry.
+The existing optional defaults still apply: midpoint sensing reference, zero
+offset, and unit supply efficiency. Full reset/recharge remains an analytical
+assumption. Fallbacks do not guarantee a feasible sense margin.
+
+Results record the library path in `metadata.technology_default_source`, the
+estimate label in `metadata.parameter_fallback`, and every defaulted value
+with SI units in `summary.technology_defaults`. YAML also records these under
+`assumptions.nand`, including when no feasible design is found. A supplied
+`calibration_status: calibrated` becomes `uncalibrated` when a fallback is used;
+`synthetic` stays synthetic. The original `source` remains the provenance of
+the supplied values. For literature comparisons, override available measured
+parameters and report the remaining defaults as assumptions.
+
+### Dynamic energy
 
 Dynamic energy includes explicit peripheral costs and supply-side capacitive
 charging costs. All data wordlines charge to `Vpass` initially. Query-selected

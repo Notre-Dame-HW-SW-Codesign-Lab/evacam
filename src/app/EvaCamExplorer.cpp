@@ -112,14 +112,9 @@ void EvaCamExplorer::InitializeExploration() {
         EvaCamConfigPrinter::Print(*config_);
     }
 
-    modelCapacityCells_ = config_->wordGeometry.logicalCapacityBits;
-    physicalColumnsPerWord_ = modelCapacityCells_
-        / config_->wordGeometry.storageWidthBits;
-    if (config_->technology.cell->camType == MCAM || config_->technology.cell->nandString) {
-        modelCapacityCells_ = config_->wordGeometry.entryCount
-            * config_->wordGeometry.physicalColumnsPerWord;
-        physicalColumnsPerWord_ = config_->wordGeometry.physicalColumnsPerWord;
-    }
+    modelCapacityCells_ = config_->wordGeometry.entryCount
+        * config_->wordGeometry.physicalColumnsPerWord;
+    physicalColumnsPerWord_ = config_->wordGeometry.physicalColumnsPerWord;
 
     const auto &resolved = config_->resolvedExploration;
     fixedOuterGeometry_ = DerivedValueHelpers::HasFixedOuterGeometry(resolved);

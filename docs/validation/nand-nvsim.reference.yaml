@@ -1,0 +1,34 @@
+version: 1
+status: circuit_comparison_not_hardware_validation
+nvsim_revision: 6334d00ca2e0320a9c930eae45de145ca65c210c
+subarray_sha256: 3775e14849cd93dbf7bfb9dc1a9e71e6824dd1a8c3d49111a3870f6dc531ceb1
+cell_sha256: d0690425917d4d6494ddeed84d25913b3db0d7d3bf58df4873ce1c747ae78ed9
+baseline_sha256: b59afafddf20c400cd3c65dcce2d83646d8a97db96b277a85b32730024668ec1
+conditions:
+  process_node_nm: 45
+  roadmap: HP
+  temperature_k: 350
+  mux_sense_amp: 2
+  page_counts: [16, 64, 256, 512]
+  rows: [1024, 4096]
+  columns: [1024, 16384]
+  # Multipliers of Rdriver*(C0+C1)+RBL*C0; not a claim of a single modal tau.
+  precharge_time_constants: [0.1, 1.0, 5.0, 30.0]
+criteria:
+  # Chosen before running the full comparison. These gate the numerical method,
+  # not whether NVSim's empirical delay correction improves silicon prediction.
+  voltage_absolute_v: 3.0e-6
+  threshold_time_relative: 1.0e-4
+  supply_energy_relative: 1.0e-5
+  ledger_relative: 1.0e-10
+  solver_tolerance_v: 1.0e-10
+  solver_max_steps: 1000000
+interpretation:
+  delay_topology: ground -- Rstring -- Ccell+CBL/2 -- RBL -- CBL/2+Cmux_delay
+  initial_state: both nodes at NVSim Vpre
+  observation: far node falls to Vpre minus senseVoltage
+  empirical_correction: retained and reported separately; not calibrated or removed
+  precharge_topology: source open, same two nodes, finite right driver
+  energy_capacitance: use NVSim mux power load, which can differ from its delay load
+  energy_boundary: ideal precharge supply, before conversion efficiency and peripherals
+  limitation: no new device capacitance, nonlinear law, 3D layout, or CAM workload is fitted

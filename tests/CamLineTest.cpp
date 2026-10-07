@@ -30,6 +30,23 @@ CAMPort MakePort(CAM_PortType type, CAM_CmosRegion region, double wireWidth = 1)
     return port;
 }
 
+void TestRepeatedTerminalsScaleLinearly() {
+    for (auto region : {gate, drain, source, diode}) {
+        auto config = MakeLineConfig();
+        config->technology.cell->camPort[0][0] = MakePort(Searchline, region, 2);
+        config->technology.cell->camPort[0][0].numCmos = 2;
+        const Wire wire = TestModelBuilders::MakeWire(config);
+        CAM_Line small, large;
+        small.Initialize(true, 0, 10e-6, 16, config, wire);
+        large.Initialize(true, 0, 20e-6, 32, config, wire);
+        AssertNear(large.cap, 2 * small.cap);
+        AssertNear(large.wireCap, 2 * small.wireCap);
+        AssertNear(large.deviceCap, 2 * small.deviceCap);
+        AssertNear(small.cap, small.wireCap + small.deviceCap);
+        AssertFinitePositive(small.deviceCap, "terminal capacitance");
+    }
+}
+
 void TestConstructorAndCopySemantics() {
     CAM_Line line;
     assert(!line.initialized);
@@ -151,6 +168,7 @@ void TestMuxSignalOverloadAndReinitialization() {
 }  // namespace
 
 int main() {
+    TestRepeatedTerminalsScaleLinearly();
     TestConstructorAndCopySemantics();
     TestRowWordlineUsesGateLoadingAndNoMuxCurrent();
     TestColumnBitlineUsesWideWireAndCurrentSizing();

@@ -1,0 +1,8 @@
+# Reference fixture: https://past.date-conference.com/proceedings-archive/2021/pdf/1478.pdf
+# Matched fields and remaining assumptions: docs/validation/named-cam.reference.yaml
+# This is a partial reconstruction, not a calibrated reproduction.
+schema: sensing
+internal: true
+sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
+# Inverter decision; 0.5 V is an explicit assumption, not a measured trip point.
+decision: {model: voltage_threshold, threshold: 0.5V}

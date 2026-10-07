@@ -217,16 +217,13 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
     cellResetEnergy = mat->cellResetEnergy * activeMats;
 
     if (config->peripherals.noPrechargeInc) {
-        searchLatency = mat->subarray->matchlineDelay
+        searchLatency = mat->subarray->gateNodeDelay + mat->subarray->matchlineDelay
             + mat->subarray->ColMux[mat->subarray->indexMatchline]->readLatency
             + mat->subarray->senseAmpLatency + mat->subarray->outputAcc->readLatency;
     } else {
-        searchLatency = mat->subarray->searchLatency * mat->muxSenseAmp
-            - mat->subarray->inputBuf->readLatency * (mat->muxSenseAmp - 1);
-        if (config->peripherals.withOutputAcc) {
-            searchLatency *= config->wordGeometry.physicalColumnsPerWord
-                / CAM_opt.ComparisonColumns;
-        }
+        const int steps = config->peripherals.withOutputAcc
+                ? config->wordGeometry.physicalColumnsPerWord / CAM_opt.ComparisonColumns : 1;
+        searchLatency = mat->subarray->ScheduledSearchLatency(mat->muxSenseAmp, steps);
     }
 
     double localSearchEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp

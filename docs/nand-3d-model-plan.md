@@ -1,5 +1,11 @@
 # Separate 3D NAND CAM model: implementation and validation plan
 
+Scope update, 2026-10-02: production NAND3D retains its geometry and now uses
+`analytical_rc`. Transient integration is removed from the application path;
+nodal and nonlinear experiments remain verification/research utilities. The
+older implementation stages below are historical proposals, not the current
+production contract. See [3D NAND TCAM](nand-3d-tcam.md).
+
 Status: initial SLC linear RC backend implemented, 2026-09-24. Stages A–C
 and the corresponding linear-model integration in E are implemented.
 The inputs use a normal `*.memory_device.yaml` file with `type: NAND3D`;
