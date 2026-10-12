@@ -363,7 +363,7 @@ void TestMcamAndSearchlineHelpers() {
     AssertNear(CamSubArrayTestAccessor::MeanSquaredSearchVoltage(subarray, 1),
             (0.64 + 0.04) / 2);
     AssertNear(CamSubArrayTestAccessor::CalculateSearchlineDriveEnergy(subarray),
-            2 * 8e-15 * ((0.04 + 0.64) / 2) / (1.2 * 1.2));
+            4 * 2 * 8e-15 * ((0.04 + 0.64) / 2) / (1.2 * 1.2));
     AssertThrows<std::runtime_error>([&] {
         CamSubArrayTestAccessor::MeanSquaredSearchVoltage(subarray, 2);
     }, "out of range");
@@ -412,7 +412,7 @@ void TestMcamAndSearchlineHelpers() {
             subarray, stored), "query-specific MCAM searchline energy");
     AssertNear(CamSubArrayTestAccessor::CalculateMcamQuerySearchlineDriveEnergy(
             subarray, {0, 0, 0, 0}),
-            8e-15 * (0.04 + 0.64) / (1.2 * 1.2));
+            4 * 8e-15 * (0.04 + 0.64) / (1.2 * 1.2));
 
     const EvaCAMMatchResult exact = subarray.EvaluateMcamExactMatch(stored, stored);
     const EvaCAMMatchResult miss = subarray.EvaluateMcamExactMatch(stored, oneMismatch);
@@ -467,6 +467,7 @@ void TestInputRampAndScheduledSearchLatency() {
     sub.RowDriver[0]->rampOutput = 1e12;
     sub.RowDriver[1]->readLatency = 2e-12;
     sub.RowDriver[1]->rampOutput = 5e11;
+    fixture.config->technology.cell->camPort[0][1].volSearch1 = 1;
     AssertNear(CamSubArrayTestAccessor::MatchlineInputRamp(sub), 5e11);
     fixture.config->technology.cell->fefetGate = true;
     sub.gateNodeRamp = 1e11;

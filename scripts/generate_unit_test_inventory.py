@@ -523,7 +523,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "CAM_OutputAccumulator": {"CamMmrSenseComponents"},
         "CAM_SenseAmp": {"CamMmrSenseComponents"},
         "CAM_Line": {"CamLine"},
-        "CAM_SubArray": {"CamSubArrayTopology", "CamSubArrayMatch", "CamSubArrayVariation"},
+        "CAM_SubArray": {"CamSubArrayTopology", "CamSubArrayMatch", "CamSubArrayVariation", "CamAccounting"},
         "Mat": {"MatAndBank"},
         "Bank": {"MatAndBank"},
         "BankWithoutHtree": {"MatAndBank", "BankWithoutHtreeAndFactory"},
@@ -533,7 +533,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "UnitFormatter": {"UnitFormatter"},
         "ResultsYaml": {"ResultsSerialization"},
         "VariationSamplesCsv": {"ResultsSerialization"},
-        "EvaCamResultExtractor": {"OutputServices"},
+        "EvaCamResultExtractor": {"OutputServices", "CamAccounting"},
         "EvaCamConfigPrinter": {"OutputServices"},
         "EvaCamOutput": {"OutputServices"},
         "EvaCamOutputDetail": {"OutputServices"},
@@ -568,6 +568,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "validate_named_cam": {"test_named_cam_validation"},
         "validate_original_evacam": {"test_original_evacam_validation"},
         "compare_legacy_evacam": {"test_legacy_comparison"},
+        "audit_fefet_energy": {"test_fefet_energy_audit"},
         "investigate_nand_kondo": {"test_nand_kondo_validation"},
         "check_nand_park_reference": {"test_nand_park_reference"},
         "test_variation_normality": {"test_plotting_scripts"},
@@ -703,10 +704,14 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
     map_indirect("scripts/validate_named_cam.py", ["digest", "render_table", "run_suite", "main"],
             "tests/test_named_cam_validation.py", "test_runner_preserves_evidence_and_does_not_reuse_previous_success",
             "test-named-cam-validation")
+    map_indirect("scripts/audit_fefet_energy.py", ["render_report", "run_suite"],
+            "tests/test_fefet_energy_audit.py", "test_native_budget_audit_and_failed_rerun", "test-fefet-energy-audit")
     map_indirect("src/model/AnalyticalCamTiming.cpp", ["RequireFinitePositive", "RequireFiniteNonnegative"],
             "tests/AnalyticalCamTimingTest.cpp", "TestDomainsAndInfeasibleDecisions", "test-analytical-cam-timing")
     map_indirect("src/model/AnalyticalCamTiming.cpp", ["Exposure", "ExposureTime"],
             "tests/AnalyticalCamTimingTest.cpp", "TestIndependentIntegratedResponse", "test-analytical-cam-timing")
+    map_indirect("src/cam/CAM_SubArray.cpp", ["SearchRowDriverIndex"],
+            "tests/CamAccountingTest.cpp", "TestIdleWriteLinesCannotDelaySearch", "test-cam-accounting")
     map_indirect("src/cam/CAM_SubArray.cpp", ["MatchlineInputRamp"],
             "tests/CamSubArrayMatchTest.cpp", "TestInputRampAndScheduledSearchLatency", "test-cam-subarray-match")
     map_indirect("scripts/validate_nand_kondo.py", ["__init__"],

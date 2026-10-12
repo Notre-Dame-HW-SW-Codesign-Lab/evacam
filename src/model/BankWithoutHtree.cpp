@@ -227,8 +227,7 @@ void BankWithoutHtree::CalculateLatencyAndPower() {
     }
 
     double localSearchEnergy = mat->subarray->searchDynamicEnergy * mat->muxSenseAmp
-        - (mat->subarray->inputBuf->readDynamicEnergy
-                + mat->subarray->inputEnc->readDynamicEnergy)
+        - mat->subarray->searchInputDynamicEnergy
         * (mat->muxSenseAmp - 1);
     if (config->peripherals.withOutputAcc) {
         localSearchEnergy *= config->wordGeometry.physicalColumnsPerWord

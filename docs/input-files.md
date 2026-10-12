@@ -30,6 +30,11 @@ All references are resolved relative to the file that contains them.
 
 The DATE21 2FeFET-1T configs now explicitly select `topology: fefet_gate`:
 the FeFET pair drives a CMOS gate separately from matchline discharge.
+For this topology, the cell matchline port's `cmos_width` is authoritative for
+on/off resistance, gate/drain loads and leakage. Omit the legacy architecture
+`matchline.match_transistor.cmos_width`; a conflicting value is rejected.
+The paper-reference fixture uses an analytical inverter with explicitly assumed
+sizes and output load; see the [FeFET audit](validation/fefet-energy-sensing-audit.md).
 [The schema](schema.md#2fefet-1t-gate-controlled-tcam) describes its assumptions
 and restrictions. Characterized scalar sense amplifiers can be selected with
 the ordinary `sensing.sense_amplifier` reference; see the

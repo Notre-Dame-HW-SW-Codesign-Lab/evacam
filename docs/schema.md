@@ -316,6 +316,12 @@ device and matchline NVM-discharge flags must be false. Memory-device
 control-node charging and divider dissipation. Only nominal exact search is
 supported; variation and approximate search are rejected.
 
+The matchline port's `cmos_width` is the single pull-down width. The old
+architecture `matchline.match_transistor.cmos_width` may be omitted; an identical
+value is accepted for compatibility, but a different value is rejected. Width
+scales both on and off current, drain capacitance, gate load and leakage.
+The inherited 1F value is not a verified paper minimum.
+
 The control-node load includes the pull-down gate and two FeFET drain
 capacitances, plus `additional_capacitance`. Its switching voltage must lie
 strictly between the derived match and mismatch levels. The two FeFET

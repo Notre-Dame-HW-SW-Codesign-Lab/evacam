@@ -106,6 +106,15 @@ excludes it. `assumptions.cell_topology` records the selected topology, and
 uncalibrated status and conservative charging activity. These timing boundaries
 must not be substituted for a paper's measurement endpoints without evidence.
 
+`assumptions.fefet_gate.pull_down_width_f` is the resolved cell-matchline-port
+width, used consistently for its current and terminal loads. FeFET TCAM results
+also expose `assumptions.search_energy`: the default query reset protocol,
+row-driver ownership of searchline charging, unmatched workload status and
+inherited level-shifter proxies. `make audit-fefet-energy` separates external
+line charging from driver-internal energy and reports alternative query protocols
+and inverter/pull-down sensitivities. Those alternatives are not fitted accuracy
+results; see the [audit](validation/fefet-energy-sensing-audit.md).
+
 ## Subarray Dimension Test Outputs
 
 Compiled `--subarray-dimension-test` runs write one ordinary results YAML per
@@ -306,3 +315,22 @@ scripts/convert_svgs_to_png.sh --dir <dir>
 
 - EvaCAM creates parent directories for the YAML output path when needed.
 - The `make run` target also creates the `results/` directory before execution.
+
+## Ordinary CAM component budgets
+
+For non-NAND CAMs, `breakdown.subarray_area`, `breakdown.search_dynamic_energy`,
+`breakdown.leakage`, and `breakdown.search_critical_path` are additive **subarray**
+budgets. Area entries include all physical copies; energy entries represent one
+sense group and one comparison step; leakage includes every physical copy.
+Critical-path `preparation` includes input preparation and the applicable
+control/precharge overlap. The older `search_latency` map lists diagnostic stage
+values that may overlap and should not be summed.
+
+Bank energy and latency additionally include sense groups, comparison steps,
+subarray replication and routing. Input-buffer/encoder energy is reused across
+sense groups. Python's result breakdown exposes the same component values with
+`_m2`, `_j`, `_w` and `_s` suffixes. Disabled components have zero entries.
+Conventional read/write breakdowns retain their existing diagnostic scope.
+
+See the [accounting audit](validation/accounting-and-timing-audit.md) for model
+assumptions and the effects on reference comparisons.

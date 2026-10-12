@@ -86,6 +86,11 @@ MatchlineElectricalParams BuildDrainSourceMatchlineParams(
     const double offCurrent = MatchlineOffCurrent(cellPort, tech, temperature);
 
     params.nominalResCellAccessOff = tech.vdd() / offCurrent / featureSize / cellPort.numCmos;
+    if (cell.fefetGate) {
+        // The single pull-down's off current, like its on current and terminal
+        // capacitances, scales with its physical width.
+        params.nominalResCellAccessOff = tech.vdd() / offCurrent / cmosWidth;
+    }
     if (!cellPort.isNMOS && (cell.isNVMdischarge || cellPort.isNVMdischarge)) {
         params.nominalResCellAccessOff /= 2;
     }
@@ -865,98 +870,52 @@ void CAM_SubArray::CalculateArea() {
     } else if (invalid) {
         height = width = area = 1e41;
     } else {
-        double addWidthArea = 0, addHeightArea = 0;
-
-        width = lenRow;
-        height = lenCol;
-        area = height * width;
-
-        if (withInputBuf) {
-            area += (inputBuf->area * numRow * 4);
-            addWidthArea += (inputBuf->area * numRow * 4);
-        }
-        area += (inputLS->area * numRow);
-        addWidthArea += (inputBuf->area * numRow);
-
-        area += (outputLS->area * numRow);
-        addWidthArea += (outputLS->area * numColumn * 2);
-
-        if (withInputEnc) {
-            inputEnc->CalculateArea();
-            area += (inputEnc->area * numRow / config->peripherals.bitsPerDischargePath);
-            addWidthArea += (inputEnc->area * numRow / config->peripherals.bitsPerDischargePath);
-        }
-
-        area += (RowDecMergeNand->area * 4);
-        addWidthArea += (RowDecMergeNand->area * 4);
-
-
-        for (int i = 0; i < config->technology.cell->camNumRow; i++) {
-            area += (RowDriver[i]->area * 4);
-            addWidthArea += (RowDriver[i]->area * 4);
-        }
-
-        // column decoder signal merge
-        area += (ColDecMergeNand->area * 4);
-        addWidthArea += (ColDecMergeNand->area * 4);
-
-        area += (senseAmpMuxLev1Nand->area );
-        addWidthArea += (senseAmpMuxLev1Nand->area );
-        area += (senseAmpMuxLev2Nand->area );
-        addWidthArea += (senseAmpMuxLev2Nand->area);
-
-        area += (precharger->area);
-        addHeightArea += (precharger->area);
-
-        for (int i = 0; i < config->technology.cell->camNumCol; i++) {
-            area += (ColMux[i]->area);
-            addHeightArea += (ColMux[i]->area* 3);
-        }
-
-        // MUX
-        area += (senseAmpMuxLev2->area* 3);
-        addHeightArea += (senseAmpMuxLev2->area);
-        area += (senseAmpMuxLev1->area* 9);
-        addHeightArea += (senseAmpMuxLev1->area);
-
-        if (internalSenseAmp) {
-            area += (senseAmp->area);
-            addHeightArea += (senseAmp->area);
-        }
-
+        areaBreakdown.clear();
+        double sideArea = 0;
+        const double inputBits = numRow;
+        const double senseOutputs = numColumn / muxSenseAmp;
+        const auto add = [&](const std::string &name, double value, bool besideArray) {
+            areaBreakdown[name] += value;
+            if (besideArray) sideArea += value;
+        };
+        add("total_cell_area", lenRow * lenCol, false);
+        // DataBuffer already includes its latch and differential drivers.
+        add("input_buffer_area", withInputBuf ? inputBuf->area * inputBits : 0, true);
+        add("input_level_shifter_area", inputLS->area * inputBits, true);
+        add("output_level_shifter_area", outputLS->area * senseOutputs, false);
+        if (withInputEnc) inputEnc->CalculateArea();
+        add("input_encoder_area", withInputEnc
+                ? inputEnc->area * inputBits / config->peripherals.bitsPerDischargePath : 0, true);
+        // RowDecoder::area already contains numRow copies of its gate/driver.
+        add("row_decoder_area", RowDecMergeNand->area, true);
+        add("row_driver_area", 0, true);
+        for (int i = 0; i < config->technology.cell->camNumRow; ++i)
+            add("row_driver_area", RowDriver[i]->area, true);
+        add("column_decoder_area", ColDecMergeNand->area, true);
+        add("mux_of_sa_area", (muxOutputLev1 > 1 ? senseAmpMuxLev1Nand->area : 0)
+                + (muxOutputLev2 > 1 ? senseAmpMuxLev2Nand->area : 0), true);
+        add("precharger_area", precharger->area, false);
+        add("column_mux_area", 0, false);
+        for (int i = 0; i < config->technology.cell->camNumCol; ++i)
+            add("column_mux_area", ColMux[i]->area, false);
+        // Mux::area includes all inputs and parallel mux instances.
+        add("mux_of_sa_area", senseAmpMuxLev1->area + senseAmpMuxLev2->area, false);
+        add("sense_amplifier_area", internalSenseAmp ? senseAmp->area : 0, false);
         WriteDriverArea = 0;
         if (withWriteDriver) {
-            for (int i = 0; i < config->technology.cell->camNumCol; i++) {
-                if (WriteDriver[i]->initialized) {
-                    if (i > 0 && Col[i].CellPort.Type == Bitline && Col[i-1].CellPort.Type == Bitline) {
-                        WriteDriverArea += (WriteDriver[i]->outputDriver.area);
-                        WriteDriverArea += (WriteDriver[i]->area* 4);
-                    } else {
-                        WriteDriverArea += (WriteDriver[i]->area* 4);
-                    }
-                }
+            for (int i = 0; i < config->technology.cell->camNumCol; ++i) {
+                if (WriteDriver[i]->initialized) WriteDriverArea += WriteDriver[i]->area;
             }
         }
-        area += WriteDriverArea;
-        addHeightArea += WriteDriverArea;
-
-        if (withOutputAcc) {
-            area += (outputAcc->area * numColumn / muxSenseAmp);
-            addHeightArea += (outputAcc->area * numColumn / muxSenseAmp);
-        }
-
-        if (withPriorityEnc) {
-            area += (priorityEnc->area);
-            addHeightArea += (priorityEnc->area);
-        }
-
-        if (withOutputBuf) {
-            area += (outputBuf->area * numColumn / muxSenseAmp);
-            addWidthArea += (outputBuf->area * numColumn / muxSenseAmp);
-        }
-
-        // TODO: a prefect layout
-        width = addWidthArea / lenCol + lenCol;
+        add("write_driver_area", WriteDriverArea, false);
+        add("output_accumulator_area", withOutputAcc ? outputAcc->area * senseOutputs : 0, false);
+        add("priority_encoder_area", withPriorityEnc ? priorityEnc->area : 0, false);
+        add("output_buffer_area", withOutputBuf ? outputBuf->area * senseOutputs : 0, false);
+        area = 0;
+        for (const auto &component : areaBreakdown) area += component.second;
+        // Pack side peripherals beside the array; remaining blocks occupy the
+        // top/bottom strip. This ideal packing preserves the full cell rectangle.
+        width = lenRow + sideArea / lenCol;
         height = area / width;
     }
 }
@@ -1247,7 +1206,7 @@ void CAM_SubArray::CalculatePower() {
              * Calculate components
              *****************************************************************************/
 
-            readDynamicEnergy = writeDynamicEnergy = leakage = 0;
+            readDynamicEnergy = writeDynamicEnergy = leakage = cellReadEnergy = 0;
 
             double inputBufReadEnergy = 0;
             double inputBufLeakage = 0;
@@ -1282,6 +1241,7 @@ void CAM_SubArray::CalculatePower() {
 
             // colmn decoder signal merge
             ColDecMergeNand->CalculatePower();
+            for (int i = 0; i < cell.camNumCol; ++i) ColMux[i]->CalculatePower();
 
             senseAmpMuxLev1Nand->CalculatePower();
             senseAmpMuxLev2Nand->CalculatePower();
@@ -1358,7 +1318,9 @@ void CAM_SubArray::CalculatePower() {
                     //             (voltagePrecharge * voltagePrecharge) * numColumn / muxSenseAmp;
             }// }
         }
-            if (config->peripherals.matchlineCircuit != "legacy") {
+            if (config->peripherals.matchlineCircuit != "legacy" || cell.fefetGate) {
+                // Use the same physical load as timing. An inverter charges its
+                // input from the ML; its own energy covers only its output.
                 const double finalVoltage = config->peripherals.matchlineCircuit == "diode_keeper"
                         ? config->peripherals.keeperLowClamp + tech.vth()
                         : config->peripherals.matchlineCircuit == "clamped_keeper" ? config->peripherals.keeperLowClamp : 0;
@@ -1404,34 +1366,36 @@ void CAM_SubArray::CalculatePower() {
         searchDynamicEnergy += searchlineDriveDynamicEnergy;
         UpdateVariationPowerSummary();
 
-        readDynamicEnergy = searchDynamicEnergy + inputBufReadEnergy * numRow 
-            + inputEncReadEnergy * numRow / config->peripherals.bitsPerDischargePath
-            + cellReadEnergy + ColDecMergeNand->readDynamicEnergy + precharger->readDynamicEnergy
-            + senseAmpMuxLev1Nand->readDynamicEnergy + senseAmpMuxLev2Nand->readDynamicEnergy
-            + ColMux[indexMatchline]->readDynamicEnergy + senseAmp->readDynamicEnergy 
-            + senseAmpMuxLev1->readDynamicEnergy + senseAmpMuxLev2->readDynamicEnergy
-            + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
-            + outputBufReadEnergy * numColumn
-            + inputLS->readDynamicEnergy * numRow + outputLS->readDynamicEnergy * numColumn;
-
-        searchDynamicEnergy +=  inputBufReadEnergy * numRow + inputEncReadEnergy * numRow / config->peripherals.bitsPerDischargePath
-            + cellReadEnergy + ((!config->peripherals.explicitSearchTiming || muxSenseAmp > 1)
-                    ? ColDecMergeNand->readDynamicEnergy : 0) + precharger->readDynamicEnergy
-            + ColMux[indexMatchline]->readDynamicEnergy
-            + senseAmp->readDynamicEnergy
-            + outputAcc->readDynamicEnergy + priorityEnc->readDynamicEnergy 
-            + outputBuf->readDynamicEnergy * numColumn;
-
-        if (config->peripherals.explicitSearchTiming) {
-            searchDynamicEnergy += inputLS->readDynamicEnergy * numRow
-                    + outputLS->readDynamicEnergy * numColumn;
-            if (!config->peripherals.searchBroadcast)
-                searchDynamicEnergy += RowDecMergeNand->readDynamicEnergy;
-            if (muxOutputLev1 > 1) searchDynamicEnergy += senseAmpMuxLev1->readDynamicEnergy
-                    + senseAmpMuxLev1Nand->readDynamicEnergy;
-            if (muxOutputLev2 > 1) searchDynamicEnergy += senseAmpMuxLev2->readDynamicEnergy
-                    + senseAmpMuxLev2Nand->readDynamicEnergy;
-        }
+        const double comparedBits = CAM_opt.BitSerialWidth;
+        const double senseOutputs = numColumn / muxSenseAmp;
+        searchEnergyBreakdown = {
+            {"matchline", searchDynamicEnergy - searchlineDriveDynamicEnergy},
+            {"row_driver", searchlineDriveDynamicEnergy},
+            {"input_buffer", inputBufReadEnergy * comparedBits},
+            {"input_encoder", inputEncReadEnergy * comparedBits / config->peripherals.bitsPerDischargePath},
+            {"input_level_shifter", inputLS->readDynamicEnergy * comparedBits},
+            {"output_level_shifter", outputLS->readDynamicEnergy * senseOutputs},
+            {"row_decoder", config->peripherals.explicitSearchTiming && config->peripherals.searchBroadcast
+                    ? 0 : RowDecMergeNand->readDynamicEnergy},
+            {"column_decoder", muxSenseAmp > 1 ? ColDecMergeNand->readDynamicEnergy : 0},
+            {"precharger", precharger->readDynamicEnergy},
+            {"cell_read", cellReadEnergy},
+            {"column_mux", ColMux[indexMatchline]->readDynamicEnergy},
+            {"sense_amplifier", internalSenseAmp ? senseAmp->readDynamicEnergy : 0},
+            {"mux_of_sa", senseAmpMuxLev1->readDynamicEnergy + senseAmpMuxLev2->readDynamicEnergy},
+            {"mux_of_sa_decoder", (muxOutputLev1 > 1 ? senseAmpMuxLev1Nand->readDynamicEnergy : 0)
+                    + (muxOutputLev2 > 1 ? senseAmpMuxLev2Nand->readDynamicEnergy : 0)},
+            {"output_accumulator", withOutputAcc ? outputAcc->readDynamicEnergy * senseOutputs : 0},
+            {"priority_encoder", withPriorityEnc ? priorityEnc->readDynamicEnergy : 0},
+            {"output_buffer", outputBufReadEnergy * senseOutputs}
+        };
+        searchInputDynamicEnergy = searchEnergyBreakdown.at("input_buffer")
+                + searchEnergyBreakdown.at("input_encoder");
+        searchDynamicEnergy = 0;
+        for (const auto &component : searchEnergyBreakdown) searchDynamicEnergy += component.second;
+        readDynamicEnergy = searchDynamicEnergy
+                + RowDecMergeNand->readDynamicEnergy - searchEnergyBreakdown.at("row_decoder")
+                + ColDecMergeNand->readDynamicEnergy - searchEnergyBreakdown.at("column_decoder");
 
         /*****************************************************************************
          * Calculate write
@@ -1591,7 +1555,9 @@ void CAM_SubArray::CalculatePower() {
                 }
             }
             if (cell.accessType == CMOS_access) {
-                leakage += CalculateGateLeakage(INV, 1, cell.camWidthMatchTran * config->technology.tech->featureSize(),  0,
+                const double matchWidth = cell.fefetGate
+                        ? Col[indexMatchline].CellPort.widthCmos : cell.camWidthMatchTran;
+                leakage += CalculateGateLeakage(INV, 1, matchWidth * config->technology.tech->featureSize(),  0,
                         config->input.temperature, *config->technology.tech) * config->technology.tech->vdd();
             }
         }
@@ -1601,24 +1567,30 @@ void CAM_SubArray::CalculatePower() {
          * Leakage totals
          *****************************************************************************/
 
-        double leak = 0;
-        for (int i = 0; i < cell.camNumRow; i++) {
-            leakage += RowDriver[i]->leakage;
-            leak += RowDriver[i]->leakage;
-        }
-        for (int i = 0; i < cell.camNumCol; i++) {
-            leakage += ColMux[i]->leakage;
-            leak += ColMux[i]->leakage;
-        }
-
-        leakage += inputBufLeakage * numColumn + inputEncLeakage + precharger->leakage + senseAmpMuxLev1Nand->leakage
-            + senseAmpMuxLev2Nand->leakage + ColDecMergeNand->leakage + WriteDriverLeakage + senseAmp->leakage
-            + senseAmpMuxLev1->leakage + senseAmpMuxLev2->leakage + outputAcc->leakage + priorityEnc->leakage
-            + outputBufLeakage * numColumn;
-        leak += inputBufLeakage * numColumn + inputEncLeakage + precharger->leakage + senseAmpMuxLev1Nand->leakage
-            + senseAmpMuxLev2Nand->leakage + ColDecMergeNand->leakage + WriteDriverLeakage + senseAmp->leakage
-            + senseAmpMuxLev1->leakage + senseAmpMuxLev2->leakage + outputAcc->leakage + priorityEnc->leakage
-            + outputBufLeakage * numColumn;
+        leakageBreakdown = {
+            {"cell", leakage},
+            {"input_buffer", inputBufLeakage * numRow},
+            {"input_encoder", inputEncLeakage * numRow / config->peripherals.bitsPerDischargePath},
+            {"input_level_shifter", inputLS->leakage * numRow},
+            {"output_level_shifter", outputLS->leakage * senseOutputs},
+            {"row_decoder", RowDecMergeNand->leakage},
+            {"row_driver", 0},
+            {"column_decoder", ColDecMergeNand->leakage},
+            {"column_mux", 0},
+            {"precharger", precharger->leakage},
+            {"write_driver", WriteDriverLeakage},
+            {"sense_amplifier", internalSenseAmp ? senseAmp->leakage : 0},
+            {"mux_of_sa", senseAmpMuxLev1->leakage + senseAmpMuxLev2->leakage
+                    + (muxOutputLev1 > 1 ? senseAmpMuxLev1Nand->leakage : 0)
+                    + (muxOutputLev2 > 1 ? senseAmpMuxLev2Nand->leakage : 0)},
+            {"output_accumulator", withOutputAcc ? outputAcc->leakage * senseOutputs : 0},
+            {"priority_encoder", withPriorityEnc ? priorityEnc->leakage : 0},
+            {"output_buffer", outputBufLeakage * senseOutputs}
+        };
+        for (int i = 0; i < cell.camNumRow; ++i) leakageBreakdown["row_driver"] += RowDriver[i]->leakage;
+        for (int i = 0; i < cell.camNumCol; ++i) leakageBreakdown["column_mux"] += ColMux[i]->leakage;
+        leakage = 0;
+        for (const auto &component : leakageBreakdown) leakage += component.second;
     }
 
 }
@@ -1775,7 +1747,7 @@ double CAM_SubArray::CalculateSearchlineDriveEnergy() const {
         energy += RowDriver[i]->readDynamicEnergy
             * MeanSquaredSearchVoltage(i) / (vdd * vdd);
     }
-    return energy;
+    return energy * CAM_opt.BitSerialWidth;
 }
 
 double CAM_SubArray::CalculateMcamQuerySearchlineDriveEnergy(
@@ -1814,7 +1786,7 @@ double CAM_SubArray::CalculateMcamQuerySearchlineDriveEnergy(
             * voltageSquared / (vdd * vdd);
         searchlineIndex++;
     }
-    return energy;
+    return energy * CAM_opt.BitSerialWidth;
 }
 
 std::vector<double> CAM_SubArray::EffectiveMcamStateResistances() const {
@@ -2531,8 +2503,17 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
         outputBuf->readLatency = 0;
     }
 
+    const int searchDriver = SearchRowDriverIndex();
+    const double rowDriver = searchDriver >= 0 ? RowDriver[searchDriver]->readLatency : 0;
+    // Idle write wordlines and absent mux selects cannot delay a search. Keep
+    // decoderLatency unchanged for the separately addressed read/write path.
+    const double columnControl = std::max({
+            muxSenseAmp > 1 ? ColDecMergeNand->readLatency : 0,
+            muxOutputLev1 > 1 ? senseAmpMuxLev1Nand->readLatency : 0,
+            muxOutputLev2 > 1 ? senseAmpMuxLev2Nand->readLatency : 0});
+    const double searchDecoder = std::max(RowDecMergeNand->readLatency + rowDriver, columnControl);
     searchLatency = inputBuf->readLatency
-        + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency)
+        + std::max(precharger->readLatency, searchDecoder + inputEnc->readLatency)
         + gateNodeDelay
         + matchlineDelay
         + ColMux[indexMatchline]->readLatency
@@ -2548,18 +2529,8 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
     senseAmpLatency = senseAmp->readLatency;
 
     if (config->peripherals.explicitSearchTiming) {
-        double rowDriver = 0;
-        for (int i = 0; i < cell.camNumRow; ++i) {
-            rowDriver = std::max(rowDriver, RowDriver[i]->readLatency);
-        }
         const double rowControl = rowDriver + (config->peripherals.searchBroadcast
                 ? 0 : RowDecMergeNand->readLatency);
-        // Write address decoding is not on an unmultiplexed search path.
-        // Only enabled search muxes need column/address-select control.
-        const double columnControl = std::max({
-                muxSenseAmp > 1 ? ColDecMergeNand->readLatency : 0,
-                muxOutputLev1 > 1 ? senseAmpMuxLev1Nand->readLatency : 0,
-                muxOutputLev2 > 1 ? senseAmpMuxLev2Nand->readLatency : 0});
         const double control = std::max(rowControl, columnControl);
         const double evaluation = gateNodeDelay + matchlineDelay;
         const double output = ColMux[indexMatchline]->readLatency + senseAmpLatency
@@ -2571,6 +2542,23 @@ void CAM_SubArray::CalculateSearchPathLatenciesAfterMatchline() {
                 output, config->peripherals.searchRecovery, config->peripherals.overlapSearchPrecharge);
         searchLatency = searchPhases.resultReady;
     }
+
+    const double outputTime = ColMux[indexMatchline]->readLatency + senseAmpLatency
+            + senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency
+            + outputAcc->readLatency + priorityEnc->readLatency + outputBuf->readLatency
+            + outputLS->readLatency;
+    searchLatencyBreakdown = {
+        {"preparation", searchLatency - gateNodeDelay - matchlineDelay - outputTime},
+        {"control_node", gateNodeDelay},
+        {"matchline", matchlineDelay},
+        {"column_mux", ColMux[indexMatchline]->readLatency},
+        {"sense_amplifier", senseAmpLatency},
+        {"output_mux", senseAmpMuxLev1->readLatency + senseAmpMuxLev2->readLatency},
+        {"output_accumulator", outputAcc->readLatency},
+        {"priority_encoder", priorityEnc->readLatency},
+        {"output_buffer", outputBuf->readLatency},
+        {"output_level_shifter", outputLS->readLatency}
+    };
 
     readLatency = inputBuf->readLatency
         + std::max(precharger->readLatency, decoderLatency + inputEnc->readLatency)
@@ -2659,19 +2647,19 @@ double CAM_SubArray::MatchlineHorowitzDelay(
     return horowitz(tau, beta, MatchlineInputRamp(), ramp);
 }
 
-double CAM_SubArray::MatchlineInputRamp() const {
-    int maxRowDriverIndex = 0;
-    double maxRowDriverLatency = 0;
-    const int rowDriverCount = config->technology.cell->camNumRow;
-
-    for (int i = 0; i < rowDriverCount; i++) {
-        if (RowDriver[i]->readLatency > maxRowDriverLatency) {
-            maxRowDriverLatency = RowDriver[i]->readLatency;
-            maxRowDriverIndex = i;
-        }
+int CAM_SubArray::SearchRowDriverIndex() const {
+    int selected = -1;
+    for (int i = 0; i < config->technology.cell->camNumRow; ++i) {
+        const auto &port = config->technology.cell->camPort[0][i];
+        if (port.volSearch0 == 0 && port.volSearch1 == 0) continue;
+        if (selected < 0 || RowDriver[i]->readLatency > RowDriver[selected]->readLatency) selected = i;
     }
+    return selected;
+}
 
-    double inputRamp = RowDriver[maxRowDriverIndex]->rampOutput;
+double CAM_SubArray::MatchlineInputRamp() const {
+    const int selected = SearchRowDriverIndex();
+    double inputRamp = selected >= 0 ? RowDriver[selected]->rampOutput : 1e20;
     if (config->technology.cell->fefetGate) {
         inputRamp = std::min(inputRamp, gateNodeRamp);
     }

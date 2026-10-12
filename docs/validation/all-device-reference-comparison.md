@@ -2,7 +2,12 @@
 
 The current models improve direct two-FeFET and MRAM-4T2R latency agreement,
 but the additional shared-input runs show worse latency agreement for FeFET-1T
-and MRAM-6T2R. There is no established improvement across all devices or metrics.
+and MRAM-6T2R. The [accounting and timing audit](accounting-and-timing-audit.md)
+corrects component counts and removes idle write lines from search timing.
+The subsequent [FeFET audit](fefet-energy-sensing-audit.md) reconciles pull-down
+sizing and uses an analytical inverter; its assumed trip point increases the
+FeFET-1T latency gap. Direct two-FeFET energy remains unchanged.
+There is no established improvement across all devices or metrics.
 
 Values below are **absolute percentage gaps, old executable → current model**.
 They are diagnostics from partial reconstructions, not validated accuracy bounds.
@@ -12,16 +17,16 @@ zero error. Parameter sweeps and alternative array sizes share their device row.
 
 | Device or configuration | Latency gap, old → current | Energy gap, old → current | Area gap, old → current |
 | --- | ---: | ---: | ---: |
-| Direct two-FeFET, TCAS19 / DATE22 validation | 26.7% → 12.6% | 24.8% → 16.2% | — |
-| FeFET 2Fe-1T, DATE21 | 52.3% → 83.4% | — | — |
+| Direct two-FeFET, TCAS19 / DATE22 validation | 26.7% → 13.4% | 24.8% → 87.1% | — |
+| FeFET 2Fe-1T, DATE21 | 51.6% → 96.0% | — | — |
 | Other FeFET TCAM and MCAM variants | — | — | — |
-| MRAM 4T2R, VLSIC12 | 69.1% → 47.9% | — | 22.5% → 52.3% |
-| MRAM 6T2R, VLSIC11 | 147.6% → 257.9% | — | — |
+| MRAM 4T2R, VLSIC12 | 69.1% → 49.1% | — | 22.5% → 22.0% |
+| MRAM 6T2R, VLSIC11 | 147.6% → 244.2% | — | — |
 | MRAM 2T2R, ASPDAC12 | — | — | — |
-| PCM 2T2R, JSSC14, generic diagnostic | — → 32.7%* | — | — |
-| ReRAM 2.5T1R, ISSCC16 | Broken baseline → 115.6% | — | — |
-| ReRAM 3T1R, ISSCC15 | Broken baseline → 59.8% | — | — |
-| ReRAM 4T2R, VLSIC14 | Broken baseline → 84.2% | — | — |
+| PCM 2T2R, JSSC14, generic diagnostic | — → 34.9%* | — | — |
+| ReRAM 2.5T1R, ISSCC16 | Broken baseline → 115.5% | — | — |
+| ReRAM 3T1R, ISSCC15 | Broken baseline → 60.8% | — | — |
+| ReRAM 4T2R, VLSIC14 | Broken baseline → 83.8% | — | — |
 | ReRAM 2T2R, generic | — | — | — |
 | ReRAM 2T2R, VLSI21 / SAPIENS | — | — | — |
 | SRAM 8T BCAM, 65 nm | — | — | — |
@@ -33,7 +38,7 @@ zero error. Parameter sweeps and alternative array sizes share their device row.
 
 *PCM's generic fixture omits the complete two-bit encoding/CSRSS circuit. The
 more detailed original-validation fixture has no valid solution with its inherited
-electrical inputs. The 32.7% generic gap is not validation of that circuit.
+electrical inputs. The 34.9% generic gap is not validation of that circuit.
 
 ## What the missing entries mean
 
@@ -65,19 +70,21 @@ supported-device accuracy claims.
 
 ## Additional controlled runs
 
-The expanded table adds two executions using the existing pinned old executable
-and the current read-only comparison probe. No production model or config was
-changed. The existing current result manifests have the same SHA-256 as the
-current executable, so their named-fixture results are still current.
+The matched runner now includes FeFET-1T and MRAM-6T2R permanently, with
+stage breakdowns, isolated configuration ablations and component-budget checks.
+The current column includes the accounting/timing corrections; old source and
+shared electrical inputs remain pinned. All values are full configured searches.
 
 | Case | Paper latency | Old search | Current search | Resolved shared fields checked |
 | --- | ---: | ---: | ---: | ---: |
-| FeFET 2Fe-1T DATE21 | 252.8 ps | 384.911 ps | 463.648 ps | 81 |
-| MRAM 6T2R VLSIC11 | 0.29 ns | 0.718063 ns | 1.037876 ns | 125 |
+| FeFET 2Fe-1T DATE21 | 252.8 ps | 383.294 ps | 495.393 ps | 81 |
+| MRAM 6T2R VLSIC11 | 0.29 ns | 0.718063 ns | 0.998131 ns | 125 |
 
 FeFET-1T uses the current paper-reference fixture's shared geometry, resistances,
-ports and biases. The old engine cannot represent `fefet_gate`, its switching
-voltage, analytical decision or explicit timing schedule; those model differences
+ports and biases, with the canonical 1F pull-down exported to both engines.
+The earlier 384.911ps old result used the conflicting 10F global field and remains
+historical evidence. The old engine cannot represent `fefet_gate`, its switching
+voltage, analytical inverter/decision or explicit timing schedule; those model differences
 are recorded in the run manifest. Zero read power is written as `0uW` instead of
 `0W` for the legacy exporter, with no numerical change. Its energy scope still
 cannot be paired with the paper's per-bit energy to make a validated error score.
@@ -90,14 +97,13 @@ current fixture's inputs.
 Evidence and source contracts:
 
 - [Full table data and input manifest hashes](../../output/validation/all-device-summary/summary.json)
-- [FeFET-1T resolved inputs, metrics and file hashes](../../output/validation/all-device-summary/fefet1t.json)
-- [MRAM-6T2R resolved inputs, metrics and file hashes](../../output/validation/all-device-summary/mram6.json)
+- [Fresh matched inputs, stage metrics and hashes](../../output/validation/matched-legacy/runs.json)
+- [Before/after accounting results](../../output/validation/accounting-timing/after.json)
 - [Original matched old/current audit](matched-legacy-evacam.md)
 - [Named paper reference contracts](named-cam.reference.yaml)
 - [Original publication reference contracts](original-evacam.reference.yaml)
 - [Supported and incomplete device modes](../limitations.md)
 
-The `fefet1t-*` and `mram6-*` directories next to the summary retain both exported
-input formats and old/current logs. The existing `make compare-legacy-evacam`
-target reproduces the original matched suite; these two additional runs use its
-export, probe, and input-check helpers and are preserved separately.
+`make compare-legacy-evacam` reproduces both additional cases and their ten
+isolated native stages. The earlier `fefet1t-*` and `mram6-*` directories are
+historical evidence; use the fresh matched report for current values.

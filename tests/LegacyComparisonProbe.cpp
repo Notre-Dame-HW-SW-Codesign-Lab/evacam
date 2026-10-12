@@ -42,6 +42,11 @@ int main(int argc, char **argv) {
     FIELD("input_s", sub.inputBuf->readLatency);
     FIELD("encoder_s", sub.inputEnc->readLatency);
     FIELD("output_mux_s", sub.senseAmpMuxLev1->readLatency + sub.senseAmpMuxLev2->readLatency);
+    FIELD("row_decode_s", sub.RowDecMergeNand->readLatency);
+    FIELD("column_decode_s", sub.columnDecoderLatency);
+    FIELD("input_ls_s", sub.inputLS->readLatency);
+    FIELD("output_ls_s", sub.outputLS->readLatency);
+    FIELD("mux_cap_f", sub.ColMux[sub.indexMatchline]->capForPreviousDelayCalculation);
     FIELD("ml_cap_f", sub.Col[sub.indexMatchline].cap);
     FIELD("ml_res_ohm", sub.Col[sub.indexMatchline].res);
     FIELD("cell_cap_f", sub.capCellAccess);
@@ -102,4 +107,36 @@ int main(int argc, char **argv) {
         }
     }
 #undef FIELD
+    // Current-only diagnostics are deliberately outside the shared reporter
+    // copied into the pinned legacy source by instrument_old().
+#define CURRENT(key, expression) std::cout << "BASELINE current." key "=" << (expression) << '\n'
+    CURRENT("ml_wire_cap_f", sub.Col[sub.indexMatchline].wireCap);
+    CURRENT("gate_s", sub.gateNodeDelay);
+    CURRENT("activation_s", sub.decisionActivationTime);
+    CURRENT("query_ready_s", sub.searchPhases.queryReady);
+    CURRENT("evaluation_start_s", sub.searchPhases.evaluationStart);
+    CURRENT("result_ready_s", sub.searchPhases.resultReady);
+    CURRENT("decision_margin_v", sub.decisionResponse.margin);
+    for (int i = 0; i < cell.camNumRow; ++i) {
+        std::cout << "BASELINE current.row" << i << "_s=" << sub.RowDriver[i]->readLatency << '\n'
+                  << "BASELINE current.row" << i << "_ramp=" << sub.RowDriver[i]->rampOutput << '\n'
+                  << "BASELINE current.row" << i << "_wire_cap_f=" << sub.Row[i].wireCap << '\n'
+                  << "BASELINE current.row" << i << "_device_cap_f=" << sub.Row[i].deviceCap << '\n'
+                  << "BASELINE current.row" << i << "_driver_load_f=" << sub.RowDriver[i]->outputDriver.outputCap << '\n'
+                  << "BASELINE current.row" << i << "_driver_energy_j=" << sub.RowDriver[i]->readDynamicEnergy << '\n';
+    }
+    for (const auto &component : sub.areaBreakdown)
+        std::cout << "BASELINE current.area." << component.first << "=" << component.second << '\n';
+    for (const auto &component : sub.searchEnergyBreakdown)
+        std::cout << "BASELINE current.energy." << component.first << "=" << component.second << '\n';
+    for (const auto &component : sub.searchLatencyBreakdown)
+        std::cout << "BASELINE current.latency." << component.first << "=" << component.second << '\n';
+    CURRENT("sub_energy_j", sub.searchDynamicEnergy);
+    CURRENT("cached_input_j", sub.searchInputDynamicEnergy);
+    CURRENT("decision_threshold_v", config->peripherals.decisionThreshold);
+    CURRENT("gate_cap_f", sub.gateNodeCapacitance);
+    CURRENT("gate_charge_j_per_cell", sub.gateNodeChargingEnergy);
+    CURRENT("gate_static_w_per_cell", sub.gateNodeStaticPower);
+    CURRENT("leakage_cell_w", sub.leakageBreakdown.at("cell"));
+#undef CURRENT
 }

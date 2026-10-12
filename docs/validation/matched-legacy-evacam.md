@@ -1,5 +1,10 @@
 # Reproducing and comparing the public EvaCAM executable
 
+The subsequent [accounting and timing audit](accounting-and-timing-audit.md)
+updates the numerical results, fixes component counts and makes both additional
+regression cases permanent. The discussion and tables below preserve the preceding checkpoint;
+use the [all-device table](all-device-reference-comparison.md) for current gaps.
+
 **The public executable does not reproduce the original paper's reported model
 values. With shared reconstructed inputs, the current circuit models improve
 FeFET and MRAM latency agreement over that executable.** This does not establish

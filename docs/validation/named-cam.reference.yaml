@@ -5,8 +5,8 @@ common_assumptions:
   listed as matched.
 - Existing temperature and port biases are retained; they are not established paper
   operating corners.
-- Generic NVSim sensing is retained; no delay, energy or resistance is fitted to the
-  paper result.
+- Sensing is generic NVSim unless a case explicitly selects an analytical circuit;
+  no delay, energy or resistance is fitted to the paper result.
 - Bank search latency includes the configured peripherals and precharge. Paper timing
   boundaries remain unresolved.
 - Cell area is an input; matching it is not independent area validation.
@@ -33,11 +33,15 @@ cases:
   - The fefet_gate topology models the two FeFET branches as resistors driving a CMOS
     gate, with PTM terminal capacitances and a 0.5V switching assumption; no compact-model
     transient calibration.
-  - The paper uses an inverter sense amplifier; generic NVSim voltage sensing remains
-    until its load, delay, energy and sizing are independently characterized.
+  - The paper's inverter topology is represented by the analytical inverter. Both
+    widths use the library minimum convention of 1.5F, with 0fF external output load;
+    these are assumptions, not paper-characterized values. Intrinsic output drains
+    and input gate capacitance are calculated, and the decision follows its trip point.
+  - The inherited 1F pull-down is declared only on its matchline port. Neither it
+    nor the old separate 10F declaration is paper-verified; alternatives are audited.
   - Gate-node energy conservatively charges every compared control node from zero
     to mismatch voltage; paper activity is not matched.
-  - Analytical inverter decision assumes a 0.5V matchline trip point; broadcast control,
+  - Analytical inverter trip uses the configured widths and PTM mobilities; broadcast control,
     input/precharge overlap and zero recovery are explicit scheduling assumptions.
   expected:
     cell_topology: fefet_gate
@@ -49,6 +53,9 @@ cases:
     - 64
     subarray_count: 1
     sensing_mode: nvsim_vol
+    sense_amplifier_model: analytical_inverter
+    decision_reference: analytical_inverter_trip
+    pull_down_width_f: 1
     matchline_timing_model: analytical_voltage_threshold
     search_timing:
       control: broadcast

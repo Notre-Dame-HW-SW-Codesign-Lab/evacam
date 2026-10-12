@@ -59,6 +59,4 @@ organization:
 sensing: FeFET-2Fe1T-DATE21.sensing.yaml
 # Explicit analytical schedule; overlap and recovery are not paper-characterized.
 search_timing: {control: broadcast, precharge: overlap_input, driver_load: physical_line, recovery: 0ps}
-matchline:
-  match_transistor:
-    cmos_width: 10F
+# Pull-down width is declared once, on the cell's matchline port.

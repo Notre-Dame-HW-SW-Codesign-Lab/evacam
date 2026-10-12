@@ -383,6 +383,40 @@ void TestGateTopologyRejectsUnsupportedInputs() {
     AssertThrows<std::runtime_error>([&] { fixture.Load(); }, "gate_node");
 }
 
+void TestGateCanonicalPullDownWidth() {
+    Fixture fixture("FeFET-2Fe1T-DATE-2021");
+    const auto original = fixture.Load();
+    assert(!original->input.hasCamWidthMatchTran);
+    AssertNear(original->technology.cell->camWidthMatchTran, 1);
+    const auto base = Run(original);
+    const auto &baseSub = *base->bank->mat->subarray;
+    fixture.architecture["matchline"]["match_transistor"]["cmos_width"] = "1F";
+    AssertNear(fixture.Load()->technology.cell->camWidthMatchTran, 1);
+    fixture.architecture["matchline"]["match_transistor"]["cmos_width"] = "10F";
+    AssertThrows<std::runtime_error>([&] { fixture.Load(); }, "Conflicting pull-down widths");
+    fixture.architecture.remove("matchline");
+    for (double width : {2.0, 10.0}) {
+        fixture.cell["ports"]["column"][0]["cmos_width"] = std::to_string(width) + "F";
+        const auto config = fixture.Load();
+        AssertNear(config->technology.cell->camWidthMatchTran, width);
+        const auto result = Run(config);
+        const auto &sub = *result->bank->mat->subarray;
+        AssertNear(sub.resMemCellOn * width, baseSub.resMemCellOn);
+        AssertNear(sub.resMemCellOff * width, baseSub.resMemCellOff);
+        const auto &tech = *config->technology.tech;
+        AssertNear(sub.gateNodeCapacitance - baseSub.gateNodeCapacitance,
+                CalculateGateCap(width * tech.featureSize(), tech)
+                    - CalculateGateCap(tech.featureSize(), tech));
+        const double expectedLeakageIncrease = (CalculateGateLeakage(INV, 1,
+                width * tech.featureSize(), 0, config->input.temperature, tech)
+                - CalculateGateLeakage(INV, 1, tech.featureSize(), 0, config->input.temperature, tech))
+                * tech.vdd() * sub.numRow * sub.numColumn;
+        AssertNear(sub.leakageBreakdown.at("cell") - baseSub.leakageBreakdown.at("cell"),
+                expectedLeakageIncrease);
+        Require(sub.capCellAccess > baseSub.capCellAccess, "wider pull-down must load the ML");
+    }
+}
+
 void TestGateWordlengthAndTemperatureSweep() {
     for (int temperature : {300, 350, 400}) {
         double lastDelay = 0;
@@ -537,6 +571,7 @@ int main() {
     TestScalarSensingThroughV2();
     TestGateTopologyAndTiming();
     TestGateTopologyRejectsUnsupportedInputs();
+    TestGateCanonicalPullDownWidth();
     TestGateWordlengthAndTemperatureSweep();
     TestAnalyticalDecisionsAndMatcher();
     TestExplicitSearchSchedule();

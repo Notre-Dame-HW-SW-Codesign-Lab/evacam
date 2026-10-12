@@ -26,6 +26,7 @@
 #include "EvaCAMMcamAnalysis.h"
 #include "model/VariationSampler.h"
 #include "model/NandCamModel.h"
+#include <map>
 #include <random>
 #include <vector>
 
@@ -198,12 +199,20 @@ class CAM_SubArray: public FunctionUnit {
         double MatchlineAllMatchTau(const CAMResistanceSample &sample) const;
         double MatchlineSenseMargin(double tauAllMatch, double tauOneMiss, double senseTime) const;
         double MatchlineBeta(double effectiveCellRes, int activeDischargePaths = 1) const;
+        int SearchRowDriverIndex() const;
         double MatchlineInputRamp() const;
         double MatchlineHorowitzDelay(double tau, double effectiveCellRes, double *ramp,
                 int activeDischargePaths = 1) const;
 
     public:
         /* Properties */
+        // Additive, subarray-scoped budgets. Component classes with internal
+        // replication (decoders, muxes, SA) contribute their aggregate once.
+        std::map<std::string, double> areaBreakdown;
+        std::map<std::string, double> searchEnergyBreakdown;
+        std::map<std::string, double> leakageBreakdown;
+        double searchInputDynamicEnergy = 0;
+        std::map<std::string, double> searchLatencyBreakdown;
         CamDecisionResult decisionResponse;
         CamSearchPhases searchPhases;
         double decisionActivationTime = 0;

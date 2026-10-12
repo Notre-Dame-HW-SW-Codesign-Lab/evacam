@@ -120,6 +120,28 @@ class LegacyComparisonTests(unittest.TestCase):
         self.assertGreater(mr['search_s'], stages[3]['current']['search_s'])
         self.assertLess(fe['energy_j'], stages[0]['current']['energy_j'])
 
+    def test_permanent_regressions_and_component_budgets(self):
+        decks = dict(self.decks)
+        self.assertIn('MRAM-6T2R-VLSIC11', decks)
+        name = 'FeFET-2Fe1T-DATE21'
+        projected, differences = audit.legacy_projection(name, decks[name])
+        self.assertTrue(differences)
+        self.assertEqual(decks[name]['cell']['topology'], 'fefet_gate')
+        audit.export_legacy(projected, self.folder)
+        with self.assertRaises(ValueError): audit.export_legacy(decks[name], self.folder)
+        rows = audit.regression_stages(ROOT / 'test-bin/LegacyComparisonProbe', self.folder)
+        self.assertEqual(len(rows), 10)
+        for name in decks.keys() & {'FeFET-2Fe1T-DATE21', 'MRAM-6T2R-VLSIC11'}:
+            stages = {r['stage']: r['current'] for r in rows if r['id'] == name}
+            self.assertGreater(stages['added-1fF']['ml_s'], stages['reference']['ml_s'])
+            broken = dict(stages['reference']); broken['sub_area_m2'] *= 2
+            with self.assertRaises(ValueError): audit.check_budgets(broken)
+            if name.startswith('FeFET'):
+                self.assertLess(stages['old-10F-pulldown']['path_on_ohm'], stages['reference']['path_on_ohm'])
+            else:
+                self.assertEqual(stages['parallel-output']['output_mux_s'], 0)
+                self.assertLess(stages['differential-decision']['ml_s'], stages['reference']['ml_s'])
+
     def test_report_keeps_read_search_and_paper_claims_separate(self):
         old = dict(feasible=1, search_s=1e-9, read_s=2e-9, energy_j=1e-12)
         new = dict(feasible=1, search_s=1.5e-9, read_s=2e-9, energy_j=2e-12)
@@ -139,6 +161,7 @@ class LegacyComparisonTests(unittest.TestCase):
         with mock.patch.object(audit, 'prepare_old', return_value=(source, {})), \
              mock.patch.object(audit, 'cases', return_value=[self.decks[0]]), \
              mock.patch.object(audit, 'circuit_stages', return_value=[]), \
+             mock.patch.object(audit, 'regression_stages', return_value=[]), \
              mock.patch.object(audit, 'old_diode_ablation', return_value={'runs': []}), \
              mock.patch.object(audit.shutil, 'which', return_value=None), \
              contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):

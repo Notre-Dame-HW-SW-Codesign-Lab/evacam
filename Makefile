@@ -893,3 +893,24 @@ compare-legacy-evacam: legacy-comparison-probe test-legacy-comparison
 	python3 scripts/compare_legacy_evacam.py --legacy-repo "$(LEGACY_REPO)"
 
 UNIT_TEST_TARGETS += test-legacy-comparison
+
+.PHONY: test-cam-accounting
+test-cam-accounting: $(OBJECTS_NO_MAIN) tests/CamAccountingTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/CamAccountingTest.d -MT $(TEST_BIN_DIR)/CamAccountingTest -o $(TEST_BIN_DIR)/CamAccountingTest tests/CamAccountingTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/CamAccountingTest
+
+UNIT_TEST_TARGETS += test-cam-accounting
+
+# These targets are declared after the main unit prerequisite list.
+test-unit: test-cam-accounting test-legacy-comparison
+
+.PHONY: test-fefet-energy-audit audit-fefet-energy
+test-fefet-energy-audit: legacy-comparison-probe
+	python3 tests/test_fefet_energy_audit.py
+
+audit-fefet-energy: legacy-comparison-probe
+	python3 scripts/audit_fefet_energy.py
+
+UNIT_TEST_TARGETS += test-fefet-energy-audit
+test-unit: test-fefet-energy-audit

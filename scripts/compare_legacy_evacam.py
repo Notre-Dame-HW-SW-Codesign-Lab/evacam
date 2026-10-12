@@ -31,6 +31,7 @@ def sha(path):
 
 def numeric(value):
     """Strip the explicit units emitted by these restricted fixture templates."""
+    if str(value) == '0W': return 0.0
     match = re.fullmatch(r'([-+0-9.eE]+)(?:nm|K|B|bits|F\^2|F|V|uA|uW|mV|ns|pJ|ohm|fF)?', str(value))
     if not match or not math.isfinite(float(match[1])):
         raise ValueError('Unsupported audit quantity: ' + str(value))
@@ -65,7 +66,7 @@ def write_deck(deck, folder):
 def export_legacy(deck, folder):
     """Export the fixed single-subarray, generic-voltage-SA comparison subset."""
     a, c, m, s = [deck[k] for k in ('architecture', 'cell', 'memory', 'sensing')]
-    if set(s) - {'schema', 'internal', 'sense_amplifier'} or 'search_timing' in a:
+    if c.get('topology') or set(s) - {'schema', 'internal', 'sense_amplifier'} or 'search_timing' in a:
         raise ValueError('Circuit/timing options cannot be exported to the old engine')
     if Path(s['sense_amplifier']).name != 'nvsim_vol.sense_amp.yaml':
         raise ValueError('Only generic voltage sensing is shared')
@@ -198,6 +199,8 @@ def instrument_old(source):
                  ('port.ConnectedRegion', 'port.ConnectedRegoin'),
                  ('sub.matchlineDelay', 'sub.bitlineDelay')]:
         body = body.replace(a, b)
+    # Released source has no level-shifter blocks; zero is an explicit absence.
+    body = body.replace('sub.inputLS->readLatency', '0.0').replace('sub.outputLS->readLatency', '0.0')
     body = re.sub(r'sub\.(\w+(?:\[[^\]]+\])?)->', r'sub.\1.', body)
     body = re.sub(r'tech\.(\w+)\(\)', r'tech.\1', body)
     for var in ('bank', 'sub', 'cell', 'tech'):
@@ -259,7 +262,86 @@ def cases():
     for kind in ('banks', 'mats'):
         pcm['architecture']['organization'][kind] = {'total': [1, 1], 'active': [1, 1]}
     out.append(('PCM-local-512x64', pcm))
+    # These two cases were previously one-off diagnostics. Keep their native
+    # reference models, and explicitly project unsupported options for old code.
+    for name in ('FeFET-2Fe1T-DATE21', 'MRAM-6T2R-VLSIC11'):
+        out.append((name, load_deck(ROOT / f'config/paper_reference/{name}/{name}.config.yaml')))
     return out
+
+
+def legacy_projection(name, deck):
+    """Document the sole non-shared model in the additional regression cases."""
+    projected = copy.deepcopy(deck)
+    differences = []
+    if name == 'FeFET-2Fe1T-DATE21':
+        if projected['cell'].pop('topology') != 'fefet_gate':
+            raise ValueError('Unexpected FeFET regression topology')
+        projected['cell'].pop('gate_node')
+        projected['architecture'].pop('search_timing')
+        projected['sensing'].pop('decision')
+        projected['sensing']['sense_amplifier'] = str(ROOT / 'config/lib/sense_amp/nvsim_vol.sense_amp.yaml')
+        # Current fefet_gate uses one authoritative port width. Supply that
+        # resolved value to the old engine's separate width field as well.
+        projected['architecture'].setdefault('matchline', {})['match_transistor'] = {
+            'cmos_width': projected['cell']['ports']['column'][0]['cmos_width']}
+        differences = ['Old engine lacks fefet_gate control node, analytical inverter, decision and explicit search schedule.',
+                       'Pull-down width is shared at the canonical port value; historical 10F-versus-1F runs are separate evidence.']
+    return projected, differences
+
+
+def regression_stages(probe, folder):
+    """One-change diagnostics, never substituted for the publication fixture."""
+    runs = []
+    for name in ('FeFET-2Fe1T-DATE21', 'MRAM-6T2R-VLSIC11'):
+        original = load_deck(ROOT / f'config/paper_reference/{name}/{name}.config.yaml')
+        stages = [('reference', copy.deepcopy(original), 'Current reference fixture.')]
+        added = copy.deepcopy(original)
+        added['architecture'].setdefault('matchline', {})['additional_cap'] = '1fF'
+        stages.append(('added-1fF', added, 'Sensitivity to one additional fF; not characterized paper data.'))
+        if name.startswith('FeFET'):
+            legacy = copy.deepcopy(original)
+            # Horowitz is incompatible with an inverter trip decision. This
+            # diagnostic changes both the decision and the amplifier.
+            legacy['sensing'].pop('decision')
+            legacy['sensing']['sense_amplifier'] = str(ROOT / 'config/lib/sense_amp/nvsim_vol.sense_amp.yaml')
+            stages.append(('horowitz-generic-SA', legacy, 'Legacy decision and generic SA together; not a one-variable comparison to the inverter reference.'))
+            legacy = copy.deepcopy(original)
+            legacy['architecture'].pop('search_timing')
+            stages.append(('legacy-schedule', legacy, 'Only restore legacy input/precharge/control scheduling.'))
+            width = copy.deepcopy(original)
+            width['cell']['ports']['column'][0]['cmos_width'] = '10F'
+            stages.append(('old-10F-pulldown', width,
+                           'Unverified 10F alternative to the inherited 1F port; all pull-down loads and currents scale consistently.'))
+        else:
+            decision = copy.deepcopy(original)
+            decision['sensing']['decision'] = {'model': 'differential'}
+            stages.append(('differential-decision', decision,
+                           'Ideal differential margin decision; does not implement self-discharge circuitry.'))
+            schedule = copy.deepcopy(original)
+            schedule['architecture']['search_timing'] = dict(control='broadcast', precharge='overlap_input',
+                                                            driver_load='physical_line', recovery='0ps')
+            stages.append(('broadcast-schedule', schedule, 'Assumed broadcast schedule; device circuit unchanged.'))
+            parallel = copy.deepcopy(original)
+            parallel['architecture']['organization']['mux']['output_level2'] = 1
+            stages.append(('parallel-output', parallel, 'Scope diagnostic: omit inherited 64:1 result readout mux.'))
+        for stage, deck, explanation in stages:
+            directory = folder / (name + '-' + stage)
+            path = write_deck(deck, directory)
+            values = run_probe(probe, path, directory, 'current')
+            if not values['feasible']: raise ValueError('Unexpected regression stage rejection: ' + stage)
+            check_budgets(values)
+            runs.append(dict(id=name, stage=stage, explanation=explanation, current=values,
+                             files={p.name: sha(p) for p in directory.glob('*.yaml')}))
+    return runs
+
+
+def check_budgets(values):
+    for prefix, total in [('current.area.', 'sub_area_m2'),
+                          ('current.energy.', 'current.sub_energy_j'),
+                          ('current.latency.', 'sub_search_s')]:
+        parts = [v for k, v in values.items() if k.startswith(prefix)]
+        if not parts or any(v < 0 for v in parts) or not math.isclose(sum(parts), values[total], rel_tol=1e-10, abs_tol=1e-25):
+            raise ValueError('Component budget does not close: ' + prefix)
 
 
 def circuit_stages(probe, folder):
@@ -311,7 +393,7 @@ def old_diode_ablation(source, folder, decks):
 
 def render(report):
     lines = ['# Matched input comparison of public and current EvaCAM', '',
-             'Old source: `' + COMMIT + '`. All rows use a single subarray and generic voltage sensing.',
+             'Old source: `' + COMMIT + '`. Matched rows use a single subarray and generic voltage sensing; FeFET-1T has explicitly recorded model differences.',
              'Inputs are shared; circuit equations and search scheduling differ. These are software comparisons, not paper accuracy scores.', '',
              '| Case | Old printed latency (ns) | Old actual search (ns) | Current search (ns) | Current vs old search | Old energy (pJ) | Current energy (pJ) |',
              '| --- | ---: | ---: | ---: | ---: | ---: | ---: |']
@@ -341,6 +423,13 @@ def render(report):
               '| --- | ---: | ---: | ---: | ---: | ---: | ---: |']
     for row in report.get('publication_comparison', []):
         lines.append(f"| {row['id']} | {row['reference_ns']:.6g} | {row['published_ns']:.6g} | {row['old_ns']:.6f} | {row['current_ns']:.6f} | {row['old_gap_percent']:+.1f}% | {row['current_gap_percent']:+.1f}% |")
+    lines += ['', '## Permanent regression diagnostics', '',
+              'Stages disclose changed options; horowitz-generic-SA changes both sensing and decision. These are diagnostics, not fitted predictions.', '',
+              '| Case | Stage | Preparation (ps) | Control node (ps) | Matchline (ps) | SA (ps) | Output mux (ps) | Search (ns) |',
+              '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |']
+    for row in report.get('regression_stages', []):
+        v = row['current']
+        lines.append(f"| {row['id']} | {row['stage']} | {v['current.latency.preparation']*1e12:.3f} | {v['current.gate_s']*1e12:.3f} | {v['ml_s']*1e12:.3f} | {v['sa_s']*1e12:.3f} | {v['output_mux_s']*1e12:.3f} | {v['search_s']*1e9:.6f} |")
     lines.append('')
     return '\n'.join(lines)
 
@@ -355,7 +444,8 @@ def collect_report(repository, probe, output):
     for name, deck in decks:
         subdir = folder / name
         config = write_deck(deck, subdir)
-        legacy = export_legacy(deck, subdir)
+        projected, differences = legacy_projection(name, deck)
+        legacy = export_legacy(projected, subdir)
         old = run_probe(source / 'Eva-CAM', legacy, subdir, 'old')
         new = run_probe(probe, config, subdir, 'current')
         matched = check_inputs(old, new) if old['feasible'] and new['feasible'] else None
@@ -364,10 +454,10 @@ def collect_report(repository, probe, output):
             for key in ('search_s', 'read_s', 'energy_j', 'area_m2'):
                 if not math.isclose(original[key], old[key], rel_tol=1e-10):
                     raise ValueError('Translated public example differs: ' + key)
-        runs.append(dict(id=name, old=old, current=new, matched_input_fields=matched,
+        runs.append(dict(id=name, old=old, current=new, matched_input_fields=matched, model_differences=differences,
                          files={p.name: sha(p) for p in subdir.iterdir() if p.suffix in ('.yaml', '.cfg', '.cell')}))
     inputs = [*ROOT.glob('config/lib/**/*.yaml'), *ROOT.glob('config/original_validation/**/*.yaml'),
-              *ROOT.glob('config/2FeFET_TCAM/*.yaml'), *ROOT.glob('config/paper_reference/PCM-2T2R-JSSC14/*.yaml')]
+              *ROOT.glob('config/2FeFET_TCAM/*.yaml'), *ROOT.glob('config/paper_reference/**/*.yaml')]
     report = dict(status='complete', evidence_directory=str(folder),
                   created_utc=datetime.now(timezone.utc).isoformat(), old_provenance=provenance,
                   compiler=subprocess.check_output(['g++', '--version'], text=True).splitlines()[0],
@@ -377,6 +467,7 @@ def collect_report(repository, probe, output):
                                          for p in sorted((ROOT / parent).rglob('*')) if p.suffix in ('.cpp', '.h')},
                   input_sha256={str(p.relative_to(ROOT)): sha(p) for p in sorted(inputs)})
     report['circuit_stages'] = circuit_stages(probe, folder)
+    report['regression_stages'] = regression_stages(probe, folder)
     report['old_diode_ablation'] = old_diode_ablation(source, folder, decks)
     references = yaml.safe_load((ROOT / 'docs/validation/original-evacam.reference.yaml').read_text())
     report['reference_manifest_sha256'] = sha(ROOT / 'docs/validation/original-evacam.reference.yaml')

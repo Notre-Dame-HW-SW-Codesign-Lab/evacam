@@ -1,5 +1,6 @@
 #include "config/TechnologyLoader.h"
 
+#include <cmath>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -128,6 +129,21 @@ std::shared_ptr<MemCell> LoadCell(const InputConfig &input, const PeripheralConf
         cell->camWidthMatchTran = input.camWidthMatchTran;
     }
     PhysicalDomainValidators::ValidateMemCell(*cell);
+    if (cell->fefetGate) {
+        // This topology has exactly one CMOS pull-down. Its port already owns
+        // the drain capacitance and on resistance; use that same width for
+        // control-node gate loading, leakage and legacy diagnostics.
+        for (int i = 0; i < cell->camNumCol; ++i) {
+            const auto &port = cell->camPort[1][i];
+            if (port.Type != Matchline) continue;
+            if (input.hasCamWidthMatchTran
+                    && std::abs(input.camWidthMatchTran - port.widthCmos)
+                        > 1e-12 * port.widthCmos) {
+                throw std::runtime_error("[FeFET gate] Conflicting pull-down widths: use the matchline port cmos_width; remove matchline.match_transistor.cmos_width.");
+            }
+            cell->camWidthMatchTran = port.widthCmos;
+        }
+    }
     if (!cell->nandString) {
         cell->CalculateWriteEnergy();
     }

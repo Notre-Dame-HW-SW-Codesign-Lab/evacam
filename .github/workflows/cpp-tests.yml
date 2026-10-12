@@ -49,6 +49,8 @@ jobs:
           - test-legacy-comparison
           - test-analytical-cam-timing
           - test-named-cam-validation
+          - test-cam-accounting
+          - test-fefet-energy-audit
           - test-cam-subarray-topology
           - test-cam-subarray-match
           - test-mcam-pair-response

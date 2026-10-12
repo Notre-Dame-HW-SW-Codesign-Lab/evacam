@@ -123,6 +123,26 @@ class NamedCamValidationTest(unittest.TestCase):
                         self.assertTrue(Path(path).is_absolute() and Path(path).is_file())
                 self.assertEqual(case, before)
 
+    def test_requires_declared_inverter_and_canonical_width(self):
+        case = copy.deepcopy(self.case)
+        case['expected'].update(sense_amplifier_model='analytical_inverter',
+                                decision_reference='analytical_inverter_trip', pull_down_width_f=1)
+        result = copy.deepcopy(self.result)
+        result['assumptions']['modeling_options'].update(sense_amplifier_model='analytical_inverter',
+                                                        decision_reference='analytical_inverter_trip')
+        result['assumptions']['fefet_gate'] = {'pull_down_width_source': 'cell_matchline_port', 'pull_down_width_f': 1}
+        validation.compare_result(case, result)
+        for key in ('sense_amplifier_model', 'decision_reference'):
+            broken = copy.deepcopy(result)
+            broken['assumptions']['modeling_options'][key] = 'generic'
+            with self.assertRaisesRegex(ValueError, 'Sensing model drift'):
+                validation.compare_result(case, broken)
+        for key, value in [('pull_down_width_f', 10), ('pull_down_width_source', 'legacy_override')]:
+            broken = copy.deepcopy(result)
+            broken['assumptions']['fefet_gate'][key] = value
+            with self.assertRaisesRegex(ValueError, 'Pull-down width drift'):
+                validation.compare_result(case, broken)
+
     def test_runner_preserves_evidence_and_does_not_reuse_previous_success(self):
         (ROOT / "test-bin").mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="named-cam-", dir=ROOT / "test-bin") as tmp:

@@ -144,7 +144,7 @@ namespace {
         const auto& mat = bank->mat;
         const auto& sub = mat->subarray;
         double energy = sub->searchDynamicEnergy * mat->muxSenseAmp
-            - (sub->inputBuf->readDynamicEnergy + sub->inputEnc->readDynamicEnergy)
+            - sub->searchInputDynamicEnergy
             * (mat->muxSenseAmp - 1);
         if (result.config->peripherals.withOutputAcc) {
             energy *= comparison_steps(result);
@@ -292,6 +292,21 @@ namespace {
             y.line("switching_voltage", fmt_voltage(config.technology.cell->gateNodeSwitchingVoltage));
             write_si_metrics(y, "load", {{"additional_capacitance_f", config.technology.cell->gateNodeAdditionalCap}});
             y.line("energy_activity", "all_compared_nodes_zero_to_mismatch");
+            y.line("pull_down_width_source", "cell_matchline_port");
+            y.line("pull_down_width_f", std::to_string(config.technology.cell->camWidthMatchTran));
+            y.line("matchline_energy_scope", "conservative_full_discharge_supply_recharge");
+            y.end_map();
+        }
+        if (config.technology.cell && config.technology.cell->memCellType == FEFETRAM
+                && config.technology.cell->camType == TCAM) {
+            y.begin_map("search_energy");
+            y.line("searchline_protocol", "reset_to_zero_equiprobable_binary_query");
+            y.line("searchline_load_accounting", "included_in_row_driver_energy");
+            y.line("driver_internal_activity", "scaled_by_mean_squared_search_voltage");
+            y.line("query_history", "not_modeled");
+            y.line("workload_validation", "unmatched");
+            y.line("peripheral_scope", "all_configured_search_peripherals");
+            y.line("level_shifters", "inherited_input_and_output_proxies");
             y.end_map();
         }
         if (config.technology.cell && config.technology.cell->nandString) {
@@ -405,29 +420,13 @@ namespace {
         y.begin_map("breakdown");
 
         y.begin_map("subarray_area");
-        y.line("total_cell_area", fmt_sqm(sub->lenRow * sub->lenCol));
-        y.line("input_buffer_area", fmt_sqm(sub->inputBuf->area * sub->numRow));
-        y.line("input_encoder_area", fmt_sqm(sub->inputEnc->area));
-        y.line("row_decoder_area", fmt_sqm(sub->RowDecMergeNand->area));
-        double row_driver_area = 0;
-        for (int i = 0; i < input->technology.cell->camNumRow; i++)
-            row_driver_area += sub->RowDriver[i]->area;
-        y.line("row_driver_area", fmt_sqm(row_driver_area));
-        y.line("precharger_area", fmt_sqm(sub->precharger->area));
-        if (input->peripherals.withWriteDriver)
-            y.line("write_driver_area", fmt_sqm(sub->WriteDriverArea));
-        double col_mux_area = 0;
-        for (int i = 0; i < input->technology.cell->camNumCol; i++)
-            col_mux_area += sub->ColMux[i]->area;
-        y.line("column_mux_area", fmt_sqm(col_mux_area));
-        y.line("sense_amplifier_area", fmt_sqm(sub->senseAmp->area));
-        y.line("mux_of_sa_area", fmt_sqm(sub->senseAmpMuxLev1->area + sub->senseAmpMuxLev2->area +
-                    sub->senseAmpMuxLev1Nand->area + sub->senseAmpMuxLev2Nand->area));
-        y.line("output_accumulator_area",
-                fmt_sqm(sub->outputAcc->area * sub->numColumn / sub->muxSenseAmp));
-        if (input->peripherals.withPriorityEnc)
-            y.line("priority_encoder_area", fmt_sqm(sub->priorityEnc->area));
-        y.line("output_buffer_area", fmt_sqm(sub->outputBuf->area * sub->numColumn / sub->muxSenseAmp));
+        for (const auto &component : sub->areaBreakdown)
+            y.line(component.first, fmt_sqm(component.second));
+        y.end_map();
+
+        y.begin_map("search_critical_path");
+        for (const auto &component : sub->searchLatencyBreakdown)
+            y.line(component.first, fmt_second(component.second));
         y.end_map();
 
         y.begin_map("search_latency");
@@ -468,21 +467,8 @@ namespace {
         y.end_map();
 
         y.begin_map("search_dynamic_energy");
-        y.line("input_encoder", fmt_joule(sub->inputEnc->readDynamicEnergy));
-        y.line("row_decoder", fmt_joule(sub->RowDecMergeNand->readDynamicEnergy));
-        y.line("row_driver", fmt_joule(sub->searchlineDriveDynamicEnergy));
-        y.line("precharger", fmt_joule(sub->precharger->readDynamicEnergy));
-        y.line("cell_read", fmt_joule(sub->cellReadEnergy));
-        double col_mux_read_dynamic_energy = 0;
-        for (int i = 0; i < input->technology.cell->camNumCol; i++)
-            col_mux_read_dynamic_energy += sub->ColMux[i]->readDynamicEnergy;
-        y.line("column_mux", fmt_joule(col_mux_read_dynamic_energy));
-        y.line("sense_amplifier", fmt_joule(sub->senseAmp->readDynamicEnergy));
-        y.line("mux_of_sa", fmt_joule(sub->senseAmpMuxLev1->readDynamicEnergy + sub->senseAmpMuxLev2->readDynamicEnergy));
-        if (input->peripherals.withOutputAcc)
-            y.line("output_accumulator", fmt_joule(sub->outputAcc->readDynamicEnergy));
-        if (input->peripherals.withPriorityEnc)
-            y.line("priority_encoder", fmt_joule(sub->priorityEnc->readDynamicEnergy));
+        for (const auto &component : sub->searchEnergyBreakdown)
+            y.line(component.first, fmt_joule(component.second));
         y.end_map();
 
         y.begin_map("write_dynamic_energy");
@@ -508,23 +494,8 @@ namespace {
         y.end_map();
 
         y.begin_map("leakage");
-        y.line("input_encoder", fmt_watt(sub->inputEnc->leakage));
-        y.line("row_decoder", fmt_watt(sub->RowDecMergeNand->leakage));
-        double leakage = 0;
-        for (int i = 0; i < input->technology.cell->camNumRow; i++)
-            leakage += sub->RowDriver[i]->leakage;
-        y.line("row_driver", fmt_watt(leakage));
-        y.line("precharger", fmt_watt(sub->precharger->leakage));
-        leakage = 0;
-        for (int i = 0; i < input->technology.cell->camNumCol; i++)
-            leakage += sub->ColMux[i]->leakage;
-        y.line("column_mux", fmt_watt(leakage));
-        y.line("sense_amplifier", fmt_watt(sub->senseAmp->leakage));
-        y.line("mux_of_sa", fmt_watt(sub->senseAmpMuxLev1->leakage + sub->senseAmpMuxLev2->leakage));
-        if (input->peripherals.withOutputAcc)
-            y.line("output_accumulator", fmt_watt(sub->outputAcc->leakage));
-        if (input->peripherals.withPriorityEnc)
-            y.line("priority_encoder", fmt_watt(sub->priorityEnc->leakage));
+        for (const auto &component : sub->leakageBreakdown)
+            y.line(component.first, fmt_watt(component.second));
         y.end_map();
 
         y.end_map();

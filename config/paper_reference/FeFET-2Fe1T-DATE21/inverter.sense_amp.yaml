@@ -1,0 +1,12 @@
+schema: sense_amp
+name: assumed_minimum_inverter
+model: analytical_inverter
+# DATE21 specifies minimized 45nm PTM MOSFETs without W/L. Use EvaCAM's
+# 1.5F minimum-device convention for both devices, not a fitted paper size.
+# This is independent of the inherited 1F cell pull-down assumption.
+transistors:
+  n_sense_width: 1.5F
+  p_sense_width: 1.5F
+# No independently characterized external load is available. The inverter's
+# own output drain capacitances are still calculated; audit nonzero loads.
+output_capacitance: 0fF

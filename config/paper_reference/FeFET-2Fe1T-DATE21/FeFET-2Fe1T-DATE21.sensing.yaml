@@ -3,6 +3,7 @@
 # This is a partial reconstruction, not a calibrated reproduction.
 schema: sensing
 internal: true
-sense_amplifier: ../../lib/sense_amp/nvsim_vol.sense_amp.yaml
-# Inverter decision; 0.5 V is an explicit assumption, not a measured trip point.
-decision: {model: voltage_threshold, threshold: 0.5V}
+sense_amplifier: inverter.sense_amp.yaml
+# Derive the decision from the same inverter that loads and senses the ML.
+# Its transistor sizes and output load remain explicit assumptions.
+decision: {model: inverter_threshold}

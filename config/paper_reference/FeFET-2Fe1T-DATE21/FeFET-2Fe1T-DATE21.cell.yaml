@@ -50,6 +50,8 @@ ports:
       type: matchline
       cmos_region: drain
       num_cmos: 1
+      # Inherited assumption, not a paper-verified minimum. All pull-down
+      # resistance, leakage, drain and control-node gate loads use this width.
       cmos_width: 1F
       is_nmos: true
       wire_width: 1F

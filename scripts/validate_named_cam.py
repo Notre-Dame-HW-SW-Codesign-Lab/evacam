@@ -65,6 +65,13 @@ def compare_result(case, result):
         raise ValueError("Reference timing must include the scheduled full search")
     if modeling["matchline_timing_model"] != expected.get("matchline_timing_model", "horowitz_50_percent"):
         raise ValueError("Matchline decision model drift")
+    for key in ("sense_amplifier_model", "decision_reference"):
+        if key in expected and modeling.get(key) != expected[key]:
+            raise ValueError(f"Sensing model drift: {key}")
+    if "pull_down_width_f" in expected:
+        gate = result["assumptions"].get("fefet_gate", {})
+        if gate.get("pull_down_width_source") != "cell_matchline_port" or gate.get("pull_down_width_f") != expected["pull_down_width_f"]:
+            raise ValueError("Pull-down width drift")
     schedule = result["assumptions"].get("search_timing", {})
     for key, value in expected.get("search_timing", {}).items():
         if schedule.get(key) != value:
@@ -152,7 +159,11 @@ def ablation_cases(case, directory):
             variant["expected"].pop("search_timing", None)
         sensing["sensing_mode"] = "nvsim_cur" if case["id"] == "ReRAM-3T1R-ISSCC15" else "nvsim_vol"
         variant["expected"]["sensing_mode"] = sensing["sensing_mode"]
-        sensing["sense_amplifier"] = str((sensing_path.parent / sensing["sense_amplifier"]).resolve())
+        sensing["sense_amplifier"] = str(ROOT / "config/lib/sense_amp/nvsim_vol.sense_amp.yaml")
+        if sensing.get("decision", {}).get("model") == "inverter_threshold":
+            sensing["decision"] = {"model": "voltage_threshold", "threshold": "0.5V"}
+        variant["expected"]["sense_amplifier_model"] = "generic"
+        variant["expected"].pop("decision_reference", None)
         for field in ("technology", "cell"):
             top[field] = str((source.parent / top[field]).resolve())
         folder = directory / "configs" / case["id"] / name

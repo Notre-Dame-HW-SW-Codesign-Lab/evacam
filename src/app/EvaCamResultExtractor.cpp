@@ -73,12 +73,8 @@ double LocalSearchLatency(const Result &result) {
             + sub.senseAmpLatency + sub.outputAcc->readLatency;
     }
 
-    double latency = sub.searchLatency * bank.mat->muxSenseAmp
-        - sub.inputBuf->readLatency * (bank.mat->muxSenseAmp - 1);
-    if (result.config->peripherals.withOutputAcc) {
-        latency *= ComparisonSteps(result);
-    }
-    return latency;
+    const int steps = result.config->peripherals.withOutputAcc ? ComparisonSteps(result) : 1;
+    return sub.ScheduledSearchLatency(bank.mat->muxSenseAmp, steps);
 }
 
 double LocalSearchEnergy(const Result &result) {
@@ -86,7 +82,7 @@ double LocalSearchEnergy(const Result &result) {
     const auto &mat = *bank.mat;
     const auto &sub = *mat.subarray;
     double energy = sub.searchDynamicEnergy * mat.muxSenseAmp
-        - (sub.inputBuf->readDynamicEnergy + sub.inputEnc->readDynamicEnergy)
+        - sub.searchInputDynamicEnergy
         * (mat.muxSenseAmp - 1);
     if (result.config->peripherals.withOutputAcc) {
         energy *= ComparisonSteps(result);
@@ -322,29 +318,10 @@ void AddBreakdown(EvaCamDesignResultDto &dto, const Result &result) {
         bank.searchDynamicEnergy - localSearchEnergy;
     dto.breakdown["search_dynamic_energy.mat_j"] = localSearchEnergy;
 
-    if (HasUnit(sub.inputEnc)) {
-        dto.breakdown["search_dynamic_energy.input_encoder_j"] = sub.inputEnc->readDynamicEnergy;
-    }
-    dto.breakdown["search_dynamic_energy.row_decoder_j"] = sub.RowDecMergeNand->readDynamicEnergy;
-    dto.breakdown["search_dynamic_energy.row_driver_j"] = sub.searchlineDriveDynamicEnergy;
-    dto.breakdown["search_dynamic_energy.precharger_j"] = sub.precharger->readDynamicEnergy;
-    dto.breakdown["search_dynamic_energy.cell_read_j"] = sub.cellReadEnergy;
-    double colMuxReadDynamicEnergy = 0;
-    for (const auto &mux : sub.ColMux) {
-        if (mux) {
-            colMuxReadDynamicEnergy += mux->readDynamicEnergy;
-        }
-    }
-    dto.breakdown["search_dynamic_energy.column_mux_j"] = colMuxReadDynamicEnergy;
-    dto.breakdown["search_dynamic_energy.sense_amplifier_j"] = sub.senseAmp->readDynamicEnergy;
-    dto.breakdown["search_dynamic_energy.mux_of_sa_j"] =
-        sub.senseAmpMuxLev1->readDynamicEnergy + sub.senseAmpMuxLev2->readDynamicEnergy;
-    if (input.peripherals.withOutputAcc) {
-        dto.breakdown["search_dynamic_energy.output_accumulator_j"] = sub.outputAcc->readDynamicEnergy;
-    }
-    if (input.peripherals.withPriorityEnc) {
-        dto.breakdown["search_dynamic_energy.priority_encoder_j"] = sub.priorityEnc->readDynamicEnergy;
-    }
+    for (const auto &component : sub.searchEnergyBreakdown)
+        dto.breakdown["search_dynamic_energy." + component.first + "_j"] = component.second;
+    for (const auto &component : sub.searchLatencyBreakdown)
+        dto.breakdown["search_critical_path." + component.first + "_s"] = component.second;
 
     dto.breakdown["write_dynamic_energy.cell_reset_j"] = sub.cellResetEnergy;
     dto.breakdown["write_dynamic_energy.cell_set_j"] = sub.cellSetEnergy;
@@ -385,71 +362,14 @@ void AddBreakdown(EvaCamDesignResultDto &dto, const Result &result) {
         + mat.senseAmpMuxLev1PredecoderBlock1->leakage + mat.senseAmpMuxLev1PredecoderBlock2->leakage
         + mat.senseAmpMuxLev2PredecoderBlock1->leakage + mat.senseAmpMuxLev2PredecoderBlock2->leakage;
     dto.breakdown["leakage.subarray_w"] = sub.leakage;
-    if (HasUnit(sub.inputEnc)) {
-        dto.breakdown["leakage.input_encoder_w"] = sub.inputEnc->leakage;
-    }
-    dto.breakdown["leakage.row_decoder_w"] = sub.RowDecMergeNand->leakage;
-    double rowDriverLeakage = 0;
-    for (const auto &driver : sub.RowDriver) {
-        if (driver) {
-            rowDriverLeakage += driver->leakage;
-        }
-    }
-    dto.breakdown["leakage.row_driver_w"] = rowDriverLeakage;
-    dto.breakdown["leakage.precharger_w"] = sub.precharger->leakage;
-    double colMuxLeakage = 0;
-    for (const auto &mux : sub.ColMux) {
-        if (mux) {
-            colMuxLeakage += mux->leakage;
-        }
-    }
-    dto.breakdown["leakage.column_mux_w"] = colMuxLeakage;
-    dto.breakdown["leakage.sense_amplifier_w"] = sub.senseAmp->leakage;
-    dto.breakdown["leakage.mux_of_sa_w"] = sub.senseAmpMuxLev1->leakage + sub.senseAmpMuxLev2->leakage;
-    if (input.peripherals.withOutputAcc) {
-        dto.breakdown["leakage.output_accumulator_w"] = sub.outputAcc->leakage;
-    }
-    if (input.peripherals.withPriorityEnc) {
-        dto.breakdown["leakage.priority_encoder_w"] = sub.priorityEnc->leakage;
-    }
-
-    dto.breakdown["subarray_area.total_cell_area_m2"] = sub.lenRow * sub.lenCol;
-    if (HasUnit(sub.inputBuf)) {
-        dto.breakdown["subarray_area.input_buffer_m2"] = sub.inputBuf->area * sub.numRow;
-    }
-    if (HasUnit(sub.inputEnc)) {
-        dto.breakdown["subarray_area.input_encoder_m2"] = sub.inputEnc->area;
-    }
-    dto.breakdown["subarray_area.row_decoder_m2"] = sub.RowDecMergeNand->area;
-    double rowDriverArea = 0;
-    for (const auto &driver : sub.RowDriver) {
-        if (driver) {
-            rowDriverArea += driver->area;
-        }
-    }
-    dto.breakdown["subarray_area.row_driver_m2"] = rowDriverArea;
-    dto.breakdown["subarray_area.precharger_m2"] = sub.precharger->area;
-    if (input.peripherals.withWriteDriver) {
-        dto.breakdown["subarray_area.write_driver_m2"] = sub.WriteDriverArea;
-    }
-    double colMuxArea = 0;
-    for (const auto &mux : sub.ColMux) {
-        if (mux) {
-            colMuxArea += mux->area;
-        }
-    }
-    dto.breakdown["subarray_area.column_mux_m2"] = colMuxArea;
-    dto.breakdown["subarray_area.sense_amplifier_m2"] = sub.senseAmp->area;
-    dto.breakdown["subarray_area.mux_of_sa_m2"] = sub.senseAmpMuxLev1->area + sub.senseAmpMuxLev2->area
-        + sub.senseAmpMuxLev1Nand->area + sub.senseAmpMuxLev2Nand->area;
-    if (input.peripherals.withOutputAcc) {
-        dto.breakdown["subarray_area.output_accumulator_m2"] = sub.outputAcc->area * sub.numColumn / sub.muxSenseAmp;
-    }
-    if (input.peripherals.withPriorityEnc) {
-        dto.breakdown["subarray_area.priority_encoder_m2"] = sub.priorityEnc->area;
-    }
-    if (HasUnit(sub.outputBuf)) {
-        dto.breakdown["subarray_area.output_buffer_m2"] = sub.outputBuf->area * sub.numColumn / sub.muxSenseAmp;
+    for (const auto &component : sub.leakageBreakdown)
+        dto.breakdown["leakage." + component.first + "_w"] = component.second;
+    for (const auto &component : sub.areaBreakdown) {
+        // Preserve the existing Python key spelling (only total_cell_area keeps
+        // its _area suffix); both public representations use the same budget.
+        const std::string name = component.first == "total_cell_area" ? component.first
+                : component.first.substr(0, component.first.size() - 5);
+        dto.breakdown["subarray_area." + name + "_m2"] = component.second;
     }
 }
 

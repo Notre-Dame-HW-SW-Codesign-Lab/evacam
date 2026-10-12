@@ -1,5 +1,10 @@
 # Original EvaCAM validation: reconstruction and analytical circuit corrections
 
+The subsequent [accounting and timing audit](accounting-and-timing-audit.md)
+updates the numerical results, fixes component counts and makes both additional
+regression cases permanent. The discussion and tables below preserve the preceding checkpoint;
+use the [all-device table](all-device-reference-comparison.md) for current gaps.
+
 This audit uses the **DATE 2022** paper, Tables I–II, as the historical baseline.
 The newer TCAD draft and the old executable are different baselines. The original
 45 nm validation is a **direct two-FeFET 64×64 TCAM**, not the DATE 2021

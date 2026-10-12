@@ -49,6 +49,4 @@ organization:
     output_level1: 1
     output_level2: 1
 sensing: ./FeFET-2Fe1T-DATE-2021.sensing.yaml
-matchline:
-  match_transistor:
-    cmos_width: 10F
+# Pull-down width is declared once, on the cell's matchline port.

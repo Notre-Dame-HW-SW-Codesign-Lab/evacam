@@ -184,7 +184,7 @@ void TestNandCanonicalConfigAndCapabilityChecks() {
         {[](EvaCamConfig& c) { c.input.searchFunction = BE; }, "exact search"},
         {[](EvaCamConfig& c) { c.peripherals.withWriteDriver = true; }, "generic peripherals"},
         {[](EvaCamConfig& c) { c.peripherals.withPriorityEnc = true; }, "generic peripherals"},
-        {[](EvaCamConfig& c) { c.peripherals.fileSenseAmp = "unmodeled.yaml"; }, "generic sense amplifiers"},
+        {[](EvaCamConfig& c) { c.peripherals.fileSenseAmp = "config/lib/sense_amp/nvsim_vol.sense_amp.yaml"; }, "generic sense amplifiers"},
         {[](EvaCamConfig& c) { c.peripherals.noPrechargeInc = true; }, "precharge"},
         {[](EvaCamConfig& c) { c.variation.enabled = true; }, "variation"},
         {[](EvaCamConfig& c) { c.runtimeSizing.hasFixedSubarrayDimensions = false; }, "fixed"},
