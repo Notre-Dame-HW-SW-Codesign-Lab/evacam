@@ -78,13 +78,17 @@ void TestEvaCamConfigValidatorAcceptsSupportedBoundary() {
 }
 
 void TestEvaCamConfigValidatorRejectsUnsupportedMemoryTypes() {
-    const MemCellType unsupported[] = {DRAM, eDRAM, MLCNAND};
+    const MemCellType unsupported[] = {DRAM, eDRAM};
     for (MemCellType type : unsupported) {
         auto config = TestModelBuilders::MakeEvaCamConfig();
         config->technology.cell->memCellType = type;
         AssertThrows<std::runtime_error>([&] { EvaCamConfigValidator::Validate(*config); },
                 "under development");
     }
+    auto config = TestModelBuilders::MakeEvaCamConfig();
+    config->technology.cell->memCellType = MLCNAND;
+    AssertThrows<std::runtime_error>([&] { EvaCamConfigValidator::Validate(*config); },
+            "cell.topology: nand_string");
 }
 
 void TestEvaCamConfigValidatorRejectsExternalSensing() {

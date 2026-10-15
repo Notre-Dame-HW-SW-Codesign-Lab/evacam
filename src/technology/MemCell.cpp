@@ -235,7 +235,7 @@ void MemCell::PrintCell()
     if (nandString) {
         const NandDeviceSpec& spec = memCellType == NAND3D ? nand3d.electrical : nand;
         std::cout << "Memory Cell: " << (memCellType == NAND3D
-                ? "3D NAND String TCAM" : "Single-Level NAND String TCAM") << std::endl;
+                ? "3D NAND String TCAM" : memCellType == MLCNAND ? "Multilevel NAND String TCAM" : "Single-Level NAND String TCAM") << std::endl;
         if (memCellType == NAND3D) {
             std::cout << "3D Stack: " << nand3d.storageLayers << " storage + "
                       << nand3d.dummyLayers << " dummy layers" << std::endl;

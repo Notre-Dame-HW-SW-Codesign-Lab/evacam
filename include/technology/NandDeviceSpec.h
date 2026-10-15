@@ -5,6 +5,8 @@
 #include <set>
 #include <string>
 
+#include "model/NandResistanceTable.h"
+
 // All values use SI units. Peripheral costs are per physical wordline or string;
 // operation costs apply to one selected block unless named page/block explicitly.
 struct NandPeripheralSpec {
@@ -20,6 +22,7 @@ struct NandOperationSpec {
 };
 
 struct NandDeviceSpec {
+    NandResistanceTable table;
     bool configured = false;
     std::string model;
     std::string calibrationStatus;

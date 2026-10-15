@@ -6,8 +6,9 @@
 
 std::unique_ptr<NandCamBackend> CreateNandCamBackend(MemCellType type) {
     switch (type) {
+        case MLCNAND:
         case SLCNAND: return std::make_unique<NandCamModel>();
         case NAND3D: return std::make_unique<Nand3dCamModel>();
-        default: throw std::invalid_argument("NAND backend requires SLCNAND or NAND3D memory device");
+        default: throw std::invalid_argument("NAND backend requires SLCNAND, MLCNAND, or NAND3D memory device");
     }
 }

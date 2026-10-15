@@ -1,5 +1,7 @@
 # Experimental nonlinear NAND DC evaluator
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Status (2026-09-28): the first numerical prototype is implemented. The reduced
 cell law and standalone DC string solver have synthetic circuit tests and an
 independent numerical reference. **There is no Park fit, held-out physical

@@ -30,7 +30,10 @@ PYBIND11_MODULE(evacam_py, module) {
                 &EvaCAMMatchResult::squaredEuclideanDistance)
         .def_readonly("matchline_conductance",
                 &EvaCAMMatchResult::matchlineConductance)
-        .def_readonly("matchline_voltage", &EvaCAMMatchResult::matchlineVoltage);
+        .def_readonly("matchline_voltage", &EvaCAMMatchResult::matchlineVoltage)
+        .def_readonly("sense_reference_voltage", &EvaCAMMatchResult::senseReferenceVoltage)
+        .def_readonly("accepted_maximum_voltage", &EvaCAMMatchResult::acceptedMaximumVoltage)
+        .def_readonly("rejected_minimum_voltage", &EvaCAMMatchResult::rejectedMinimumVoltage);
 
     py::class_<EvaCAMDistanceVoltageBounds>(module, "EvaCAMDistanceVoltageBounds")
         .def_readonly("squared_euclidean_distance",
@@ -39,6 +42,12 @@ PYBIND11_MODULE(evacam_py, module) {
                 &EvaCAMDistanceVoltageBounds::minimumConductance)
         .def_readonly("maximum_conductance",
                 &EvaCAMDistanceVoltageBounds::maximumConductance)
+        .def_readonly("minimum_time_constant", &EvaCAMDistanceVoltageBounds::minimumTimeConstant)
+        .def_readonly("maximum_time_constant", &EvaCAMDistanceVoltageBounds::maximumTimeConstant)
+        .def_readonly("minimum_voltage_stored", &EvaCAMDistanceVoltageBounds::minimumVoltageStored)
+        .def_readonly("minimum_voltage_query", &EvaCAMDistanceVoltageBounds::minimumVoltageQuery)
+        .def_readonly("maximum_voltage_stored", &EvaCAMDistanceVoltageBounds::maximumVoltageStored)
+        .def_readonly("maximum_voltage_query", &EvaCAMDistanceVoltageBounds::maximumVoltageQuery)
         .def_readonly("minimum_voltage", &EvaCAMDistanceVoltageBounds::minimumVoltage)
         .def_readonly("maximum_voltage", &EvaCAMDistanceVoltageBounds::maximumVoltage)
         .def_readonly("minimum_search_latency", &EvaCAMDistanceVoltageBounds::minimumSearchLatency)

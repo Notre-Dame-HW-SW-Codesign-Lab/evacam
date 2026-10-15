@@ -57,16 +57,24 @@ void NandCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long en
         long keyWidth, int muxSenseAmp, const Wire &wire) {
     initialized = false;
     metrics = {};
+    distanceContext = {};
     Require(config && config->technology.cell && config->technology.tech,
             "configuration must include device and technology");
     const auto &cell = *config->technology.cell;
-    Require(cell.memCellType == SLCNAND && cell.nandString && cell.camType == TCAM,
-            "requires SLCNAND, topology nand_string, and TCAM");
-    Require(config->input.designTarget == CAM_chip && config->input.searchFunction == EX,
-            "only CAM exact search is supported");
+    Require((cell.memCellType == SLCNAND || cell.memCellType == MLCNAND) && cell.nandString && cell.camType == TCAM,
+            "requires SLCNAND or MLCNAND, topology nand_string, and TCAM");
+    Require(config->input.designTarget == CAM_chip
+                    && (config->input.searchFunction == EX || config->input.searchFunction == TH),
+            "only CAM exact search or table-based threshold analysis is supported");
     Require(config->input.internalSensing, "requires internal sensing");
     Require(!cell.withVariation, "variation is not supported");
     device = cell.nand;
+    const int bitsPerCell = device.table.BitsPerCell();
+    Require(config->input.searchFunction != TH || !device.table.resistance.empty(),
+            "NAND threshold analysis requires a resistance_table");
+    Require((cell.memCellType == MLCNAND) == (bitsPerCell > 1),
+            "MLCNAND requires a multilevel resistance_table; SLCNAND requires binary states");
+    if (!device.table.resistance.empty()) device.table.Validate(device.voltagePass, device.resistancePass);
     Require(device.configured && device.model == "analytical_rc",
             "requires an explicitly configured analytical_rc model");
     Require(device.calibrationStatus == "synthetic"
@@ -121,7 +129,9 @@ void NandCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long en
     Require(config->input.flashBlockSize > 0
                     && config->input.flashBlockSize % entries == 0,
             "flash.block_size must be a positive integer multiple of page_size");
-    const long long wordlines = config->input.flashBlockSize / entries;
+    Require((config->input.flashBlockSize / entries) % bitsPerCell == 0,
+            "physical block must contain whole multilevel wordlines");
+    const long long wordlines = config->input.flashBlockSize / entries / bitsPerCell;
     Require(wordlines >= 4 && wordlines <= 4096,
             "data wordlines per string must be between 4 and 4096");
     Require(keyWidth > 0 && keyWidth <= (wordlines - 2) / 2,
@@ -147,15 +157,28 @@ void NandCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long en
         {"sense_margin_definition", "min(reference-match,mismatch-reference)-offset"},
         {"array_layout", "planar_approximation"}
     };
+    if (config->input.searchFunction == TH) {
+        metrics.metadata["search_mode"] = "nominal_distance_threshold_analysis";
+        metrics.metadata["sense_margin_scope"] = "exact_search_diagnostic_only";
+        metrics.metadata["threshold_feasibility"] = "requires_explicit_query_and_threshold_evaluation";
+    }
     metrics.entries = entries;
     metrics.keyWidth = keyWidth;
     metrics.dataWordlines = static_cast<long>(wordlines);
     metrics.paddingWordlines = static_cast<long>(wordlines - 2 * (keyWidth + 1));
     metrics.physicalCells = entries * wordlines;
     metrics.physicalPageBits = entries;
-    metrics.physicalBlockBits = metrics.physicalCells;
+    metrics.physicalBlockBits = metrics.physicalCells * bitsPerCell;
     metrics.senseAmplifiers = entries / muxSenseAmp;
     metrics.searchRounds = muxSenseAmp;
+    if (!device.table.resistance.empty()) {
+        metrics.metadata["encoding"] = "multilevel_complementary_states_with_binary_validity_pair";
+        metrics.metadata["cell_response"] = "stored_state_by_query_voltage_resistance_table";
+        metrics.metadata["table_bias_scope"] = "fixed_effective_resistance_no_local_bias_feedback";
+        metrics.metadata["page_scope"] = "one_bit_plane_per_selected_wordline";
+        metrics.metadata["query_routing"] = "two_bias_codes_per_symbol_including_pass_mask";
+        metrics.queryBitCount = 2 * (bitsPerCell + 1) * keyWidth + 2;
+    }
 
     // The exploratory layout is planar. Select devices use one cell pitch each;
     // supplied peripheral areas are placed alongside the array, without overlap.
@@ -188,27 +211,53 @@ void NandCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long en
     RequirePositive(gateCapacitancePerWordline, "wordline gate load");
     RequireNonnegative(bitlineWireResistance, "bitline wire resistance");
 
-    std::vector<double> slowMatch(wordlines, device.resistancePass);
-    slowMatch[0] = device.resistanceReadOn; // Fixed query for the validity pair.
-    for (long bit = 0; bit < keyWidth; bit++) {
-        // Source-side members have the greater distributed-capacitance weight.
-        slowMatch[2 + 2 * bit] = device.resistanceReadOn;
+    if (device.table.resistance.empty()) {
+        std::vector<double> slowMatch(wordlines, device.resistancePass);
+        slowMatch[0] = device.resistanceReadOn; // Fixed query for the validity pair.
+        for (long bit = 0; bit < keyWidth; bit++) {
+            // Source-side members have the greater distributed-capacitance weight.
+            slowMatch[2 + 2 * bit] = device.resistanceReadOn;
+        }
+        metrics.slowestMatchTimeConstant = StringTimeConstant(slowMatch);
+
+        // These bounds order first moments within the exponential approximation;
+        // they are not conservative voltage bounds on the full RC transient.
+        // Fastest nonmatch has exactly one blocking device and all other key
+        // queries masked. Consider both invalid entries and either key polarity.
+        std::vector<double> fastMismatch(wordlines, device.resistancePass);
+        fastMismatch[0] = device.resistanceReadOn;
+        fastMismatch[2 * keyWidth + 1] = device.resistanceOff;
+        metrics.fastestMismatchTimeConstant = StringTimeConstant(fastMismatch);
+        fastMismatch[2 * keyWidth + 1] = device.resistancePass;
+        fastMismatch[0] = device.resistanceOff;
+        metrics.fastestMismatchTimeConstant = std::min(metrics.fastestMismatchTimeConstant,
+                StringTimeConstant(fastMismatch));
+    } else {
+        std::vector<double> base(wordlines, device.resistancePass), weights(wordlines);
+        base[0] = device.resistanceReadOn;
+        for (long index = 0; index < wordlines; ++index) {
+            weights[index] = bitlineCapacitance + bitlineWireCapacitance
+                    + (wordlines - index) * device.capacitanceInternal;
+        }
+        const auto bounds = NandTableTimeBounds(device.table, device.resistancePass,
+                weights, 2, keyWidth, StringTimeConstant(base),
+                (device.resistanceOff - device.resistanceReadOn) * weights[0]);
+        distanceContext.table = device.table;
+        distanceContext.weights = weights;
+        distanceContext.firstKey = 2;
+        distanceContext.symbols = keyWidth;
+        distanceContext.baseTimeConstant = StringTimeConstant(base);
+        distanceContext.baseResistance = StringResistance(base);
+        distanceContext.invalidTimeIncrement = (device.resistanceOff - device.resistanceReadOn)
+                * weights[0];
+        distanceContext.prechargeVoltage = device.voltagePrecharge;
+        distanceContext.passResistance = device.resistancePass;
+        distanceContext.configuredReference = device.referenceVoltage;
+        distanceContext.senseOffset = device.senseOffset;
+        distanceContext.requiredMargin = device.minSenseMargin;
+        metrics.slowestMatchTimeConstant = bounds.first;
+        metrics.fastestMismatchTimeConstant = bounds.second;
     }
-    metrics.slowestMatchTimeConstant = StringTimeConstant(slowMatch);
-
-    // These bounds order first moments within the exponential approximation;
-    // they are not conservative voltage bounds on the full RC transient.
-    // Fastest nonmatch has exactly one blocking device and all other key
-    // queries masked. Consider both invalid entries and either key polarity.
-    std::vector<double> fastMismatch(wordlines, device.resistancePass);
-    fastMismatch[0] = device.resistanceReadOn;
-    fastMismatch[2 * keyWidth + 1] = device.resistanceOff;
-    metrics.fastestMismatchTimeConstant = StringTimeConstant(fastMismatch);
-    fastMismatch[2 * keyWidth + 1] = device.resistancePass;
-    fastMismatch[0] = device.resistanceOff;
-    metrics.fastestMismatchTimeConstant = std::min(metrics.fastestMismatchTimeConstant,
-            StringTimeConstant(fastMismatch));
-
     metrics.decisionTime = device.decisionTime;
     metrics.matchVoltage = device.voltagePrecharge
             * std::exp(-device.decisionTime / metrics.slowestMatchTimeConstant);
@@ -247,11 +296,12 @@ void NandCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long en
             + device.capacitanceSource + wordlines * device.capacitanceInternal;
     const double selectCapacitance = 2 * (entries * device.capacitanceSelect
             + arrayWidth * wire.capWirePerUnit);
+    const std::vector<int> worstQuery(keyWidth, device.table.resistance.empty() ? 0 : device.table.WorstEnergyQuery());
     metrics.searchEnergyBreakdown = {
         {"query", device.query.energy},
         {"setup", device.setup.energy},
-        {"wordline_capacitance", QueryGateEnergy(std::vector<int>(keyWidth, 0))},
-        {"wordline_drivers", QueryDriverEnergy(std::vector<int>(keyWidth, 0))},
+        {"wordline_capacitance", QueryGateEnergy(worstQuery)},
+        {"wordline_drivers", QueryDriverEnergy(worstQuery)},
         {"select_gate_drivers", 4 * rounds * device.wordlineDriver.energy},
         {"select_gate_capacitance", rounds * selectCapacitance
                 * device.voltagePass * device.voltagePass / device.supplyEfficiency},
@@ -312,6 +362,12 @@ std::vector<double> NandCamModel::EncodeResistances(const std::vector<int> &stor
     // tracked by this stateless operation model.
     resistances[0] = valid ? device.resistanceReadOn : device.resistanceOff;
     for (std::size_t bit = 0; bit < stored.size(); bit++) {
+        if (!device.table.resistance.empty()) {
+            const auto pair = device.table.Pair(stored[bit], query[bit], device.resistancePass);
+            resistances[2 + 2 * bit] = pair.first;
+            resistances[3 + 2 * bit] = pair.second;
+            continue;
+        }
         Require(stored[bit] >= -1 && stored[bit] <= 1
                         && query[bit] >= -1 && query[bit] <= 1,
                 "stored and query symbols must be -1 (wildcard), 0, or 1");
@@ -335,15 +391,19 @@ double NandCamModel::QueryGateEnergy(const std::vector<int> &query) const {
     // no charge-recovery credit is claimed. Pass-biased padding remains held.
     const double initialCharge = metrics.dataWordlines
             * device.voltagePass * device.voltagePass;
-    const double recharge = (metrics.searchRounds - 1) * selectedWordlines
-            * device.voltagePass * (device.voltagePass - device.voltageRead);
+    double voltageSum = selectedWordlines * (device.voltagePass - device.voltageRead);
+    if (!device.table.resistance.empty()) {
+        voltageSum = device.voltagePass - device.voltageRead; // Binary validity query.
+        for (int symbol : query) voltageSum += device.table.RechargeVoltageSum(symbol, device.voltagePass);
+    }
+    const double recharge = (metrics.searchRounds - 1) * device.voltagePass * voltageSum;
     return gateCapacitancePerWordline * (initialCharge + recharge) / device.supplyEfficiency;
 }
 
 double NandCamModel::QueryDriverEnergy(const std::vector<int> &query) const {
     long long selectedWordlines = 1;
     for (int symbol : query) {
-        selectedWordlines += symbol != -1;
+        selectedWordlines += (symbol != -1) * (device.table.resistance.empty() ? 1 : 2);
     }
     // Per-driver supplied overhead is per voltage-update event: all gates
     // initially pass-biased and finally reset, plus each query transition

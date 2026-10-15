@@ -22,6 +22,42 @@ def rejects(callback, message):
         raise AssertionError(f"expected rejection containing {message}")
 
 
+def test_multilevel_tables():
+    for name in ("NAND_MLC_TCAM", "NAND_3D_MLC_TCAM"):
+        config = str(ROOT / "config" / name / f"{name}.config.yaml")
+        matcher = evacam_py.EvaCAMMatch(config)
+        assert matcher.word_width() == matcher.storage_width_bits() == 32
+        assert matcher.symbol_width() == 16 and matcher.bits_per_symbol() == 2
+        symbols = [0, 1, 2, 3] * 4
+        bits = [bit for symbol in symbols for bit in (symbol >> 1, symbol & 1)]
+        exact = matcher.evaluate_symbols(symbols, symbols)
+        packed = matcher.evaluate_bits(bits, bits)
+        assert exact.hit and exact.sense_margin_pass
+        assert math.isclose(exact.matchline_voltage, packed.matchline_voltage, rel_tol=1e-12)
+        query = symbols.copy()
+        query[0] = 3
+        assert not matcher.evaluate_nand(symbols, query).hit
+        assert [row.hit for row in matcher.evaluate_array([symbols, query], query)] == [False, True]
+        assert matcher.evaluate_nand(symbols, [-1] * 16).hit
+        assert not matcher.evaluate_nand(symbols, [-1] * 16, valid=False).hit
+        rejects(lambda: matcher.evaluate_nand([4] * 16, symbols), "state index")
+        rejects(lambda: matcher.evaluate_bits([1], [1]), "storage width")
+        with tempfile.TemporaryDirectory(prefix="evacam-nand-table-py-") as directory:
+            output = pathlib.Path(directory) / "result.yaml"
+            run = evacam_py.run(config, write_yaml=True, output_yaml_path=str(output))
+            assert run.num_solutions > 0
+            design = run.best_results["SearchLatency"]
+            assert design.geometry["bits_per_cell"] == 2
+            assert design.geometry["symbols_per_key"] == 16
+            assert design.geometry["allocated_capacity_bits"] == 2048
+            assert design.geometry["physical_cell_count"] == 64 * 36
+            assert design.geometry["physical_block_bits"] == 64 * 36 * 2
+            result = yaml.safe_load(output.read_text())
+            assert result["metadata"] == design.metadata
+            assert result["geometry"]["symbols_per_key"] == design.geometry["symbols_per_key"]
+            assert result["assumptions"]["nand"]["bits_per_cell"] == 2
+
+
 def main():
     config = str(ROOT / "config/NAND_TCAM/NAND_TCAM.config.yaml")
     matcher = evacam_py.EvaCAMMatch(config)
@@ -60,6 +96,7 @@ def main():
         assert math.isclose(exact.search_latency, design.summary["timing.search_latency_s"], rel_tol=1e-12)
         assert math.isclose(exact.search_dynamic_energy, design.summary["energy.search_dynamic_j"], rel_tol=1e-12)
         assert design.geometry["physical_cell_count"] > design.geometry["logical_capacity_bits"]
+    test_multilevel_tables()
     print("NAND Python API tests passed")
 
 

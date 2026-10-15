@@ -1,5 +1,7 @@
 # Plan: nonlinear electrical support for NAND3D
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Scope update, 2026-10-02: production NAND3D retains its geometry and now uses
 `analytical_rc`. Transient integration is removed from the application path;
 nodal and nonlinear experiments remain verification/research utilities. The

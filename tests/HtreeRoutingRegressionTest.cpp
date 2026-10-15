@@ -67,8 +67,13 @@ int main() {
     assert(bank->mat->subarray->ConfiguredColumns() == 64);
     assert(bank->mat->subarray->numRow == 64);
     assert(bank->mat->subarray->numColumn == 512);
-    assert(Near(bank->height, 753.847e-6, 1e-6));
-    assert(Near(bank->width, 1.917e-3, 1e-6));
+    // Unrepeated routing contributes no repeater footprint. The bank tiles
+    // the corrected mat area ledger into four rows and two columns.
+    assert(bank->globalWire.wireRepeaterType == repeated_none);
+    assert(Near(bank->height, 4 * bank->mat->height, 1e-15));
+    assert(Near(bank->width, 2 * bank->mat->width, 1e-15));
+    assert(Near(bank->height, 823.836752622e-6, 1e-9));
+    assert(Near(bank->width, 1.194662159394e-3, 1e-9));
 
     const auto &subarray = *bank->mat->subarray;
     double expectedSearchEnergy = (subarray.searchDynamicEnergy * bank->mat->muxSenseAmp

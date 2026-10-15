@@ -1,12 +1,12 @@
-#include "input/MemoryDeviceYamlLoader.h"
-#include "input/NandTechnologyDefaults.h"
-
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
 #include "MemCell.h"
+#include "input/MemoryDeviceYamlLoader.h"
+#include "input/NandTechnologyDefaults.h"
 #include "input/YamlNodeHelpers.h"
 #include "input/YamlUnitParsers.h"
 #include "input/PhysicalDomainValidators.h"
@@ -163,6 +163,33 @@ NandDeviceSpec ReadNandElectrical(const YAML::Node& node, const std::string& pre
     readGroup("threshold", VoltageUnits(), {{"low", &spec.thresholdLow}, {"high", &spec.thresholdHigh}});
     readGroup("bias", VoltageUnits(), {{"read", &spec.voltageRead},
             {"pass", &spec.voltagePass}, {"precharge", &spec.voltagePrecharge}});
+    const YAML::Node table = child_optional(node, "resistance_table");
+    const YAML::Node voltages = child_optional(node, "query_voltages");
+    if (table || voltages) {
+        if (!table || !table.IsSequence() || !voltages || !voltages.IsSequence()) {
+            throw std::invalid_argument(prefix + ".resistance_table and query_voltages must both be sequences");
+        }
+        for (const auto &row : table) {
+            if (!row.IsSequence()) throw std::invalid_argument(prefix + ".resistance_table rows must be sequences");
+            std::vector<double> values;
+            for (const auto &value : row) {
+                values.push_back(parse_quantity_node(value, ResistanceUnits(), 1.0,
+                        (prefix + ".resistance_table").c_str()));
+            }
+            spec.table.resistance.push_back(values);
+        }
+        for (const auto &voltage : voltages) {
+            spec.table.queryVoltages.push_back(parse_quantity_node(voltage, VoltageUnits(), 1.0,
+                    (prefix + ".query_voltages").c_str()));
+        }
+        // State-dependent values must be supplied, never invented by the CMOS fallback.
+        if (spec.table.resistance.empty()) throw std::invalid_argument(prefix + ".resistance_table must not be empty");
+        if (!spec.pendingTechnologyDefaults.count("resistance.pass")) {
+            spec.table.Validate(spec.voltagePass, spec.resistancePass);
+        } else {
+            spec.table.Validate(spec.voltagePass, std::numeric_limits<double>::min());
+        }
+    }
     const YAML::Node sensing = child_required(node, "sensing");
     reject_unknown_keys(sensing, {"decision_time", "min_margin", "reference_voltage", "offset"},
             (prefix + ".sensing").c_str());
@@ -233,8 +260,8 @@ void SetNandOperationAliases(MemCell& cell, const NandDeviceSpec& spec) {
 void ReadNandSection(MemCell& cell, const YAML::Node& root, bool allowTechnologyDefaults) {
     const YAML::Node node = child_optional(root, "nand");
     if (!node) return;
-    if (cell.memCellType != SLCNAND) {
-        throw std::runtime_error("memory_device.nand requires type: SLCNAND");
+    if (cell.memCellType != SLCNAND && cell.memCellType != MLCNAND) {
+        throw std::runtime_error("memory_device.nand requires type: SLCNAND or MLCNAND");
     }
     if (child_optional(root, "nand3d")) {
         throw std::runtime_error("memory_device.nand and nand3d cannot be combined");
@@ -243,7 +270,7 @@ void ReadNandSection(MemCell& cell, const YAML::Node& root, bool allowTechnology
     reject_unknown_keys(node, {"model", "calibration_status", "source", "resistance",
             "capacitance", "threshold", "bias", "sensing", "wordline_driver",
             "sense", "page_buffer", "query", "setup", "precharge", "recovery",
-            "program_page", "erase_block", "supply_efficiency"}, "memory_device.nand");
+            "program_page", "erase_block", "supply_efficiency", "resistance_table", "query_voltages"}, "memory_device.nand");
     cell.nand = ReadNandElectrical(node, "memory_device.nand", allowTechnologyDefaults);
     SetNandOperationAliases(cell, cell.nand);
 }
@@ -262,7 +289,7 @@ void ReadNand3dSection(MemCell& cell, const YAML::Node& root, bool allowTechnolo
             "capacitance", "threshold", "bias", "sensing", "wordline_driver",
             "sense", "page_buffer", "query", "setup", "precharge", "recovery",
             "program_page", "erase_block", "supply_efficiency", "storage_mode",
-            "stack", "layout"}, "memory_device.nand3d");
+            "stack", "layout", "resistance_table", "query_voltages"}, "memory_device.nand3d");
     Nand3dMemoryDevice spec;
     spec.storageMode = read_required<std::string>(node, "storage_mode");
     spec.electrical = ReadNandElectrical(node, "memory_device.nand3d", allowTechnologyDefaults);

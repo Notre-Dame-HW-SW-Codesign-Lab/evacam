@@ -77,6 +77,14 @@ A vertical SLC `NAND3D` example is available at
 and analytical first-moment RC estimates using synthetic device parameters;
 see [3D NAND TCAM](docs/nand-3d-tcam.md) for its supported scope.
 
+Multilevel exact flash matching is available with supplied resistance tables:
+`config/NAND_MLC_TCAM/NAND_MLC_TCAM.config.yaml` and
+`config/NAND_3D_MLC_TCAM/NAND_3D_MLC_TCAM.config.yaml`. These synthetic examples
+use four states per device and complementary pairs per symbol. See the
+[table format, geometry and matching API](docs/nand-multilevel-tcam.md).
+Table-based `TH` mode adds nominal squared-distance thresholds, position-aware
+voltage bounds, and diagnostic plots via `scripts/plot_nand_distance.py`.
+
 ## CLI
 
 Usage:

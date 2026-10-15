@@ -185,7 +185,10 @@ Representative fields:
 - `peripherals.input.encoder_type`: currently `encoding_two_bit`
 - `sensing`: reference to a `*.sensing.yaml` file
 - `matchline.additional_cap`: optional additional matchline capacitance; it loads
-  every TCAM match state, including all-match and mismatch paths
+  every TCAM and MCAM match state, including all-match and mismatch paths.
+  It is a lumped end load per matchline (not per cell), included in precharge
+  delay and MCAM matchline dynamic energy. MCAM's automatic sensing time also
+  changes with this load; adding capacitance does not hold sampling time fixed.
 - `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size` and `physical_limits.max_driver_current`
 - `sensing.sensing_mode`: `nvsim_vol`, `nvsim_cur`, `self_clock`, `dual_the`, or `discharge`; inferred from the referenced sense-amplifier name when omitted
@@ -404,3 +407,9 @@ with their domains and assumptions in
 [the original EvaCAM validation audit](validation/original-evacam-validation.md#analytical-models-and-accounting).
 `decision.model` also accepts `inverter_threshold` and `keeper_midpoint` with their
 corresponding circuit/amplifier models. These modes require nominal exact TCAM.
+
+Table-based multilevel NAND examples are in `config/NAND_MLC_TCAM/` and
+`config/NAND_3D_MLC_TCAM/`. Supply per-transistor `resistance_table` and
+`query_voltages` in the memory-device file; see the
+[multilevel NAND contract](nand-multilevel-tcam.md) before setting word,
+subarray, page, and block dimensions.

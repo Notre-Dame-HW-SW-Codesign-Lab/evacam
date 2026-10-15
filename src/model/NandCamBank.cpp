@@ -47,11 +47,11 @@ void NandCamBank::Initialize(int rows, int columns, long long capacityCells,
     numBitSerial = static_cast<int>(wordWidth);
     if (!config || !config->technology.cell || !config->technology.cell->nandString
             || !config->runtimeSizing.hasFixedSubarrayDimensions
-            || type != TCAM || search != EX || !internalSense
+            || type != TCAM || (search != EX && search != TH) || !internalSense
             || outputMux1 != 1 || outputMux2 != 1
             || !ValidPartition(rows, activeRows) || !ValidPartition(columns, activeColumns)
             || !ValidPartition(subRows, activeSubRows) || !ValidPartition(subColumns, activeSubColumns)
-            || wordWidth != config->input.wordWidth
+            || wordWidth != config->wordGeometry.physicalColumnsPerWord
             || CAM_opt.ComparisonColumns != wordWidth) {
         throw std::invalid_argument("[NAND bank] Unsupported topology, geometry, or search operation.");
     }

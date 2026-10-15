@@ -197,7 +197,7 @@ void TestNand3dCanonicalGeometryAndCapabilities() {
         {[](EvaCamConfig& c) { c.variation.enabled = true; }, "variation"},
         {[](EvaCamConfig& c) { c.input.optimizationTarget = full_exploration; }, "exploration"},
         {[](EvaCamConfig& c) { c.technology.cell->nand.configured = true; }, "memory_device.nand3d"},
-        {[](EvaCamConfig& c) { c.technology.cell->memCellType = MLCNAND; }, "MLC NAND"}
+        {[](EvaCamConfig& c) { c.technology.cell->memCellType = MLCNAND; }, "memory_device.nand"}
     };
     for (const auto& test : capabilityCases) {
         config = fresh();

@@ -14,12 +14,16 @@ struct EvaCAMMatchResult {
     double senseMarginSlack = 0;
     bool senseMarginPass = false;
     bool senseMarginApplicable = true;
-    // squaredEuclideanDistance is the MCAM ideal symbol distance. Conductance
+    // squaredEuclideanDistance is the MCAM or table-NAND ideal symbol distance. Conductance
     // and voltage describe the modeled MCAM matchline or NAND series string
     // at the common decision time; NAND hit remains the ideal logical result.
     double squaredEuclideanDistance = 0;
     double matchlineConductance = 0;
     double matchlineVoltage = 0;
+    // NAND distance-threshold diagnostics, including the invalid-entry class.
+    double senseReferenceVoltage = 0;
+    double acceptedMaximumVoltage = 0;
+    double rejectedMinimumVoltage = 0;
 };
 
 #endif /* EVACAMMATCHRESULT_H_ */

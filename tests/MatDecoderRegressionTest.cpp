@@ -45,8 +45,10 @@ int main() {
     const double decoderLatency = subarray.RowDecMergeNand->readLatency
         + subarray.senseAmpMuxLev1Nand->readLatency
         + subarray.senseAmpMuxLev2Nand->readLatency;
-    assert(Near(decoderLatency, 138.099e-12, 1e-15));
-    assert(Near(result->bank->mat->predecoderLatency, 62.486e-12, 1e-15));
+    // The area ledger determines the predecoder wire load and hence the ramp
+    // delivered to the merge decoder. Baselines include the corrected footprint.
+    assert(Near(decoderLatency, 137.009397943e-12, 1e-15));
+    assert(Near(result->bank->mat->predecoderLatency, 60.437021435e-12, 1e-15));
 
     std::cout << "Mat/decoder regression tests passed\n";
     return 0;

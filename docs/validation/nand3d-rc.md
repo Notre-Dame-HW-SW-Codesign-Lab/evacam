@@ -1,5 +1,7 @@
 # NAND RC reference and analytical-model verification
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 As of 2026-10-02, production NAND3D uses analytical first-moment RC estimates
 while preserving 3D geometry. The nodal solver remains a separate numerically
 verified **linear RC reference**, outside normal CAM evaluation. Its agreement

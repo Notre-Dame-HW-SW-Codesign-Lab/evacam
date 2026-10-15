@@ -12,9 +12,9 @@ The [NAND model guide](nand-tcam.md) defines its operation and geometry units.
 | File | Required NAND configuration |
 | --- | --- |
 | Cell | `cam_type: TCAM`, `topology: nand_string`, `memory_device`, and `layout`; generic `ports` and `access_device` are omitted |
-| Architecture | `design.search_function: EX`, fixed `organization.subarray.dimensions: [strings, key_bits]`, explicit total/active organization, `flash.page_size`, `flash.block_size` |
+| Architecture | `design.search_function: EX`, fixed `organization.subarray.dimensions: [strings, key_symbols]`, explicit total/active organization, `flash.page_size`, `flash.block_size` |
 | Sensing | `internal: true`, `custom_sense_amp: false`, `sensing_mode: discharge`; no generic sense-amplifier reference |
-| Memory device | `type: SLCNAND` with the `nand` fields below |
+| Memory device | `type: SLCNAND` or table-based `MLCNAND` with the `nand` fields below |
 
 With a selected technology library, omitted `resistance`, `capacitance`,
 `wordline_driver`, and `sense` values use CMOS estimates and emit a warning.
@@ -27,10 +27,11 @@ derivations, limits, and recorded provenance. The same rules apply to `nand3d`.
 | `nand` key | Meaning and units |
 | --- | --- |
 | `model` | `analytical_rc` |
+| `resistance_table`, `query_voltages` | Optional together; per-transistor stored-state/query-bias table and query voltages. Required for multilevel modes; see [table contract](nand-multilevel-tcam.md) |
 | `calibration_status`, `source` | Status is `synthetic`, `uncalibrated`, or user-declared `calibrated`; nonblank source is required. The example is `synthetic`; labels do not establish calibration evidence |
 | `resistance.read_on`, `.pass`, `.off`, `.select` | Ohms; must satisfy `off > read_on >= pass > 0` and positive select resistance |
 | `capacitance.gate`, `.internal`, `.bitline`, `.source`, `.select` | Farads; gate and bitline are positive; remaining terms may be zero |
-| `threshold.low`, `.high` | Volts; state thresholds |
+| `threshold.low`, `.high` | Volts; binary state thresholds (validity pair only when a table is present) |
 | `bias.read`, `.pass`, `.precharge` | Volts; `low < read < high < pass`, with positive precharge |
 | `supply_efficiency` | Supply efficiency in `(0, 1]` for modeled capacitive charging |
 | `sensing.decision_time` | Common electrical evaluation time in seconds |
@@ -63,17 +64,18 @@ required fields are:
 | `nand3d` key | Meaning |
 | --- | --- |
 | `model` | `analytical_rc` |
-| `storage_mode` | `SLC` |
+| `storage_mode` | `SLC`, or `MLC`/`TLC`/`QLC` with a 4/8/16-state resistance table |
 | `stack.storage_layers`, `stack.dummy_layers` | Storage and dummy layer counts; validity/padding are included in storage layers |
 | `layout.string_rows`, `layout.string_columns` | Sequential select groups and strings per group |
 | `layout.hole_pitch_x`, `layout.hole_pitch_y`, `layout.layer_pitch` | Lateral hole pitches and vertical layer pitch, in meters |
 | `layout.staircase_step_width`, `layout.staircase_contact_length`, `layout.isolation_width` | Physical staircase/isolation lengths, in meters |
 | `layout.peripheral_placement` | `beside` adds peripheral area; `under_array` overlaps it with the array footprint |
 
-`flash.page_size` is one selected group's SLC page (`string_columns` bits).
-`flash.block_size` is `string_rows * string_columns * storage_layers` bits.
-Fixed subarray dimensions are `[string_rows * string_columns, logical_key_bits]`.
-Storage layers must accommodate two devices per key bit plus a validity pair;
+`flash.page_size` is one selected group's bit-plane page (`string_columns` bits).
+`flash.block_size` is `string_rows * string_columns * storage_layers * bits_per_cell` bits.
+Fixed subarray dimensions are `[string_rows * string_columns, key_symbols]`.
+For SLC one symbol is one bit; a table symbol encodes `log2(states)` bits.
+Storage layers must accommodate two devices per key symbol plus a validity pair;
 total storage and dummy layers may not exceed 4096. String rows must be positive,
 string columns must be byte aligned and at least eight, and their product may
 not exceed 1,048,576. The analytical model assumes full precharge and reset each
@@ -187,7 +189,11 @@ Useful optional keys:
 - `memory.physical_capacity`: required when a non-MCAM `memory.word_width` is not a power of two
 - `sensing`: reference to a `*.sensing.yaml` file
 - `matchline.additional_cap`: optional additional matchline capacitance applied
-  to every TCAM match state, including all-match and mismatch paths
+  to every TCAM and MCAM match state, including all-match and mismatch paths.
+  This is a lumped end load per matchline, not a per-cell value. It contributes
+  to precharge delay and MCAM matchline dynamic energy. MCAM recomputes its
+  automatic sensing time with this capacitance; the sampling time is not fixed
+  across a capacitance sweep. No physical capacitor area is inferred.
 - `matchline.match_transistor.cmos_width`: optional match transistor width
 - `physical_limits.max_nmos_size`: transistor-width limit in feature-size multiples
 - `physical_limits.max_driver_current`: retained but currently has no model effect
@@ -453,3 +459,22 @@ the required domain.
 - Integral quantities such as bit counts, byte capacities, process nodes, and
   temperatures must resolve to whole numbers within the destination integer
   range.
+
+## Table-based multilevel NAND TCAM
+
+`memory_device.nand` and `memory_device.nand3d` optionally accept a square
+`resistance_table` of per-transistor resistances (rows: stored states;
+columns: query biases), together with `query_voltages`. Supported state counts
+are 2/4/8/16. Planar multilevel tables use `type: MLCNAND`; 3D uses `type:
+NAND3D` with matching `storage_mode: MLC/TLC/QLC`. Two-state tables use SLC.
+The model remains `analytical_rc`, `cam_type: TCAM`. Use `search_function: EX`
+for exact search, or `TH` for nominal table-based distance-threshold analysis.
+In TH mode, `sensing.strict_sense_margin` controls per-query threshold checks;
+aggregate results report exact-search margins as diagnostics only.
+
+`memory.word_width` counts logical bits; subarray columns count multilevel
+symbols (`word_width / log2(states)`). Each symbol occupies a complementary
+pair of physical cells. Page size counts one bit plane, and block size counts
+all bit planes. See the [complete table, encoding, validation and geometry
+contract](nand-multilevel-tcam.md), and runnable examples in
+`config/NAND_MLC_TCAM/` and `config/NAND_3D_MLC_TCAM/`.

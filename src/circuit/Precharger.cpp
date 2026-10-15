@@ -7,7 +7,8 @@ void Precharger::Initialize(
         double _capBitline, 
         double _resBitline, 
         std::shared_ptr<EvaCamConfig> _config, 
-        const Wire &_localWire) {
+        const Wire &_localWire,
+        double _capBitlineEnd) {
 
     config = _config;
 
@@ -17,6 +18,7 @@ void Precharger::Initialize(
     voltagePrecharge = _voltagePrecharge;
     numColumn  = _numColumn;
     capBitline = _capBitline;
+    capBitlineEnd = _capBitlineEnd;
     resBitline = _resBitline;
     localWire = _localWire;
     const auto &tech = *config->technology.tech;
@@ -148,7 +150,8 @@ void Precharger::CalculateLatency(double _rampInput){
         readLatency = 0;
         double resPullUp = CalculateOnResistance(widthPMOSBitlinePrecharger, PMOS,
                 config->input.temperature, *config->technology.tech);
-        double tau = resPullUp * (capBitline + capOutputBitlinePrecharger) + resBitline * capBitline / 2;
+        double tau = resPullUp * (capBitline + capBitlineEnd + capOutputBitlinePrecharger)
+            + resBitline * (capBitline / 2 + capBitlineEnd);
         gm = CalculateTransconductance(widthPMOSBitlinePrecharger, PMOS, *config->technology.tech);
         beta = 1 / (resPullUp * gm);
         readLatency += horowitz(tau, beta, temp, &rampOutput);
@@ -168,7 +171,8 @@ void Precharger::CalculatePower() {
                 config->input.temperature, *config->technology.tech);
 
         /* Dynamic energy */
-        /* We don't count bitline precharge energy into account because it is a charging process */
+        // The subarray accounts for charging the ML/BL load (including added
+        // capacitance). This component counts only precharge control energy.
         readDynamicEnergy = outputDriver.readDynamicEnergy;
         readDynamicEnergy += capLoadInv * config->technology.tech->vdd() * config->technology.tech->vdd() * numColumn;
         writeDynamicEnergy = 0;		/* No precharging is needed during the write operation */

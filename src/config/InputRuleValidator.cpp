@@ -756,10 +756,10 @@ void ValidateMemCellSupport(const EvaCamConfig &config) {
     const bool nandString = YamlHelpers::read_optional<std::string>(
             root, "topology", "parallel") == "nand_string";
     if (nandString) {
-        if ((memCellType != SLCNAND && memCellType != NAND3D)
+        if ((memCellType != SLCNAND && memCellType != MLCNAND && memCellType != NAND3D)
                 || LoadCamTypeForValidation(root, config.input.fileMemCell) != TCAM) {
             throw std::runtime_error(
-                    "[Input] Error: cell.topology nand_string requires SLCNAND or NAND3D TCAM.");
+                    "[Input] Error: cell.topology nand_string requires SLCNAND, MLCNAND, or NAND3D TCAM.");
         }
         if (!config.input.internalSensing) {
             throw std::runtime_error("[Input] Error: NAND TCAM requires internal sensing.");
@@ -787,6 +787,7 @@ void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cell
     const MemCellType type = LoadMemCellTypeForValidation(cellRoot, config.input.fileMemCell);
     const bool isNand3d = type == NAND3D;
     Nand3dMemoryDevice nand3d;
+    int bitsPerCell = 1;
     if (isNand3d) {
         // Parse the same typed device contract used by the runtime loader, so
         // geometry validation cannot accept a different stack interpretation.
@@ -805,6 +806,13 @@ void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cell
             PhysicalDomainValidators::ValidateMemCell(cell);
         }
         nand3d = cell.nand3d;
+        bitsPerCell = nand3d.electrical.table.BitsPerCell();
+    } else {
+        MemCell cell;
+        cell.memCellType = type;
+        YamlHelpers::ReadNandSection(cell,
+                LoadMemoryDeviceForValidation(cellRoot, config.input.fileMemCell), true);
+        bitsPerCell = cell.nand.table.BitsPerCell();
     }
     if (!config.runtimeSizing.hasFixedSubarrayDimensions) {
         throw std::runtime_error(
@@ -817,27 +825,31 @@ void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cell
     }
     const long rows = config.runtimeSizing.fixedSubarrayRows;
     const long columns = config.runtimeSizing.fixedSubarrayColumns;
-    const long wordlines = isNand3d ? nand3d.storageLayers
-            : config.input.flashBlockSize / config.input.pageSize;
+    const long pagesPerBlock = config.input.flashBlockSize / config.input.pageSize;
+    if (pagesPerBlock % bitsPerCell != 0) {
+        throw std::runtime_error("[Input] Error: NAND block must contain whole multilevel wordlines (pages divisible by bits per cell).");
+    }
+    const long wordlines = isNand3d ? nand3d.storageLayers : pagesPerBlock / bitsPerCell;
     const long sensingColumns = isNand3d ? nand3d.stringColumns : rows;
     if (isNand3d) {
         const long long strings = CheckedMultiply(nand3d.stringRows, nand3d.stringColumns,
                 "NAND3D strings per block");
-        const long long blockBits = CheckedMultiply(strings, nand3d.storageLayers,
+        const long long blockBits = CheckedMultiply(strings, nand3d.storageLayers * bitsPerCell,
                 "NAND3D physical block bits");
         if (rows != strings || config.input.pageSize != nand3d.stringColumns
                 || config.input.flashBlockSize != blockBits) {
-            throw std::runtime_error("[Input] Error: NAND3D subarray rows must equal string_rows * string_columns; flash.page_size must equal string_columns bits and block_size must equal strings * storage_layers bits.");
+            throw std::runtime_error("[Input] Error: NAND3D subarray rows must equal string_rows * string_columns; flash.page_size must equal string_columns bits and block_size must equal strings * storage_layers * bits_per_cell bits.");
         }
     } else if (rows != config.input.pageSize || rows < 8 || rows > 1048576) {
         throw std::runtime_error(
                 "[Input] Error: NAND subarray rows must equal flash.page_size in bits (8..1048576 strings).");
     }
-    if (columns != config.input.wordWidth || columns <= 0
+    if (columns <= 0 || config.input.wordWidth % bitsPerCell != 0
+            || columns != config.input.wordWidth / bitsPerCell
             || wordlines > 4096 || wordlines < 2
             || columns > (wordlines - 2) / 2) {
         throw std::runtime_error(
-                "[Input] Error: NAND subarray columns must equal memory.word_width and fit complementary pairs plus a validity pair within at most 4096 wordlines.");
+                "[Input] Error: NAND subarray columns must equal memory.word_width / bits_per_cell and fit complementary pairs plus a validity pair within at most 4096 wordlines.");
     }
     const auto &geometry = config.exploration.geometry;
     for (const auto *domain : {&geometry.numRowMat, &geometry.numColumnMat,
@@ -870,7 +882,7 @@ void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cell
         throw std::runtime_error("[Input] Error: NAND TCAM supports at most 65536 physical blocks.");
     }
     const long long logicalBits = CheckedMultiply(
-            CheckedMultiply(blocks, rows, "NAND entry count"), columns, "NAND logical capacity");
+            CheckedMultiply(blocks, rows, "NAND entry count"), config.input.wordWidth, "NAND logical capacity");
     CheckedMultiply(blocks, config.input.flashBlockSize, "NAND physical capacity");
     const long long logicalBytes = logicalBits / 8;
     if (logicalBits % 8 != 0 || (config.runtimeSizing.hasExplicitCapacity
@@ -883,7 +895,7 @@ void ValidateAndResolveNandGeometry(EvaCamConfig &config, const YAML::Node& cell
                 "[Input] Error: NAND memory.physical_capacity is a legacy logical allocation override; omit it and use flash geometry for physical cells.");
     }
     config.input.capacity = logicalBytes;
-    config.ResolveWordGeometry(1, columns, false);
+    config.ResolveWordGeometry(bitsPerCell, columns, false);
     if (geometry.muxSenseAmp.Min() <= 0 || geometry.muxSenseAmp.Max() > sensingColumns) {
         throw std::runtime_error("[Input] Error: NAND sense amplifier mux must divide the selected page string count.");
     }

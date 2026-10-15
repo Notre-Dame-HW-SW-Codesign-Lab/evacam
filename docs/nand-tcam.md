@@ -1,12 +1,15 @@
 # NAND flash TCAM
 
+[Table-based multilevel exact matching](nand-multilevel-tcam.md) is also available
+for 2/4/8/16 programmed states. The binary SLC model is described below.
+
 EvaCAM supports an explicit, exploratory NAND-string TCAM model using
 two-state flash devices and exact search with stored and query wildcards.
 The shipped values are synthetic. This is an analytical first-moment RC
 approximation, not a calibrated prediction of a commercial NAND device or SSD.
 
 This analytical TCAM path is an adaptation of the NVSim-derived codebase,
-not an unchanged NVSim flash reference. Comparisons with the separate nodal
+not an unchanged NVSim flash reference. Historical comparisons with a nodal
 reference therefore do not establish superiority over NVSim. The 3D backend
 also uses analytical RC, with its own vertical geometry. See the
 [model-change justification record](validation/nand-nvsim-justification.md).
@@ -132,8 +135,9 @@ Negative margins remain signed. The matcher reports ideal logical `hit`
 separately from actual pattern voltage, reference margin, and
 `sense_margin_pass`.
 
-An independent nodal RC reference in `scripts/nand_rc_reference.py` demonstrates
-this distinction. With the shipped synthetic resistances and capacitances,
+A historical independent nodal RC experiment demonstrates this distinction.
+The transient solver and its runners have since been removed from EvaCAM;
+the [comparison report](validation/nand-yang-2023.md) preserves the evidence. With the shipped synthetic resistances and capacitances,
 512 data wordlines, a 255-bit key, no wire parasitics, and every node initially
 at 0.8 V, a matching string reaches 0.582868 V at 50 ns; the exponential predicts
 0.538209 V. At the model's 0.668113 V reference and 10 mV offset, this tested
@@ -145,7 +149,7 @@ source select, the source-end node of that 512-wordline string reaches only
 0.012972 V in the configured 5 ns precharge interval. The uniform initial state
 used above is a separate, more favorable assumption.
 
-The numerical reference and its circuit-identity tests check the approximation;
+Those historical numerical checks exposed limits of the approximation;
 they do not establish device calibration. Paper-level validation, including
 architecture and measurement-boundary differences, is documented separately in
 [`validation/nand-yang-2023.md`](validation/nand-yang-2023.md).
@@ -301,5 +305,6 @@ In Python, the corresponding field is a dotted key such as
 The earlier [implementation plan](nand-flash-cam-plan.md) remains the historical
 investigation and roadmap. This implementation supplies the analytical
 infrastructure and synthetic regression fixture. Independent SPICE/device
-correlation, response-table backends, segmented keys, variation, multilevel
-storage, approximate search, and validated 3D NAND remain future work.
+correlation, segmented keys, variation, approximate search, and calibrated
+3D NAND remain future work. Multilevel exact search is available through the
+[resistance-table model](nand-multilevel-tcam.md).

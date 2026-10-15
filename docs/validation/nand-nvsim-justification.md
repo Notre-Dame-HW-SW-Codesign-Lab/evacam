@@ -1,5 +1,7 @@
 # Justification of NAND modeling changes from NVSim
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Audit date: 2026-10-02. EvaCAM is derived from NVSim. NVSim's applicable
 equations, assumptions, and validation are the baseline for assessing changes.
 Additional detail, a different implementation, or passing software tests does

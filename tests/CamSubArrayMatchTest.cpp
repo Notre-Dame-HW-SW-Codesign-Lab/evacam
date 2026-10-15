@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -458,6 +459,34 @@ void TestMcamAndSearchlineHelpers() {
     }, "between 0 and num_resistance_state - 1");
 }
 
+void TestMcamAdditionalCapacitanceEnergy() {
+    SubArrayFixture fixture;
+    auto &subarray = fixture.subarray;
+    fixture.config->technology.cell->camType = MCAM;
+    subarray.ColMux[0]->capForPreviousPowerCalculation = 3e-15;
+    const double resistance = 400;
+    const double precharge = 0.7;
+    const double addedCapacitance = 10e-15;
+    for (int mux : {1, 2}) {
+        subarray.muxSenseAmp = mux;
+        fixture.config->peripherals.addCapOnML = 0;
+        const double baseTau = CamSubArrayTestAccessor::MatchlineTau(
+                subarray, resistance, subarray.matchlineWireRes);
+        const double baseEnergy = CamSubArrayTestAccessor::McamMatchlineDynamicEnergy(
+                subarray, resistance, baseTau, precharge);
+        fixture.config->peripherals.addCapOnML = addedCapacitance;
+        const double loadedTau = CamSubArrayTestAccessor::MatchlineTau(
+                subarray, resistance, subarray.matchlineWireRes);
+        const double loadedEnergy = CamSubArrayTestAccessor::McamMatchlineDynamicEnergy(
+                subarray, resistance, loadedTau, precharge);
+        // At t=tau the voltage excursion is identical. The increment must be
+        // exactly the added capacitor's energy, counted once per active ML.
+        AssertNear(loadedEnergy - baseEnergy,
+                addedCapacitance * precharge * precharge * (1 - std::exp(-2.0))
+                    * subarray.numColumn / mux);
+    }
+}
+
 }  // namespace
 
 void TestInputRampAndScheduledSearchLatency() {
@@ -507,6 +536,7 @@ int main() {
     TestTcamStatesShareMatchlineCapacitance();
     TestMatchlineAgainstIndependentRcLadder();
     TestMcamAndSearchlineHelpers();
+    TestMcamAdditionalCapacitanceEnergy();
     std::cout << "CAM subarray match tests passed\n";
     return 0;
 }

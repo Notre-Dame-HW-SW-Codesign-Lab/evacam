@@ -93,6 +93,14 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_distance_threshold(
         const std::vector<int> &query,
         double maxSquaredDistance) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        auto result = bank->mat->subarray->nandModel->EvaluateDistanceThreshold(
+                stored, query, maxSquaredDistance);
+        if (config->peripherals.strictSenseMargin && !result.senseMarginPass) {
+            throw std::runtime_error("[NAND] Squared-distance threshold cannot be distinguished by the configured sense margin");
+        }
+        return ApplyNandBankCosts(result);
+    }
     if (config->technology.cell->camType != MCAM) {
         throw std::invalid_argument(
                 "[EvaCAM_Match] Error: squared-Euclidean threshold evaluation is only valid for MCAM.");
@@ -194,6 +202,9 @@ std::vector<EvaCAMMatchResult> EvaCAM_Match::evaluate_array(
     }
 
     if (config->technology.cell->camType == TCAM && config->input.searchFunction == TH) {
+        if (config->technology.cell->nandString) {
+            throw std::invalid_argument("[NAND] Threshold rows require evaluate_distance_threshold with an explicit threshold");
+        }
         throw std::runtime_error("[EvaCAM_Match] Error: threshold TCAM array evaluation requires evaluate_threshold(..., maxMismatches).");
     }
 
@@ -329,6 +340,9 @@ size_t EvaCAM_Match::bits_per_symbol() const {
 }
 
 size_t EvaCAM_Match::symbol_width() const {
+    if (config->technology.cell->nandString) {
+        return static_cast<size_t>(config->wordGeometry.physicalColumnsPerWord);
+    }
     if (config->technology.cell->camType != MCAM) {
         return word_width();
     }
@@ -339,6 +353,9 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_distance(
         const std::vector<int> &stored,
         const std::vector<int> &query) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        return ApplyNandBankCosts(bank->mat->subarray->nandModel->EvaluateDistance(stored, query));
+    }
     if (config->technology.cell->camType != MCAM) {
         throw std::invalid_argument(
                 "[EvaCAM_Match] Error: squared-Euclidean distance evaluation is only valid for MCAM.");
@@ -381,6 +398,15 @@ std::vector<double> EvaCAM_Match::sense_mcam_conductances(
 std::vector<EvaCAMDistanceVoltageBounds> EvaCAM_Match::distance_voltage_bounds(
         const std::vector<int> &query, bool includeVariation) const {
     EnsureInitialized();
+    if (config->technology.cell->nandString) {
+        // NAND variation is rejected at load time, so both flag values refer
+        // to the same nominal table. No variation envelope is fabricated.
+        auto bounds = bank->mat->subarray->nandModel->DistanceVoltageBounds(query);
+        for (auto &bound : bounds) {
+            bound.minimumSearchLatency = bound.maximumSearchLatency = bank->searchLatency;
+        }
+        return bounds;
+    }
     if (config->technology.cell->camType != MCAM) {
         throw std::invalid_argument("[EvaCAM_Match] Error: distance voltage bounds are only valid for MCAM.");
     }
@@ -453,11 +479,21 @@ EvaCAMMatchResult EvaCAM_Match::evaluate_symbols(
 
 EvaCAMMatchResult EvaCAM_Match::evaluate_bits(
         const std::vector<int> &storedBits, const std::vector<int> &queryBits) const {
-    if (config->technology.cell->camType != MCAM) {
+    if (config->technology.cell->camType != MCAM
+            && !(config->technology.cell->nandString && bits_per_symbol() > 1)) {
         return evaluate_vector(storedBits, queryBits);
     }
     return evaluate_symbols(PackMcamBits(storedBits, "storedBits"),
             PackMcamBits(queryBits, "queryBits"));
+}
+
+EvaCAMMatchResult EvaCAM_Match::ApplyNandBankCosts(EvaCAMMatchResult result) const {
+    const double blocks = static_cast<double>(bank->numRowMat) * bank->numColumnMat
+            * bank->numRowSubarray * bank->numColumnSubarray;
+    result.searchDynamicEnergy = bank->searchDynamicEnergy + blocks
+            * (result.searchDynamicEnergy - bank->mat->subarray->nandModel->Metrics().searchEnergy);
+    result.searchLatency = bank->searchLatency;
+    return result;
 }
 
 void EvaCAM_Match::InitializeConfiguredBank() {
@@ -572,6 +608,9 @@ EvaCAMMatchResult EvaCAM_Match::EvaluateBestVector(
 EvaCAMMatchResult EvaCAM_Match::EvaluateThresholdVector(
         const std::vector<int> &stored,
         const std::vector<int> &query) const {
+    if (config->technology.cell->nandString) {
+        throw std::invalid_argument("[NAND] Threshold mode requires evaluate_distance_threshold(stored, query, maximumSquaredDistance)");
+    }
     switch (config->technology.cell->camType) {
         case TCAM:
             ValidateTcamStoredVector(stored, "stored");
@@ -889,12 +928,13 @@ std::vector<int> EvaCAM_Match::PackMcamBits(
         const std::vector<int> &bits, const char *name) const {
     if (bits.size() != storage_width_bits()) {
         throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name
-                + " encoded bit vector length does not match MCAM storage width.");
+                + " encoded bit vector length does not match "
+                + (config->technology.cell->nandString ? "NAND storage width." : "MCAM storage width."));
     }
     const int bitsPerCell = std::max(1, config->wordGeometry.bitsPerCell);
     std::vector<int> symbols(symbol_width(), 0);
-    // Bits are packed MSB-first within each symbol. MCAM storage geometry is
-    // exactly vector_dimensions * bits_per_symbol, so padding is impossible.
+    // Bits are packed MSB-first within each symbol. Both MCAM and multilevel
+    // NAND require whole symbols, so padding is impossible.
     for (size_t bitIndex = 0; bitIndex < bits.size(); ++bitIndex) {
         if (bits[bitIndex] != 0 && bits[bitIndex] != 1) {
             throw std::invalid_argument(std::string("[EvaCAM_Match] Error: ") + name

@@ -44,6 +44,7 @@ void ValidateNandElectrical(const NandDeviceSpec& spec, const std::string& prefi
     if (spec.model != model) {
         throw std::runtime_error(prefix + ".model must be " + model);
     }
+    if (!spec.table.resistance.empty()) spec.table.Validate(spec.voltagePass, spec.resistancePass);
     if (spec.calibrationStatus != "synthetic" && spec.calibrationStatus != "uncalibrated"
             && spec.calibrationStatus != "calibrated") {
         throw std::runtime_error(prefix + ".calibration_status must be synthetic, uncalibrated, or calibrated");
@@ -107,8 +108,12 @@ void ValidateNandElectrical(const NandDeviceSpec& spec, const std::string& prefi
 }
 
 void ValidateNand(const MemCell& cell) {
-    if (cell.memCellType != SLCNAND || !cell.nandString || !cell.nand.configured || cell.nand3d.configured) {
-        throw std::runtime_error("NAND CAM requires type: SLCNAND, cell.topology: nand_string, and memory_device.nand");
+    if ((cell.memCellType != SLCNAND && cell.memCellType != MLCNAND) || !cell.nandString || !cell.nand.configured || cell.nand3d.configured) {
+        throw std::runtime_error("NAND CAM requires type: SLCNAND or MLCNAND, cell.topology: nand_string, and memory_device.nand");
+    }
+    if ((cell.memCellType == MLCNAND && cell.nand.table.BitsPerCell() == 1)
+            || (cell.memCellType == SLCNAND && cell.nand.table.BitsPerCell() != 1)) {
+        throw std::runtime_error("MLCNAND requires a multilevel resistance_table; SLCNAND requires binary states");
     }
     ValidateNandTopology(cell);
     ValidateNandElectrical(cell.nand, "memory_device.nand", "analytical_rc");
@@ -132,8 +137,10 @@ void ValidateNand3d(const MemCell& cell) {
 namespace PhysicalDomainValidators {
 
 void ValidateNand3dGeometry(const Nand3dMemoryDevice& spec) {
-    if (spec.storageMode != "SLC") {
-        throw std::runtime_error("memory_device.nand3d.storage_mode must be SLC");
+    const int bits = spec.electrical.table.BitsPerCell();
+    const std::string mode = bits == 1 ? "SLC" : bits == 2 ? "MLC" : bits == 3 ? "TLC" : "QLC";
+    if (spec.storageMode != mode) {
+        throw std::runtime_error("memory_device.nand3d.storage_mode must match resistance_table: SLC/MLC/TLC/QLC for 2/4/8/16 states");
     }
     if (spec.storageLayers < 4 || spec.storageLayers > 4096 || spec.dummyLayers < 0
             || spec.dummyLayers > 4096 - spec.storageLayers) {
@@ -177,7 +184,7 @@ void ValidateMemCell(const MemCell& cell) {
     YamlHelpers::require_positive(
             cell.widthInFeatureSize, "cell.layout derived width");
 
-    if (cell.nandString || cell.nand.configured || cell.memCellType == SLCNAND) {
+    if (cell.nandString || cell.nand.configured || cell.memCellType == SLCNAND || cell.memCellType == MLCNAND) {
         ValidateNand(cell);
         return;
     }

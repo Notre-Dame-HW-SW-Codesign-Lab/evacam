@@ -1,5 +1,7 @@
 # Kondo and Tanzawa (2022) reference observations
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Source: J. Kondo and T. Tanzawa, *Electronics* 11, 1926,
 [DOI 10.3390/electronics11131926](https://doi.org/10.3390/electronics11131926).
 The article and its figures are CC BY 4.0, copyright the authors. These

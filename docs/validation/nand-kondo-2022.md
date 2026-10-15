@@ -1,5 +1,7 @@
 # Kondo and Tanzawa (2022): SLM bitline investigation
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 This benchmark implements the single-line model investigation in the
 [validation plan](nand-kondo-2022-plan.md). It compares EvaCAM's production
 linear RC solver with an independent numerical reference and extracted

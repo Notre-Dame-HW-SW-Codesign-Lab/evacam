@@ -1,12 +1,15 @@
 # 3D NAND TCAM
 
+[Table-based multilevel exact matching](nand-multilevel-tcam.md) is also available
+for 2/4/8/16 programmed states. The binary SLC model is described below.
+
 EvaCAM's `NAND3D` backend models an SLC NAND TCAM with a vertical string
 layout, sequential select groups, and an analytical first-moment RC model.
 It uses the ordinary split YAML input format. The shipped electrical and
 peripheral parameters are synthetic; numerical circuit tests do not establish
 device calibration or reproduce published commercial 3D NAND performance.
-The [linear RC verification report](validation/nand3d-rc.md) retains the
-independent reference solver and the known limits of the analytical approximation.
+The [linear RC verification report](validation/nand3d-rc.md) retains historical
+comparison results and the known limits of the analytical approximation.
 
 EvaCAM is derived from NVSim. Departures in electrical, geometry, peripheral,
 and operation-cost modeling require the evidence recorded in the
@@ -31,7 +34,8 @@ The normal model uses closed-form RC estimates. To migrate an earlier transient
 configuration, set `model: analytical_rc` and remove `solver` and
 `precharge_driver_resistance` from `nand3d`; those fields are now rejected rather
 than silently ignored. Keep the stack, layout, electrical and operation inputs.
-The nodal solver remains a separate verification tool.
+Transient and nonlinear solvers and their dependent runners have been removed
+from EvaCAM; only the analytical estimator is supported.
 
 ## Geometry and physical operation units
 
@@ -230,7 +234,8 @@ print(decision.hit, decision.matchline_voltage, decision.sense_margin_pass)
 
 ## Supported release and remaining work
 
-This release supports fixed-geometry, nominal SLC exact/wildcard search with
+This release supports fixed-geometry, nominal SLC and table-based multilevel
+exact/wildcard search, plus explicit table-based distance-threshold analysis, with
 internal sensing and either bank routing topology. Search, area, leakage, and
 physical-page program objectives are available. The shared NAND capability
 guards reject conventional-read objectives, generic CAM peripherals,
@@ -238,7 +243,7 @@ full/deep exploration, generic dimension overrides, and variation.
 The analytical backend caps sense mux at 256 and combined storage/dummy layers
 at 4096. It has no integration-step, convergence or transient-sampling budget.
 
-MLC/TLC/QLC storage, approximate/top-k search, segmented keys, nonlinear
+Top-k search, segmented keys, nonlinear
 device characterization, retention/disturb/endurance, ECC, and controller
 simulation are outside this backend. The legacy `SLCNAND` analytical path
 remains available with its existing result contract and limitations.
@@ -246,17 +251,16 @@ remains available with its existing result contract and limitations.
 The earlier [linear-RC comparison](validation/nand-yang-2023.md) demonstrated
 limits of the one-pole approximation and assumed precharge. Those limitations
 remain after restoring the analytical model; analytical sense-margin acceptance
-is not a guarantee about the full distributed circuit. The independent nodal
-solver retains these counterexamples as verification evidence. The
+is not a guarantee about the full distributed circuit. The historical comparison
+reports preserve these counterexamples as verification evidence. The
 [matched NVSim comparison](validation/nand-nvsim.md) found small uncorrected
 delay errors in its tested circuits and did not establish a physical accuracy
 gain that justified making transient integration the normal estimator.
 
-## Experimental nonlinear DC work
+## Analytical scope
 
-A separate [cell-current and DC-string evaluator](validation/nand-nonlinear-dc.md)
-now provides the first numerical prototype for the nonlinear roadmap. Its
-parameters are uncalibrated, and it is accessible through the C++ electrical API
-and a test probe. It does not introduce a new CAM configuration mode or change
-this backend's `analytical_rc` model. Further nonlinear integration is outside
-the restored analytical scope.
+Nonlinear cell-current/DC-string and transient RC solvers, probes, and their
+dependent validation runners have been removed. The retained estimator uses
+fixed effective resistances, first-moment RC timing, and supplied operation
+costs. Historical reports document earlier experiments and their limitations;
+they do not describe callable backends or current validation commands.

@@ -1,5 +1,7 @@
 # NAND TCAM validation audit: Yang et al. (2023)
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Audit date: 2026-09-24. **The current NAND model is synthetic and is not
 validated against this paper.** The available publication material supports
 a qualitative topology comparison, but does not expose the electrical
@@ -83,14 +85,14 @@ voltages and margins are not the ordinary baseline's wire-loaded values.
 
 ## Independent RC experiment
 
-[`NandValidationProbe.cpp`](../../tests/NandValidationProbe.cpp) invokes the
+`tests/NandValidationProbe.cpp` (removed) invokes the
 actual C++ NAND model with zero wire resistance/capacitance and exports its
 device parameters, geometry, voltages, conductance, reference, and margins.
 It also exports cases that the bank would reject, so rejection behavior
 cannot hide an approximation error. A model time constant is inferred from
 its reported voltage; it is not treated as independent reference evidence.
 
-[`nand_rc_reference.py`](../../scripts/nand_rc_reference.py) independently
+`scripts/nand_rc_reference.py` (removed) independently
 solves the nodal equations `C dv/dt = -G v` through a symmetric tridiagonal
 eigendecomposition. The source-to-drain ladder is:
 

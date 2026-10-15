@@ -364,7 +364,8 @@ void CAM_SubArray::Initialize(
                 || _withInputEnc || _customInputEnc || _withWriteDriver || _withOutputAcc
                 || _withPriorityEnc || _withInputBuf || _withOutputBuf || _customSenseAmp
                 || _withVariation || _typeSenseAmp != discharge
-                || _typeInputEnc != encoding_two_bit || _camType != TCAM || _searchFunction != EX) {
+                || _typeInputEnc != encoding_two_bit || _camType != TCAM
+                || (_searchFunction != EX && _searchFunction != TH)) {
             throw std::invalid_argument("[CAM_SubArray] Unsupported NAND split, output mux, generic peripheral, or search option.");
         }
         config = _config;
@@ -382,7 +383,9 @@ void CAM_SubArray::Initialize(
         nandModel = CreateNandCamBackend(_config->technology.cell->memCellType);
         nandModel->Initialize(config, _numRow, _numColumn, _muxSenseAmp, localWire);
         initialized = true;
-        invalid = !nandModel->Metrics().senseMarginPass;
+        // Threshold feasibility depends on a query and threshold supplied to
+        // the analysis API. Exact-search margins must not gate that analysis.
+        invalid = _searchFunction == EX && !nandModel->Metrics().senseMarginPass;
         latencyCalculated = false;
         variationSummary = {};
         variationSamples.clear();
@@ -728,7 +731,8 @@ void CAM_SubArray::Initialize(
     }
 
     precharger = std::make_unique<Precharger>();
-    precharger->Initialize(voltagePrecharge, numColumn, Col[indexMatchline].cap, matchlineWireRes, config, localWire);
+    precharger->Initialize(voltagePrecharge, numColumn, Col[indexMatchline].cap,
+            matchlineWireRes, config, localWire, peripherals.addCapOnML);
 
     // Model the shared column-decoder merge line against the worst-case column mux width.
     double maxColumnMuxWidth = 0.0;
@@ -2078,6 +2082,7 @@ double CAM_SubArray::McamMatchlineDynamicEnergy(
     const double sensedVoltage = prechargeVoltage * std::exp(-senseTime / tauValue);
     const double matchlineCapacitance = capCellAccess * numRow
         + Col[indexMatchline].wireCap
+        + config->peripherals.addCapOnML
         + ColMux[indexMatchline]->capForPreviousPowerCalculation;
     return matchlineCapacitance
         * (prechargeVoltage * prechargeVoltage - sensedVoltage * sensedVoltage)

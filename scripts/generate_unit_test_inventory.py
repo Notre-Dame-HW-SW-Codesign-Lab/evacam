@@ -540,7 +540,7 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "Logger": {"AppServices"},
         "EvaCamContextBuilder": {"AppServices"},
         "EvaCamExplorer": {"EvaCamExplorer", "DeepExplorationThreading"},
-        "EvaCAM_Match": {"EvaCAMMatchFocused"},
+        "EvaCAM_Match": {"EvaCAMMatchFocused", "NandResistanceTable"},
         "EvaCamRun": {"RunEvaCamBoundary", "SubarrayDimensionTester"},
         "main": {"RunEvaCamBoundary"},
         "VariationSampler": {"VariationSampler"},
@@ -561,15 +561,12 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         "plot_variation_histograms": {"test_plotting_scripts"},
         "plot_variation_qq": {"test_plotting_scripts"},
         "poster_figures": {"test_plotting_scripts"},
-        "nand_rc_reference": {"test_nand_rc_reference", "test_nand_validation"},
-        "validate_nand_literature": {"test_nand_validation"},
-        "validate_nand_kondo": {"test_nand_kondo_validation"},
-        "validate_nand_nvsim": {"test_nand_nvsim_validation"},
+        "NandDistanceAnalysis": {"NandDistanceAnalysis", "NandResistanceTable"},
+        "plot_nand_distance": {"test_nand_distance_plot"},
         "validate_named_cam": {"test_named_cam_validation"},
         "validate_original_evacam": {"test_original_evacam_validation"},
         "compare_legacy_evacam": {"test_legacy_comparison"},
         "audit_fefet_energy": {"test_fefet_energy_audit"},
-        "investigate_nand_kondo": {"test_nand_kondo_validation"},
         "check_nand_park_reference": {"test_nand_park_reference"},
         "test_variation_normality": {"test_plotting_scripts"},
         "EvaCAM_Pybind": {"test_pybind_match", "test_pybind_run"},
@@ -631,26 +628,6 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         for name in names:
             indirect_test_cases.setdefault((file, name), []).append(mapping)
 
-    map_indirect("src/model/NandCellCurrentModel.cpp", ["Evaluate"],
-            "tests/NandCellCurrentModelTest.cpp", "TestJacobianAcrossBiasAndThresholdStates", "test-nand-cell-current")
-    map_indirect("src/model/NandCellCurrentModel.cpp", ["Evaluate"],
-            "tests/NandCellCurrentModelTest.cpp", "TestCurrentOrientationAndAnalyticLimits", "test-nand-cell-current")
-    map_indirect("src/model/NandCellCurrentModel.cpp", ["Evaluate"],
-            "tests/NandCellCurrentModelTest.cpp", "TestParameterAndBiasValidation", "test-nand-cell-current")
-    map_indirect("src/model/NandNonlinearString.cpp", ["Solve"],
-            "tests/NandNonlinearStringTest.cpp", "TestHomogeneousStringsAndResistorLimit", "test-nand-nonlinear-string")
-    map_indirect("src/model/NandNonlinearString.cpp", ["Solve"],
-            "tests/NandNonlinearStringTest.cpp", "TestSelectedPositionsReverseBiasAndConcurrency", "test-nand-nonlinear-string")
-    map_indirect("src/model/NandNonlinearString.cpp", ["Solve"],
-            "tests/NandNonlinearStringTest.cpp", "TestSingleDeviceAndZeroBias", "test-nand-nonlinear-string")
-    map_indirect("src/model/NandRcLadder.cpp", ["Require", "ValidateBoundary", "Solve"],
-            "tests/NandRcLadderTest.cpp", "TestValidationAndStepLimit", "test-nand-rc-ladder")
-    map_indirect("src/model/NandRcLadder.cpp", ["BackwardEuler", "RichardsonStep", "Solve"],
-            "tests/NandRcLadderTest.cpp", "TestSingleRcAndChargingEnergy", "test-nand-rc-ladder")
-    map_indirect("src/model/NandRcLadder.cpp", ["Solve"],
-            "tests/NandRcLadderTest.cpp", "TestStiff512WordlineCounterexample", "test-nand-rc-ladder")
-    map_indirect("src/model/NandRcLadder.cpp", ["RequireFiniteArithmetic", "ValidateStep", "Solve"],
-            "tests/NandRcLadderTest.cpp", "TestNonfiniteDerivedArithmeticIsRejected", "test-nand-rc-ladder")
     map_indirect("src/factories/NandCamFactory.cpp", ["CreateNandCamBackend"],
             "tests/Nand3dIntegrationTest.cpp", "TestDistinctBackendFactory", "test-nand3d-integration")
     map_indirect("src/model/Nand3dCamModel.cpp",
@@ -675,14 +652,6 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
         map_indirect(file, names, "tests/Nand3dResultsTest.cpp",
                 "TestNand3dResultContract", "test-nand3d-results")
 
-    map_indirect("scripts/nand_rc_reference.py", ["_positive_vector", "__init__", "_initial"],
-            "tests/test_nand_rc_reference.py", "test_invalid_networks_and_arguments", "test-nand-rc-reference")
-    map_indirect("scripts/validate_nand_nvsim.py", ["circuit"],
-            "tests/test_nand_nvsim_validation.py", "test_reference_recovers_analytic_single_and_two_node_limits",
-            "test-nand-nvsim-validation")
-    map_indirect("scripts/validate_nand_nvsim.py", ["plot_results", "run", "main"],
-            "tests/test_nand_nvsim_validation.py", "test_run_and_plots_keep_hardware_improvement_unestablished",
-            "test-nand-nvsim-validation")
     map_indirect("scripts/validate_original_evacam.py", ["compare_metric"],
             "tests/test_original_evacam_validation.py", "test_error_requires_matching_scope", "test-original-evacam-validation")
     map_indirect("scripts/compare_legacy_evacam.py", ["put"],
@@ -714,63 +683,34 @@ def render(callables: list[Callable], references: dict[str, list[TestReference]]
             "tests/CamAccountingTest.cpp", "TestIdleWriteLinesCannotDelaySearch", "test-cam-accounting")
     map_indirect("src/cam/CAM_SubArray.cpp", ["MatchlineInputRamp"],
             "tests/CamSubArrayMatchTest.cpp", "TestInputRampAndScheduledSearchLatency", "test-cam-subarray-match")
-    map_indirect("scripts/validate_nand_kondo.py", ["__init__"],
-            "tests/test_nand_kondo_validation.py", "test_independent_reference_matches_dense_exponential_and_dc",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["state", "observe"],
-            "tests/test_nand_kondo_validation.py", "test_independent_reference_matches_dense_exponential_and_dc",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["observation_times", "run_probe"],
-            "tests/test_nand_kondo_validation.py", "test_compiled_waveform_carries_state_and_matches_reference",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["targets"],
-            "tests/test_nand_kondo_validation.py", "test_line_conserves_rc_and_retains_open_tail_at_exact_tap",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["measure_trace"],
-            "tests/test_nand_kondo_validation.py", "test_schedule_and_transition_current_limits",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["evaluate_case", "independent_delays"],
-            "tests/test_nand_kondo_validation.py", "test_evaluate_case_refines_crossings_and_checks_timing",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["main"],
-            "tests/test_nand_kondo_validation.py", "test_main_preserves_unvalidated_status_when_numerics_pass",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["ref"],
-            "tests/test_nand_kondo_validation.py", "test_main_preserves_unvalidated_status_when_numerics_pass",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/validate_nand_kondo.py", ["save"],
-            "tests/test_nand_kondo_validation.py", "test_plot_report_writes_all_figures_with_source_points",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/investigate_nand_kondo.py", ["plot_audit"],
-            "tests/test_nand_kondo_validation.py", "test_assumptions_report_exclusions_provenance_and_plots",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/investigate_nand_kondo.py", ["compare_curve"],
-            "tests/test_nand_kondo_validation.py", "test_assumption_comparison_retains_raw_residuals",
-            "test-nand-kondo-validation")
-    map_indirect("scripts/investigate_nand_kondo.py", ["main"],
-            "tests/test_nand_kondo_validation.py", "test_assumptions_main_cannot_claim_reproduction",
-            "test-nand-kondo-validation")
     map_indirect("scripts/check_nand_park_reference.py", ["sha256"],
             "tests/test_nand_park_reference.py", "test_frozen_corpus_and_evidence_boundary",
             "test-nand-park-reference")
     map_indirect("scripts/check_nand_park_reference.py", ["main"],
             "tests/test_nand_park_reference.py", "test_report_plots_and_strict_exit_preserve_pending_status",
             "test-nand-park-reference")
-    map_indirect("scripts/nand_rc_reference.py", ["__init__", "first_moments", "_initial", "voltages"],
-            "tests/test_nand_rc_reference.py", "test_independent_dense_matrix_exponential_and_nonuniform_initial_state",
-            "test-nand-rc-reference")
-    map_indirect("scripts/nand_rc_reference.py", ["charging_voltages"],
-            "tests/test_nand_rc_reference.py", "test_floating_source_precharge_boundary_and_capacitor_energy",
-            "test-nand-rc-reference")
-    map_indirect("scripts/validate_nand_literature.py", ["compare_pattern"],
-            "tests/test_nand_validation.py", "test_full_ladder_exposes_512_wordline_false_margin_pass",
-            "test-nand-validation")
-    map_indirect("scripts/validate_nand_literature.py", ["write_csv", "draw_curves", "run_validation"],
-            "tests/test_nand_validation.py", "test_end_to_end_audit_writes_evidence_and_preserves_unvalidated_status",
-            "test-nand-validation")
-    map_indirect("scripts/validate_nand_literature.py", ["main"],
-            "tests/test_nand_validation.py", "test_require_paper_validation_returns_two_without_converting_diagnostic_to_success",
-            "test-nand-validation")
+
+    map_indirect("src/model/NandDistanceAnalysis.cpp",
+            ["ValidateDistanceQuery", "NandSquaredDistance", "NandTableDistanceBounds"],
+            "tests/NandDistanceAnalysisTest.cpp", "TestExhaustiveDistanceBounds", "test-nand-distance")
+    map_indirect("src/model/NandDistanceAnalysis.cpp", ["SetNandThresholdDiagnostics"],
+            "tests/NandDistanceAnalysisTest.cpp", "TestThresholdsAndValidation", "test-nand-distance")
+    map_indirect("src/model/NandDistanceAnalysis.cpp",
+            ["EvaluateDistance", "EvaluateDistanceThreshold", "DistanceVoltageBounds"],
+            "tests/NandResistanceTableTest.cpp", "TestDistanceIntegration", "test-nand-resistance-table")
+    map_indirect("src/app/EvaCAM_Match.cpp", ["ApplyNandBankCosts"],
+            "tests/NandResistanceTableTest.cpp", "TestDistanceIntegration", "test-nand-resistance-table")
+    map_indirect("scripts/plot_nand_distance.py",
+            ["snapshot_config", "copy", "rewrite", "threshold_rows", "write_csv", "draw", "run_case", "main"],
+            "tests/test_nand_distance_plot.py", "test_native_bounds_exports_and_thresholds", "test-nand-distance-plot")
+    map_indirect("scripts/plot_nand_distance.py", ["voltage"],
+            "tests/test_nand_distance_plot.py", "test_voltage_units", "test-nand-distance-plot")
+
+    map_indirect("src/model/NandResistanceTable.cpp",
+            ["Validate", "BitsPerCell", "Pair", "RechargeVoltageSum", "WorstEnergyQuery"],
+            "tests/NandResistanceTableTest.cpp", "TestTableContract", "test-nand-resistance-table")
+    map_indirect("src/model/NandResistanceTable.cpp", ["NandTableTimeBounds"],
+            "tests/NandResistanceTableTest.cpp", "TestExhaustiveBoundsAndIndependentRc", "test-nand-resistance-table")
 
     map_indirect("src/model/NandCamModel.cpp",
             ["Require", "RequireNonnegative", "RequirePositive", "ValidatePeripheral",

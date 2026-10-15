@@ -1,5 +1,7 @@
 # Plan: Kondo and Tanzawa bitline RC validation
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Status: implemented as a reproducible investigation on 2026-09-25. See the
 [findings and reproduction commands](nand-kondo-2022.md). Numerical solver
 verification and publication correlation are reported separately; unresolved

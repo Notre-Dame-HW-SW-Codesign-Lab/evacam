@@ -12,8 +12,6 @@ void EvaCamConfigValidator::Validate(EvaCamConfig &config) {
     if (config.technology.cell->memCellType == eDRAM)
         throw std::runtime_error("[ERROR] Embedded DRAM model is still under development");
 
-    if (config.technology.cell->memCellType == MLCNAND)
-        throw std::runtime_error("[ERROR] MLC NAND flash model is still under development");
 
     const auto& cell = *config.technology.cell;
     if (config.peripherals.inverterTripDecision) {
@@ -69,16 +67,18 @@ void EvaCamConfigValidator::Validate(EvaCamConfig &config) {
             throw std::runtime_error("sensing.decision.threshold must be below precharge Vdd");
         }
     }
-    if (cell.memCellType == SLCNAND || cell.memCellType == NAND3D || cell.nandString
+    if (cell.memCellType == SLCNAND || cell.memCellType == MLCNAND || cell.memCellType == NAND3D || cell.nandString
             || cell.nand.configured || cell.nand3d.configured) {
-        const bool planar = cell.memCellType == SLCNAND && cell.nand.configured && !cell.nand3d.configured;
+        const bool planar = (cell.memCellType == SLCNAND || cell.memCellType == MLCNAND) && cell.nand.configured && !cell.nand3d.configured;
         const bool vertical = cell.memCellType == NAND3D && cell.nand3d.configured
                 && cell.nand3d.electrical.configured && !cell.nand.configured;
         if (!cell.nandString || (!planar && !vertical)) {
-            throw std::runtime_error("NAND CAM requires SLCNAND/memory_device.nand or NAND3D/memory_device.nand3d with cell.topology: nand_string");
+            throw std::runtime_error("NAND CAM requires SLCNAND or MLCNAND/memory_device.nand or NAND3D/memory_device.nand3d with cell.topology: nand_string");
         }
-        if (cell.camType != TCAM || config.input.searchFunction != EX) {
-            throw std::runtime_error("NAND CAM supports TCAM exact search (EX) with wildcards only");
+        const auto &nand = vertical ? cell.nand3d.electrical : cell.nand;
+        if (cell.camType != TCAM || (config.input.searchFunction != EX
+                && !(config.input.searchFunction == TH && !nand.table.resistance.empty()))) {
+            throw std::runtime_error("NAND CAM supports TCAM exact search (EX), or threshold analysis (TH) with a resistance_table");
         }
         const auto& peripherals = config.peripherals;
         if (peripherals.withInputEnc || peripherals.customInputEnc || peripherals.withInputBuffer

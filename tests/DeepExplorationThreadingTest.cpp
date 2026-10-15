@@ -24,7 +24,9 @@ namespace {
 // Active-mat counts remain capped at 16 even when total mats expand to 64:
 // (1+2+3+4+5+5+5)^2 * (1+2+3+4+5)^2 * 7^3.
 constexpr long long kExpectedRawCandidates = 48234375;
-constexpr long long kExpectedModeledCandidates = 9161187;
+// Keep active partition products <= 16 physical columns (one per TCAM bit),
+// then multiply the 44,511 admissible geometry choices by the 7^3 mux choices.
+constexpr long long kExpectedModeledCandidates = 15267273;
 constexpr std::array<int, 5> kThreadCounts = {1, 2, 3, 7, 16};
 
 EvaCamExplorerTestHooks MakeYieldHooks() {
@@ -56,7 +58,8 @@ std::filesystem::path WriteDeepExplorationConfig(
         << "  device_roadmap: HP\n"
         << "  temperature: 350K\n"
         << "memory:\n"
-        << "  capacity: 16B\n"
+        // Inferred subarrays require at least 16 rows: 16 words * 16 bits.
+        << "  capacity: 32B\n"
         << "  word_width: 16bits\n"
         << "routing:\n"
         << "  type: H-tree\n"

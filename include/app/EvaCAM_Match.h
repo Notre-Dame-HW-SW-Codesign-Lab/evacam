@@ -87,6 +87,7 @@ class EvaCAM_Match {
         void InitializeConfiguredBank();
         void BuildMismatchLut();
         void EnsureInitialized() const;
+        EvaCAMMatchResult ApplyNandBankCosts(EvaCAMMatchResult result) const;
         EvaCAMMatchResult EvaluateExactVector(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateBestVector(const std::vector<int> &stored, const std::vector<int> &query) const;
         EvaCAMMatchResult EvaluateThresholdVector(const std::vector<int> &stored, const std::vector<int> &query) const;

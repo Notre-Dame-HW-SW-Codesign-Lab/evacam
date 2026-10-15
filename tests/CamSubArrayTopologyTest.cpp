@@ -159,6 +159,18 @@ void TestMcamTopologyAndAggregateCalculations() {
     subarray.CalculateLatency(1e-12);
     subarray.CalculatePower();
     assert(std::fabs(subarray.searchLatency - latency) <= latency * 1e-12);
+
+    const auto architecturePath = temporary.Path() / "mcam.architecture.yaml";
+    std::string architecture = McamTestConfig::Read(architecturePath);
+    McamTestConfig::ReplaceAll(architecture, "additional_cap: 0fF", "additional_cap: 100fF");
+    temporary.WriteFile("mcam.architecture.yaml", architecture);
+    EvaCamExplorationResult loadedExploration;
+    const auto &loaded = *RunConfig(config.string(), &loadedExploration);
+    TestSupport::AssertNear(loaded.precharger->capBitlineEnd, 100e-15);
+    assert(loaded.precharger->readLatency > subarray.precharger->readLatency);
+    assert(loaded.matchlineDelay > subarray.matchlineDelay);
+    assert(loaded.searchEnergyBreakdown.at("matchline") > subarray.searchEnergyBreakdown.at("matchline"));
+    assert(loaded.searchDynamicEnergy > subarray.searchDynamicEnergy);
 }
 
 void TestCanonicalMcamReportsSenseMarginDiagnostic() {

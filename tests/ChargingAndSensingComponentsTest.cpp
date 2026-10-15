@@ -91,6 +91,31 @@ void TestPrechargerScalesWithColumnCount() {
             "precharger dynamic energy scales with columns");
 }
 
+void TestPrechargerEndCapacitance() {
+    const auto config = MakeEvaCamConfig();
+    const Wire wire = MakeWire(config);
+    for (double lineResistance : {0.0, 5000.0}) {
+        Precharger baseline, distributed, endLoaded;
+        baseline.Initialize(0.9, 8, 2e-15, lineResistance, config, wire);
+        distributed.Initialize(0.9, 8, 12e-15, lineResistance, config, wire);
+        endLoaded.Initialize(0.9, 8, 2e-15, lineResistance, config, wire, 10e-15);
+        for (auto *component : {&baseline, &distributed, &endLoaded}) {
+            component->CalculateLatency(2e-12);
+            component->CalculatePower();
+        }
+        Require(endLoaded.readLatency > baseline.readLatency,
+                "added matchline capacitance must increase precharge latency");
+        if (lineResistance == 0) {
+            AssertNear(endLoaded.readLatency, distributed.readLatency);
+        } else {
+            Require(endLoaded.readLatency > distributed.readLatency,
+                    "far-end capacitance must see the full wire resistance");
+        }
+        // ML charging is accounted in the subarray, not again in control energy.
+        AssertNear(endLoaded.readDynamicEnergy, baseline.readDynamicEnergy);
+    }
+}
+
 void TestRowDecoderTopologiesAndInputValidation() {
     const auto config = MakeEvaCamConfig();
     for (int nandInputs : {0, 2, 3}) {
@@ -201,6 +226,7 @@ int main() {
     TestUninitializedComponentsRejectCalculations();
     TestPrechargerCalculatesGeometryLatencyAndPower();
     TestPrechargerScalesWithColumnCount();
+    TestPrechargerEndCapacitance();
     TestRowDecoderTopologiesAndInputValidation();
     TestRowDecoderScalesAndPrints();
     TestSenseAmpVoltageAndCurrentModes();

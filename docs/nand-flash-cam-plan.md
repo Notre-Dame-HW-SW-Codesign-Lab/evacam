@@ -8,8 +8,8 @@ Prepared against `updated` at `96e257a` on 2026-09-23. Scope: NAND-flash-based C
 first-moment RC estimates. See [NAND TCAM](nand-tcam.md) and
 [3D NAND TCAM](nand-3d-tcam.md). The 3D path retains stack/layout geometry,
 select-group scheduling and supplied peripheral costs. Nodal RC and nonlinear
-experiments remain separate verification tools; they are not used by the normal
-CAM estimator. Shipped values are synthetic and no device-level accuracy is
+solvers and their dependent validation runners have been removed as outside
+the analytical CAM estimator scope; prior comparison reports remain historical records. Shipped values are synthetic and no device-level accuracy is
 claimed. The dated investigation and proposed stages below are historical
 planning material, not a statement of the current production scope.
 

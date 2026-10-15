@@ -28,7 +28,8 @@ Known unsupported or incomplete modes:
 
 - `DRAM` is under development
 - `eDRAM` is under development
-- `MLCNAND` is under development
+- `MLCNAND` supports table-based exact NAND TCAM and nominal distance thresholds; conventional flash reads and
+  programming physics are not modeled. See [multilevel NAND](nand-multilevel-tcam.md).
 
 The named non-flash examples are design exploration inputs, not complete
 paper reproductions. The [paper comparison](validation/named-cam-papers.md)
@@ -73,8 +74,8 @@ automatically scale across load, voltage, process or temperature.
   512-wordline matching string can pass the approximation's 100 mV margin
   requirement while providing only 75 mV in the full linear RC calculation.
   The supplied precharge time is also assumed sufficient, not verified.
-- Fixed `[strings, logical key bits]` subarray dimensions describe one erase
-  block. Physical pages contain one bit per string. Keys must fit in one
+- Fixed `[strings, key symbols]` subarray dimensions describe one erase
+  block. A symbol is one bit for SLC and `log2(states)` bits for a table. Physical pages contain one bit per string. Keys must fit in one
   string after complementary encoding and a validity pair.
 - NAND uses supplied query, wordline-driver, sense, page-buffer, and operation
   costs. Generic CAM peripheral toggles, external sensing, generic matchline
@@ -90,26 +91,30 @@ automatically scale across load, voltage, process or temperature.
 - The generic subarray dimension tester and independent dimension overrides
   are unsupported for NAND; change fixed NAND architecture configurations
   together with their physical page/block geometry.
-- No multilevel, approximate/top-k, segmented-word, conventional storage-read,
+- Table-based `TH` supports nominal squared-distance diagnostics, including
+  position-dependent voltage bounds. It does not provide statistical variation
+  or guarantee distance-class separation. No top-k, segmented-word, conventional storage-read,
   retention/disturb/endurance, ECC, or SSD-controller model is provided.
-- See [NAND TCAM](nand-tcam.md) for geometry, sensing margins, operation units,
-  provenance, and the supported example.
+- See [NAND TCAM](nand-tcam.md) for the SLC example and
+  [multilevel NAND](nand-multilevel-tcam.md) for table formats and encoding.
 
 ## 3D NAND String TCAM
 
-- `NAND3D` is a separate SLC-mode backend with explicit vertical stack and
-  lateral layout geometry and the same first-moment, single-exponential RC
+- `NAND3D` is a separate backend with SLC and table-based multilevel modes,
+  explicit vertical stack and lateral layout geometry and the same first-moment, single-exponential RC
   approach as the planar analytical model.
-- The supplied 3D example is synthetic and uncalibrated. Numerical convergence
-  checks of the separate nodal reference verify circuit equations; they do not validate
+- The supplied 3D example is synthetic and uncalibrated. Historical numerical convergence
+  checks of the former nodal reference verified circuit equations; they did not validate
   flash device physics, fabricated area, or measurements from a paper.
 - Sense bounds cover supported patterns within the analytical approximation,
   not the full distributed RC transient. Full precharge and recovery reset are
   assumed each round; phase durations are supplied and their sufficiency is not
-  simulated. The separate nodal reference retains known approximation failures.
+  simulated. Historical comparison reports retain known approximation failures. The nonlinear
+  and transient solvers and their dependent runners have been removed.
 - A physical page contains one bit per string in one select group. Groups are
   searched sequentially; each logical entry occupies a complete vertical string.
-- Only SLC resistance states and linear capacitances are modeled. No
+- Only fixed effective resistances and linear capacitances are modeled.
+  Multilevel tables are supplied at fixed operating conditions; no
   nonlinear transistor I–V, charge trapping, process variation, coupling noise,
   high-voltage programming waveform, retention, or endurance model is included.
 - The operation and runtime restrictions listed for NAND string TCAM above also

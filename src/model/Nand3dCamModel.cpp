@@ -52,17 +52,24 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
         long keyWidth, int muxSenseAmp, const Wire &wire) {
     initialized = false;
     metrics = {};
+    distanceContext = {};
     Require(config && config->technology.cell, "configuration must include a memory device");
     const auto &cell = *config->technology.cell;
     Require(cell.memCellType == NAND3D && cell.nandString && cell.camType == TCAM,
             "requires NAND3D with nand_string topology and TCAM");
-    Require(config->input.designTarget == CAM_chip && config->input.searchFunction == EX
+    Require(config->input.designTarget == CAM_chip
+                    && (config->input.searchFunction == EX || config->input.searchFunction == TH)
                     && config->input.internalSensing && !cell.withVariation,
-            "only exact internally sensed CAM without variation is supported");
+            "only exact/threshold internally sensed CAM without variation is supported");
     device = cell.nand3d;
     const auto &electrical = device.electrical;
-    Require(device.configured && device.storageMode == "SLC"
-                    && electrical.model == "analytical_rc", "requires configured SLC analytical_rc NAND3D");
+    const int bitsPerCell = electrical.table.BitsPerCell();
+    Require(config->input.searchFunction != TH || !electrical.table.resistance.empty(),
+            "NAND threshold analysis requires a resistance_table");
+    const std::string storageMode = bitsPerCell == 1 ? "SLC" : bitsPerCell == 2 ? "MLC" : bitsPerCell == 3 ? "TLC" : "QLC";
+    Require(device.configured && device.storageMode == storageMode
+                    && electrical.model == "analytical_rc", "requires configured analytical_rc NAND3D with storage_mode matching resistance_table");
+    if (!electrical.table.resistance.empty()) electrical.table.Validate(electrical.voltagePass, electrical.resistancePass);
     Require(!electrical.source.empty(), "model source is required");
     Require(electrical.calibrationStatus == "synthetic" || electrical.calibrationStatus == "uncalibrated"
                     || electrical.calibrationStatus == "calibrated", "invalid calibration status");
@@ -118,8 +125,8 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
             "keyWidth must fit storage layers including the reserved validity pair");
     Require(config->input.pageSize == device.stringColumns,
             "physical flash.page_size must equal string_columns bits");
-    Require(config->input.flashBlockSize == entries * device.storageLayers,
-            "physical flash.block_size must equal rows * columns * storage_layers bits");
+    Require(config->input.flashBlockSize == entries * device.storageLayers * bitsPerCell,
+            "physical flash.block_size must equal rows * columns * storage_layers * bits_per_cell bits");
     Require(muxSenseAmp > 0 && muxSenseAmp <= 256 && device.stringColumns % muxSenseAmp == 0,
             "sense mux must divide string_columns and be at most 256");
     Positive(device.holePitchX, "layout.hole_pitch_x");
@@ -147,7 +154,7 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
     metrics.paddingWordlines = device.storageLayers - 2 * (keyWidth + 1);
     metrics.physicalCells = entries * device.storageLayers;
     metrics.physicalPageBits = device.stringColumns;
-    metrics.physicalBlockBits = metrics.physicalCells;
+    metrics.physicalBlockBits = metrics.physicalCells * bitsPerCell;
     metrics.senseAmplifiers = device.stringColumns / mux;
     metrics.searchRounds = device.stringRows * mux;
     metrics.queryBitCount = 2 * (keyWidth + 1);
@@ -171,6 +178,19 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
         {"voltage_evaluation", "single_exponential_at_decision_time"}
     };
 
+    if (!electrical.table.resistance.empty()) {
+        metrics.metadata["encoding"] = "multilevel_complementary_states_with_binary_validity_pair";
+        metrics.metadata["cell_response"] = "stored_state_by_query_voltage_resistance_table";
+        metrics.metadata["table_bias_scope"] = "fixed_effective_resistance_no_local_bias_feedback";
+        metrics.metadata["page_scope"] = "one_bit_plane_per_selected_wordline";
+        metrics.metadata["query_routing"] = "two_bias_codes_per_symbol_including_pass_mask";
+        metrics.queryBitCount = 2 * (bitsPerCell + 1) * keyWidth + 2;
+    }
+    if (config->input.searchFunction == TH) {
+        metrics.metadata["search_mode"] = "nominal_distance_threshold_analysis";
+        metrics.metadata["sense_margin_scope"] = "exact_search_diagnostic_only";
+        metrics.metadata["threshold_feasibility"] = "requires_explicit_query_and_threshold_evaluation";
+    }
     const double coreWidth = device.stringColumns * device.holePitchX;
     const double coreHeight = device.stringRows * device.holePitchY;
     const double staircaseWidth = (totalGateLayers + 2) * device.staircaseStepWidth;
@@ -231,31 +251,60 @@ void Nand3dCamModel::Initialize(std::shared_ptr<EvaCamConfig> config, long long 
         capacitances.push_back(electrical.capacitanceBitline + config->peripherals.addCapOnML + wireCapacitance);
         allPassResistances.push_back(electrical.resistanceSelect + wireResistance);
     }
-    // Positive downstream-capacitance weights make a source-side read device
-    // the slowest matching member of each complementary pair. As in the
-    // planar analytical model, all other queries masked gives the fastest
-    // one-device mismatch. These are bounds on this approximation, not on
-    // the full distributed transient or measured NAND hardware.
-    auto slowMatch = allPassResistances;
-    slowMatch[sourceDummyLayers] = electrical.resistanceReadOn;
-    for (long bit = 0; bit < keyWidth; bit++) {
-        slowMatch[sourceDummyLayers + 2 + 2 * bit] = electrical.resistanceReadOn;
+    if (electrical.table.resistance.empty()) {
+        // Positive downstream-capacitance weights make a source-side read device
+        // the slowest matching member of each complementary pair. As in the
+        // planar analytical model, all other queries masked gives the fastest
+        // one-device mismatch. These are bounds on this approximation, not on
+        // the full distributed transient or measured NAND hardware.
+        auto slowMatch = allPassResistances;
+        slowMatch[sourceDummyLayers] = electrical.resistanceReadOn;
+        for (long bit = 0; bit < keyWidth; bit++) {
+            slowMatch[sourceDummyLayers + 2 + 2 * bit] = electrical.resistanceReadOn;
+        }
+        metrics.slowestMatchTimeConstant = StringTimeConstant(slowMatch);
+        auto fastMismatch = allPassResistances;
+        fastMismatch[sourceDummyLayers] = electrical.resistanceReadOn;
+        const long lastKeyDevice = sourceDummyLayers + 2 * keyWidth + 1;
+        fastMismatch[lastKeyDevice] = electrical.resistanceOff;
+        metrics.fastestMismatchTimeConstant = StringTimeConstant(fastMismatch);
+        fastMismatch[lastKeyDevice] = electrical.resistancePass;
+        fastMismatch[sourceDummyLayers] = electrical.resistanceOff;
+        metrics.fastestMismatchTimeConstant = std::min(metrics.fastestMismatchTimeConstant,
+                StringTimeConstant(fastMismatch));
+    } else {
+        auto base = allPassResistances;
+        base[sourceDummyLayers] = electrical.resistanceReadOn;
+        std::vector<double> weights(allPassResistances.size());
+        double downstream = 0;
+        for (std::size_t index = weights.size(); index > 0; --index) {
+            downstream += capacitances[index];
+            weights[index - 1] = downstream;
+        }
+        const auto bounds = NandTableTimeBounds(electrical.table, electrical.resistancePass,
+                weights, sourceDummyLayers + 2, keyWidth, StringTimeConstant(base),
+                (electrical.resistanceOff - electrical.resistanceReadOn) * weights[sourceDummyLayers]);
+        distanceContext.table = electrical.table;
+        distanceContext.weights = weights;
+        distanceContext.firstKey = sourceDummyLayers + 2;
+        distanceContext.symbols = keyWidth;
+        distanceContext.baseTimeConstant = StringTimeConstant(base);
+        distanceContext.baseResistance = electrical.resistanceSelect + std::accumulate(base.begin(), base.end(), 0.0);
+        distanceContext.invalidTimeIncrement = (electrical.resistanceOff - electrical.resistanceReadOn)
+                * weights[sourceDummyLayers];
+        distanceContext.prechargeVoltage = electrical.voltagePrecharge;
+        distanceContext.passResistance = electrical.resistancePass;
+        distanceContext.configuredReference = electrical.referenceVoltage;
+        distanceContext.senseOffset = electrical.senseOffset;
+        distanceContext.requiredMargin = electrical.minSenseMargin;
+        metrics.slowestMatchTimeConstant = bounds.first;
+        metrics.fastestMismatchTimeConstant = bounds.second;
     }
-    metrics.slowestMatchTimeConstant = StringTimeConstant(slowMatch);
-    auto fastMismatch = allPassResistances;
-    fastMismatch[sourceDummyLayers] = electrical.resistanceReadOn;
-    const long lastKeyDevice = sourceDummyLayers + 2 * keyWidth + 1;
-    fastMismatch[lastKeyDevice] = electrical.resistanceOff;
-    metrics.fastestMismatchTimeConstant = StringTimeConstant(fastMismatch);
-    fastMismatch[lastKeyDevice] = electrical.resistancePass;
-    fastMismatch[sourceDummyLayers] = electrical.resistanceOff;
-    metrics.fastestMismatchTimeConstant = std::min(metrics.fastestMismatchTimeConstant,
-            StringTimeConstant(fastMismatch));
     metrics.matchVoltage = electrical.voltagePrecharge
             * std::exp(-electrical.decisionTime / metrics.slowestMatchTimeConstant);
     metrics.mismatchVoltage = electrical.voltagePrecharge
             * std::exp(-electrical.decisionTime / metrics.fastestMismatchTimeConstant);
-    const std::vector<int> zeros(keyWidth, 0);
+    const std::vector<int> zeros(keyWidth, electrical.table.resistance.empty() ? 0 : electrical.table.WorstEnergyQuery());
     // Full reset and all-pass precharge are assumed sufficient each round.
     // Constant-voltage supply charging costs CV^2, not stored energy CV^2/2.
     const double prechargeEnergy = mux * std::accumulate(capacitances.begin(), capacitances.end(), 0.0)
@@ -308,6 +357,12 @@ std::vector<double> Nand3dCamModel::Encode(const std::vector<int> &stored,
     const auto &electrical = device.electrical;
     resistance[sourceDummyLayers] = valid ? electrical.resistanceReadOn : electrical.resistanceOff;
     for (std::size_t bit = 0; bit < stored.size(); bit++) {
+        if (!electrical.table.resistance.empty()) {
+            const auto pair = electrical.table.Pair(stored[bit], query[bit], electrical.resistancePass);
+            resistance[sourceDummyLayers + 2 + 2 * bit] = pair.first;
+            resistance[sourceDummyLayers + 3 + 2 * bit] = pair.second;
+            continue;
+        }
         Require(stored[bit] >= -1 && stored[bit] <= 1 && query[bit] >= -1 && query[bit] <= 1,
                 "symbols must be -1 (wildcard), 0 or 1");
         if (query[bit] != -1) resistance[sourceDummyLayers + 2 + 2 * bit + query[bit]] =
@@ -334,16 +389,20 @@ double Nand3dCamModel::QueryGateEnergy(const std::vector<int> &query) const {
     const auto &electrical = device.electrical;
     long long selected = 1;
     for (int symbol : query) selected += symbol != -1;
+    double voltageSum = selected * (electrical.voltagePass - electrical.voltageRead);
+    if (!electrical.table.resistance.empty()) {
+        voltageSum = electrical.voltagePass - electrical.voltageRead;
+        for (int symbol : query) voltageSum += electrical.table.RechargeVoltageSum(symbol, electrical.voltagePass);
+    }
     // Recovery itself requires all-pass bias after EVERY evaluation, including
     // the last round. Initial charging and final reset are per full query.
     return gateCapacitancePerWordline * (totalGateLayers * electrical.voltagePass * electrical.voltagePass
-            + static_cast<double>(metrics.searchRounds) * selected * electrical.voltagePass
-                * (electrical.voltagePass - electrical.voltageRead)) / electrical.supplyEfficiency;
+            + static_cast<double>(metrics.searchRounds) * electrical.voltagePass * voltageSum) / electrical.supplyEfficiency;
 }
 
 double Nand3dCamModel::QueryDriverEnergy(const std::vector<int> &query) const {
     long long selected = 1;
-    for (int symbol : query) selected += symbol != -1;
+    for (int symbol : query) selected += (symbol != -1) * (device.electrical.table.resistance.empty() ? 1 : 2);
     return (2.0 * totalGateLayers + 2.0 * metrics.searchRounds * selected)
             * device.electrical.wordlineDriver.energy;
 }

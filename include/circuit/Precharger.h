@@ -26,7 +26,8 @@ class Precharger: public FunctionUnit {
                 double _capBitline, 
                 double _resBitline,
                 std::shared_ptr<EvaCamConfig> _config, 
-                const Wire &_localWire);
+                const Wire &_localWire,
+                double _capBitlineEnd = 0);
 
         void CalculateArea();
         void CalculateRC();
@@ -38,6 +39,7 @@ class Precharger: public FunctionUnit {
         OutputDriver outputDriver;
         double voltagePrecharge;    /* Precharge Voltage */
         double capBitline;
+        double capBitlineEnd = 0;    /* Lumped far-end load, separate from distributed line load */
         double resBitline;
         double capLoadInv;
         double capOutputBitlinePrecharger;

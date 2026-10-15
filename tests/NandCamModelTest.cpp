@@ -326,7 +326,7 @@ void TestValidationAndLifecycle() {
     AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "calibrationStatus");
     fixture.Device().calibrationStatus = "uncalibrated";
     fixture.config->input.searchFunction = TH;
-    AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "exact search");
+    AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "resistance_table");
     fixture.config->input.searchFunction = EX;
     fixture.wire.initialized = false;
     AssertThrows<std::invalid_argument>([&] { fixture.Initialize(); }, "wire");

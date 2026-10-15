@@ -181,11 +181,11 @@ unit-test-inventory:
 check-unit-test-inventory:
 	python3 scripts/generate_unit_test_inventory.py --check
 
-PYTHON_SCRIPT_TEST_TARGETS=test-nand-nvsim-validation test-nand-nonlinear-numerics test-nand-park-reference test-nand-kondo-validation test-nand3d-numerics test-nand-rc-reference test-nand-validation test-python-package-data test-config-migration-scripts \
+PYTHON_SCRIPT_TEST_TARGETS=test-nand-park-reference test-python-package-data test-config-migration-scripts \
 		test-config-sync-script test-generation-scripts test-sweep-analysis-scripts \
 		test-plotting-scripts test-mcam-voltage-plot test-inventory-generator
 
-UNIT_TEST_TARGETS=test-nand-technology-defaults test-nand-cell-current test-nand-nonlinear-string test-nand3d-config test-nand3d-model test-nand-rc-ladder test-nand3d-results test-nand3d-integration test-nand-config test-nand-model test-nand-results test-nand-integration test-mcam-pair-response test-test-support test-derived-values test-config-normalizer test-config-sections \
+UNIT_TEST_TARGETS=test-nand-distance test-nand-resistance-table test-nand-technology-defaults test-nand3d-config test-nand3d-model test-nand3d-results test-nand3d-integration test-nand-config test-nand-model test-nand-results test-nand-integration test-mcam-pair-response test-test-support test-derived-values test-config-normalizer test-config-sections \
 		test-output-file-lock \
 		test-evacam-config test-config-validators test-technology-variation-config \
 		test-yaml-primitives test-physical-domain-validators test-cell-memory-loader-branches \
@@ -235,7 +235,7 @@ test-named-cam-regression: $(OBJECTS_NO_MAIN) tests/NamedCamRegressionTest.cpp t
 
 test-unit: $(UNIT_TEST_TARGETS)
 
-test-regression: test-pybind-nand3d test-pybind-nand test-generated-v2-configs test-montecarlo test-corner test-match \
+test-regression: test-nand-distance-plot test-pybind-nand3d test-pybind-nand test-generated-v2-configs test-montecarlo test-corner test-match \
 		test-mat-decoder test-htree-routing test-exhaustive-search test-pybind-match \
 		test-pybind-run
 
@@ -764,23 +764,7 @@ test-nand-integration: $(OBJECTS_NO_MAIN) tests/NandIntegrationTest.cpp tests/Te
 test-pybind-nand: $(PYBIND_MODULE)
 	python3 tests/test_pybind_nand.py
 
-.PHONY: nand-validation-probe validate-nand-literature test-nand-rc-reference test-nand-validation
-nand-validation-probe: $(TEST_BIN_DIR)/NandValidationProbe
-
-$(TEST_BIN_DIR)/NandValidationProbe: $(OBJECTS_NO_MAIN) tests/NandValidationProbe.cpp
-	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandValidationProbe.d -MT $@ -o $@ tests/NandValidationProbe.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-
-validate-nand-literature: $(BIN) nand-validation-probe
-	OPENBLAS_NUM_THREADS=1 python3 scripts/validate_nand_literature.py
-
-test-nand-rc-reference:
-	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_rc_reference.py
-
-test-nand-validation: $(BIN) nand-validation-probe
-	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_validation.py
-
-.PHONY: test-nand3d-config test-nand3d-model test-nand-rc-ladder test-nand3d-results test-nand3d-integration test-pybind-nand3d
+.PHONY: test-nand3d-config test-nand3d-model test-nand3d-results test-nand3d-integration test-pybind-nand3d
 
 test-nand3d-config: $(OBJECTS_NO_MAIN) tests/Nand3dConfigTest.cpp tests/TestSupport.h
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
@@ -791,11 +775,6 @@ test-nand3d-model: $(OBJECTS_NO_MAIN) tests/Nand3dCamModelTest.cpp tests/TestSup
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
 	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/Nand3dCamModelTest.d -MT $(TEST_BIN_DIR)/Nand3dCamModelTest -o $(TEST_BIN_DIR)/Nand3dCamModelTest tests/Nand3dCamModelTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
 	$(TEST_BIN_DIR)/Nand3dCamModelTest
-
-test-nand-rc-ladder: $(OBJECTS_NO_MAIN) tests/NandRcLadderTest.cpp tests/TestSupport.h
-	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandRcLadderTest.d -MT $(TEST_BIN_DIR)/NandRcLadderTest -o $(TEST_BIN_DIR)/NandRcLadderTest tests/NandRcLadderTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
-	$(TEST_BIN_DIR)/NandRcLadderTest
 
 test-nand3d-results: $(OBJECTS_NO_MAIN) tests/Nand3dResultsTest.cpp tests/TestSupport.h
 	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
@@ -810,61 +789,12 @@ test-nand3d-integration: $(OBJECTS_NO_MAIN) tests/Nand3dIntegrationTest.cpp test
 test-pybind-nand3d: $(BIN) $(PYBIND_MODULE)
 	python3 tests/test_pybind_nand3d.py
 
-.PHONY: test-nand3d-numerics nand-rc-ladder-probe
-nand-rc-ladder-probe: $(TEST_BIN_DIR)/NandRcLadderProbe
-
-$(TEST_BIN_DIR)/NandRcLadderProbe: $(OBJ_DIR)/model/NandRcLadder.o tests/NandRcLadderProbe.cpp
-	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandRcLadderProbe.d -MT $@ -o $@ tests/NandRcLadderProbe.cpp $(OBJ_DIR)/model/NandRcLadder.o $(LD_LIBS)
-
-test-nand3d-numerics: nand-rc-ladder-probe nand-validation-probe
-	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand3d_numerics.py
-
-.PHONY: validate-nand-kondo investigate-nand-kondo test-nand-kondo-validation
-validate-nand-kondo: nand-rc-ladder-probe
-	OPENBLAS_NUM_THREADS=1 python3 scripts/validate_nand_kondo.py
-
-investigate-nand-kondo: nand-rc-ladder-probe
-	OPENBLAS_NUM_THREADS=1 python3 scripts/investigate_nand_kondo.py
-
-test-nand-kondo-validation: nand-rc-ladder-probe
-	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_kondo_validation.py
-
-.PHONY: validate-nand-nvsim test-nand-nvsim-validation
-validate-nand-nvsim: nand-rc-ladder-probe
-	OPENBLAS_NUM_THREADS=1 python3 scripts/validate_nand_nvsim.py $(if $(NVSIM_SOURCE),--nvsim-source "$(NVSIM_SOURCE)")
-
-test-nand-nvsim-validation: nand-rc-ladder-probe
-	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_nvsim_validation.py
-
 .PHONY: validate-nand-park-reference test-nand-park-reference
 validate-nand-park-reference:
 	python3 scripts/check_nand_park_reference.py
 
 test-nand-park-reference:
 	python3 -m unittest tests/test_nand_park_reference.py
-
-.PHONY: test-nand-cell-current test-nand-nonlinear-string
-
-test-nand-cell-current: $(OBJ_DIR)/model/NandCellCurrentModel.o tests/NandCellCurrentModelTest.cpp tests/TestSupport.h
-	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandCellCurrentModelTest.d -MT $(TEST_BIN_DIR)/NandCellCurrentModelTest -o $(TEST_BIN_DIR)/NandCellCurrentModelTest tests/NandCellCurrentModelTest.cpp $(OBJ_DIR)/model/NandCellCurrentModel.o $(LD_LIBS)
-	$(TEST_BIN_DIR)/NandCellCurrentModelTest
-
-test-nand-nonlinear-string: $(OBJ_DIR)/model/NandCellCurrentModel.o $(OBJ_DIR)/model/NandNonlinearString.o tests/NandNonlinearStringTest.cpp tests/TestSupport.h
-	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandNonlinearStringTest.d -MT $(TEST_BIN_DIR)/NandNonlinearStringTest -o $(TEST_BIN_DIR)/NandNonlinearStringTest tests/NandNonlinearStringTest.cpp $(OBJ_DIR)/model/NandCellCurrentModel.o $(OBJ_DIR)/model/NandNonlinearString.o $(LD_LIBS)
-	$(TEST_BIN_DIR)/NandNonlinearStringTest
-
-.PHONY: nand-nonlinear-string-probe test-nand-nonlinear-numerics
-nand-nonlinear-string-probe: $(TEST_BIN_DIR)/NandNonlinearStringProbe
-
-$(TEST_BIN_DIR)/NandNonlinearStringProbe: $(OBJ_DIR)/model/NandCellCurrentModel.o $(OBJ_DIR)/model/NandNonlinearString.o tests/NandNonlinearStringProbe.cpp
-	@mkdir -p $(TEST_DEP_DIR) $(TEST_BIN_DIR)
-	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandNonlinearStringProbe.d -MT $@ -o $@ tests/NandNonlinearStringProbe.cpp $(OBJ_DIR)/model/NandCellCurrentModel.o $(OBJ_DIR)/model/NandNonlinearString.o $(LD_LIBS)
-
-test-nand-nonlinear-numerics: nand-nonlinear-string-probe
-	OPENBLAS_NUM_THREADS=1 python3 -m unittest tests/test_nand_nonlinear_numerics.py
 
 .PHONY: test-original-cam-circuits test-original-evacam-validation validate-original-evacam
 test-original-cam-circuits: $(OBJECTS_NO_MAIN) tests/OriginalCamCircuitsTest.cpp tests/TestSupport.h
@@ -914,3 +844,20 @@ audit-fefet-energy: legacy-comparison-probe
 
 UNIT_TEST_TARGETS += test-fefet-energy-audit
 test-unit: test-fefet-energy-audit
+
+.PHONY: test-nand-resistance-table
+
+test-nand-resistance-table: $(OBJECTS_NO_MAIN) tests/NandResistanceTableTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_BIN_DIR) $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandResistanceTableTest.d -MT $(TEST_BIN_DIR)/NandResistanceTableTest -o $(TEST_BIN_DIR)/NandResistanceTableTest tests/NandResistanceTableTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandResistanceTableTest
+
+.PHONY: test-nand-distance
+test-nand-distance: $(OBJECTS_NO_MAIN) tests/NandDistanceAnalysisTest.cpp tests/TestSupport.h
+	@mkdir -p $(TEST_BIN_DIR) $(TEST_DEP_DIR)
+	$(CC) $(CPP_FLAGS) -MF $(TEST_DEP_DIR)/NandDistanceAnalysisTest.d -MT $(TEST_BIN_DIR)/NandDistanceAnalysisTest -o $(TEST_BIN_DIR)/NandDistanceAnalysisTest tests/NandDistanceAnalysisTest.cpp $(OBJECTS_NO_MAIN) $(LD_LIBS)
+	$(TEST_BIN_DIR)/NandDistanceAnalysisTest
+
+.PHONY: test-nand-distance-plot
+test-nand-distance-plot: $(PYBIND_MODULE)
+	python3 tests/test_nand_distance_plot.py

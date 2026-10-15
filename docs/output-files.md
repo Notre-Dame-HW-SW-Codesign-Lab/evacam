@@ -334,3 +334,16 @@ Conventional read/write breakdowns retain their existing diagnostic scope.
 
 See the [accounting audit](validation/accounting-and-timing-audit.md) for model
 assumptions and the effects on reference comparisons.
+
+For table-based NAND, `geometry.bits_per_cell` and `bits_per_symbol` equal
+`log2(table states)`, while `symbols_per_key` gives the matcher vector length.
+Logical widths/capacities count encoded key bits; `physical_cell_count` counts
+transistors, and `physical_block_bits` counts all nominal bit planes.
+`metadata.cell_response` identifies the stored-state/query-voltage resistance
+table. See [multilevel NAND](nand-multilevel-tcam.md) for encoding and operation
+scopes. No-solution assumptions also identify the table and its bit count.
+
+NAND `TH` aggregate outputs label sense margins as exact-search diagnostics and
+set `timing.sense_margin_enforced` to zero. Threshold feasibility requires an
+explicit query/cutoff evaluation. See [NAND distance analysis](nand-multilevel-tcam.md#nominal-distance-and-threshold-analysis)
+for per-threshold CSV/JSON and voltage/position plots.

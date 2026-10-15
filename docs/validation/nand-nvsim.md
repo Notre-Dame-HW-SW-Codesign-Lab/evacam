@@ -1,5 +1,7 @@
 # Matched NVSim flash validation
 
+> Historical record: nonlinear and transient NAND solvers, their probes, and dependent validation runners were removed from EvaCAM on 2026-10-15 as outside its analytical modeling scope. Commands and solver descriptions below document earlier experiments and are no longer runnable in this checkout. Recorded results remain evidence of the analytical approximation’s limitations, not current device calibration.
+
 Executed 2026-10-02. **The numerical checks pass; better physical accuracy than
 NVSim is not established.** NVSim's uncorrected aggregate RC estimate is already
 within 0.48% of the independent solution on these 16 matched fixtures. The nodal
@@ -45,7 +47,7 @@ Retained baseline inputs and outputs:
 - [Native CLI configuration](data/nvsim/baseline.cfg) and
   [raw console output](data/nvsim/baseline.stdout.txt).
 - [Full-precision extracted circuits and energy components](data/nvsim/baseline.json).
-- [Evaluator](../../scripts/validate_nand_nvsim.py), which compares fresh native
+- `scripts/validate_nand_nvsim.py` (removed), which compares fresh native
   results with the frozen extraction before evaluating circuits.
 - Generated `output/validation/nand-nvsim/report.json`, `comparison.png`,
   `comparison.svg`, and individual probe request/result YAML files. A replay

@@ -66,7 +66,7 @@ void TestDistinctBackendFactory() {
     const auto vertical = CreateNandCamBackend(NAND3D);
     Require(dynamic_cast<NandCamModel*>(planar.get()), "SLCNAND retains analytical backend");
     Require(dynamic_cast<Nand3dCamModel*>(vertical.get()), "NAND3D selects distinct physical backend");
-    AssertThrows<std::invalid_argument>([] { CreateNandCamBackend(SRAM); }, "SLCNAND or NAND3D");
+    AssertThrows<std::invalid_argument>([] { CreateNandCamBackend(SRAM); }, "SLCNAND, MLCNAND, or NAND3D");
     AssertThrows<std::runtime_error>([&] { vertical->Metrics(); }, "initializ");
 }
 

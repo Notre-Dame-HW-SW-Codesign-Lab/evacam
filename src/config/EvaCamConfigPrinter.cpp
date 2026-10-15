@@ -140,15 +140,17 @@ void EvaCamConfigPrinter::Print(const EvaCamConfig &config) {
             std::cout << "Array Layout: vertical 3D, " << geometry.storageLayers
                       << " storage layers and " << geometry.dummyLayers << " dummy layers" << std::endl;
             std::cout << "String Grid: " << geometry.stringRows << " x " << geometry.stringColumns << std::endl;
-            std::cout << "Electrical Model: finite-precharge linear RC transient; supplied device parameters" << std::endl;
+            std::cout << "Electrical Model: analytical first-moment RC; full precharge assumed" << std::endl;
         }
         std::cout << "Physical Page: " << input.pageSize << " bits; Physical Erase Block: "
                   << input.flashBlockSize << " bits" << std::endl;
         std::cout << "Fixed Subarray: " << config.runtimeSizing.fixedSubarrayRows
                   << " strings x " << config.runtimeSizing.fixedSubarrayColumns
-                  << " logical key bits" << std::endl;
+                  << " key symbols (" << config.wordGeometry.bitsPerCell << " bits/symbol)" << std::endl;
         std::cout << "Routing Mode: " << (input.routingMode == h_tree ? "H-tree" : "Non-H-tree") << std::endl;
-        std::cout << "Sensing: internal, match discharges bitline, reference margin enforced" << std::endl;
+        std::cout << "Sensing: internal, match discharges bitline, "
+                  << (input.searchFunction == EX ? "reference margin enforced"
+                      : "threshold margin requires explicit query/threshold evaluation") << std::endl;
         std::cout << "Peripherals: supplied NAND query, drivers, sensing, and page-buffer costs" << std::endl;
         std::cout << "Program / Erase Scope: one physical page / one physical block" << std::endl;
         std::cout << "Optimization: ";

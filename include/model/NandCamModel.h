@@ -67,6 +67,14 @@ class NandCamBackend {
         virtual const NandCamMetrics &Metrics() const = 0;
         virtual EvaCAMMatchResult Evaluate(const std::vector<int> &stored,
                 const std::vector<int> &query, bool valid = true) const = 0;
+        EvaCAMMatchResult EvaluateDistance(const std::vector<int> &stored,
+                const std::vector<int> &query) const;
+        EvaCAMMatchResult EvaluateDistanceThreshold(const std::vector<int> &stored,
+                const std::vector<int> &query, double maximumSquaredDistance) const;
+        std::vector<EvaCAMDistanceVoltageBounds> DistanceVoltageBounds(
+                const std::vector<int> &query) const;
+    protected:
+        NandDistanceContext distanceContext;
 };
 
 // Explicit exploratory first-moment RC approximation, not a calibrated NAND

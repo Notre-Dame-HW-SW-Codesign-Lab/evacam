@@ -212,7 +212,7 @@ namespace {
         const bool nand3d = config.technology.cell && config.technology.cell->memCellType == NAND3D;
         y.begin_map("assumptions");
         y.line("model_identifier", nand3d ? "evacam-nand3d-tcam-v1" : config.technology.cell
-                && config.technology.cell->memCellType == SLCNAND
+                && config.technology.cell->nandString
                 ? "evacam-nand-tcam-v1" : "evacam-cam-v1");
         y.line("design_target", "CAM");
         y.line("routing", config.input.routingMode == h_tree ? "h_tree" : "non_h_tree");
@@ -274,7 +274,7 @@ namespace {
             }
         }
         y.line("include_leakage", bool_name(config.peripherals.includeLeakage));
-        y.line("strict_sense_margin", bool_name(nand3d || config.peripherals.strictSenseMargin));
+        y.line("strict_sense_margin", bool_name((config.technology.cell && config.technology.cell->nandString && config.input.searchFunction == EX) || config.peripherals.strictSenseMargin));
         y.line("scaled_voltage", fmt_voltage(config.peripherals.scaledVoltage));
         y.end_map();
         if (config.peripherals.explicitSearchTiming) {
@@ -317,6 +317,16 @@ namespace {
             y.line("calibration_status", quoted_string(nand.calibrationStatus));
             y.line("model_source", quoted_string(nand.source));
             y.line("read_metrics", "unavailable");
+            if (config.input.searchFunction == TH) {
+                y.line("threshold_feasibility", "requires_explicit_query_and_threshold_evaluation");
+                y.line("sense_margin_scope", "exact_search_diagnostic_only");
+            }
+            if (!nand.table.resistance.empty()) {
+                y.line("cell_response", "stored_state_by_query_voltage_resistance_table");
+                y.line("bits_per_cell", std::to_string(nand.table.BitsPerCell()));
+                y.line("table_bias_scope", "fixed_effective_resistance_no_local_bias_feedback");
+                y.line("encoding", "multilevel_complementary_states_with_binary_validity_pair");
+            }
             if (!nand.technologyDefaults.empty()) {
                 y.line("parameter_fallback", "technology_library_cmos_estimates");
                 y.line("technology_default_source", quoted_string(nand.technologyDefaultSource));

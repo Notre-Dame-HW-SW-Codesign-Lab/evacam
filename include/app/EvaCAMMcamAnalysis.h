@@ -21,6 +21,13 @@ struct EvaCAMDistanceVoltageBounds {
     std::vector<int> maximumConductanceStored;
     std::vector<int> maximumConductanceQuery;
     double sensingTime = 0;
+    // NAND voltage extrema need not coincide with DC conductance extrema.
+    double minimumTimeConstant = 0;
+    double maximumTimeConstant = 0;
+    std::vector<int> minimumVoltageStored;
+    std::vector<int> minimumVoltageQuery;
+    std::vector<int> maximumVoltageStored;
+    std::vector<int> maximumVoltageQuery;
 };
 
 struct EvaCAMMcamCompositionResult {

@@ -11,6 +11,10 @@ void PrintNandResult(const Result &result) {
     const auto &summary = dto.summary;
     const auto &geometry = dto.geometry;
     const bool is3d = dto.metadata.at("array_layout") == "vertical_3d";
+    if (result.config->input.searchFunction == TH) {
+        std::cout << "\nThreshold analysis: aggregate timing/energy only. Exact-search margins below are diagnostic; "
+                  << "threshold feasibility requires an explicit query and threshold.\n";
+    }
     std::cout << (is3d ? "\n3D NAND TCAM: complementary pairs with a validity pair\n"
                       : "\nNAND TCAM: complementary pairs with a validity pair\n")
         << "Model: " << dto.metadata.at("model_backend") << " ("
